@@ -1,0 +1,389 @@
+.expando-wrap, .file-wrap, .block-wrap, .case-wrap, .position-wrap {
+	border-bottom: solid 1px silver;
+	margin: 0px;
+	padding: 5px;
+	background-color:white;	
+	font-size: 11px;
+	font-family:  arial, tahoma, helvetica;
+}
+
+.expando-wrap>span.x-editable, .file-wrap>span.x-editable, .block-wrap>span.x-editable, 
+.case-wrap>span.x-editable, .position-wrap>span.x-editable {
+	height: 20px !important;
+	vertical-align:middle;
+}
+
+.card-wrap {
+	border: solid 1px silver;
+	margin: 5px;
+	padding: 5px;
+	background-color:white;	
+	font-size: small;
+	font-family: times;
+}
+
+.card {
+	margin-left:20px;	
+}
+
+.tag {
+	font-weight:bold;	
+}
+
+.cite {
+	font-size:smaller;	
+}
+
+.author {
+	font-size:larger;
+	font-weight: bold;	
+}
+
+.source {
+	font-style: italic;	
+}
+
+.gradient {
+	background-image:url(/images/gradient.jpg);
+	background-position: top left;
+	background-repeat: repeat-x;
+}
+
+
+.x-view-over {
+	border-color:#ddd;
+    background-color:#efefef;
+}
+
+.x-view-selected {
+	background-color: #dfe8f6 !important;
+	border-color:#a3bae9;	
+}
+
+.x-arg {
+	display:block;
+	float:left;
+	width:90px;
+	border:solid 1px silver;
+	background-color:white;	
+}
+
+.x-arg-row {
+	display:block;
+	width:100%;
+}	
+
+.x-tbar-borderless {
+	border-bottom: none !important;
+}
+
+.dashboard {
+	font-size: small;	
+	font-family: Helvetica Neue, Helvetica;
+}
+
+.dashboard h1, #loading_indicator h1 {
+	font-size: 48pt;
+	border-bottom: solid 1px silver;
+	margin-bottom: 12pt;	
+}
+ul.dashboard-actions li {
+	padding: 2px 0px 0px 20px;
+	background-repeat: no-repeat;
+}
+ul.dashboard-actions li a {
+	text-decoration: none;
+}
+ul.dashboard-actions li a:hover {
+	text-decoration: underline;
+}
+
+.round {
+	border-style: solid 1px silver;
+	background-color: #efefef;
+	margin: 10px 0px;
+	padding: 10px;
+	border-radius: 10px;
+	-moz-border-radius:10px;	
+}
+
+.fp-new-file, .fp-new-block {
+	font-style: italic;	
+	color: silver;
+}
+
+.fp-help-with-icon {
+	padding-left: 20px;	
+}
+
+/* Icon Classes */
+/* General */
+.arrow-left {
+	background-image: url(/images/icons/fugue/arrow-180.png) !important;	
+}
+.arrow-right {
+	background-image: url(/images/icons/fugue/arrow.png) !important;	
+}
+.arrow-up {
+	background-image: url(/images/icons/fugue/arrow-090.png) !important;	
+}
+.arrow-down {
+	background-image: url(/images/icons/fugue/arrow-270.png) !important;	
+}
+.arrow-move {
+	background-image: url(/images/icons/fugue/arrow-move.png) !important;	
+}
+.pencil, .edit {
+	background-image: url(/images/icons/fugue/pencil.png) !important;	
+}
+.minus, .delete {
+	background-image: url(/images/icons/fugue/minus.png) !important;
+}
+.wrench, .tools {
+	background-image: url(/images/icons/fugue/wrench.png) !important;	
+}
+.tick {
+	background-image: url(/images/icons/fugue/tick.png) !important;
+}
+.cross {
+	background-image: url(/images/icons/fugue/cross.png) !important;
+}
+.plus, .add {
+	background-image: url(/images/icons/fugue/plus.png) !important;
+}
+.user-silhouette {
+	background-image: url(/images/icons/fugue/user-silhouette.png) !important;
+}
+/* Expando */
+.briefcase, .expando {
+	background-image: url(/images/icons/fugue/briefcase.png) !important;	
+}
+.briefcases, .expandos {
+	background-image: url(/images/icons/etc/briefcases.png) !important;	
+}
+.briefcase-plus, .expando-add {
+	background-image: url(/images/icons/fugue/briefcase--plus.png) !important;	
+}
+.briefcase-minus, .expando-delete {
+	background-image: url(/images/icons/fugue/briefcase--minus.png) !important;	
+}
+/* File */
+.folder, .file {
+	background-image: url(/images/icons/fugue/folder.png) !important;	
+}
+.folders, .files {
+	background-image: url(/images/icons/fugue/folders.png) !important;	
+}
+.folder-plus, .file-add {
+	background-image: url(/images/icons/fugue/folder--plus.png) !important;	
+}
+.folder-minus, .file-delete {
+	background-image: url(/images/icons/fugue/folder--minus.png) !important;	
+}
+.folder-exclamation, .unfiled {
+	background-image: url(/images/icons/fugue/folder--exclamation.png) !important;	
+}
+/* Block */
+.report {
+	background-image: url(/images/icons/fugue/report.png) !important;	
+}
+.reports {
+	background-image: url(/images/icons/fugue/reports.png) !important;	
+}
+.report-plus {
+	background-image: url(/images/icons/fugue/report--plus.png) !important;	
+}
+.report-minus {
+	background-image: url(/images/icons/fugue/report--minus.png) !important;	
+}
+/* Card */
+.notebook {
+	background-image: url(/images/icons/fugue/notebook.png) !important;	
+}
+.notebooks {
+	background-image: url(/images/icons/fugue/notebooks.png) !important;	
+}
+.notebook-plus {
+	background-image: url(/images/icons/fugue/notebook--plus.png) !important;	
+}
+.notebook-minus {
+	background-image: url(/images/icons/fugue/notebook--minus.png) !important;	
+}
+.notebook-pencil {
+	background-image: url(/images/icons/fugue/notebook--pencil.png) !important;	
+}
+.tagline {
+	background-image: url(/images/icons/fugue/tag.png) !important;
+}
+.document-stamp {
+	background-image: url(/images/icons/fugue/document-stamp.png) !important;
+}
+.document-text {
+	background-image: url(/images/icons/fugue/document-text.png) !important;
+}
+.document-break {
+	background-image: url(/images/icons/fugue/document-break.png) !important;
+}
+.edit-heading {
+	background-image: url(/images/icons/fugue/edit-heading.png) !important;
+}
+.key {
+	background-image: url(/images/icons/fugue/key.png) !important;
+}
+.lock {
+	background-image: url(/images/icons/fugue/lock.png) !important;
+}
+/* Tournament */
+.sitemap {
+	background-image: url(/images/icons/fugue/sitemap.png) !important;	
+}
+/* Round */
+.node {
+	background-image: url(/images/icons/fugue/node.png) !important;	
+}
+/* Pairing */
+.node-select-child {
+	background-image: url(/images/icons/fugue/node-select-child.png) !important;	
+}
+/* Squads/Team */
+.users {
+	background-image: url(/images/icons/fugue/users.png) !important;	
+}
+/* School/Squad */
+.building {
+	background-image: url(/images/icons/fugue/building.png) !important;	
+}
+/* Judge(s) */
+.user-business {
+	background-image: url(/images/icons/fugue/user-business.png) !important;	
+}
+.users-business {
+	background-image: url(/images/icons/etc/users-business.png) !important;
+}
+/* Caselist */
+.luggage {
+	background-image: url(/images/icons/fugue/luggage.png) !important;
+}
+.luggage-plus {
+	background-image: url(/images/icons/fugue/luggage--plus.png) !important;
+}
+.luggage-pencil {
+	background-image: url(/images/icons/fugue/luggage--pencil.png) !important;
+}
+.luggage-minus {
+	background-image: url(/images/icons/fugue/luggage--minus.png) !important;
+}
+.blue-document {
+	background-image: url(/images/icons/fugue/blue-document.png) !important;	
+}
+
+.blue-document-plus {
+	background-image: url(/images/icons/fugue/blue-document--plus.png) !important;	
+}
+.blue-document-minus {
+	background-image: url(/images/icons/fugue/blue-document--minus.png) !important;	
+}
+.blue-document-pencil {
+	background-image: url(/images/icons/fugue/blue-document--pencil.png) !important;	
+}
+/* Research */
+.cutter {
+	background-image: url(/images/icons/fugue/cutter.png) !important;	
+}
+.cutter-exclamation {
+	background-image: url(/images/icons/fugue/cutter--exclamation.png) !important;	
+}
+.cutter-arrow {
+	background-image: url(/images/icons/fugue/cutter--arrow.png) !important;	
+}
+.highlighter {
+	background-image: url(/images/icons/fugue/highlighter.png) !important;	
+}
+.highlighter-exclamation {
+	background-image: url(/images/icons/fugue/cutter--exclamation.png) !important;	
+}
+.funnel {
+	background-image: url(/images/icons/fugue/funnel.png) !important;	
+}
+.funnel-exclamation {
+	background-image: url(/images/icons/fugue/funnel--exclamation.png) !important;	
+}
+.robot {
+	background-image: url(/images/icons/fugue/robot.png) !important;	
+}
+.arrow-circle-double-135 {
+	background-image: url(/images/icons/fugue/arrow-circle-double-135.png) !important;	
+}
+.inbox {
+	background-image: url(/images/icons/fugue/inbox.png) !important;	
+}
+.magnifier {
+	background-image: url(/images/icons/fugue/magnifier.png) !important;
+}
+.magnifier-plus {
+	background-image: url(/images/icons/fugue/magnifier--plus.png) !important;
+}
+.magnifier-pencil {
+	background-image: url(/images/icons/fugue/magnifier--pencil.png) !important;
+}
+.magnifier-minus {
+	background-image: url(/images/icons/fugue/magnifier--minus.png) !important;
+}
+.flashlight {
+	background-image: url(/images/icons/fugue/flashlight) !important;
+}
+.flashlight-plus {
+	background-image: url(/images/icons/fugue/flashlight--plus.png) !important;
+}
+.flashlight-pencil {
+	background-image: url(/images/icons/fugue/flashlight--pencil.png) !important;
+}
+.flashlight-minus {
+	background-image: url(/images/icons/fugue/flashlight--minus.png) !important;
+}
+.feed {
+	background-image: url(/images/icons/fugue/feed.png) !important;
+}
+.feed-plus {
+	background-image: url(/images/icons/fugue/feed--plus.png) !important;
+}
+.feed-minus {
+	background-image: url(/images/icons/fugue/feed--minus.png) !important;
+}
+
+.document-word {
+	background-image: url(/images/icons/fugue/document-word.png) !important;	
+}
+.document-pdf {
+	background-image: url(/images/icons/fugue/document-pdf.png) !important;	
+}
+.globe-green {
+	background-image: url(/images/icons/fugue/globe-green.png) !important;	
+}
+.dash {
+	background-image: url(/images/icons/fugue/dashboard.png) !important;	
+}
+.document-import {
+	background-image: url(/images/icons/fugue/document-import.png) !important;	
+}
+.document-export {
+	background-image: url(/images/icons/fugue/document-export.png) !important;	
+}
+.book {
+	background-image: url(/images/icons/fugue/book.png) !important;	
+}
+.books {
+	background-image: url(/images/icons/fugue/books.png) !important;	
+}
+.dropbox {
+	background-image: url(/images/icons/etc/dropbox.png) !important;		
+}
+.lexisnexis, .lexis {
+	background-image: url(/images/icons/etc/lexisnexis.png) !important;		
+}
+.jstor {
+	background-image: url(/images/icons/etc/jstor.png) !important;		
+}
+.google-docs {
+	background-image: url(/images/icons/etc/google-docs.png) !important;		
+}

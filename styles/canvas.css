@@ -1,0 +1,303 @@
+/* Tool icon Classes */
+.cursor {
+	background-image: url(/canvas/icons/fugue/cursor.png) !important;	
+}
+
+.idea {
+  background-image: url(/canvas/icons/fugue/light-bulb.png) !important; 
+}
+
+.idea-remove {
+  background-image: url(/canvas/icons/fugue/light-bulb--minus.png) !important; 
+}
+.idea-add {
+  background-image: url(/canvas/icons/fugue/light-bulb--plus.png) !important; 
+}
+
+.pencil {
+	background-image: url(/canvas/icons/fugue/pencil.png) !important;	
+}
+
+.paintbrush {
+	background-image: url(/canvas/icons/famfamfam/paintbrush.png) !important;	
+}
+
+.vector {
+	background-image: url(/canvas/icons/famfamfam/vector.png) !important;	
+}
+
+/* Object icon classes */
+.text-icon {
+	background-image: url(/canvas/icons/fugue/selection-select-input.png) !important;	
+}
+
+.connector {
+  background-image: url(/canvas/icons/etc/connector.png) !important;  
+}
+
+.polygon {
+	background-image: url(/canvas/icons/fugue/layer-shape-polygon.png) !important;	
+}
+
+.ellipse {
+	background-image: url(/canvas/icons/fugue/layer-shape-ellipse.png) !important;	
+}
+
+.rect {
+	background-image: url(/canvas/icons/fugue/layer-shape.png) !important;	
+}
+
+.line {
+	background-image: url(/canvas/icons/fugue/layer-shape-line.png) !important;	
+}
+
+.path {
+	background-image: url(/canvas/icons/fugue/layer-shape-polyline.png) !important;	
+}
+
+.curve {
+	background-image: url(/canvas/icons/fugue/layer-shape-curve.png) !important;	
+}
+
+
+/* Etc icon classes */
+.user {
+  background-image: url(/canvas/icons/fugue/user-silhouette.png) !important;  
+}
+.key {
+  background-image: url(/canvas/icons/fugue/key.png) !important;  
+}
+
+/* Action icon classes */
+.flip-horiz {
+	background-image: url(/canvas/icons/fugue/layer-flip.png) !important;	
+}
+
+.flip-vert {
+	background-image: url(/canvas/icons/fugue/layer-flip-vertical.png) !important;	
+}
+
+.rotate-right {
+	background-image: url(/canvas/icons/fugue/layer-rotate.png) !important;	
+}
+
+.rotate-left {
+	background-image: url(/canvas/icons/fugue/layer-rotate-left.png) !important;	
+}
+
+.arrange-forward {
+	background-image: url(/canvas/icons/fugue/layers-arrange.png) !important;	
+}
+
+.arrange-backwards {
+	background-image: url(/canvas/icons/fugue/layers-arrange-back.png) !important;	
+}
+
+.arrange-front {
+	background-image: url(/canvas/icons/fugue/layers-stack-arrange.png) !important;	
+}
+
+.arrange-back {
+	background-image: url(/canvas/icons/fugue/layers-stack-arrange-back.png) !important;	
+}
+
+.pdf {
+  background-image: url(/canvas/icons/fugue/document-pdf.png) !important;  
+}
+
+.image-icon {
+  background-image: url(/canvas/icons/fugue/image.png) !important;  
+}
+
+.iframe-icon {
+  background-image: url(/canvas/icons/fugue/ui-scroll-pane.png) !important;  
+}
+
+.math-icon {
+  background-image: url(/canvas/icons/fugue/edit-mathematics.png) !important;  
+}
+
+.chem {
+  background-image: url(/canvas/icons/fugue/flask.png) !important;  
+}
+
+.save-24 {
+  background-image: url(/canvas/icons/icons-24/disk-black.png) !important;  
+}
+
+.delete-24 {
+  background-image: url(/canvas/icons/icons-24/cross.png) !important;  
+}
+
+.user-24 {
+  background-image: url(/canvas/icons/icons-24/user.png) !important;  
+}
+
+.document-24 {
+  background-image: url(/canvas/icons/icons-24/document.png) !important;  
+}
+
+.duplicate-24 {
+  background-image: url(/canvas/icons/icons-24/stamp.png) !important;  
+}
+
+.idea-form-24 {
+  background-image: url(/canvas/icons/etc/form-idea.png) !important;  
+
+}
+
+.undo-24 {
+  background-image: url(/canvas/icons/icons-24/arrow-180.png) !important;  
+}
+.redo-24 {
+  background-image: url(/canvas/icons/icons-24/arrow.png) !important;  
+}
+
+.notecard {
+  background-image: url(/canvas/icons/card_bg.jpeg);
+  background-repeat: repeat;
+  background-color: white;
+}
+
+/* Other classes */
+.textbox {
+	position: absolute !important;	
+	font-family: "Helvetica Neue",helvetica,arial,sans-serif;
+	font-size: 10pt;
+	padding: 5px;
+	border: solid 1px #aaaaff;
+	background-color: white;
+	border-radius: 2px;
+	overflow: auto;
+}
+
+.textbox h1 {
+	font-size: x-large;
+}
+.textbox h2 {
+	font-size: large;
+}
+.textbox h3 {
+	font-size: medium;
+}
+
+.textbox h4 {
+  font-weight: bold;
+}
+.textbox h5 {
+  font-weight: bold;
+  font-style: italic;
+}
+.textbox h6 {
+  font-style: italic;
+}
+
+.textbox ul li {
+  list-style-type: disc;
+  margin-left: 10px;
+  list-style-position: inside;
+}
+
+.textbox ol li {
+  list-style-type: decimal;
+  margin-left: 10px;
+  list-style-position: inside;
+}
+
+.embed {
+  
+}
+
+.textbox, .math {
+  /**
+   *   
+   background: #f1f3a2;
+    background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgba(247,247,210,1)), to(rgba(240,242,155,1)));
+    background: -moz-linear-gradient(top, rgba(247,247,210,1), rgba(240,242,155,1));
+  */
+    -webkit-box-shadow: 0 2px 4px rgba(0,0,0,.5);
+    -moz-box-shadow: 0 2px 4px (rgba(0,0,0.5));
+    box-shadow: 0 1px 2px #000;
+}
+
+.math {
+  position: absolute !important;  
+  padding: 5px;
+  border: solid 1px #aaffaa;
+  background-color: white;
+  border-radius: 3px;
+  overflow: auto;
+}
+
+.workspace-label {
+  border: solid 1px silver;
+  background-color: #eee;
+  margin-left: 10px;
+  padding: 2px 4px 4px 2px;
+  font-family: tahoma;
+  font-size: small;
+  border-radius: 3px 3px 0px 0px;
+}
+
+.iframe iframe {
+  border: solid 1px silver;
+}
+
+.scroller {
+  background-color: yellow;
+  opacity: 0.5;
+}
+
+.workspace {
+  -webkit-transform-origin: 0% 0%;
+  -moz-transform-origin: 0% 0%;
+}
+
+.table-cell-padded, .table-cell-padded-right {
+  padding: 1px 2px;
+}
+
+.table-cell-padded-right {
+  border-left: solid 1px silver;
+}
+
+.combo-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* http://dev.sencha.com/deploy/dev/docs/resources/docs.css */
+
+#loading-mask{
+  position:absolute;
+  left:0;
+  top:0;
+    width:100%;
+    height:100%;
+    z-index:20000;
+    background-color:white;
+}
+#loading{
+  position:absolute;
+  left:45%;
+  top:40%;
+  padding:2px;
+  z-index:20001;
+    height:auto;
+  color:#444;
+  font-size: 13px;
+  font-family: helvetica,arial,tahoma,sans-serif;
+  font-weight: bold;
+}
+#loading img {
+    margin-right: 2px;
+}
+
+.file-upload-throbber {
+  width: 100px,
+  height: 100px;
+  text-align:center;
+  vertical-align:middle;
+  border: solid 1px silver;
+  content: 'Uploading...';
+}

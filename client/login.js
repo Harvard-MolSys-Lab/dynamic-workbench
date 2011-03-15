@@ -45,7 +45,7 @@ Ext.onReady(function(){
 				formBind:true,
 				handler: function(){
 		            loginWindow.form.getForm().submit({
-		            	url:'/canvas/index.php/login', 
+		            	url: App.getEndpoint('login'), 
 		            	waitMsg:'Logging in...',
 		            	success: function(form, action) {
 		            		var result = action.result; //.result[0];

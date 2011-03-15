@@ -1,160 +1,210 @@
 /* Tool icon Classes */
 .cursor {
-	background-image: url(/canvas/icons/fugue/cursor.png) !important;	
+	background-image: url(/images/icons/fugue/cursor.png) !important;	
 }
 
 .idea {
-  background-image: url(/canvas/icons/fugue/light-bulb.png) !important; 
+  background-image: url(/images/icons/fugue/light-bulb.png) !important; 
 }
 
 .idea-remove {
-  background-image: url(/canvas/icons/fugue/light-bulb--minus.png) !important; 
+  background-image: url(/images/icons/fugue/light-bulb--minus.png) !important; 
 }
 .idea-add {
-  background-image: url(/canvas/icons/fugue/light-bulb--plus.png) !important; 
+  background-image: url(/images/icons/fugue/light-bulb--plus.png) !important; 
 }
 
 .pencil {
-	background-image: url(/canvas/icons/fugue/pencil.png) !important;	
+	background-image: url(/images/icons/fugue/pencil.png) !important;	
 }
 
 .paintbrush {
-	background-image: url(/canvas/icons/famfamfam/paintbrush.png) !important;	
+	background-image: url(/images/icons/famfamfam/paintbrush.png) !important;	
 }
 
 .vector {
-	background-image: url(/canvas/icons/famfamfam/vector.png) !important;	
+	background-image: url(/images/icons/famfamfam/vector.png) !important;	
 }
 
 /* Object icon classes */
 .text-icon {
-	background-image: url(/canvas/icons/fugue/selection-select-input.png) !important;	
+	background-image: url(/images/icons/fugue/selection-select-input.png) !important;	
 }
 
 .connector {
-  background-image: url(/canvas/icons/etc/connector.png) !important;  
+  background-image: url(/images/icons/etc/connector.png) !important;  
 }
 
 .polygon {
-	background-image: url(/canvas/icons/fugue/layer-shape-polygon.png) !important;	
+	background-image: url(/images/icons/fugue/layer-shape-polygon.png) !important;	
 }
 
 .ellipse {
-	background-image: url(/canvas/icons/fugue/layer-shape-ellipse.png) !important;	
+	background-image: url(/images/icons/fugue/layer-shape-ellipse.png) !important;	
 }
 
 .rect {
-	background-image: url(/canvas/icons/fugue/layer-shape.png) !important;	
+	background-image: url(/images/icons/fugue/layer-shape.png) !important;	
 }
 
 .line {
-	background-image: url(/canvas/icons/fugue/layer-shape-line.png) !important;	
+	background-image: url(/images/icons/fugue/layer-shape-line.png) !important;	
 }
 
 .path {
-	background-image: url(/canvas/icons/fugue/layer-shape-polyline.png) !important;	
+	background-image: url(/images/icons/fugue/layer-shape-polyline.png) !important;	
 }
 
 .curve {
-	background-image: url(/canvas/icons/fugue/layer-shape-curve.png) !important;	
+	background-image: url(/images/icons/fugue/layer-shape-curve.png) !important;	
 }
 
 
 /* Etc icon classes */
 .user {
-  background-image: url(/canvas/icons/fugue/user-silhouette.png) !important;  
+  background-image: url(/images/icons/fugue/user-silhouette.png) !important;  
 }
 .key {
-  background-image: url(/canvas/icons/fugue/key.png) !important;  
+  background-image: url(/images/icons/fugue/key.png) !important;  
 }
 
 /* Action icon classes */
 .flip-horiz {
-	background-image: url(/canvas/icons/fugue/layer-flip.png) !important;	
+	background-image: url(/images/icons/fugue/layer-flip.png) !important;	
 }
 
 .flip-vert {
-	background-image: url(/canvas/icons/fugue/layer-flip-vertical.png) !important;	
+	background-image: url(/images/icons/fugue/layer-flip-vertical.png) !important;	
 }
 
 .rotate-right {
-	background-image: url(/canvas/icons/fugue/layer-rotate.png) !important;	
+	background-image: url(/images/icons/fugue/layer-rotate.png) !important;	
 }
 
 .rotate-left {
-	background-image: url(/canvas/icons/fugue/layer-rotate-left.png) !important;	
+	background-image: url(/images/icons/fugue/layer-rotate-left.png) !important;	
 }
 
 .arrange-forward {
-	background-image: url(/canvas/icons/fugue/layers-arrange.png) !important;	
+	background-image: url(/images/icons/fugue/layers-arrange.png) !important;	
 }
 
 .arrange-backwards {
-	background-image: url(/canvas/icons/fugue/layers-arrange-back.png) !important;	
+	background-image: url(/images/icons/fugue/layers-arrange-back.png) !important;	
 }
 
 .arrange-front {
-	background-image: url(/canvas/icons/fugue/layers-stack-arrange.png) !important;	
+	background-image: url(/images/icons/fugue/layers-stack-arrange.png) !important;	
 }
 
 .arrange-back {
-	background-image: url(/canvas/icons/fugue/layers-stack-arrange-back.png) !important;	
+	background-image: url(/images/icons/fugue/layers-stack-arrange-back.png) !important;	
 }
 
 .pdf {
-  background-image: url(/canvas/icons/fugue/document-pdf.png) !important;  
+  background-image: url(/images/icons/fugue/document-pdf.png) !important;  
 }
 
 .image-icon {
-  background-image: url(/canvas/icons/fugue/image.png) !important;  
+  background-image: url(/images/icons/fugue/image.png) !important;  
 }
 
 .iframe-icon {
-  background-image: url(/canvas/icons/fugue/ui-scroll-pane.png) !important;  
+  background-image: url(/images/icons/fugue/ui-scroll-pane.png) !important;  
 }
 
 .math-icon {
-  background-image: url(/canvas/icons/fugue/edit-mathematics.png) !important;  
+  background-image: url(/images/icons/fugue/edit-mathematics.png) !important;  
 }
 
 .chem {
-  background-image: url(/canvas/icons/fugue/flask.png) !important;  
+  background-image: url(/images/icons/fugue/flask.png) !important;  
+}
+
+.node-add {
+  background-image: url(/images/icons/etc/node-add.png) !important;  
+}
+.port-add {
+  background-image: url(/images/icons/etc/port-add.png) !important;  
+}
+
+.compile {
+background-image: url(/images/icons/fugue/compile.png) !important;
+}
+
+.sequence {
+background-image: url(/images/icons/fugue/edit-diff.png) !important;
+}
+
+.enumerate {
+background-image: url(/images/icons/fugue/arrow-split.png) !important;
+}
+
+.simulate {
+background-image: url(/images/icons/fugue/calculator.png) !important;
+}
+
+.save {
+  background-image: url(/images/icons/fugue/disk-black.png) !important;  
+}
+
+.expand {
+  background-image: url(/images/icons/fugue/document-resize.png) !important;  
+}
+
+.terminal {
+  background-image: url(/images/icons/fugue/terminal.png) !important;  
+}
+
+.terminal-24 {
+  background-image: url(/images/icons/icons-24/terminal.png) !important;  
+}
+
+.arrow-24 {
+background-image: url(/images/icons/etc/arrow-24.png) !important;  
+}
+
+.simulate-24 {
+background-image: url(/images/icons/fugue/calculator.png) !important;
 }
 
 .save-24 {
-  background-image: url(/canvas/icons/icons-24/disk-black.png) !important;  
+  background-image: url(/images/icons/icons-24/disk-black.png) !important;  
 }
 
 .delete-24 {
-  background-image: url(/canvas/icons/icons-24/cross.png) !important;  
+  background-image: url(/images/icons/icons-24/cross.png) !important;  
 }
 
 .user-24 {
-  background-image: url(/canvas/icons/icons-24/user.png) !important;  
+  background-image: url(/images/icons/icons-24/user.png) !important;  
 }
 
 .document-24 {
-  background-image: url(/canvas/icons/icons-24/document.png) !important;  
+  background-image: url(/images/icons/icons-24/document.png) !important;  
 }
 
 .duplicate-24 {
-  background-image: url(/canvas/icons/icons-24/stamp.png) !important;  
+  background-image: url(/images/icons/icons-24/stamp.png) !important;  
 }
 
 .idea-form-24 {
-  background-image: url(/canvas/icons/etc/form-idea.png) !important;  
-
+  background-image: url(/images/icons/etc/form-idea.png) !important;  
 }
 
 .undo-24 {
-  background-image: url(/canvas/icons/icons-24/arrow-180.png) !important;  
+  background-image: url(/images/icons/icons-24/arrow-180.png) !important;  
 }
 .redo-24 {
-  background-image: url(/canvas/icons/icons-24/arrow.png) !important;  
+  background-image: url(/images/icons/icons-24/arrow.png) !important;  
+}
+
+.export-24 {
+	background-image: url(/images/icons/icons-24/document-export.png) !important;
 }
 
 .notecard {
-  background-image: url(/canvas/icons/card_bg.jpeg);
+  background-image: url(/images/icons/card_bg.jpeg);
   background-repeat: repeat;
   background-color: white;
 }
@@ -229,14 +279,55 @@
   overflow: auto;
 }
 
-.workspace-label {
-  border: solid 1px silver;
+.workspace-label, .workspace-label-center, .workspace-label-callout {
+  border: solid 1px rgb(174,174,174);
   background-color: #eee;
+  background-image: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    color-stop(0, rgb(255,255,255)),
+    color-stop(0.4, rgb(240,240,240)),
+    color-stop(0.41, rgb(232,232,232))
+);
+background-image: -moz-linear-gradient(
+    center top,
+    rgb(255,255,255) 0%,
+    rgb(240,240,240) 40%,
+    rgb(232,232,232) 41%
+);
   margin-left: 10px;
-  padding: 2px 4px 4px 2px;
-  font-family: tahoma;
-  font-size: small;
+  padding: 4px 6px 4px 6px;
+  font: normal 11px tahoma,arial,helvetica;
+  color:#333;
+  
+}
+
+.workspace-label-center {
+  border-radius: 3px 3px 3px 3px;
+}
+
+.workspace-label {
   border-radius: 3px 3px 0px 0px;
+}
+
+.workspace-label-callout {
+	border-radius: 3px 3px 3px 0px;
+}
+
+
+.motif-template {
+float: left;
+margin: 5px;
+padding: 5px;
+height: 44px;
+width: 44px;
+}
+
+.x-view-over {
+background-color: #ddd;
+border: solid 1px #ccc;
+padding: 4px;
 }
 
 .iframe iframe {
@@ -264,6 +355,12 @@
 .combo-icon {
   width: 16px;
   height: 16px;
+}
+
+.console-message {
+font-family: 'Mensch',courier,mono,sans-serif;
+font-size: 10pt;
+padding:5px !important;border-bottom:1px solid #ccc;
 }
 
 /* http://dev.sencha.com/deploy/dev/docs/resources/docs.css */
@@ -294,7 +391,7 @@
 }
 
 .file-upload-throbber {
-  width: 100px,
+  width: 100px;
   height: 100px;
   text-align:center;
   vertical-align:middle;

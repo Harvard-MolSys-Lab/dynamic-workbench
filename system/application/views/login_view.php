@@ -12,7 +12,14 @@
 
 <script language="javascript" type="text/javascript" src="<?= $this->config->item('scripts_path') ?>ext-3.3.0/adapter/ext/ext-base.js"></script>
 <script language="javascript" type="text/javascript" src="<?= $this->config->item('scripts_path') ?>ext-3.3.0/ext-all-debug.js"></script>
+<script language="javascript" type="text/javascript" src="client/app.js"></script>
+<script language="javascript" type="text/javascript">
+	App.baseUrl = '<?= $this->config->site_url() ?>';
+	App.scriptsUrl = '<?= $this->config->item("scripts_path") ?>';
+	App.setEndpoint('login','login');
+</script>
 <script language="javascript" type="text/javascript" src="client/login.js"></script>
+
 
 </head>
 

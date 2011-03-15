@@ -12,12 +12,23 @@
 <link rel="stylesheet" type="text/css" href="<?= $this->config->item('scripts_path') ?>mathquill/mathquill.css" />
 
 <link rel="stylesheet" type="text/css" href="<?= $this->config->item('scripts_path') ?>color-field-1.0.0/color-field.css" />
+<link rel="stylesheet" type="text/css" href="<?= $this->config->item('scripts_path') ?>ux/statusbar/css/statusbar.css" />
 
 <!-- jQuery and ExtJs -->
 <script language="javascript" type="text/javascript" src="<?= $this->config->item('scripts_path') ?>jquery-1.4.3.min.js"></script>
 <script language="javascript" type="text/javascript" src="<?= $this->config->item('scripts_path') ?>ext-3.3.0/adapter/jquery/ext-jquery-adapter.js"></script>
 <!--<script language="javascript" type="text/javascript" src="<?= $this->config->item('scripts_path') ?>ext-3.3.0/adapter/ext/ext-base.js"></script>-->
 <script language="javascript" type="text/javascript" src="<?= $this->config->item('scripts_path') ?>ext-3.3.0/ext-all.js"></script>
+<script language="javascript" type="text/javascript">
+  Ext.BLANK_IMAGE_URL = '<?= $this->config->item('scripts_path') ?>ext-3.3.0/resources/images/default/s.gif';
+</script>
+<script language="javascript" type="text/javascript" src="http://scripts.embed.ly/jquery.embedly.min.js"></script>
+<script language="javascript" type="text/javascript" src="<?= $this->config->item('scripts_path') ?>jquery-animate-css-rotate-scale/jquery-css-transform.js"></script>
+<script language="javascript" type="text/javascript" src="<?= $this->config->item('scripts_path') ?>jquery-animate-css-rotate-scale/jquery-animate-css-rotate-scale.js"></script>
+<script language="javascript" type="text/javascript" src="http://scripts.embed.ly/jquery.embedly.min.js"></script>
+
+<!-- File uploads -->
+<script language="javascript" type="text/javascript" src="<?= $this->config->item('scripts_path') ?>valums-file-uploader/client/fileuploader.js"></script>
 
 <!-- Aloha and dependencies -->
 <script language="javascript" type="text/javascript" src="<?= $this->config->item('scripts_path') ?>aloha-dependencies.js"></script>
@@ -93,6 +104,7 @@
 <!-- Raphael -->
 <script language="javascript" type="text/javascript" src="<?= $this->config->item('scripts_path') ?>raphael/raphael.js"></script>
 <script language="javascript" type="text/javascript" src="<?= $this->config->item('scripts_path') ?>g.raphael/g.raphael-min.js"></script>
+<script language="javascript" type="text/javascript" src="<?= $this->config->item('scripts_path') ?>raphael-trunk/raphael/plugins/raphael.primitives.js"></script>
 
 <!-- Mathquill -->
 <script language="javascript" type="text/javascript" src="<?= $this->config->item('scripts_path') ?>mathquill/build/mathquill.js"></script>
@@ -100,6 +112,8 @@
 
 <!-- ExtJS user extensions -->
 <script language="javascript" type="text/javascript" src="<?= $this->config->item('scripts_path') ?>color-field-1.0.0/color-field.js"></script>
+<!--<script language="javascript" type="text/javascript" src="<?= $this->config->item('scripts_path') ?>ux/statusbar/StatusBar.js"></script>-->
+
 
 <!--
 <script language="javascript" type="text/javascript" src="<?= $this->config->item('scripts_path') ?>joose-2.1/joose.js"></script>
@@ -116,13 +130,30 @@
 <script language="javascript" type="text/javascript" src="client/app.js"></script>
 <script language="javascript" type="text/javascript">
 	App.baseUrl = '<?= $this->config->site_url() ?>';
-	App.scriptsUrl = '<?= $this->config->item("scripts_path") ?>';	
+	App.scriptsUrl = '<?= $this->config->item("scripts_path") ?>';
+	App.setEndpoint('upload','../upload.php');
+	App.setEndpoint('save','workspaces/save');
 </script>
 <!-- Canvas workspace -->
 <script language="javascript" type="text/javascript" src="client/workspace.js"></script>
-<script language="javascript" type="text/javascript" src="client/objects.js"></script>
-<script language="javascript" type="text/javascript" src="client/tools.js"></script>
+<script language="javascript" type="text/javascript" src="client/objects/objects.js"></script>
+<script language="javascript" type="text/javascript" src="client/objects/element.js"></script>
+<script language="javascript" type="text/javascript" src="client/objects/vector.js"></script>
+<script language="javascript" type="text/javascript" src="client/objects/semantics.js"></script>
+<script language="javascript" type="text/javascript" src="client/tools/tools.js"></script>
+<script language="javascript" type="text/javascript" src="client/tools/draw.js"></script>
+<script language="javascript" type="text/javascript" src="client/tools/annotate.js"></script>
+
+<!-- User interface -->
+<script language="javascript" type="text/javascript" src="client/console.js"></script>
 <script language="javascript" type="text/javascript" src="client/canvas.js"></script>
+
+	<!-- Nodal Abstraction -->
+<script language="javascript" type="text/javascript" src="client/objects/dna.js"></script>
+<script language="javascript" type="text/javascript" src="client/tools/nodal.js"></script>
+<script language="javascript" type="text/javascript" src="client/nodal-canvas.js"></script>
+
+
 
 <? // ?_c=<?= time() ?>
 <!-- Load workspace data -->

@@ -268,11 +268,9 @@ Ext.define('App.ui.nodal.BuildTab', {
 		// }
 
 		var data = Workspace.tools.nodal.serializeForCompiler(this.ribbon.canvas.workspace),
-		doc = this.ribbon.canvas.doc.getSiblingByName('input.txt'),
-		defer = 1000;
+		doc = this.ribbon.canvas.doc.getSiblingByName('input.txt');
 		if(!doc) {
 			doc = this.ribbon.canvas.doc.createSibling('input.txt');
-			defer = 5000;
 		}
 		// hack - need to find a way to wait until sibling is created
 		Ext.Function.defer( function() {
@@ -285,7 +283,7 @@ Ext.define('App.ui.nodal.BuildTab', {
 				},
 				scope: this,
 			})
-		},defer,this);
+		},1000,this);
 	},
 	spuriousDesign: function() {
 		var doc = this.ribbon.canvas.doc.getSiblingByName('spurious-out');

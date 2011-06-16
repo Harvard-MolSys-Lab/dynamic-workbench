@@ -1,0 +1,22 @@
+## Specification for ../KinD/test_systems/Or compiled at: Thu Sep 17 14:51:56 2009
+#
+## Top System
+#
+## Component s
+sequence s-ltoe = NNNNN : 5
+sequence s-base = NNNNNNNNNN : 10
+sequence s-rtoe = NNNNN : 5
+sequence s-_Anon0 = NNNNNNNNNN : 10
+sequence s-_Anon1 = NNNNNNNNNN : 10
+strand s-Base = s-ltoe* s-base* s-rtoe* : 20
+strand s-Left = s-base s-ltoe s-_Anon0 : 25
+strand s-Right = s-_Anon1 s-rtoe s-base : 25
+structure [1nt] s-LEFT = s-Left : .........................
+structure [1nt] s-RIGHT = s-Right : .........................
+structure [1nt] s-SEESAW_RIGHT = s-Base + s-Right : .....(((((((((((((((+..........)))))))))))))))
+structure [1nt] s-SEESAW_LEFT = s-Base + s-Left : (((((((((((((((.....+)))))))))))))))..........
+kinetic [9750000 /M/s < k < 10250000 /M/s] s-LEFT + s-SEESAW_RIGHT -> s-RIGHT + s-SEESAW_LEFT
+kinetic [9750000 /M/s < k < 10250000 /M/s] s-RIGHT + s-SEESAW_LEFT -> s-LEFT + s-SEESAW_RIGHT
+#
+## Noninteracting complexes
+noninteracting [kinetic] s-LEFT s-RIGHT s-SEESAW_RIGHT s-SEESAW_LEFT

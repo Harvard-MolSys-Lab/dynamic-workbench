@@ -1,0 +1,30 @@
+## Specification for ../KinD/test_systems/PairDisplace compiled at: Mon Sep  7 22:11:58 2009
+#
+## Top System
+#
+## Component d1
+sequence d1-t = NNNNN : 5
+sequence d1-x = NNNNNNNNNNNNNNN : 15
+strand d1-I = d1-x d1-t : 20
+strand d1-G = d1-t* d1-x* : 20
+strand d1-O = d1-x : 15
+structure [1nt] d1-Gate = d1-G + d1-O : .....(((((((((((((((+)))))))))))))))
+structure [1nt] d1-In = d1-I : ....................
+structure [1nt] d1-Out = d1-O : ...............
+structure [1nt] d1-Waste = d1-G + d1-I : ((((((((((((((((((((+))))))))))))))))))))
+kinetic [30000000 /M/s < k < inf /M/s] d1-Gate + d1-In -> d1-Out + d1-Waste
+#
+## Component d2
+sequence d2-t = NNNNN : 5
+sequence d2-x = NNNNNNNNNNNNNNN : 15
+strand d2-I = d2-x d2-t : 20
+strand d2-G = d2-t* d2-x* : 20
+strand d2-O = d2-x : 15
+structure [1nt] d2-Gate = d2-G + d2-O : .....(((((((((((((((+)))))))))))))))
+structure [1nt] d2-In = d2-I : ....................
+structure [1nt] d2-Out = d2-O : ...............
+structure [1nt] d2-Waste = d2-G + d2-I : ((((((((((((((((((((+))))))))))))))))))))
+kinetic [30000000 /M/s < k < inf /M/s] d2-Gate + d2-In -> d2-Out + d2-Waste
+#
+## Noninteracting complexes
+noninteracting [kinetic] d1-Gate d1-In d1-Out d2-Gate d2-In d2-Out

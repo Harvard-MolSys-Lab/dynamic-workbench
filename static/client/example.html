@@ -1,0 +1,96 @@
+<html>
+  <head>
+    <title>Dot-paren test</title>
+    <script type="text/javascript" src="lib/protovis-3.2/protovis-d3.2.js"></script>
+    <script type="text/javascript" src="dot-paren.js"></script>
+    
+  </head>
+  <body><div id="arc">
+    
+    <script type="text/javascript+protovis">
+var structure = '........((((((((((((((((........))))))))))))))))', seq = 'ACTCCGTCGTGATGTATTGAAGCGCCCTAACCCGCTTCAATACATCAC';
+
+var nodeLayout = generateLayout(structure,[seq],false),
+	nodeLayout2 = generateLayout(structure,[seq],true);
+var vis = new pv.Panel()
+    .width(880)
+    .height(310)
+    .bottom(90);
+
+var arc = vis.add(pv.Layout.Arc)
+    .nodes(nodeLayout.nodes)
+    .links(nodeLayout.links);
+
+arc.link.add(pv.Line);
+
+arc.node.add(pv.Dot);
+//    .size(function(d) {return d.linkDegree + 4})
+//    .fillStyle(pv.Colors.category19().by(function(d) {return d.group}))
+//    .strokeStyle(function() { return this.fillStyle().darker()});
+
+arc.label.add(pv.Label)
+
+vis.render();
+
+    var color = pv.Colors.category19().by(function(d) d.group);
+
+var vis2 = new pv.Panel()
+    .width(693)
+    .height(693)
+    .top(90)
+    .left(90);
+
+var layout = vis2.add(pv.Layout.Matrix)
+    .nodes(nodeLayout.nodes)
+    .links(nodeLayout.links)
+    .sort(function(a, b) b.group - a.group);
+
+layout.link.add(pv.Bar)
+//    .fillStyle(function(l) l.linkValue
+//        ? ((l.targetNode.group == l.sourceNode.group)
+//        ? color(l.sourceNode) : "#555") : "#eee")
+    .antialias(false)
+    .lineWidth(1);
+
+layout.label.add(pv.Label)
+    .textStyle(color);
+
+vis2.render();
+
+
+var w = document.body.clientWidth,
+    h = document.body.clientHeight,
+    colors = pv.Colors.category19();
+
+var vis3 = new pv.Panel()
+    .width(w)
+    .height(h)
+    .fillStyle("white")
+    .event("mousedown", pv.Behavior.pan())
+    .event("mousewheel", pv.Behavior.zoom());
+
+var force = vis3.add(pv.Layout.Force)
+    .nodes(nodeLayout2.nodes)
+    .links(nodeLayout2.links)
+    .chargeConstant(-150)
+    .springConstant(0.2)
+    .springLength(30);
+
+force.link.add(pv.Line);
+
+force.node.add(pv.Dot)
+	
+    .size(function(d) (d.linkDegree + 4) * Math.pow(this.scale, -1.5))
+    .fillStyle(function(d) d.fix ? "brown" : colors(d.group))
+    .strokeStyle(function() this.fillStyle().darker())
+    .lineWidth(1)
+    .title(function(d) d.nodeName)
+    .event("mousedown", pv.Behavior.drag())
+    .event("drag", force);
+
+vis3.render();
+
+
+    </script>
+    </div></body>
+</html>

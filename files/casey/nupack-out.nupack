@@ -1,0 +1,51 @@
+structure M1 = U14
+structure M2 = U7 H14 U14 U14
+structure M3 = U7 H14 U14 U14
+structure M4 = U14 H14 U14 U7
+structure M5 = U7 H14 U14 U14
+structure M6 = U14 H14 U14 U7
+structure M7 = U7 H14 U14 U14
+structure M8 = U14 H14 U14 U7
+structure M9 = U7 H14 U14 U14
+structure M10 = U14 H14 U14 U7
+sequence 1 = 7N
+sequence 2 = 7N
+sequence 5 = 7N
+sequence 6 = 7N
+sequence 7 = 7N
+sequence 15 = 7N
+sequence 16 = 7N
+sequence 33 = 7N
+sequence 34 = 7N
+sequence 51 = 7N
+sequence 52 = 7N
+sequence 55 = 7N
+sequence 56 = 7N
+sequence 69 = 7N
+sequence 70 = 7N
+sequence 73 = 7N
+sequence 74 = 7N
+sequence 78 = 7N
+sequence 79 = 7N
+sequence 82 = 7N
+sequence 83 = 7N
+M1 : 2* 1* 
+M2 : 1 2 5* 6* 7* 5 2* 6* 7* 
+M3 : 5* 7 6 15* 16* 6* 7* 15* 16* 
+M4 : 15* 16* 6* 7* 15* 16* 7 6 2 
+M5 : 6 16 15 33* 34* 15* 16* 33* 34* 
+M6 : 33* 34* 15* 16* 33* 34* 16 15 7 
+M7 : 15 34 33 51* 52* 33* 34* 55* 56* 
+M8 : 51* 52* 33* 34* 55* 56* 34 33 16 
+M9 : 33 52 51 69* 70* 51* 52* 73* 74* 
+M10 : 83* 82* 55* 56* 79* 78* 56 55 34 
+M1 < 1.0
+M2 < 1.0
+M3 < 1.0
+M4 < 1.0
+M5 < 1.0
+M6 < 1.0
+M7 < 1.0
+M8 < 1.0
+M9 < 1.0
+M10 < 1.0

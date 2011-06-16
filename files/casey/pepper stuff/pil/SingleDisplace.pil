@@ -1,0 +1,18 @@
+## Specification for ../KinD/test_systems/SingleDisplace compiled at: Mon Sep  7 22:11:51 2009
+#
+## Top System
+#
+## Component d
+sequence d-t = NNNNN : 5
+sequence d-x = NNNNNNNNNNNNNNN : 15
+strand d-I = d-x d-t : 20
+strand d-G = d-t* d-x* : 20
+strand d-O = d-x : 15
+structure [1nt] d-Gate = d-G + d-O : .....(((((((((((((((+)))))))))))))))
+structure [1nt] d-In = d-I : ....................
+structure [1nt] d-Out = d-O : ...............
+structure [1nt] d-Waste = d-G + d-I : ((((((((((((((((((((+))))))))))))))))))))
+kinetic [30000000 /M/s < k < inf /M/s] d-Gate + d-In -> d-Out + d-Waste
+#
+## Noninteracting complexes
+noninteracting [kinetic] d-Gate d-In d-Out

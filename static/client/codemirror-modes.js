@@ -129,19 +129,19 @@ CodeMirror.defineMode("pepper", function(config, parserConfig) {
 			// return ret(ch);
 		else if (ch == "#") {
 			stream.skipToEnd();
-			return ret("comment", "c-like-comment");
+			return ret("comment", "comment");
 		} else if (/\d/.test(ch)) {
 			stream.eatWhile(/[\w\.]/)
-			return ret("number", "c-like-number");
+			return ret("number", "number");
 		} else if (ch == "/") {
 			if (stream.eat("*")) {
 				return chain(stream, state, tokenComment);
 			} else if (stream.eat("/")) {
 				stream.skipToEnd();
-				return ret("comment", "c-like-comment");
+				return ret("comment", "comment");
 			} else {
 				stream.eatWhile(isOperatorChar);
-				return ret("operator","pepper-operator");
+				return ret("operator","operator");
 			}
 		} else if (isOperatorChar.test(ch)) {
 			stream.eatWhile(isOperatorChar);
@@ -151,12 +151,12 @@ CodeMirror.defineMode("pepper", function(config, parserConfig) {
 			return ret("word","pepper-dotParen");
 		} else if ($vars && ch == "$") {
 			stream.eatWhile(/[\w\$_]/);
-			return ret("word", "c-like-var");
+			return ret("word", "variable");
 		} else {
 			stream.eatWhile(/[\w\$_]/);
 			if (keywords && keywords[stream.current()])
-				return ret("keyword", "c-like-keyword");
-			return ret("word", "c-like-word");
+				return ret("keyword", "keyword");
+			return ret("word", "word");
 		}
 	}
 
@@ -172,7 +172,7 @@ CodeMirror.defineMode("pepper", function(config, parserConfig) {
 			}
 			if (end || !(escaped || multiLineStrings))
 				state.tokenize = tokenBase;
-			return ret("string", "c-like-string");
+			return ret("string", "string");
 		};
 	}
 
@@ -185,7 +185,7 @@ CodeMirror.defineMode("pepper", function(config, parserConfig) {
 			}
 			maybeEnd = (ch == "*");
 		}
-		return ret("comment", "c-like-comment");
+		return ret("comment", "comment");
 	}
 
 	function Context(indented, column, type, align, prev) {
@@ -311,13 +311,13 @@ CodeMirror.defineMode("nupack", function(config) {
     	if(state.value=='') {
 	    	if(stream.eat('%')) {
 	    		stream.skipToEnd();
-	    		return 'nupack-comment';
+	    		return 'comment';
 	    	} else 	if(stream.match('structure',true,true)) {
 	    		state.value = 'structure-definition-left';
-	    		return 'nupack-keyword';
+	    		return 'keyword';
 	    	} else if(stream.match('sequence',true,true)) {
 	    		state.value = 'sequence-definition-left';
-	    		return 'nupack-keyword';
+	    		return 'keyword';
 	    	} else {
 	    		state.value='structure-name';
 	    	}
@@ -355,7 +355,7 @@ CodeMirror.defineMode("nupack", function(config) {
     	} else if(state.value=='structure-name') {
     		stream.eatWhile(/\S/);
     		state.value = 'structure-assign';
-    		return 'nupack-structure';
+    		return 'variable';
     	} else if(state.value=='structure-assign') {
     		if(stream.eat(':')) {
     			state.value = 'structure-thread'
@@ -375,7 +375,7 @@ CodeMirror.defineMode("nupack", function(config) {
     	} else if(state.value=='structure-objection') {
     		stream.skipToEnd();
     		state.value='';
-    		return 'nupack-param';
+    		return 'qualifier';
     	}
     }
   };

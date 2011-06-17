@@ -7,8 +7,8 @@ html(lang="en")
     - var extPath    =  libPath + '/ext-4.0.2';
     - var stylePath  = 'static/styles';
     - var extStyles  =  extPath + '/resources/css/ext-all';
-    - var codeMirrorPath    =  libPath + '/CodeMirror-2.0';
-    - var styles    = [extStyles,'styles/canvas','styles/icons','styles/infomachine',libPath+'/color-field-1.0.0/color-field',codeMirrorPath+'/lib/codemirror',libPath+'/valums-file-uploader/client/fileuploader'];
+    - var codeMirrorPath    =  libPath + '/CodeMirror-2.1';
+    - var styles    = [extStyles,'styles/canvas','styles/icons','styles/infomachine',libPath+'/color-field-1.0.0/color-field',codeMirrorPath+'/lib/codemirror',codeMirrorPath+'/theme/default',libPath+'/valums-file-uploader/client/fileuploader'];
     - each sheet in styles
       link(rel="stylesheet",href=sheet+".css")
     
@@ -16,15 +16,16 @@ html(lang="en")
     script(src=extPath+"/bootstrap.js", type="text/javascript")
 
     // Libraries
-    - var libs = ['jquery-1.5.1.min', 'underscore', 'string', 'color-field-1.0.0/color-field', 'raphael/raphael-min', 'raphael/plugins/raphael.primitives', 'CodeMirror-2.0/lib/codemirror', 'valums-file-uploader/client/fileuploader', 'dna-utils', 'Ext.ux.StatusBar'];
+    - var libs = ['jquery-1.5.1.min', 'underscore', 'string', 'color-field-1.0.0/color-field', 'raphael/raphael-min', 'raphael/plugins/raphael.primitives', 'CodeMirror-2.1/lib/codemirror', 'valums-file-uploader/client/fileuploader', 'dna-utils', 'Ext.ux.StatusBar'];
     - each lib in libs
       script(type="text/javascript", src=libPath+"/"+lib+".js")
     
     // CodeMirror modes
     - var modes = ['javascript','stex','xml','diff','htmlmixed','css','clike'];
     - each mode in modes
-      script(type="text/javascript", src=codeMirrorPath+"/mode/"+mode+"/"+mode+".js")
-      link(rel="stylesheet", href=codeMirrorPath+"/mode/"+mode+"/"+mode+".css")
+        script(type="text/javascript", src=codeMirrorPath+"/mode/"+mode+"/"+mode+".js")
+        - if(mode == 'clike' || mode == 'diff')
+            link(rel="stylesheet", href=codeMirrorPath+"/mode/"+mode+"/"+mode+".css")
     
     // App and InfoMachine
     script(type="text/javascript", src=scriptPath+"/app.js")

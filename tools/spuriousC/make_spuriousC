@@ -1,1 +1,0 @@
-gcc -Wall -O3 spuriousC.c -o spuriousC -I/research/include/ViennaRNA-1.4 -L/research/lib -lRNA -lm

@@ -5,7 +5,8 @@ _ = require('underscore'),
 mongoose = require('mongoose'),
 mongooseAuth = require('mongoose-auth'),
 utils = require('./utils'),
-async = require('async');//,
+async = require('async'),
+rm = require("./rm-rf"); //,
 //mime = require('mime');
 
 var sendError = utils.sendError,
@@ -230,32 +231,40 @@ exports.configure = function(app,express) {
 						return;
 					}
 					if(stat.isDirectory()) {
-						fs.rmdir(fullPath, function(err) {
+						rm(fullPath,function(err) {
 							if(err) {
-								if(err.code=='ENOTEMPTY') {
-									fs.readdir(fullPath, function(err,files) {
-										var tasks = [];
-										function delFile(fn,cb) {
-											fs.unlink(path.join(fullPath,fn),cb);
-										}
-
-										_.each(files, function(file) {
-											tasks.push(_.bind(delFile, {},file));
-										});
-										
-										async.parallel(tasks, function(results) {
-											res.send(results);
-										});
-									});
-									return;
-								} else {
-									sendError(res,'Internal Server Error',500);
-									console.log("Can't remove directory at path: '"+fullPath+"'; "+err);
-									return;
-								}
+								sendError(res,'Internal Server Error',500);
+								console.log("Can't remove directory at path: '"+fullPath+"'; "+err);
+								return;
 							}
 							res.send('');
 						});
+						// fs.rmdir(fullPath, function(err) {
+							// if(err) {
+								// if(err.code=='ENOTEMPTY') {
+									// fs.readdir(fullPath, function(err,files) {
+										// var tasks = [];
+										// function delFile(fn,cb) {
+											// fs.unlink(path.join(fullPath,fn),cb);
+										// }
+// 
+										// _.each(files, function(file) {
+											// tasks.push(_.bind(delFile, {},file));
+										// });
+// 										
+										// async.parallel(tasks, function(results) {
+											// res.send(results);
+										// });
+									// });
+									// return;
+								// } else {
+									// sendError(res,'Internal Server Error',500);
+									// console.log("Can't remove directory at path: '"+fullPath+"'; "+err);
+									// return;
+								// }
+							// }
+							// res.send('');
+						// });
 					} else {
 						fs.unlink(fullPath, function(err) {
 							if(err) {

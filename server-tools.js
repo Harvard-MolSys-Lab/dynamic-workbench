@@ -3,6 +3,7 @@ proc = require('child_process'),
 fs = require('fs'),
 _ = require('underscore'),
 async = require('async');
+DNA = require('./static/client/lib/dna-utils').DNA;
 
 var sendError = utils.sendError,
 forbidden = utils.forbidden,
@@ -108,18 +109,20 @@ exports.configure = function(app,express) {
 			forbidden(res);
 			console.log("Can't enter path: '"+fullPath+"'");
 		}
-		console.log('fullPath:'+fullPath);
-		console.log('node:'+node);
-		console.log('basename:'+path.basename(fullPath));
-		console.log('dirname:'+path.dirname(fullPath));
+		// console.log('fullPath:'+fullPath);
+		// console.log('node:'+node);
+		// console.log('basename:'+path.basename(fullPath));
+		// console.log('dirname:'+path.dirname(fullPath));
 		pairwise(strands,path.basename(fullPath),path.dirname(fullPath), function(out) {
 			if(out.err) {
 				console.log(out.err);
 			}
+
 			if(!(out.stderr=='' || out.stderr==false)) {
 				res.send(out.stderr);
 			}
 			res.send(out.stdout);
+
 		});
 	});
 	function combinations(strands) {
@@ -132,6 +135,125 @@ exports.configure = function(app,express) {
 			}
 		}
 		return combs;
+	}
+
+	function packageNupackOut(prefixPath,callback) {
+		// console.log('prefixPath: '+prefixPath);
+
+		tasks = [
+
+		// strand count
+		// strand 1
+		// strand 2
+		// ...
+		// max complex size
+		function(cb) {
+			fs.readFile(prefixPath+'.in', 'utf8', function(err,data) {
+				// console.log(typeof data);
+
+				var dataArray = _.compact(_.map(data.split('\n'), function(e) {
+					return e.trim();
+				}));
+				cb(err, {
+					strands: dataArray.slice(1,dataArray.length-1)
+				});
+			});
+		},
+
+		// complex, order, strands..., dG
+		function(cb) {
+			fs.readFile(prefixPath+'.ocx-key', 'utf8', function(err,data) {
+				//console.log('begin parse ocx');
+				data = DNA.stripNupackHeaders(data);
+				data = data.trim();
+				//console.log('data: '+data);
+				table = DNA.tablify(data);
+				// console.log('table: ')
+				// console.log(table);
+				table = DNA.indexTable(table);
+
+				// console.log(table);
+
+				cb(err, {
+					ocx: table
+				});
+			});
+		},
+
+		// % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %
+		// % complexN-orderN
+		// number of bases
+		// mfe
+		// structure
+		// base1 base2
+		// base1 base2
+		// ...
+		// % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %
+		function(cb) {
+			fs.readFile(prefixPath+'.ocx-mfe', 'utf8', function(err,data) {
+				data = DNA.stripNupackHeaders(data);
+				var dataArray = data.split('% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %');
+				dataArray = _.compact(_.map(dataArray, function(a) {
+					return a.trim();
+				}));
+				var ocx_mfe = _.map(dataArray, function(block) {
+					var blockArray = block.split('\n'), complexOrder = utils.sscanf(blockArray[0].replace('% ',''),'complex%u-order%u');
+					// console.log('blockArray');
+					// console.log(blockArray);
+					// console.log('blockArray[0]: '+blockArray[0]);
+					return {
+						complex: complexOrder[0],
+						order: complexOrder[1],
+						bases: blockArray[1],
+						energy: blockArray[2],
+						structure: blockArray[3],
+						pairs: blockArray.slice(4)
+					};
+				})
+				// console.log('ocx_mfe: ');
+				// console.log(ocx_mfe);
+				// console.log('end ocx_mfe');
+
+				cb(err, {
+					ocx_mfe:ocx_mfe
+				});
+			});
+		},
+
+		// actually, this file is mostly useless; all the relevant information is in ocx, near as I can tell
+		// // complex, order, strands...
+		// function(cb) {
+		// fs.readFile(prefixPath+'.ocx-key',cb);
+		// },
+		];
+
+		async.series(tasks, function(err,result) {
+			// console.log('begin err: ');
+			// console.log(err);
+			// console.log('end err. ');
+			// console.log('begin result: ');
+			// console.log(result);
+			// console.log('end result. ');
+			var scratch = {};
+			_.each(result, function(el) {
+				_.extend(scratch,el);
+			});
+			// console.log('begin ocx: ');
+			// console.log(scratch.ocx);
+			// console.log('end ocx. ');
+			_.each(scratch.ocx_mfe, function(rec) {
+				//console.log(rec.complex-1,rec.order-1)
+				if(scratch.ocx[rec.complex] && scratch.ocx[rec.complex][rec.order]) {
+					rec.strands = _.map(_.compact(scratch.ocx[rec.complex][rec.order]), function(strandId) {
+						if(scratch.strands[strandId-1]) {
+							return scratch.strands[strandId-1];
+						}
+					});
+				}
+			});
+			console.log(scratch);
+			callback(scratch);
+		});
 	}
 
 	function pairwise(strandPair,name,fullPath,callback) {
@@ -183,15 +305,31 @@ exports.configure = function(app,express) {
 							}, function(err,stdout,stderr) {
 								if(err) {
 									console.log(err);
+									callback({
+										err:err
+									});
+									return;
 								}
-								// if(!(stderr=='' || stderr==false)) {
-								// res.send(stderr);
-								// }
+								if(!(stderr=='' || stderr==false)) {
+									console.log(err);
+									callback({
+										err:err,
+										stderr:stderr,
+									});
+									return;
+								}
 								// res.send(stdout);
-								callback({
-									err: err,
-									stdout:stdout,
-									stderr:stderr
+								packageNupackOut(prefixPath, function(data) {
+									console.log(data);
+									fs.writeFile(prefixPath+'.nupack-results',JSON.stringify(data), 'utf8', function(err) {
+										console.log('finished!');
+										callback({
+											err: err,
+											stdout:stdout,
+											stderr:stderr,
+											data: data,
+										});
+									});
 								});
 							});
 						}

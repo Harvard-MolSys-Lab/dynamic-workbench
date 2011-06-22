@@ -1,7 +1,9 @@
 var path = require('path');
 
+var filesPath = path.resolve(__dirname,'../files');
+
 exports.userFilePath = function(node) {
-	return path.join('files',node);
+	return path.join(filesPath,node);
 }
 function sendError(res,msg,status) {
 	var body = msg;

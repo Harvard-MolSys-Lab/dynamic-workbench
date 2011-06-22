@@ -56,9 +56,11 @@ var triggers = {
 	crn: 'crn',
 	nodal: 'nodal',
 	seq: 'sequence',
+	dd: 'sequence',
 	nupack: 'nupackedit',
 	svg: 'viewer',
 	pdf: 'viewer',
+	'nupack-results':'nupackresults'
 };
 
 var mimetypes = {
@@ -299,9 +301,9 @@ exports.configure = function(app,express) {
 				if(ext!='') {
 					ext = ext.substring(1);
 				}
-				console.log('node: '+node);
-				console.log('ext: '+ext);
-				console.log('mime: '+mimetypes[ext]);
+				// console.log('node: '+node);
+				// console.log('ext: '+ext);
+				// console.log('mime: '+mimetypes[ext]);
 				if(mimetypes[ext]) {
 					// res.header('Content-Type',mimetypes[ext]);
 					// res.header('Content-Disposition','inline');

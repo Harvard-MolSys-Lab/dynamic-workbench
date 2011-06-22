@@ -50,6 +50,8 @@ App.ui.buildInterface = function() {
 		split: true,
 		width: 300,
 		collapsible: true,
+		autoScroll: true,
+		// preventHeader: true,
 
 	});
 	// Build canvas to fill viewport
@@ -193,8 +195,8 @@ Ext.define('App.ui.Launcher', {
 					this._openTabs[trigger] = tab;
 					// Ext.History.add(trigger,true);
 
-					tab.on('close', function() {
-						this._openTabs[this.initialTrigger] = false;
+					tab.on('close', function(tab) {
+						delete this._openTabs[tab.initialTrigger];
 					},this);
 					Ext.log('Launched InfoMachine application with trigger: '+trigger, {
 						iconCls:'application',
@@ -301,6 +303,11 @@ Ext.define('App.ui.Launcher', {
 		iconCls:'sequence',
 		editorType: 'Sequence',
 	});
+	App.ui.Launcher.register('nupackresults','App.ui.NupackResults', {
+		iconCls:'nupack-icon',
+		editorType: 'NUPACK Results',
+	});
+
 });
 Ext.define('App.ui.CreateMenu', {
 	extend: 'Ext.menu.Menu',
@@ -654,7 +661,8 @@ Ext.define('App.ui.Application', {
 		}
 		try {
 			this.setTitle(title);
-		} catch (e) {}
+		} catch (e) {
+		}
 	},
 	getPath: function() {
 		return this.doc.getPath();
@@ -2645,6 +2653,449 @@ Ext.define('App.ui.Dashboard', {
 	}
 });
 
+Ext.define('App.ui.ProtovisPanel', {
+	alias: 'widget.pvpanel',
+	extend: 'Ext.panel.Panel',
+	pan: true,
+	zoom: 5,
+	bpadding: 20,
+	initComponent: function() {
+		//this.on('afterrender',this.afterrender,this);
+		this.callParent(arguments);
+	},
+	afterrender: function() {
+		if(!this.built) {
+			this.buildVis();
+			if(!this.collapsed) {
+				this.renderVis();
+			}
+			this.on('collapse',this.hideVis,this);
+			this.on('expand',this.resizeVis,this);
+			this.on('resize',this.resizeVis,this);
+			this.built = true;
+		}
+	},
+	getBodyWidth: function() {
+		return this.body.getWidth();
+	},
+	getBodyHeight: function() {
+		return this.body.getHeight();
+	},
+	resizeVis: function(p,w,h) {
+		this.vis.width(this.getBodyWidth()).height(this.getBodyHeight());
+		this.updateVis();
+		this.vis.render();
+	},
+	renderVis: function() {
+		if(this.vis) {
+			this.vis.visible(true);
+			this.vis.render();
+		}
+	},
+	updateVis: function() {},
+	hideVis: function() {
+		if(this.vis) {
+			//this.vis.visible(false);
+			this.vis.render();
+		}
+	},
+	buildVis: function() {
+		return this.getCanvas();
+	},
+	getCanvas: function() {
+		if(!this.vis) {
+			this.vis = new pv.Panel()
+			.canvas(this.body.dom)
+			.width(this.body.getWidth())
+			.height(this.body.getHeight());
+			if(this.pan) {
+				this.vis.event("mousedown", pv.Behavior.pan());
+			}
+			if(this.zoom) {
+				this.vis.event("mousewheel", pv.Behavior.zoom(this.zoom));
+
+			}
+		}
+		return this.vis;
+	},
+})
+
+Ext.define('App.ui.NupackResults', {
+	extend: 'Ext.panel.Panel',
+	template: '<div class="app-nupack-complex-wrap">'+
+	'<div>'+
+	'<span class="app-nupack-complex">Complex: {complex}</span>'+
+	'&nbsp;|&nbsp;'+
+	'<span class="app-nupack-order">Order: {order}</span>'+
+	'</div>'+
+	'<div class="app-nupack-force"></div>'+
+	'</div>',
+	mixins: {
+		app: 'App.ui.Application',
+	},
+	html: '<fieldset class="x-fieldset x-fieldset-default"><legend class="x-fieldset-header x-fieldset-header-default nupack-strand-summary-title">Distinct strands</legend><pre class="nupack-strand-summary cm-s-default"></pre></fieldset>'+
+	'<fieldset class="x-fieldset x-fieldset-default"><legend class="x-fieldset-header x-fieldset-header-default nupack-strand-summary-title">Complex Minimum Free Energy</legend><div class="nupack-mfe-summary"></div></fieldset>'+
+	'<div class="nupack-concentration-summary"></div>',
+	bodyPadding: 5,
+	autoScroll: true,
+	constructor: function(config) {
+		this.callParent(arguments);
+		this.mixins.app.constructor.apply(this,arguments);
+	},
+	initComponent: function() {
+		this.callParent(arguments);
+		this.on('afterrender',this.loadFile,this);
+	},
+	onLoad: function() {
+		if(this.data) {
+			if(!this.xt) {
+				this.xt = new Ext.XTemplate(this.template);
+			}
+			this.sourceData = Ext.decode(this.data);
+			var maxConcentration = _.reduce(this.sourceData.ocx_mfe, function(memo,complexData) {
+				var x = Math.abs(parseFloat(complexData.concentration)*1000); //.toFixed());
+				if(x > memo) {
+					memo = x;
+				}
+				return memo;
+			}, 0);
+			var maxComplexSize = _.max(_.map(this.sourceData.ocx_mfe, function(a) {
+				return a.strands.length;
+			})),
+			sorted = _.sortBy(this.sourceData.ocx_mfe, function(a) {
+				return -(parseFloat(a.concentration))*1000;
+			}),
+			maxMfe = _.max(_.map(this.sourceData.ocx_mfe, function(a) {
+				return Math.abs(parseFloat(a.energy));
+			}));
+			// Strand summary
+			var strandSummary = this.getEl().down('.nupack-strand-summary'),
+			strandNames = this.sourceData.strandNames ? this.sourceData.strandNames : _.range(1,this.sourceData.strands.length+1);
+			CodeMirror.runMode(_.map(_.zip(strandNames,this.sourceData.strands), function(x) {
+				return x.join(' : ');
+			}).join('\n'),'sequence',strandSummary.dom);
+			
+			this.getEl().down('.nupack-strand-summary-title').update(this.sourceData.strands.length+' distinct strands')
+			
+			// MFE graph
+			var w = 400,
+			h = 250,
+			xScale = pv.Scale.linear(0, maxMfe).nice().range(0, w),
+			yScale = pv.Scale.ordinal(pv.range(0,sorted.length)).splitBanded(0, h, 4/5);
+			mfe = new pv.Panel()
+			.canvas(this.getEl().down('.nupack-mfe-summary').dom)
+			.width(w)
+			.height(h)
+			.top(10)
+			.bottom(20)
+			.left(50)
+			.right(10);
+
+			var bar = mfe.add(pv.Bar)
+			.data(sorted)
+			.top( function() {
+				return yScale(this.index)
+			})
+			.height(yScale.range().band)
+			.left(0)
+			.width( function(d) {
+				return xScale(Math.abs(parseFloat(d.energy)))
+			});
+			/* The value label. */
+			bar.anchor("right").add(pv.Label)
+			.textStyle("white")
+			.text( function(d) {
+				return d.energy
+			});
+			/* The variable label. */
+			bar.anchor("left").add(pv.Label)
+			.textMargin(5)
+			.textAlign("right")
+			.text( function(d) {
+				return d.strandNames.join('+')
+			});
+			/* X-axis ticks. */
+			mfe.add(pv.Rule)
+			.data(xScale.ticks(5))
+			.left(xScale)
+			.strokeStyle(function(d) {return d ? "rgba(255,255,255,.3)" : "#000"} )
+			.add(pv.Rule)
+			.bottom(0)
+			.height(5)
+			.strokeStyle("#000")
+			.anchor("bottom").add(pv.Label)
+			.text(xScale.tickFormat);
+
+			mfe.render();
+
+			_.each(sorted, Ext.bind( function(complexData) {
+				// var el = this.xt.append(this.body,complexData);
+				// el = el.down('.app-nupack-force');
+
+				var nodeLayout  = DNA.generateAdjacency(complexData.structure,complexData.strands,false),
+				nodeLayout2 = DNA.generateAdjacency(complexData.structure,complexData.strands,true),//[seq],true);
+				colors = pv.Colors.category10();
+
+				var pane = new Ext.panel.Panel({
+					title: '<span class="nupack-complex-strands">'+complexData.strandNames.join('+')+'</span>'+'<span class="nupack-concentration-bar"></span><span class="nupack-concentration">'+complexData.concentration+' M&nbsp;|&nbsp;</span>' ,//'Complex: '+complexData.complex+' Order: '+complexData.order,
+					cls: 'nupack-complex-panel',
+					// layout: {
+					// type: 'vbox',
+					// align: 'stretch',
+					// pack: 'center',
+					// defaultMargins: '5 5 5 5',
+					// },
+					collapsible: true,
+					collapsed: true,
+					resizable: {
+						handles: 'n s'
+					},
+					listeners: {
+						expand: function(p) {
+							if(this.force && this.adjacency && this.arc) {
+								this.doLayout();
+								_.invoke([this.force,this.adjacency,this.arc],'afterrender');
+							}
+						}
+					},
+					//autoScroll: true,
+					// layout: {
+					// type: 'anchor'
+					// },
+					layout: 'border',
+					defaults: {
+						// anchor: '100%',
+						xtype: 'panel',
+						collapsible: true,
+						cls: 'simple-header',
+					},
+					items: [{
+						xtype: 'pvpanel',
+						ref: 'force',
+						title: 'Secondary Structure',
+						layout: 'fit',
+						region: 'north',
+						split: true,
+						flex: 1,
+						margins: '5 5 0 5',
+						titleCollapse: true,
+						buildVis: function() {
+							this.getCanvas();
+							var forceVis = this.vis;
+
+							// var forceVis = new pv.Panel()
+							// .canvas(forcePanel.getEl().dom)
+							// .width(forcePanel.getEl().getWidth())
+							// .height(forcePanel.getEl().getHeight())
+							forceVis.fillStyle("white");
+							
+							var force = forceVis.add(pv.Layout.Force)
+							.nodes(nodeLayout2.nodes)
+							.links(nodeLayout2.links)
+							.chargeConstant(-200)
+							.springConstant(0.9)
+							.springLength(20)
+							.bound(true);
+
+							force.link.add(pv.Line);
+
+							force.node.add(pv.Dot)
+							.size( function(d) {
+								return (d.linkDegree + 4) * Math.pow(this.scale, -1.5)
+							})
+							.fillStyle( function(d) {
+								return d.fix ? "brown" : colors(d.strand)
+							})
+							.strokeStyle( function() {
+								return this.fillStyle().darker()
+							})
+							.lineWidth(1)
+							.title( function(d) {
+								return d.nodeName
+							})
+							.event("mousedown", pv.Behavior.drag())
+							.event("drag", force);
+						}
+					},{
+						layout: 'border',
+						region: 'center',
+						flex: 1,
+						collapseMode: 'mini',
+						preventHeader: true,
+						split: true,
+						margins: '0 5 5 5',
+						border: false,
+						items:[{
+							title: 'Arc Diagram',
+							xtype: 'pvpanel',
+							ref: 'arc',
+							region: 'center',
+							flex: 1,
+							titleCollapse: true,
+							//margins: '0 0 5 5',
+							collapseDirection: 'left',
+							headerPosition: 'left',
+							buildVis: function() {
+								this.getCanvas();
+								var arcVis = this.vis;
+								// var arcVis = new pv.Panel()
+								// .canvas(arcPanel.getEl().dom)
+								// .width(arcPanel.getEl().getWidth())
+								// .height(arcPanel.getEl().getHeight())
+								// .event("mousedown", pv.Behavior.pan());
+
+								this.arc = arcVis.add(pv.Layout.Arc)
+								.nodes(nodeLayout.nodes)
+								.links(nodeLayout.links)
+								.orient('radial')
+								.fillStyle("white");
+								
+								this.arc.link.add(pv.Line);
+
+								this.arc.node.add(pv.Dot)
+								.fillStyle( function(d) {
+									return colors(d.strand)
+								});
+								this.arc.label.add(pv.Label);
+
+								this.updateVis();
+							},
+							updateVis: function() {
+								this.arc
+								.top(10)
+								.left(10)
+								.bottom(10)
+								.right(10);
+							},
+						},{
+							title: 'Adjacency Matrix',
+							xtype: 'pvpanel',
+							region: 'east',
+							ref:'adjacency',
+							split: true,
+							flex: 1,
+							titleCollapse: true,
+							//margins: '0 5 5 0',
+							collapseDirection: 'right',
+							headerPosition: 'right',
+							zoom: 10,
+							buildVis: function() {
+								this.getCanvas();
+								var adjVis = this.vis;
+								// var adjVis = new pv.Panel()
+								// .canvas(adjPanel.getEl().dom)
+								// .width(adjPanel.getEl().getWidth())
+								// .height(adjPanel.getEl().getHeight())
+								// .event("mousedown", pv.Behavior.pan());
+								// // .canvas()
+								// .width(693)
+								// .height(693)
+								// .top(90)
+								// .left(90);
+
+								var layout = this.layout = adjVis.add(pv.Layout.Matrix)
+								.nodes(nodeLayout.nodes)
+								.links(nodeLayout.links)
+								.fillStyle("white");
+
+								layout.link.add(pv.Bar)
+								.fillStyle(function(l) {return l.linkValue
+							        ? "#555" : "#eee";})
+								.antialias(false)
+								.lineWidth(1);
+
+								layout.label.add(pv.Label)
+								.fillStyle(function(d) {return colors(d.strand)});
+								
+								this.updateVis();
+							},
+							updateVis: function() {
+								var r = Math.max(this.layout.data.length*5,Math.min(this.getBodyWidth(),this.getBodyHeight()));
+								this.layout
+								.top(10)
+								.left(10)
+								.width(r)
+								.height(r);
+							},
+						},]
+					}],
+					// items: [{
+					// title: 'Secondary Structure',
+					// layout: 'fit',
+					// region: 'north',
+					// split: true,
+					// items: {
+					// xtype: 'component',
+					// ref: 'force',
+					// },
+					// flex: 1,
+					// margins: '5 5 0 5',
+					// },{
+					// title: 'Arc Diagram',
+					// layout: 'fit',
+					// region: 'center',
+					// items: {
+					// xtype: 'component',
+					// ref: 'arc',
+					// },
+					// flex: 1,
+					// margins: '0 0 5 5',
+					// collapseDirection: 'left',
+					// headerPosition: 'left',
+					// },{
+					// layout: 'fit',
+					// title: 'Adjacency Matrix',
+					// region: 'east',
+					// split: true,
+					// items: {
+					// xtype: 'component',
+					// ref:'adjacency',
+					// },
+					// flex: 1,
+					// margins: '0 5 5 0',
+					// collapseDirection: 'right',
+					// headerPosition: 'right',
+					// },],
+					renderTo: this.body,
+					minHeight: 200,
+					height: 400,
+					// margins: '5 0 20 0',
+				});
+				_.each(pane.query('*[ref]'), function(cmp) {
+					this[cmp.ref] = cmp;
+				},pane);
+				var forcePanel = pane.force,
+				arcPanel = pane.arc,
+				adjPanel = pane.adjacency;
+
+				var concEl = pane.getEl().down('.nupack-concentration-bar').dom,
+				c = (parseFloat(complexData.concentration)*1000), // .toFixed(),
+				w = 400,
+				h = 10;
+				var pc = Math.abs(c/maxConcentration);
+				var concPanel = new pv.Panel()
+				.canvas(concEl)
+				.width(w)
+				.height(h);
+
+				concPanel.add(pv.Bar)
+				.data([{
+					concentration: pc
+				}])
+				.width( function(d) {
+					return Math.round(d.concentration*w)
+				})
+				.height(h)
+				.top(0)
+				.left(0)
+				.fillStyle('#d00');
+				concPanel.render();
+
+			},this));
+		}
+	},
+});
+
 Ext.define('App.ui.CodeMirror', {
 	alias: 'widget.codemirror',
 	extend: 'Ext.panel.Panel',
@@ -2788,6 +3239,99 @@ Ext.define('App.ui.Pepper', {
 	}
 });
 
+Ext.define('App.ui.SequenceThreader', {
+	extend: 'Ext.window.Window',
+	layout: 'fit',
+	width:400,
+	height: 400,
+	initComponent: function() {
+		Ext.apply(this, {
+			layout: 'border',
+			margins: 5,
+			tbar: [{
+				text: 'Thread',
+				handler: this.thread,
+				scope: this,
+			},{
+				text: 'Normalize',
+				handler: this.normalize,
+				scope: this,
+			},{
+				text: 'Truncate',
+				handler: this.truncate,
+				scope: this,
+			}],
+			items:[new App.ui.CodeMirror({
+				region: 'west',
+				width: 200,
+				split: true,
+				ref: 'sequencesPane',
+				mode: 'sequence',
+				title: 'Sequence',
+			}),new App.ui.CodeMirror({
+				region: 'center',
+				ref: 'strandsPane',
+				mode: 'nupack',
+				title: 'Strands',
+			}),new App.ui.CodeMirror({
+				region: 'south',
+				ref: 'resultsPane',
+				mode: 'sequence',
+				height: 200,
+				split: true,
+				title: 'Results',
+			})],
+			buttons: [{
+				text: 'Done'
+			}]
+		});
+		this.callParent(arguments);
+		_.each(this.query('*[ref]'), function(cmp) {
+			this[cmp.ref] = cmp;
+		},this);
+	},
+	smartSelect: function(editor) {
+		return App.ui.SequenceEditor.prototype.smartSplit.call(editor,editor.getValue());
+	},
+	thread: function() {
+		var seqs = this.smartSelect(this.sequencesPane),
+		strands = this.smartSelect(this.strandsPane), strandsList = {}, namesList;
+		// _.each(_.map(strands, function(strand) {
+		// return strand.split(':');
+		// }),function(pair,list,i) {
+		// if(pair.length > 1) {
+		// strandsList.push({name: pair[0].trim(), strand: pair[1]});
+		// //namesList[i] = pair[0];
+		// //newStrandList[i] = pair[1];
+		// } else {
+		// strandsList.push({strand: pair[1].trim()});
+		// }
+		// });
+		seqs = _.compact(_.map(seqs, function(seq) {
+			return seq.trim();
+		}));
+		strandsList = DNA.normalizeSystem(_.compact(_.map(strands, function(strand) {
+			return _.last(strand.split(':')).trim();
+		})));
+		//seqs.unshift('');
+		var out = '';
+		_.each(strandsList, function(spec,list,i) {
+			out+= (DNA.threadSegments(seqs,spec)+'\n');
+		});
+		this.resultsPane.setValue(out);
+
+	},
+	normalize: function() {
+
+	},
+	setStrands: function(data) {
+		this.strandsPane.setValue(data);
+	},
+	setSequences: function(data) {
+		this.sequencesPane.setValue(data);
+	},
+})
+
 Ext.define('App.ui.SequenceEditor', {
 	extend: 'App.ui.TextEditor',
 	mode: 'sequence',
@@ -2890,6 +3434,10 @@ Ext.define('App.ui.SequenceEditor', {
 						text: 'NUPACK out to FASTA',
 						handler: this.nupackToFasta,
 						scope: this,
+					},'-',{
+						text: 'Thread sequences to strand',
+						handler: this.threadStrands,
+						scope: this,
 					}]
 				}
 			},{
@@ -2952,6 +3500,14 @@ Ext.define('App.ui.SequenceEditor', {
 		this.strandCount.setText(this.strandCount.baseText + strandCount);
 		this.baseCount.setText(this.baseCount.baseText + baseCount);
 	},
+	/**
+	 * Opens a window where the user can combine sequences into NUPACk-style strands
+	 */
+	threadStrands: function() {
+		var win = new App.ui.SequenceThreader();
+		win.show();
+		win.setSequences(this.getSelection());
+	},
 	pairwiseMfeComplexes: function() {
 		var strands = this.smartSelect(),
 		maxComplexes = strands.length;
@@ -2971,6 +3527,7 @@ Ext.define('App.ui.SequenceEditor', {
 	},
 	populateStats: function() {
 		this.statsPanel.loadSequence(this.getSelectionOrValue().replace(/[^atcgu]/gi,''));
+		//this.statsPanel.show();
 	},
 	getSelectionOrValue: function() {
 		var sel = this.editor.codemirror.getSelection();
@@ -3095,6 +3652,9 @@ Ext.define('App.ui.SequenceEditor', {
 	populateLev: function() {
 		this.populateComparison(this.lev);
 	},
+	getSelection: function() {
+		return this.editor.codemirror.getSelection();
+	},
 	smartSelect: function() {
 		return this.smartSplit(this.editor.codemirror.getSelection());
 	},
@@ -3127,6 +3687,7 @@ Ext.define('App.ui.SequenceEditor', {
 Ext.define('App.ui.SequenceStats', {
 	extend: 'Ext.menu.Menu',
 	minWidth: 300,
+	minHeight: 400,
 	initComponent: function() {
 		this.store = new Ext.data.JsonStore({
 			fields: [{

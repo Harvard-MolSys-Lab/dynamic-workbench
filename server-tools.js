@@ -27,6 +27,10 @@ var tools = {
 		command: 'tools/nupack3/bin/complexes',
 		arguments: ['-ordered','-mfe',]
 	},
+	nupackConc: {
+		command: 'tools/nupack3/bin/concentrations',
+		arguments: ['-ordered',]
+	},
 	spuriousC: {
 		command: 'tools/spuriousC/spuriousC',
 		arguments: [],
@@ -118,8 +122,9 @@ exports.configure = function(app,express) {
 				console.log(out.err);
 			}
 
-			if(!(out.stderr=='' || out.stderr==false)) {
+			if(!!out.stderr) {
 				res.send(out.stderr);
+				return;
 			}
 			res.send(out.stdout);
 
@@ -160,9 +165,11 @@ exports.configure = function(app,express) {
 			});
 		},
 
-		// complex, order, strands..., dG
+		// ocx-key: complex, order, strands...
+		// cx:  complex, order, strands..., dG
+		// eq: complex, order, strands... dG, concentration
 		function(cb) {
-			fs.readFile(prefixPath+'.ocx-key', 'utf8', function(err,data) {
+			fs.readFile(prefixPath+'.eq', 'utf8', function(err,data) {
 				//console.log('begin parse ocx');
 				data = DNA.stripNupackHeaders(data);
 				data = data.trim();
@@ -175,7 +182,7 @@ exports.configure = function(app,express) {
 				// console.log(table);
 
 				cb(err, {
-					ocx: table
+					eq: table
 				});
 			});
 		},
@@ -243,12 +250,21 @@ exports.configure = function(app,express) {
 			// console.log('end ocx. ');
 			_.each(scratch.ocx_mfe, function(rec) {
 				//console.log(rec.complex-1,rec.order-1)
-				if(scratch.ocx[rec.complex] && scratch.ocx[rec.complex][rec.order]) {
-					rec.strands = _.map(_.compact(scratch.ocx[rec.complex][rec.order]), function(strandId) {
+				if(scratch.eq[rec.complex] && scratch.eq[rec.complex][rec.order]) {
+					var eq = _.reject(_.clone(scratch.eq[rec.complex][rec.order]), function(i) {
+						return (!i || i=='0')
+					}), energy, conc;
+					conc = eq.pop();
+					energy = eq.pop();
+					eq = _.compact(eq);
+
+					rec.concentration = conc;
+					rec.strands = _.map(eq, function(strandId) {
 						if(scratch.strands[strandId-1]) {
 							return scratch.strands[strandId-1];
 						}
 					});
+					rec.strandNames = eq;
 				}
 			});
 			console.log(scratch);
@@ -277,9 +293,14 @@ exports.configure = function(app,express) {
 			prefixPath = path.join(dirPath,prefix),
 			inFileName = path.join(dirPath,prefix+'.in'),
 			listFileName = path.join(dirPath,prefix+'.list'),
-			inFile = [strandPair.length,strandPair.join('\n'),strandPair.length].join('\n');
-			cmd = getCommand('nupackAnalysis',[prefixPath]);
-			console.log(cmd);
+			conFileName = path.join(dirPath,prefix+'.con'),
+			inFile = [strandPair.length,strandPair.join('\n'),strandPair.length].join('\n'),
+			conFile = _.map(strandPair, function(el) {
+				return '1e-6';
+			}).join('\n');
+			complexesCmd = getCommand('nupackAnalysis',[prefixPath]);
+			concCmd = getCommand('nupackConc',[prefixPath]);
+
 			fs.writeFile(inFileName,inFile, function(err) {
 				if(err) {
 					//sendError(res,'Couldn\'t write '+inFileName,500);
@@ -298,39 +319,93 @@ exports.configure = function(app,express) {
 							});
 							return;
 						} else {
-							proc.exec(cmd, {
-								env: {
-									'NUPACKHOME':nupackPath
-								}
-							}, function(err,stdout,stderr) {
+							fs.writeFile(conFileName,conFile, function(err) {
 								if(err) {
+									//sendError(res,'Couldn\'t write '+listFileName,500);
 									console.log(err);
 									callback({
 										err:err
 									});
 									return;
-								}
-								if(!(stderr=='' || stderr==false)) {
-									console.log(err);
-									callback({
-										err:err,
-										stderr:stderr,
-									});
-									return;
-								}
-								// res.send(stdout);
-								packageNupackOut(prefixPath, function(data) {
-									console.log(data);
-									fs.writeFile(prefixPath+'.nupack-results',JSON.stringify(data), 'utf8', function(err) {
-										console.log('finished!');
-										callback({
-											err: err,
-											stdout:stdout,
-											stderr:stderr,
-											data: data,
+								} else {
+									async.series([
+
+									// Run 'complexes' executable
+									function(cb) {
+										console.log(complexesCmd);
+										proc.exec(complexesCmd, {
+											env: {
+												'NUPACKHOME':nupackPath
+											}
+										}, function(err,stdout,stderr) {
+											if(err) {
+												console.log(err);
+												cb({
+													err:err
+												});
+												return;
+											}
+											if(!(stderr=='' || stderr==false)) {
+												console.log(err);
+												cb({
+													err:err,
+													stderr:stderr,
+												});
+												return;
+											}
+											cb(null, {
+												stdout: stdout
+											});
 										});
-									});
-								});
+									},
+
+									// Run 'concentrations' executable
+									function(cb) {
+										console.log(concCmd);
+										proc.exec(concCmd, {
+											env: {
+												'NUPACKHOME':nupackPath
+											}
+										}, function(err,stdout,stderr) {
+											if(err) {
+												console.log(err);
+												cb({
+													err:err
+												});
+												return;
+											}
+											if(!(stderr=='' || stderr==false)) {
+												console.log(err);
+												cb({
+													err:err,
+													stderr:stderr,
+												});
+												return;
+											}
+											cb(null, {
+												stdout: stdout
+											});
+
+										});
+									}], function(err,data) {
+										// res.send(stdout);
+										var stdout = data[0].stdout,
+										stderr = data[0].stderr;
+										packageNupackOut(prefixPath, function(dat) {
+											//console.log(data);
+											fs.writeFile(prefixPath+'.nupack-results',JSON.stringify(dat), 'utf8', function(err) {
+												console.log('finished!');
+												callback({
+													err: err,
+													stdout:stdout,
+													stderr:stderr,
+													data: dat,
+												});
+											});
+										});
+									})
+								}
+
 							});
 						}
 					});

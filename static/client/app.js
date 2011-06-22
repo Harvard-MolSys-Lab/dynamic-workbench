@@ -306,7 +306,7 @@ Ext.define('App.TaskRunner.Task', {
 	}
 });
 
-Ext.define('App.TaskRunner.PepperTask', {
+Ext.define('App.TaskRunner.Pepper', {
 	extend: 'App.TaskRunner.Task',
 	name: 'Pepper Compiler',
 	iconCls: 'pepper',

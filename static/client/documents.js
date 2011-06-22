@@ -41,7 +41,8 @@ Ext.define('App.Document', {
 		});
 	},
 	createSibling: function(name) {
-		return App.ui.filesTree.newFile(this,name);
+		var parent = this.parentNode ? this.parentNode : this;
+		return App.ui.filesTree.newFile(parent,name);
 	},
 	/**
 	 * loadBody

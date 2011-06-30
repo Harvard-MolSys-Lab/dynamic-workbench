@@ -1,10 +1,10 @@
 !!! 5
 html(lang="en")
   head
-    title InfoMachine 2
+    title DyNAMiC Workbench
     - var scriptPath = 'client';
     - var libPath    =  scriptPath + '/lib';
-    - var extPath    =  libPath + '/ext-4.0.2';
+    - var extPath    =  libPath + '/ext-4.0.1';
     - var stylePath  = 'static/styles';
     - var extStyles  =  extPath + '/resources/css/ext-all';
     - var codeMirrorPath    =  libPath + '/CodeMirror-2.1';
@@ -41,7 +41,7 @@ html(lang="en")
     script(type="text/javascript", src=scriptPath+"/documents.js")
 
     // Canvas workspace
-    - var scripts = ['ext-bug-fixes','core','workspace', 'objects/objects', 'objects/element', 'objects/vector', 'objects/semantics','tools/tools','tools/draw','tools/annotate','console','canvas','codemirror-modes','dna/nodal/nodal-canvas','dna/nodal/dna','dna/nodal/nodal'];
+    - var scripts = ['ext-bug-fixes','core','workspace', 'objects/objects', 'objects/element', 'objects/vector', 'objects/semantics','tools/tools','tools/draw','tools/annotate','console','canvas','codemirror-modes','dna/nodal/nodal-canvas','dna/nodal/dna','dna/nodal/nodal', 'dd'];
     - each script in scripts
       script(type="text/javascript", src=scriptPath+'/'+script+'.js')
   

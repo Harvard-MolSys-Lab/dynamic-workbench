@@ -86,11 +86,15 @@ App.ui.buildInterface = function() {
 						iconCls: 'dash',
 						handler: App.ui.Launcher.makeLauncher('dashboard')
 					},{
+						text: 'DD',
+						iconCls: 'seq',
+						handler: App.ui.Launcher.makeLauncher('dd'),
+					},{
 						text: 'NUPACK',
 						iconCls: 'nupack-icon',
 						handler: App.ui.Launcher.makeLauncher('nupack'),
 						menu:new App.ui.NupackMenu()
-					},]
+					}]
 				},'->',{
 					scale: 'small',
 					iconCls: 'system',
@@ -220,6 +224,7 @@ Ext.define('App.ui.Launcher', {
 }, function() {
 	App.ui.Launcher.register('nodal', 'App.ui.Canvas', {
 		title: 'Nodal System',
+		iconCls: 'nodal',
 		border: false,
 		ribbonItems: [{
 			xtype: 'nodal-hometab',
@@ -307,6 +312,10 @@ Ext.define('App.ui.Launcher', {
 		iconCls:'nupack-icon',
 		editorType: 'NUPACK Results',
 	});
+	App.ui.Launcher.register('dd','App.ui.DD', {
+		iconCls: 'seq',
+		title: 'Domain Design',
+	});
 
 });
 Ext.define('App.ui.CreateMenu', {
@@ -316,6 +325,7 @@ Ext.define('App.ui.CreateMenu', {
 	createIconCls: 'tick',
 	autoCreateMenu: true,
 	initComponent: function() {
+		this.extraMenuItems || (this.extraMenuItems = []);
 		Ext.apply(this, {
 			items: [{
 				text: this.labelText,
@@ -328,7 +338,7 @@ Ext.define('App.ui.CreateMenu', {
 				iconCls: 'rename',
 				ref: 'fileNameField',
 				indent: true,
-			},{
+			},].concat(this.extraMenuItems,[{
 				text: this.createText,
 				iconCls: this.createIconCls,
 				ref: 'createButton',
@@ -336,7 +346,7 @@ Ext.define('App.ui.CreateMenu', {
 				menu: Ext.apply(this.getCreateMenu(), {
 					ref: 'createMenu',
 				}),
-			}]
+			}])
 		});
 		this.callParent(arguments);
 		_.each(this.query('*[ref]'), function(cmp) {
@@ -2657,7 +2667,7 @@ Ext.define('App.ui.ProtovisPanel', {
 	alias: 'widget.pvpanel',
 	extend: 'Ext.panel.Panel',
 	pan: true,
-	zoom: 5,
+	zoom: 1,
 	bpadding: 20,
 	initComponent: function() {
 		//this.on('afterrender',this.afterrender,this);
@@ -2692,7 +2702,8 @@ Ext.define('App.ui.ProtovisPanel', {
 			this.vis.render();
 		}
 	},
-	updateVis: function() {},
+	updateVis: function() {
+	},
 	hideVis: function() {
 		if(this.vis) {
 			//this.vis.visible(false);
@@ -2774,14 +2785,13 @@ Ext.define('App.ui.NupackResults', {
 			CodeMirror.runMode(_.map(_.zip(strandNames,this.sourceData.strands), function(x) {
 				return x.join(' : ');
 			}).join('\n'),'sequence',strandSummary.dom);
-			
 			this.getEl().down('.nupack-strand-summary-title').update(this.sourceData.strands.length+' distinct strands')
-			
+
 			// MFE graph
-			var w = 400,
-			h = 250,
+			var w = 600,
+			h = 10*sorted.length,
 			xScale = pv.Scale.linear(0, maxMfe).nice().range(0, w),
-			yScale = pv.Scale.ordinal(pv.range(0,sorted.length)).splitBanded(0, h, 4/5);
+			yScale = pv.Scale.ordinal(pv.range(0,sorted.length)).splitBanded(0, h, 4/5),
 			mfe = new pv.Panel()
 			.canvas(this.getEl().down('.nupack-mfe-summary').dom)
 			.width(w)
@@ -2818,7 +2828,9 @@ Ext.define('App.ui.NupackResults', {
 			mfe.add(pv.Rule)
 			.data(xScale.ticks(5))
 			.left(xScale)
-			.strokeStyle(function(d) {return d ? "rgba(255,255,255,.3)" : "#000"} )
+			.strokeStyle( function(d) {
+				return d ? "rgba(255,255,255,.3)" : "#000"
+			} )
 			.add(pv.Rule)
 			.bottom(0)
 			.height(5)
@@ -2832,9 +2844,14 @@ Ext.define('App.ui.NupackResults', {
 				// var el = this.xt.append(this.body,complexData);
 				// el = el.down('.app-nupack-force');
 
-				var nodeLayout  = DNA.generateAdjacency(complexData.structure,complexData.strands,false),
-				nodeLayout2 = DNA.generateAdjacency(complexData.structure,complexData.strands,true),//[seq],true);
-				colors = pv.Colors.category10();
+				var nodeLayout  = DNA.generateAdjacency(complexData.structure,complexData.strands,false, {
+					ppairs:complexData.ppairs
+				}),
+				nodeLayout2 = DNA.generateAdjacency(complexData.structure,complexData.strands,true, {
+					ppairs:complexData.ppairs
+				}),//[seq],true);
+				colors = pv.Colors.category10(),
+				probColors = pv.Scale.linear(0, .5, 1).range("rgba(0,0,180,1)", "rgba(180,180,0,1)", "rgba(180,0,0,1)");
 
 				var pane = new Ext.panel.Panel({
 					title: '<span class="nupack-complex-strands">'+complexData.strandNames.join('+')+'</span>'+'<span class="nupack-concentration-bar"></span><span class="nupack-concentration">'+complexData.concentration+' M&nbsp;|&nbsp;</span>' ,//'Complex: '+complexData.complex+' Order: '+complexData.order,
@@ -2846,6 +2863,7 @@ Ext.define('App.ui.NupackResults', {
 					// defaultMargins: '5 5 5 5',
 					// },
 					collapsible: true,
+					titleCollapse: true,
 					collapsed: true,
 					resizable: {
 						handles: 'n s'
@@ -2888,17 +2906,19 @@ Ext.define('App.ui.NupackResults', {
 							// .width(forcePanel.getEl().getWidth())
 							// .height(forcePanel.getEl().getHeight())
 							forceVis.fillStyle("white");
-							
+
 							var force = forceVis.add(pv.Layout.Force)
 							.nodes(nodeLayout2.nodes)
 							.links(nodeLayout2.links)
-							.chargeConstant(-200)
+							.chargeConstant(-220)
 							.springConstant(0.9)
-							.springLength(20)
-							.bound(true);
+							//.springLength(20)
+							.bound(false);
 
-							force.link.add(pv.Line);
-
+							force.link.add(pv.Line)
+							.strokeStyle( function(d,l) {
+								return l.probability ? probColors(l.probability) : 'rgba(0,0,0,0.2)'
+							});
 							force.node.add(pv.Dot)
 							.size( function(d) {
 								return (d.linkDegree + 4) * Math.pow(this.scale, -1.5)
@@ -2935,6 +2955,7 @@ Ext.define('App.ui.NupackResults', {
 							//margins: '0 0 5 5',
 							collapseDirection: 'left',
 							headerPosition: 'left',
+							zoom:5,
 							buildVis: function() {
 								this.getCanvas();
 								var arcVis = this.vis;
@@ -2949,9 +2970,11 @@ Ext.define('App.ui.NupackResults', {
 								.links(nodeLayout.links)
 								.orient('radial')
 								.fillStyle("white");
-								
-								this.arc.link.add(pv.Line);
 
+								this.arc.link.add(pv.Line)
+								.strokeStyle( function(d) {
+									return d.probability ? probColors(d.probability) : '#ddd'
+								});
 								this.arc.node.add(pv.Dot)
 								.fillStyle( function(d) {
 									return colors(d.strand)
@@ -2999,14 +3022,16 @@ Ext.define('App.ui.NupackResults', {
 								.fillStyle("white");
 
 								layout.link.add(pv.Bar)
-								.fillStyle(function(l) {return l.linkValue
-							        ? "#555" : "#eee";})
+								.fillStyle( function(d) {
+									return d.probability ? probColors(d.probability) : '#ddd'
+								})
 								.antialias(false)
 								.lineWidth(1);
 
 								layout.label.add(pv.Label)
-								.fillStyle(function(d) {return colors(d.strand)});
-								
+								.fillStyle( function(d) {
+									return colors(d.strand)
+								});
 								this.updateVis();
 							},
 							updateVis: function() {
@@ -3058,7 +3083,7 @@ Ext.define('App.ui.NupackResults', {
 					// },],
 					renderTo: this.body,
 					minHeight: 200,
-					height: 400,
+					height: 600,
 					// margins: '5 0 20 0',
 				});
 				_.each(pane.query('*[ref]'), function(cmp) {
@@ -3119,7 +3144,11 @@ Ext.define('App.ui.CodeMirror', {
 		if(textarea) {
 			this.codemirror = CodeMirror.fromTextArea(textarea,this);
 			this.codemirror.setValue(this.value);
+			this.codemirror.onCursorActivity = Ext.bind(this.onCursorActivity,this);
 		}
+	},
+	onCursorActivity: function() {
+		this.fireEvent('cursorChange',this);
 	},
 	getValue: function() {
 		return this.codemirror.getValue();
@@ -3322,7 +3351,20 @@ Ext.define('App.ui.SequenceThreader', {
 
 	},
 	normalize: function() {
+		var strands = this.smartSelect(this.strandsPane), namesStrands, namesList, strandsList;
+		namesStrands = _.map(strands, function(strand) {
+			return _.map(strand.split(':'), function(s) {
+				return s.trim();
+			});
+		})
+		namesStrands = _.zip.apply(_,namesStrands);
+		namesList = _.compact(namesStrands[0]);
+		strandsList = _.compact(namesStrands[1]);
+		strandsList = DNA.normalizeSystem(strandsList);
 
+		this.strandsPane.setValue(_.map(_.zip(namesList,strandsList), function(pair) {
+			return pair[0]+' : '+DNA.encodeStrand(pair[1]);
+		}).join('\n'));
 	},
 	setStrands: function(data) {
 		this.strandsPane.setValue(data);
@@ -3362,6 +3404,52 @@ Ext.define('App.ui.SequenceEditor', {
 							}
 						}),
 						ref: 'hamming',
+					},{
+						text: 'Shannon Entropy',
+						menu: new App.ui.StatMenu({
+							labelText: 'Calculate Shannon Entropy (∆S°)',
+							baseText: 'Shannon: ',
+							algorithm: function(sel) {
+								var p_g = 0,
+								p_a = 0,
+								p_t = 0,
+								p_c = 0,
+								base = 0,
+								shannon = 0;
+
+								sel = sel.trim();
+
+								// determine base frequencies
+								for (j = 0; j < sel.length; j++) {
+
+									// 1 = G, 2 = A, 3 = T, 4 = C; 11 = G (locked), etc
+									base = sel[j];// % 10;
+									if(base=='G') {
+										p_g++;
+									} else if (base=='A') {
+										p_a++;
+									} else if (base=='T') {
+										p_t++;
+									} else if (base=='C') {
+										p_c++;
+									}
+								}
+
+								// convert to distributions
+								p_g = p_g / sel.length;
+								p_a = p_a / sel.length;
+								p_t = p_t / sel.length;
+								p_c = p_c / sel.length;
+
+								shannon = -(p_g * (p_g > 0 ? Math.log(p_g)/Math.LN2 : 0) +
+									p_a * (p_a > 0 ? Math.log(p_a)/Math.LN2 : 0) +
+									p_t * (p_t > 0 ? Math.log(p_t)/Math.LN2 : 0) +
+									p_c * (p_c > 0 ? Math.log(p_c/Math.LN2) : 0));
+
+								return shannon;
+							},
+						}),
+						ref: 'shannon',
 					}],
 				},
 				scope: this,
@@ -3426,6 +3514,10 @@ Ext.define('App.ui.SequenceEditor', {
 						text: 'Lowercase',
 						handler: this.lowercase,
 						scope: this,
+					},{
+						text: 'Comment/Uncomment',
+						handler: this.toggleComment,
+						scope: this,
 					},'-',{
 						text: 'Make DD input file',
 						handler: this.insertDD,
@@ -3438,7 +3530,53 @@ Ext.define('App.ui.SequenceEditor', {
 						text: 'Thread sequences to strand',
 						handler: this.threadStrands,
 						scope: this,
-					}]
+					},{
+						text: 'Truncate',
+						menu: [{
+							text: 'Bases to truncate: ',
+							tip: "Use a positive number for 5' truncations, negative number for 3' truncations.",
+							canActivate: false,
+						},{
+							xtype: 'numberfield',
+							ref: 'truncationCount',
+							indent: true,
+						},{
+							text: 'Truncate',
+							iconCls: 'tick',
+							handler: this.truncate,
+							scope: this,
+						}]
+					},{
+						text: 'Name Strands',
+						menu: [{
+							text: 'Strand name prefix: ',
+							canActivate: false,
+						},{
+							xtype: 'textfield',
+							ref: 'strandNamePrefix',
+							indent: true,
+						},{
+							text: 'Name Strands',
+							iconCls: 'tick',
+							handler: this.nameStrands,
+							scope: this,
+						}]
+					},{
+						text: 'Prepend strands',
+						menu: [{
+							text: 'Strand Prefix: ',
+							canActivate: false,
+						},{
+							xtype: 'textfield',
+							ref: 'strandPrefix',
+							indent: true,
+						},{
+							text: 'Prepend',
+							iconCls: 'tick',
+							handler: this.prepend,
+							scope: this,
+						}]
+					},]
 				}
 			},{
 				text: 'Compute',
@@ -3451,6 +3589,14 @@ Ext.define('App.ui.SequenceEditor', {
 							ref: 'mfeMenu',
 							labelText: 'Save results to:',
 							createText: 'Run',
+							extraMenuItems: ['-',{
+								xtype: 'numberfield',
+								minValue: 1,
+								allowBlank: true,
+								emptyText: 'Max Complex Size',
+								ref: 'mfeMaxComplexSize',
+								indent: true,
+							},'-'],
 							onCreateButton: Ext.bind(this.mfeComplexes,this),
 							autoCreateMenu: false,
 						}),
@@ -3459,8 +3605,61 @@ Ext.define('App.ui.SequenceEditor', {
 					},{
 						text: 'Pairwise MFE Complexes',
 						iconCls: 'nupack-icon',
-						handler: this.pairwiseMfeComplexes,
-						scope: this,
+						menu: new App.ui.CreateMenu({
+							ref: 'mfeMenu',
+							labelText: 'Save results to:',
+							createText: 'Run',
+							// extraMenuItems: ['-',{
+							// text: 'Temperature (°C):',
+							// canActivate: false,
+							// },{
+							// xtype: 'numberfield',
+							// emptyText: 'Temperature (°)',
+							// tip: 'Temperature in °C',
+							// value: 20,
+							// allowBlank: false,
+							// indent: true,
+							// },'-',{
+							// text: 'Mg<sup>2+</sup> (M): ',
+							// canActivate: false,
+							// },{
+							// emptyText: 'Magnesium (M)',
+							// tip: 'Magnesium concentration in mol/L (M)',
+							// xtype: 'numberfield',
+							// value: 1,
+							// allowBlank: false,
+							// indent: true,
+							// },'-',{
+							// text: 'Na<sup>+</sup> (M): ',
+							// canActivate: false,
+							// },{
+							// emptyText: 'Sodium (M)',
+							// tip: 'Magnesium concentration in mol/L (M)',
+							// xtype: 'numberfield',
+							// allowBlank: false,
+							// value: 0,
+							// indent: true,
+							// },'-'],
+							onCreateButton: Ext.bind(this.pairwiseMfeComplexes,this),
+							autoCreateMenu: false,
+						}),
+					},{
+						text: 'Brute Force',
+						menu: [{
+							text: 'Target length: ',
+							canActivate: false,
+						},{
+							xtype: 'numberfield',
+							ref: 'brutePermCount',
+							minValue:2,
+							maxValue:6,
+							indent: true,
+						},{
+							text: 'Brute',
+							iconCls: 'tick',
+							handler: this.bruteForce,
+							scope: this,
+						}]
 					}]
 				}
 			},'->',{
@@ -3488,6 +3687,7 @@ Ext.define('App.ui.SequenceEditor', {
 		_.each(this.query('*[ref]'), function(cmp) {
 			this[cmp.ref] = cmp;
 		},this);
+		this.shannon.on('activate',this.populateShannon,this);
 		this.hamming.on('activate',this.populateHamming,this);
 		this.lev.on('activate',this.populateLev,this);
 		this.stats.on('activate',this.populateStats,this);
@@ -3500,6 +3700,50 @@ Ext.define('App.ui.SequenceEditor', {
 		this.strandCount.setText(this.strandCount.baseText + strandCount);
 		this.baseCount.setText(this.baseCount.baseText + baseCount);
 	},
+	bruteForce: function() {
+		var strands = this.smartSelect(), count = this.brutePermCount.getValue();
+		function permutations(length) {
+			function permute(prev,alphabet) {
+				var o = [];
+				_.each(prev, function(item) {
+					_.each(alphabet, function(ch) {
+						o.push(item+ch);
+					});
+				});
+				return o;
+			}
+
+			var out = ['A','T','C','G'], alph = ['A','T','C','G'];
+			for(var i=1;i<length;i++) {
+				out = permute(out,alph);
+			}
+			return out;
+		}
+
+		function brute(strands,length) {
+
+			var nMers = permutations(length),
+				wc = '',
+				out = {};
+			for(var i=0;i<nMers.length;i++) {
+				wc = DNA.reverseComplement(nMers[i]);
+				out[nMers[i]] = 0;
+				for(var j=0;j<strands.length;j++) {
+					if(strands[j],indexOf(wc)!=-1) {
+						out[nMers[i]]++;
+					}
+				}
+			}
+			console.log(out);
+		}
+		
+		brute(strands,count);
+
+		// var brute = new Worker('client/brute.js');
+		// brute.onmessage = function(e) {console.log(e) };
+		// brute.postMessage({strands: strands, length: count});
+		// console.log('Worker started.');
+	},
 	/**
 	 * Opens a window where the user can combine sequences into NUPACk-style strands
 	 */
@@ -3508,17 +3752,18 @@ Ext.define('App.ui.SequenceEditor', {
 		win.show();
 		win.setSequences(this.getSelection());
 	},
-	pairwiseMfeComplexes: function() {
+	pairwiseMfeComplexes: function(fullName) {
 		var strands = this.smartSelect(),
 		maxComplexes = strands.length;
 		App.runTask('NupackPairwise', {
-			node: this.getPath(),
+			node: App.Path.sameDirectory(this.getPath(),fullName),
 			strands: strands,
 		});
 	},
 	mfeComplexes: function(fullName) {
 		var strands = this.smartSelect(),
-		maxComplexes = strands.length;
+		maxComplexes = this.mfeMaxComplexSize.getValue();
+		maxComplexes = Ext.isNumber(maxComplexes) ? maxComplexes : strands.length;
 		App.runTask('NupackAnalysis', {
 			node: App.Path.sameDirectory(this.getPath(),fullName),
 			strands: strands,
@@ -3535,6 +3780,53 @@ Ext.define('App.ui.SequenceEditor', {
 			sel = this.editor.getValue();
 		}
 		return sel;
+	},
+	toggleComment: function() {
+		var strands = this.smartSelect();
+		strands = _.map(strands, function(strand) {
+			if(strand.trim()[0]=='#' || strand.trim()[0]=='%') {
+				strand = strand.trim().substr(1);
+			} else {
+				strand = '#' + strand;
+			}
+			return strand;
+		});
+		strands = strands.join('\n');
+		this.editor.codemirror.replaceSelection(strands);
+	},
+	truncate: function() {
+		var strands = this.smartSelect(), len = this.truncationCount.getValue();
+		strands = _.map(strands, function(strand) {
+			if(len > 0) {
+				return strand.substr(len)
+			} else {
+				return strand.substr(0,strand.length+len)
+			}
+		});
+		strands = strands.join('\n');
+		this.editor.codemirror.replaceSelection(strands);
+	},
+	nameStrands: function() {
+		var strands = this.smartSelect(), prefix = this.strandNamePrefix.getValue(), i=0;
+		!!prefix || (prefix = '');
+
+		strands = _.map(strands, function(strand) {
+			i++;
+			return prefix+i+' : '+strand;
+		});
+		strands = strands.join('\n');
+		this.editor.codemirror.replaceSelection(strands);
+	},
+	prepend: function() {
+		var strands = this.smartSelect(), prefix = this.strandPrefix.getValue(), i=0;
+		!!prefix || (prefix = '');
+
+		strands = _.map(strands, function(strand) {
+			return prefix+strand;
+		});
+		strands = strands.join('\n');
+		this.editor.codemirror.replaceSelection(strands);
+
 	},
 	nupackToFasta: function() {
 		this.replace(new RegExp("\\t\\n",'gm'),'\n>');
@@ -3646,6 +3938,13 @@ Ext.define('App.ui.SequenceEditor', {
 		}
 		this.editor.codemirror.replaceSelection(newVal);
 	},
+	populateShannon: function() {
+		var menu = this.shannon.menu;
+		sel = this.editor.codemirror.getSelection();
+		if(sel!='') {
+			menu.populate(sel);
+		}
+	},
 	populateHamming: function() {
 		this.populateComparison(this.hamming);
 	},
@@ -3683,6 +3982,218 @@ Ext.define('App.ui.SequenceEditor', {
 		}
 	}
 });
+
+Ext.define('App.ui.DD', {
+	extend: 'Ext.panel.Panel',
+	mixins: {
+		app: 'App.ui.Application'
+	},
+	mutating: false,
+	initComponent: function() {
+		this.store = Ext.create('Ext.data.ArrayStore', {
+			ref: 'store',
+			fields: [{
+				name: 'domain',
+				type: 'int'
+			},{
+				name: 'sequence',
+			},{
+				name: 'importance',
+				type: 'float'
+			},{
+				name: 'composition',
+				type: 'int'
+			},{
+				name: 'score',
+				type: 'float',
+			}
+			],
+			data: []
+		});
+
+		this.rowEditor = Ext.create('Ext.grid.plugin.RowEditing', {
+			clicksToMoveEditor: 1,
+			autoCancel: false
+		});
+		this.rowEditor.on('edit', function(e) {
+			this.designer.updateDomain(e.record.get('domain')-1,e.record.get('sequence'),e.record.get('importance'),e.record.get('composition'));
+		},this)
+		Ext.apply(this, {
+			layout: 'fit',
+			// items: {
+			// xtype: 'panel',
+			// ref: 'output',
+			// },
+			items: {
+				xtype: 'gridpanel',
+				bodyBorder: false,
+				border: false,
+				columns: [Ext.create('Ext.grid.RowNumberer'),{
+					header: 'Sequence',
+					dataIndex: 'sequence',
+					renderer: function(v) {
+						var x = {
+							innerHTML: '',
+							nodeType: 1
+						};
+						CodeMirror.runMode(v.toUpperCase(),'sequence',x);
+						return x.innerHTML;
+					},
+					editor: {
+						allowBlank: false,
+					},
+					flex: 1
+				},{
+					header: 'Importance',
+					dataIndex: 'importance',
+					width: 100,
+					editor: {
+						xtype: 'numberfield',
+						allowBlank: false,
+					}
+				},{
+					header: 'Composition',
+					dataIndex: 'composition',
+					width: 100,
+					editor: {
+						allowBlank: false,
+					}
+				},{
+					header: 'Score',
+					dataIndex: 'score',
+					width: 100,
+					editable: false,
+				}],
+				store: this.store,
+				plugins: [this.rowEditor]
+			},
+			tbar: [{
+				text: 'Mutate',
+				iconCls: 'play',
+				ref: 'mutateButton',
+				handler: this.toggleMutation,
+				scope: this,
+			},{
+				text: 'Modify',
+				iconCls: 'edit',
+			},{
+				text: 'Add',
+				ref: 'addDomainButton',
+				handler: this.doAddDomain,
+				scope: this,
+				iconCls: 'plus',
+				xtype: 'splitbutton',
+				menu: [{
+					text: 'New domain length: ',
+					canActivate: false,
+				},{
+					xtype: 'numberfield',
+					ref: 'addDomLen',
+					value: 8,
+					min: 2,
+					indent: true,
+				},{
+					text: 'Add Domain',
+					iconCls: 'tick',
+					ref: 'addDomainItem',
+					handler: this.doAddDomain,
+					scope: this,
+				}]
+			},'->',{
+				text: 'Save',
+				iconCls: 'save'
+			}],
+			bbar: new Ext.ux.statusbar.StatusBar({
+				ref: 'statusBar',
+				items: [{
+					baseText: 'Attempts: ',
+					text: 'Attempts: ',
+					ref: 'attemptCount',
+				},{
+					baseText: 'Mutations: ',
+					text: 'Mutations: ',
+					ref: 'mutCount',
+				}]
+			})
+		});
+		this.callParent(arguments);
+		this.designer = new DD();
+		_.each(this.query('*[ref]'), function(cmp) {
+			this[cmp.ref] = cmp;
+		},this);
+	},
+	updateStatusBar: function() {
+		var attempts = this.designer.getMutationAttempts(),
+		muts = attempts = this.designer.getMutationCount();
+		this.attemptCount.setText(this.attemptCount.baseText+attempts);
+		this.mutCount.setText(this.mutCount.baseText+muts);
+	},
+	doAddDomain: function() {
+		var len = this.addDomLen.getValue();
+		var seq = this.designer.randomSequence(1,len)[0];
+		this.addDomain(this.designer.printfDomain(seq),1,15);
+	},
+	addDomain: function(seq,imp,comp) {
+		// false to not clobber
+		this.designer.addDomains([seq],imp,comp,false);
+		this.store.add({
+			sequence: seq,
+			importance: imp,
+			composition: comp,
+			domain: this.designer.getDomainCount()
+		});
+		this.designer.evaluateAllScores();
+	},
+	toggleMutation: function() {
+		if(this.mutating) {
+			this.pauseMutation();
+		} else {
+			this.startMutation();
+		}
+	},
+	mutStep: 100,
+	doMutation: function() {
+		for(var i=0; i<this.mutStep;i++) {
+			this.designer.mutate();
+		}
+		this.updateStatusBar();
+		var scores = this.designer.getScores(),
+		mut_dom = this.designer.getMutatedDomain(),
+		mut_dom_seq = this.designer.printfDomainById(mut_dom), rec;
+		//this.output.update(this.designer.printDomains());
+		// //this.store.suspendEvents();
+		for(var i=0;i<scores.length;i++) {
+			rec = this.store.findRecord('domain',i+1);
+			rec.set('score',scores[i]);
+		}
+		rec = this.store.findRecord('domain',mut_dom+1);
+		rec.set('sequence',mut_dom_seq);
+		//this.store.resumeEvents();
+		this.store.sync();
+	},
+	startMutation: function() {
+		this.mutateButton.setIconCls('pause');
+		if(!this.mutationTask) {
+			this.mutationTask = Ext.TaskManager.start({
+				run: this.doMutation,
+				interval: 0.1,
+				scope: this,
+			});
+		} else {
+			this.mutationTask = Ext.TaskManager.start(this.mutationTask);
+		}
+		this.mutating = true;
+	},
+	pauseMutation: function() {
+		this.mutateButton.setIconCls('play');
+		if(this.mutationTask) {
+			Ext.TaskManager.stop(this.mutationTask);
+		}
+		this.mutating = false;
+	}
+});
+
+Ext.define('App.ui.DD.DomainPanel', {})
 
 Ext.define('App.ui.SequenceStats', {
 	extend: 'Ext.menu.Menu',
@@ -3781,6 +4292,73 @@ Ext.define('App.ui.SequenceStats', {
 		this.chartStore.loadData(data.abbr);
 	},
 });
+
+Ext.define('App.ui.StatMenu', {
+	extend: 'Ext.menu.Menu',
+	labelText: 'Statistic: ',
+	baseText: 'Value: ',
+	initComponent: function() {
+		Ext.apply(this, {
+			resizable: {
+				transparent: true,
+			},
+			items: [{
+				text: this.labelText,
+				canActivate: false
+			},{
+				xtype: 'textfield',
+				ref: 'field',
+				validate: Ext.bind(this.doValidate,this),
+				scope: this,
+				indent: true,
+				invalidText: this.invalidText,
+				invalidCls: 'x-form-invalid',
+				validateOnChange: this.validateOnChange,
+			},'-',{
+				text: this.baseText,
+				defaultText: this.baseText,
+				canActivate: false,
+				disabled: true,
+				ref: 'output',
+			}]
+		});
+		this.callParent(arguments);
+		_.each(this.query('*[ref]'), function(cmp) {
+			this[cmp.ref] = cmp;
+		},this);
+		this.field.on('blur', this.onBlur,this);
+	},
+	validate: function() {
+		return true;
+	},
+	algorithm: function() {
+		return 0;
+	},
+	doValidate: function() {
+		var v1 = this.field.getValue();
+		return this.validate(v1 || '');
+	},
+	onBlur: function() {
+		this.validityChange(this.doValidate());
+	},
+	validityChange: function(isValid) {
+		this.output.setDisabled(!isValid);
+		if(isValid) {
+			this.output.setText(this.baseText + this.algorithm(this.field.getValue()));
+		} else {
+			this.output.setText('N/A');
+		}
+	},
+	populate: function(s1) {
+		this.field.suspendEvents();
+
+		if(s1) {
+			this.field.setValue(s1);
+		}
+		this.field.resumeEvents();
+		this.validityChange(this.doValidate());
+	},
+})
 
 Ext.define('App.ui.CompareMenu', {
 	extend: 'Ext.menu.Menu',
@@ -3882,6 +4460,13 @@ Ext.define('App.ui.NupackEditor', {
 				iconCls: 'nupack-icon',
 				handler: App.ui.Launcher.makeLauncher('nupack'),
 				menu: new App.ui.NupackMenu({}),
+			},{
+				text: 'Edit',
+				iconCls: 'pencil',
+				menu: [{
+					text: 'Thread segments to sequences',
+					handler: this.threadStrands
+				},]
 			},'->',{
 				text: 'Save',
 				iconCls: 'save',
@@ -3892,6 +4477,14 @@ Ext.define('App.ui.NupackEditor', {
 			}]
 		})
 		this.callParent(arguments);
-	}
+	},
+	threadStrands: function() {
+		var win = new App.ui.SequenceThreader();
+		win.show();
+		win.setStrands(this.getSelection());
+	},
+	getSelection: function() {
+		return this.editor.codemirror.getSelection();
+	},
 }
 )

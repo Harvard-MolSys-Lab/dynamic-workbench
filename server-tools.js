@@ -25,7 +25,7 @@ var tools = {
 	},
 	nupackAnalysis: {
 		command: 'tools/nupack3/bin/complexes',
-		arguments: ['-ordered','-mfe',]
+		arguments: ['-ordered','-mfe','-pairs']
 	},
 	nupackConc: {
 		command: 'tools/nupack3/bin/concentrations',
@@ -117,7 +117,7 @@ exports.configure = function(app,express) {
 		// console.log('node:'+node);
 		// console.log('basename:'+path.basename(fullPath));
 		// console.log('dirname:'+path.dirname(fullPath));
-		pairwise(strands,path.basename(fullPath),path.dirname(fullPath), function(out) {
+		nupackAnalysis(strands,path.basename(fullPath),path.dirname(fullPath), {}, function(out) {
 			if(out.err) {
 				console.log(out.err);
 			}
@@ -130,6 +130,130 @@ exports.configure = function(app,express) {
 
 		});
 	});
+	app.post(baseRoute+'/brute', function(req,res) {
+		var node = req.param('node'),
+		strands = req.param('strands'),
+		length = req.param('length'),
+		fullPath = utils.userFilePath(node),
+		cmd;
+		//console.log(strands);
+		if(!allowedPath(node) || !allowedPath(fullPath)) {
+			forbidden(res);
+			console.log("Can't enter path: '"+fullPath+"'");
+		}
+
+		function brute(strands,length) {
+
+			var designer = new DD();
+			nMers = permutations(length),
+			nMerIndex = 0;
+			designer.addDomains(strands);
+			nMerIndex = designer.getDomainCount();
+
+			return scores = _.reduce(nMers, function(memo,nMer) {
+				designer.addDomains([nMer]);
+				// true to force recalculation of scores
+				memo[nMer] = designer.getScore(nMerIndex,true)
+				designer.popDomain();
+				return memo;
+			}, {});
+
+		}
+
+		nupackAnalysis(strands,path.basename(fullPath),path.dirname(fullPath), {
+			maxComplexSize:2
+		}, function(out) {
+			if(out.err) {
+				console.log(out.err);
+			}
+
+			if(!!out.stderr) {
+				res.send(out.stderr);
+				return;
+			}
+			res.send(out.stdout);
+
+		});
+		/*
+		 // var node = req.param('node'),
+		 // strands = req.param('strands'),
+		 // maxComplex = req.param('max'),
+		 // cmd,
+		 // strandList = _.compact(strands),//_.compact(strands.split('\n'));
+		 // combs = combinations(strandList),
+		 // combsLabels = combinations(_.range(1,strandList.length+1));
+		 // fullPath = path.dirname(path.resolve(utils.userFilePath(node)));
+		 //
+		 // // var tasks = [];
+		 // // _.each(combs, function(comb,index) {
+		 // // console.log([comb,'combination-'+combsLabels[index].join(','),fullPath].join(';'));
+		 // // tasks.push(_.bind(pairwise, {},comb,'combination-'+combsLabels[index].join(','),fullPath));
+		 // // });
+		 // // async.serial(tasks, function(err,results) {
+		 // // res.send(results);
+		 // // })
+		 // nupackAnalysis(strandList,path.basename(fullPath),path.dirname(fullPath), {maxComplexSize:2}, function(out) {
+		 // if(out.err) {
+		 // console.log(out.err);
+		 // }
+		 //
+		 // if(!!out.stderr) {
+		 // res.send(out.stderr);
+		 // return;
+		 // }
+		 // res.send(out.stdout);
+		 //
+		 // });
+		 */
+	});
+	app.post(baseRoute+'/nupack/pairwise', function(req,res) {
+		var node = req.param('node'),
+		strands = req.param('strands'),
+		maxComplex = req.param('max'),
+		fullPath = utils.userFilePath(node),
+		cmd;
+		console.log(strands);
+		if(!allowedPath(node) || !allowedPath(fullPath)) {
+			forbidden(res);
+			console.log("Can't enter path: '"+fullPath+"'");
+		}
+		// console.log('fullPath:'+fullPath);
+		// console.log('node:'+node);
+		// console.log('basename:'+path.basename(fullPath));
+		// console.log('dirname:'+path.dirname(fullPath));
+		nupackAnalysis(strands,path.basename(fullPath),path.dirname(fullPath), {
+			maxComplexSize:2
+		}, function(out) {
+			if(out.err) {
+				console.log(out.err);
+			}
+
+			if(!!out.stderr) {
+				res.send(out.stderr);
+				return;
+			}
+			res.send(out.stdout);
+
+		});
+	});
+	function permutations(length) {
+		function permute(prev,alphabet) {
+			var o = [];
+			_.each(prev, function(item) {
+				_.each(alphabet, function(ch) {
+					o.push(item+ch);
+				});
+			});
+			return o;
+		}
+
+		var out = ['A','T','C','G'], alph = ['A','T','C','G'];
+		for(var i=1;i<length;i++) {
+			out = permute(out,alph);
+		}
+		return out;
+	}
+
 	function combinations(strands) {
 		var s1, s2, combs = [];
 		for (i=0;i<strands.length;i++) {
@@ -175,6 +299,21 @@ exports.configure = function(app,express) {
 				data = data.trim();
 				//console.log('data: '+data);
 				table = DNA.tablify(data);
+
+				// this table actually comes as a bitmap, where, for each row, row[i+2] indicates the number of times strand i+1 appears in the complex.
+				table = _.map(table, function(row) {
+					var newRow = [row[0],row[1]];
+					row = _.compact(row);
+					for(var i=0,l=row.length-4;i<l;i++) {
+						if(row[i+2]>0) {
+							for(n=0;n<row[i+2];n++) {
+								newRow.push(i+1);
+							}
+						}
+					}
+					newRow = newRow.concat(row.slice(-2))
+					return newRow;
+				});
 				// console.log('table: ')
 				// console.log(table);
 				table = DNA.indexTable(table);
@@ -227,6 +366,45 @@ exports.configure = function(app,express) {
 			});
 		},
 
+		// % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %
+		// % complexN-orderN
+		// number of bases
+		// base1 base2 probability
+		// base1 base2 probability
+		// ...
+		// % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %
+		function(cb) {
+			fs.readFile(prefixPath+'.ocx-ppairs', 'utf8', function(err,data) {
+				data = DNA.stripNupackHeaders(data);
+				var dataArray = data.split('% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %');
+				dataArray = _.compact(_.map(dataArray, function(a) {
+					return a.trim();
+				}));
+				var ppairs = DNA.indexBy('complex','order',_.map(dataArray, function(block) {
+					var blockArray = block.split('\n'), complexOrder = utils.sscanf(blockArray[0].replace('% ',''),'complex%u-order%u'),
+					pairsArray = blockArray.slice(2);
+					// console.log('blockArray');
+					// console.log(blockArray);
+					// console.log('blockArray[0]: '+blockArray[0]);
+					return {
+						complex: complexOrder[0],
+						order: complexOrder[1],
+						bases: blockArray[1],
+						pairs: DNA.indexTable(_.map(pairsArray, function(pairRow) {
+							return _.compact(pairRow.split('\t'));
+						}))
+					};
+				}));
+				// console.log('ocx_mfe: ');
+				// console.log(ocx_mfe);
+				// console.log('end ocx_mfe');
+
+				cb(err, {
+					ppairs:ppairs
+				});
+			});
+		},
+
 		// actually, this file is mostly useless; all the relevant information is in ocx, near as I can tell
 		// // complex, order, strands...
 		// function(cb) {
@@ -266,13 +444,27 @@ exports.configure = function(app,express) {
 					});
 					rec.strandNames = eq;
 				}
+				if(scratch.ppairs[rec.complex] && scratch.ppairs[rec.complex][rec.order]) {
+					var ppairs = _.clone(scratch.ppairs[rec.complex][rec.order].pairs);
+					rec.ppairs = ppairs;
+				}
 			});
 			console.log(scratch);
 			callback(scratch);
 		});
 	}
 
-	function pairwise(strandPair,name,fullPath,callback) {
+	function nupackAnalysis(strandPair,name,fullPath,options,callback) {
+		options || (options = {});
+		options = _.extend({
+			maxComplexSize: strandPair.length,
+			monomerConcentrations: '1e-6',
+			temperature: 37,
+			material: 'dna',
+			mg: 1,
+			na: 0,
+		},options);
+
 		dirPath = path.join(fullPath,name);
 		fs.mkdir(dirPath,777, function(err) {
 			// ignore errors raised when the folder already exists.
@@ -294,10 +486,10 @@ exports.configure = function(app,express) {
 			inFileName = path.join(dirPath,prefix+'.in'),
 			listFileName = path.join(dirPath,prefix+'.list'),
 			conFileName = path.join(dirPath,prefix+'.con'),
-			inFile = [strandPair.length,strandPair.join('\n'),strandPair.length].join('\n'),
-			conFile = _.map(strandPair, function(el) {
-				return '1e-6';
-			}).join('\n');
+			inFile = [strandPair.length,strandPair.join('\n'),options.maxComplexSize].join('\n'),
+			conFile = (_.isArray(options.monomerConcentrations) ? options.monomerConcentrations : _.map(strandPair, function(el) {
+					return options.monomerConcentrations;
+				})).join('\n');
 			complexesCmd = getCommand('nupackAnalysis',[prefixPath]);
 			concCmd = getCommand('nupackConc',[prefixPath]);
 
@@ -414,25 +606,6 @@ exports.configure = function(app,express) {
 		});
 	}
 
-	app.post(baseRoute+'/nupack/pairwise', function(req,res) {
-		var node = req.param('node'),
-		strands = req.param('strands'),
-		maxComplex = req.param('max'),
-		cmd,
-		strandList = _.compact(strands),//_.compact(strands.split('\n'));
-		combs = combinations(strandList),
-		combsLabels = combinations(_.range(1,strandList.length+1));
-		fullPath = path.dirname(path.resolve(utils.userFilePath(node)));
-
-		var tasks = [];
-		_.each(combs, function(comb,index) {
-			console.log([comb,'combination-'+combsLabels[index].join(','),fullPath].join(';'));
-			tasks.push(_.bind(pairwise, {},comb,'combination-'+combsLabels[index].join(','),fullPath));
-		});
-		async.serial(tasks, function(err,results) {
-			res.send(results);
-		})
-	});
 	app.post(baseRoute+'/spurious', function(req,res) {
 		var node = req.param('node'),
 		prefix = path.basename(node),

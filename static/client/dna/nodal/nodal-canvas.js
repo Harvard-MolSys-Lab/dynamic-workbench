@@ -221,7 +221,7 @@ Ext.define('App.ui.nodal.BuildTab', {
 						scope: this,
 						tooltip: {
 							title: 'Serialize System',
-							text: 'Serializes the workspace to the "TerseML" format accepted by the current version of the compiler; outputs to the console.'
+							text: 'Serializes the workspace to the "TerseML" format accepted by the current version of the compiler; outputs to input.txt in this directory.'
 						}
 					},{
 						iconCls: 'compile',

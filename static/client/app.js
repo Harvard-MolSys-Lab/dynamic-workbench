@@ -241,7 +241,7 @@ Ext.define('App.TaskRunner.Task', {
 	extend: 'Ext.data.Model',
 	endpoint: '',
 	iconCls: '',
-	timeout: 5*60*1000,
+	timeout: 60*60*1000,
 	fields: [{
 		name: 'tool',
 		type: 'string',

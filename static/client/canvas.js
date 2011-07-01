@@ -2669,9 +2669,16 @@ Ext.define('App.ui.ProtovisPanel', {
 	pan: true,
 	zoom: 1,
 	bpadding: 20,
+	autoRender: false,
+	autoSize: true,
 	initComponent: function() {
 		//this.on('afterrender',this.afterrender,this);
 		this.callParent(arguments);
+		if(this.autoRender) {
+			this.on('afterrender',this.afterrender,this, {
+				single: true
+			});
+		}
 	},
 	afterrender: function() {
 		if(!this.built) {
@@ -2692,7 +2699,9 @@ Ext.define('App.ui.ProtovisPanel', {
 		return this.body.getHeight();
 	},
 	resizeVis: function(p,w,h) {
-		this.vis.width(this.getBodyWidth()).height(this.getBodyHeight());
+		if(this.autoSize) {
+			this.vis.width(this.getBodyWidth()).height(this.getBodyHeight());
+		}
 		this.updateVis();
 		this.vis.render();
 	},
@@ -2716,9 +2725,12 @@ Ext.define('App.ui.ProtovisPanel', {
 	getCanvas: function() {
 		if(!this.vis) {
 			this.vis = new pv.Panel()
-			.canvas(this.body.dom)
-			.width(this.body.getWidth())
-			.height(this.body.getHeight());
+			.canvas(this.body.dom);
+			if(this.autoSize) {
+				this.vis
+				.width(this.body.getWidth())
+				.height(this.body.getHeight());
+			}
 			if(this.pan) {
 				this.vis.event("mousedown", pv.Behavior.pan());
 			}
@@ -3723,20 +3735,95 @@ Ext.define('App.ui.SequenceEditor', {
 		function brute(strands,length) {
 
 			var nMers = permutations(length),
-				wc = '',
-				out = {};
+			wc = '',
+			out = {};
 			for(var i=0;i<nMers.length;i++) {
 				wc = DNA.reverseComplement(nMers[i]);
 				out[nMers[i]] = 0;
 				for(var j=0;j<strands.length;j++) {
-					if(strands[j],indexOf(wc)!=-1) {
+					if(strands[j].indexOf(wc)!=-1) {
 						out[nMers[i]]++;
 					}
 				}
 			}
+			var win = new Ext.window.Window({
+				width: 650,
+				height: 400,
+				items: new App.ui.ProtovisPanel({
+					length: length,
+					strands: strands,
+					autoRender: true,
+					autoSize: false,
+					autoScroll: true,
+					buildVis: function() {
+
+						this.vis = this.getCanvas();
+						var data = _.sortBy(_.map(this.data, function(value,key) {
+							return {
+								sequence: key,
+								interactions: value
+							};
+						}),function(value) {
+							return value.interactions;
+						}),
+						w = 600,
+						h = 15*data.length,
+						xScale = pv.Scale.linear(0, this.strands.length).nice().range(0, w),
+						yScale = pv.Scale.ordinal(pv.range(0,data.length)).splitBanded(0, 15*data.length, 4/5);
+						this.vis
+						.width(w)
+						.height(h)
+						.top(10)
+						.bottom(20)
+						.left(50)
+						.right(10);
+
+						var bar = this.vis.add(pv.Bar)
+						.data(data)
+						.top( function() {
+							return yScale(this.index)
+						})
+						.height(yScale.range().band)
+						.left(0)
+						.width( function(d) {
+							return xScale(d.interactions)
+						});
+						/* The value label. */
+						bar.anchor("right").add(pv.Label)
+						.textStyle("white")
+						.text( function(d) {
+							return d.interactions
+						});
+						/* The variable label. */
+						bar.anchor("left").add(pv.Label)
+						.textMargin(5)
+						.textAlign("right")
+						.text( function(d) {
+							return d.sequence
+						});
+						/* X-axis ticks. */
+						// this.vis.add(pv.Rule)
+						// .data(xScale.ticks(5))
+						// .left(xScale)
+						// .strokeStyle( function(d) {
+						// return d ? "rgba(255,255,255,.3)" : "#000"
+						// } )
+						// .add(pv.Rule)
+						// .bottom(0)
+						// .height(5)
+						// .strokeStyle("#000")
+						// .anchor("bottom").add(pv.Label)
+						// .text(xScale.tickFormat);
+					},
+					data: out,
+				}),
+				layout: 'fit',
+				title: 'Brute force '+count+'-mer search',
+			});
+			win.show();
 			console.log(out);
 		}
-		
+
 		brute(strands,count);
 
 		// var brute = new Worker('client/brute.js');

@@ -176,7 +176,7 @@ ul.dashboard-actions > li {
 background-image: url(/images/icons/fugue/compile.png) !important;
 }
 
-.sequence, .seq {
+.sequence, .seq, .dd {
 background-image: url(/images/icons/fugue/edit-diff.png) !important;
 }
 
@@ -184,7 +184,7 @@ background-image: url(/images/icons/fugue/edit-diff.png) !important;
 background-image: url(/images/icons/fugue/arrow-split.png) !important;
 }
 
-.simulate {
+.simulate, .calculator, .calculate {
 background-image: url(/images/icons/fugue/calculator.png) !important;
 }
 
@@ -194,6 +194,13 @@ background-image: url(/images/icons/fugue/calculator.png) !important;
 
 .expand {
   background-image: url(/images/icons/fugue/document-resize.png) !important;  
+}
+
+.pause {
+	background-image: url(/images/icons/fugue/control-pause.png) !important;  
+}
+.play {
+	background-image: url(/images/icons/fugue/control.png) !important;  
 }
 
 .terminal {
@@ -426,6 +433,35 @@ background-position: 2px 2px;
 	border-bottom: none !important;
 }
 
+.simple-header .x-panel-header {
+	background: none !important;
+	font-weight: normal !important;
+}
+
+.nupack-complex-strands {
+	min-width: 40px;
+}
+
+.nupack-concentration-bar {
+	display: inline-block;
+	float: right;
+	margin-left: 5px;
+}
+.nupack-concentration {
+	display: inline-block;
+	float: right;
+}
+
+.nupack-complex-panel {
+	margin-bottom: 20px;
+	margin-right: 10px;
+	width: 98%;
+}
+
+
+/*.nupack-complex-panel > .x-panel-body {
+	border-color: transparent !important;
+}*/
 .CodeMirror-scroll {
 	height: 100% !important;
 	overflow: auto;

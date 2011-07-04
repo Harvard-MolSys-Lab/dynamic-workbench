@@ -36,24 +36,30 @@ var DD = function() {
 		ATATAT_PENALTY:20,
 	};
 
-	var MAX_MUTATIONS = options.MAX_MUTATIONS; // maximum number of simultaneous mutations
+	var GCstr, ATstr, GTstr, MBstr, LLstr, DHstr,MAX_IMPORTANCE,
+	LHbases,LHstart, LHpower,INTRA_SCORE,CROSSTALK_SCORE,CROSSTALK_DIV,
+	GGGG_PENALTY,ATATAT_PENALTYMAX_MUTATIONS;
 
-	var GCstr = options.GCstr;
-	var ATstr = options.ATstr;
-	var GTstr = options.GTstr;
-	var MBstr = options.MBstr; // mismatch, bulge
-	var LLstr = options.LLstr; // large loop
-	var DHstr = options.DHstr; // score for domain ending in a base pair
-	var MAX_IMPORTANCE = options.MAX_IMPORTANCE;
-	var LHbases = options.LHbases;
-	var LHstart = options.LHstart;
-	var LHpower = options.LHpower;
-	var INTRA_SCORE = options.INTRA_SCORE; // score bonus for intrastrand/dimerization interactions
-	var CROSSTALK_SCORE = options.CROSSTALK_SCORE; // score bonus for crosstalk (as compared to interaction)
-	var CROSSTALK_DIV = options.CROSSTALK_DIV; // crosstalk score is divided by this much (and then score is subtracted)
-	var GGGG_PENALTY = options.GGGG_PENALTY;
-	var ATATAT_PENALTY = options.ATATAT_PENALTY;
-
+	function copyOptions() {
+	MAX_MUTATIONS = options.MAX_MUTATIONS; // maximum number of simultaneous mutations
+	GCstr = options.GCstr;
+	ATstr = options.ATstr;
+	GTstr = options.GTstr;
+	MBstr = options.MBstr; // mismatch, bulge
+	LLstr = options.LLstr; // large loop
+	DHstr = options.DHstr; // score for domain ending in a base pair
+	MAX_IMPORTANCE = options.MAX_IMPORTANCE;
+	LHbases = options.LHbases;
+	LHstart = options.LHstart;
+	LHpower = options.LHpower;
+	INTRA_SCORE = options.INTRA_SCORE; // score bonus for intrastrand/dimerization interactions
+	CROSSTALK_SCORE = options.CROSSTALK_SCORE; // score bonus for crosstalk (as compared to interaction)
+	CROSSTALK_DIV = options.CROSSTALK_DIV; // crosstalk score is divided by this much (and then score is subtracted)
+	GGGG_PENALTY = options.GGGG_PENALTY;
+	ATATAT_PENALTY = options.ATATAT_PENALTY;
+	}
+	copyOptions();
+	
 	function int_urn(from, to) {
 		// var temp;
 		// var temp2;
@@ -494,14 +500,29 @@ var DD = function() {
 	var len1, len2;
 
 	// Set default parameters
-	rule_4g = 1; // cannot have 4 G's or 4 C's in a row
-	rule_6at = 1; // cannot have 6 A/T or G/C bases in a row
-	rule_ccend = 1; // domains MUST start and end with C
-	rule_ming = 1; // design tries to minimize usage of G
-	rule_init = 7; // 15 = polyN, 7 = poly-H, 3 = poly-Y, 2 = poly-T
-	rule_targetworst = 1; // target worst domain
-	rule_gatc_avail = 15; // all bases available
-	rule_lockold = 0; // lock all old bases (NO)
+	var rules = {
+		rule_4g : 1, // cannot have 4 G's or 4 C's in a row
+		rule_6at : 1, // cannot have 6 A/T or G/C bases in a row
+		rule_ccend : 1, // domains MUST start and end with C
+		rule_ming : 1, // design tries to minimize usage of G
+		rule_init : 7, // 15 = polyN, 7 = poly-H, 3 = poly-Y, 2 = poly-T
+		rule_targetworst : 1, // target worst domain
+		rule_gatc_avail : 15, // all bases available
+		rule_lockold : 0, // lock all old bases (NO)
+	}
+
+	function copyRules() {
+		rule_4g = rules.rule_4g,
+		rule_6at = rules.rule_6at,
+		rule_ccend = rules.rule_ccend,
+		rule_ming = rules.rule_ming,
+		rule_init = rules.rule_init,
+		rule_lockold = rules.rule_lockold,
+		rule_targetworst = rules.rule_targetworst,
+		rule_gatc_avail = rules.rule_gatc_avail;
+	}
+	
+	copyRules();
 
 	/*
 	// struct timeb* curtime;
@@ -657,6 +678,18 @@ var DD = function() {
 		num_domain--;
 		setupScoreMatricies();
 		return ds;
+	}
+	
+	function removeDomain(id) {
+		domain.splice(id,1);
+		domain_length.splice(id,1);
+		domain_gatc_avail.splice(id,1);
+		domain_importance.splice(id,1);
+		var ds = domain_score.splice(id,1);
+		num_domain--;
+		setupScoreMatricies();
+		return ds;
+
 	}
 
 	function parseDomain(buffer) {
@@ -1844,8 +1877,6 @@ var DD = function() {
 		}
 
 		function resetSequences() {
-			printf("Doing this will reset ALL sequences (other than locked bases)!\n");
-			printf("Press (@) to continue editing or space to return to previous menu\n");
 			tempchar2 = myhotinput(2, '@', ' ');
 			if (tempchar2 == '@') {
 				for (i = 0; i < num_domain; i++) {
@@ -1854,7 +1885,7 @@ var DD = function() {
 							domain[i][j] = 0;
 							while (domain[i][j] == 0) {
 								k = int_urn(1,4);
-								if ((k == 4)&&(rule_init/8 == 1))
+								if ((k == 4)&&(rule_init / 8 == 1))
 									domain[i][j] = 1;
 								if ((k == 3)&&((rule_init / 4) % 2 == 1))
 									domain[i][j] = 2;
@@ -1890,13 +1921,6 @@ var DD = function() {
 						displayBase(domain[i][j]);
 				}
 			}
-			gotoxy(1, 8+num_domain);
-			printf("                                                                      \n");
-			printf("                                                                      \n");
-			printf("                                                                      \n");
-			printf("                                                                      \n");
-			printf("                                                                      \n");
-			gotoxy(1, 8+num_domain);
 		}
 
 		function modifyDomains() {
@@ -1917,7 +1941,7 @@ var DD = function() {
 			i = i - 1; // mod to yield correct index
 			for (j = 0; j < domain_length[i]; j++)
 				displayBase(domain[i][j]);
-			printf("\n(L)ock or (U)nlock all bases in domain, change (I)mportance, (C)hange base composition of domain,\n");
+			printf("\n(L)ock or (U)nlock all bases in domain, change (I)mportance, (C)hange base comp of domain,\n");
 			printf("(!) Reseed domain with random sequence, or press space to cancel: ");
 
 			tempchar = myhotinput(6, 'L', 'U', 'I', 'C', '!', ' ');
@@ -2520,6 +2544,7 @@ var DD = function() {
 					crosstalk[mut_domain][i] = pairscore(domain[mut_domain], domain_length[mut_domain], temp_domain, domain_length[i]) / CROSSTALK_DIV;
 				}
 			}
+
 		}
 
 		// Check for keyboard hit
@@ -2538,9 +2563,24 @@ var DD = function() {
 		randomSequence: randomSequence,
 		reseed: startingDomainSequences,
 		addDomains:addDomains,
+		removeDomain:removeDomain,
 		mutate: mutate,
 		evaluateAllScores: evaluateAllScores,
 		popDomain: popDomain,
+		getRules: function() {
+			return _.clone(rules);
+		},
+		updateRules: function(newRules) {
+			_.extend(rules,newRules);
+			copyRules();
+		},
+		getOptions: function() {
+			return _.clone(options);
+		},
+		updateOptions: function(newOptions) {
+			_.extend(options,newOptions);
+			copyOptions();
+		},
 		updateDomain: function(domainId,seq,imp,comp) {
 			seq = seq.trim();
 			domain[domainId] = parseDomain(seq);
@@ -2564,7 +2604,11 @@ var DD = function() {
 			}
 			return domain_score[domainId];
 		},
-		getScores: function() {
+		getScores: function(forceRetally) {
+			forceRetally = forceRetally || false;
+			if (forceRetally) {
+				tallyScores();
+			}
 			return domain_score;
 		},
 		getMutatedDomain: function () {
@@ -2593,6 +2637,21 @@ var DD = function() {
 		printfDomainById: function(id) {
 			var dom = domain[id];
 			return this.printfDomain(dom);
+		},
+		printComposition: function(comp) {
+			var out = '';
+			if ((comp & 8) >> 3)
+				out+="G";
+			if ((comp & 4) >> 2)
+				out+="A";
+			if ((comp & 2) >> 1)
+				out+="T";
+			if (comp & 1)
+				out+="C";
+			return out;
+		},
+		printCompositionById: function(id) {
+			return this.printComposition(domain_gatc_avail[id]);
 		},
 		printDomains: function() {
 			return _.map(domain, function(dom) {

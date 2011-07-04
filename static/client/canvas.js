@@ -2662,14 +2662,30 @@ Ext.define('App.ui.Dashboard', {
 		}
 	}
 });
-
+/**
+ * @class App.ui.ProtovisPanel
+ * Allows ProtoVis visualizations to be automatically sized and displayed within an {@link Ext.panel.Panel}
+ */
 Ext.define('App.ui.ProtovisPanel', {
 	alias: 'widget.pvpanel',
 	extend: 'Ext.panel.Panel',
+	/**
+	 * @cfg pan {Boolean} true to automatically allow panning of the display (defaults to true)
+	 */
 	pan: true,
+	/**
+	 * @cfg zoom {Number} if >0, mousewheel events on the visualization will zoom with this speed; false to disable zooming (defaults to 1)
+	 */
 	zoom: 1,
 	bpadding: 20,
+	/**
+	 * @cfg autoRender {Boolean} true to automatically render the visualization after the component renders; false to render manually using
+	 * {@link #afterrender} (defaults to false)
+	 */
 	autoRender: false,
+	/**
+	 * @cfg autoSize {Boolean} true to automatically scale the visualization to the size of the panel's body element (defaults to true)
+	 */
 	autoSize: true,
 	initComponent: function() {
 		//this.on('afterrender',this.afterrender,this);
@@ -2680,6 +2696,10 @@ Ext.define('App.ui.ProtovisPanel', {
 			});
 		}
 	},
+	/**
+	 * afterrender
+	 * Renders the visualization. Called automatically if {@link #autoRender} is true
+	 */
 	afterrender: function() {
 		if(!this.built) {
 			this.buildVis();
@@ -2692,12 +2712,24 @@ Ext.define('App.ui.ProtovisPanel', {
 			this.built = true;
 		}
 	},
+	/**
+	 * getBodyWidth
+	 * @return {Number} width of the body element in pixels
+	 */
 	getBodyWidth: function() {
 		return this.body.getWidth();
 	},
+	/**
+	 * getBodyHeight
+	 * @return {Number} height of the body element in pixels
+	 */
 	getBodyHeight: function() {
 		return this.body.getHeight();
 	},
+	/**
+	 * resizeVis
+	 * Updates the size (if {@link #autoSize} is true) of the visualization on panel resize. Calls user-defined {@link #updateVis}
+	 */
 	resizeVis: function(p,w,h) {
 		if(this.autoSize) {
 			this.vis.width(this.getBodyWidth()).height(this.getBodyHeight());
@@ -2705,24 +2737,49 @@ Ext.define('App.ui.ProtovisPanel', {
 		this.updateVis();
 		this.vis.render();
 	},
+	/**
+	 * renderVis
+	 * Renders the visualization. Do not override this method; override {@link #buildVis} to specify your visualization.
+	 */
 	renderVis: function() {
 		if(this.vis) {
 			this.vis.visible(true);
 			this.vis.render();
 		}
 	},
+	/**
+	 * updateVis
+	 * Override this method to provide custom logic upon panel resize (such as updating visualization parameters other than width and height)
+	 */
 	updateVis: function() {
 	},
+	/**
+	 * hideVis
+	 * Hides the visualization.
+	 */
 	hideVis: function() {
 		if(this.vis) {
 			//this.vis.visible(false);
 			this.vis.render();
 		}
 	},
+	/**
+	 * buildVis
+	 * Override this method to provide your custom visualization logic
+	 */
 	buildVis: function() {
 		return this.getCanvas();
 	},
+	/**
+	 * getCanvas
+	 * Builds the visualization panel, sizes, and sets pan and zoom events if specified.
+	 * @returns {pv.Panel} panel the visualization panel
+	 */
 	getCanvas: function() {
+		/**
+		 * @property {pv.Panel} vis The visualization panel to which you can write. Ensure it is built by calling
+		 * {@link #getCanvas}.
+		 */
 		if(!this.vis) {
 			this.vis = new pv.Panel()
 			.canvas(this.body.dom);
@@ -2743,6 +2800,12 @@ Ext.define('App.ui.ProtovisPanel', {
 	},
 })
 
+/**
+ * App.ui.NupackResults
+ * Application to show results of a NUPACK complexes and concentrations calculation.
+ * Note: see the server-side nupackAnalysis section for details on the input format to this application
+ * @consumes *.nupack-results
+ */
 Ext.define('App.ui.NupackResults', {
 	extend: 'Ext.panel.Panel',
 	template: '<div class="app-nupack-complex-wrap">'+
@@ -2774,7 +2837,11 @@ Ext.define('App.ui.NupackResults', {
 			if(!this.xt) {
 				this.xt = new Ext.XTemplate(this.template);
 			}
+
 			this.sourceData = Ext.decode(this.data);
+
+			// determine the highest concentration in the ensemble; scale against that
+			// TODO: replace this with the sum of the starting concentrations
 			var maxConcentration = _.reduce(this.sourceData.ocx_mfe, function(memo,complexData) {
 				var x = Math.abs(parseFloat(complexData.concentration)*1000); //.toFixed());
 				if(x > memo) {
@@ -2782,24 +2849,29 @@ Ext.define('App.ui.NupackResults', {
 				}
 				return memo;
 			}, 0);
+			// determine the highest-order complex in the ensemble
 			var maxComplexSize = _.max(_.map(this.sourceData.ocx_mfe, function(a) {
 				return a.strands.length;
 			})),
+			// sort the source data blobs by concentration (descending)
 			sorted = _.sortBy(this.sourceData.ocx_mfe, function(a) {
 				return -(parseFloat(a.concentration))*1000;
 			}),
+			// find the highest energy in this ensemble
 			maxMfe = _.max(_.map(this.sourceData.ocx_mfe, function(a) {
 				return Math.abs(parseFloat(a.energy));
 			}));
-			// Strand summary
+			// print a list of the strands and strand indexes
 			var strandSummary = this.getEl().down('.nupack-strand-summary'),
+			// generate whole number indicies
 			strandNames = this.sourceData.strandNames ? this.sourceData.strandNames : _.range(1,this.sourceData.strands.length+1);
+			// syntax highlighting
 			CodeMirror.runMode(_.map(_.zip(strandNames,this.sourceData.strands), function(x) {
 				return x.join(' : ');
 			}).join('\n'),'sequence',strandSummary.dom);
 			this.getEl().down('.nupack-strand-summary-title').update(this.sourceData.strands.length+' distinct strands')
 
-			// MFE graph
+			// MFE bar graph
 			var w = 600,
 			h = 10*sorted.length,
 			xScale = pv.Scale.linear(0, maxMfe).nice().range(0, w),
@@ -2852,28 +2924,26 @@ Ext.define('App.ui.NupackResults', {
 
 			mfe.render();
 
+			// render each complex block
 			_.each(sorted, Ext.bind( function(complexData) {
-				// var el = this.xt.append(this.body,complexData);
-				// el = el.down('.app-nupack-force');
 
+				// compute the adjacency data used in laying out visualizations
 				var nodeLayout  = DNA.generateAdjacency(complexData.structure,complexData.strands,false, {
 					ppairs:complexData.ppairs
 				}),
 				nodeLayout2 = DNA.generateAdjacency(complexData.structure,complexData.strands,true, {
 					ppairs:complexData.ppairs
-				}),//[seq],true);
+				}),
+				// Strand colors
 				colors = pv.Colors.category10(),
+				// Pair probability colors
 				probColors = pv.Scale.linear(0, .5, 1).range("rgba(0,0,180,1)", "rgba(180,180,0,1)", "rgba(180,0,0,1)");
 
+				// Complex block
 				var pane = new Ext.panel.Panel({
+					// render: complex name, concentration, concentration bar
 					title: '<span class="nupack-complex-strands">'+complexData.strandNames.join('+')+'</span>'+'<span class="nupack-concentration-bar"></span><span class="nupack-concentration">'+complexData.concentration+' M&nbsp;|&nbsp;</span>' ,//'Complex: '+complexData.complex+' Order: '+complexData.order,
 					cls: 'nupack-complex-panel',
-					// layout: {
-					// type: 'vbox',
-					// align: 'stretch',
-					// pack: 'center',
-					// defaultMargins: '5 5 5 5',
-					// },
 					collapsible: true,
 					titleCollapse: true,
 					collapsed: true,
@@ -2881,6 +2951,7 @@ Ext.define('App.ui.NupackResults', {
 						handles: 'n s'
 					},
 					listeners: {
+						// build visualizations on panel expand
 						expand: function(p) {
 							if(this.force && this.adjacency && this.arc) {
 								this.doLayout();
@@ -2888,10 +2959,7 @@ Ext.define('App.ui.NupackResults', {
 							}
 						}
 					},
-					//autoScroll: true,
-					// layout: {
-					// type: 'anchor'
-					// },
+
 					layout: 'border',
 					defaults: {
 						// anchor: '100%',
@@ -2900,6 +2968,7 @@ Ext.define('App.ui.NupackResults', {
 						cls: 'simple-header',
 					},
 					items: [{
+						// Force-directed secondary structure depication
 						xtype: 'pvpanel',
 						ref: 'force',
 						title: 'Secondary Structure',
@@ -2912,11 +2981,6 @@ Ext.define('App.ui.NupackResults', {
 						buildVis: function() {
 							this.getCanvas();
 							var forceVis = this.vis;
-
-							// var forceVis = new pv.Panel()
-							// .canvas(forcePanel.getEl().dom)
-							// .width(forcePanel.getEl().getWidth())
-							// .height(forcePanel.getEl().getHeight())
 							forceVis.fillStyle("white");
 
 							var force = forceVis.add(pv.Layout.Force)
@@ -2958,6 +3022,8 @@ Ext.define('App.ui.NupackResults', {
 						margins: '0 5 5 5',
 						border: false,
 						items:[{
+							// arc depication
+							// TODO: include option to view linearized
 							title: 'Arc Diagram',
 							xtype: 'pvpanel',
 							ref: 'arc',
@@ -3003,6 +3069,7 @@ Ext.define('App.ui.NupackResults', {
 								.right(10);
 							},
 						},{
+							// adjacency matrix
 							title: 'Adjacency Matrix',
 							xtype: 'pvpanel',
 							region: 'east',
@@ -3010,23 +3077,12 @@ Ext.define('App.ui.NupackResults', {
 							split: true,
 							flex: 1,
 							titleCollapse: true,
-							//margins: '0 5 5 0',
 							collapseDirection: 'right',
 							headerPosition: 'right',
 							zoom: 10,
 							buildVis: function() {
 								this.getCanvas();
 								var adjVis = this.vis;
-								// var adjVis = new pv.Panel()
-								// .canvas(adjPanel.getEl().dom)
-								// .width(adjPanel.getEl().getWidth())
-								// .height(adjPanel.getEl().getHeight())
-								// .event("mousedown", pv.Behavior.pan());
-								// // .canvas()
-								// .width(693)
-								// .height(693)
-								// .top(90)
-								// .left(90);
 
 								var layout = this.layout = adjVis.add(pv.Layout.Matrix)
 								.nodes(nodeLayout.nodes)
@@ -3034,20 +3090,20 @@ Ext.define('App.ui.NupackResults', {
 								.fillStyle("white");
 
 								layout.link.add(pv.Bar)
-								.fillStyle( function(d) {
-									return d.probability ? probColors(d.probability) : '#ddd'
+								.fillStyle( function(d,l) {
+									return l.probability ? probColors(l.probability) : '#ddd'
 								})
 								.antialias(false)
 								.lineWidth(1);
 
 								layout.label.add(pv.Label)
-								.fillStyle( function(d) {
+								.textStyle( function(d) {
 									return colors(d.strand)
 								});
 								this.updateVis();
 							},
 							updateVis: function() {
-								var r = Math.max(this.layout.data.length*5,Math.min(this.getBodyWidth(),this.getBodyHeight()));
+								var r = Math.max(this.layout.data.length*12,Math.min(this.getBodyWidth(),this.getBodyHeight()));
 								this.layout
 								.top(10)
 								.left(10)
@@ -3098,6 +3154,8 @@ Ext.define('App.ui.NupackResults', {
 					height: 600,
 					// margins: '5 0 20 0',
 				});
+
+				// collect child elements with 'ref' property and set as properties of this
 				_.each(pane.query('*[ref]'), function(cmp) {
 					this[cmp.ref] = cmp;
 				},pane);
@@ -3105,6 +3163,7 @@ Ext.define('App.ui.NupackResults', {
 				arcPanel = pane.arc,
 				adjPanel = pane.adjacency;
 
+				// draw concentration bars for all panel blocks
 				var concEl = pane.getEl().down('.nupack-concentration-bar').dom,
 				c = (parseFloat(complexData.concentration)*1000), // .toFixed(),
 				w = 400,
@@ -3667,6 +3726,14 @@ Ext.define('App.ui.SequenceEditor', {
 							maxValue:6,
 							indent: true,
 						},{
+							text: 'Concatenations: ',
+							canActivate: false,
+						},{
+							xtype: 'numberfield',
+							ref: 'concatCount',
+							minValue:0,
+							indent: true,
+						},{
 							text: 'Brute',
 							iconCls: 'tick',
 							handler: this.bruteForce,
@@ -3713,19 +3780,20 @@ Ext.define('App.ui.SequenceEditor', {
 		this.baseCount.setText(this.baseCount.baseText + baseCount);
 	},
 	bruteForce: function() {
-		var strands = this.smartSelect(), count = this.brutePermCount.getValue();
-		function permutations(length) {
-			function permute(prev,alphabet) {
-				var o = [];
-				_.each(prev, function(item) {
-					_.each(alphabet, function(ch) {
-						o.push(item+ch);
-					});
+		var strands = this.smartSelect(), count = this.brutePermCount.getValue(), concat = this.concatCount.getValue();
+		function permute(prev,alphabet) {
+			var o = [];
+			_.each(prev, function(item) {
+				_.each(alphabet, function(ch) {
+					o.push(item+ch);
 				});
-				return o;
-			}
+			});
+			return o;
+		}
 
-			var out = ['A','T','C','G'], alph = ['A','T','C','G'];
+		function permutations(length,out,alph) {
+			alph || (alph = ['A','T','C','G']);
+			out || (out = ['A','T','C','G']);
 			for(var i=1;i<length;i++) {
 				out = permute(out,alph);
 			}
@@ -3746,26 +3814,69 @@ Ext.define('App.ui.SequenceEditor', {
 					}
 				}
 			}
+
+			var minInteractions = 1000, sortedNmers = _.sortBy(_.map(out, function(value,key) {
+				if(value < minInteractions) {
+					minInteractions = value;
+				}
+				return {
+					sequence: key,
+					interactions: value
+				};
+			}), function(value) {
+				return value.interactions;
+			}),
+			topNmers = _.compact(_.map(sortedNmers, function(nMer) {
+				return (nMer.interactions == minInteractions) ? nMer.sequence : false;
+			}));
+			perms = (concat!=0) ? permutations(concat,topNmers,topNmers) : sortedNmers,
+			permAligns = _.sortBy(_.map(perms, function(perm) {
+				var score = 0;
+				return {
+					perm: perm,
+					alignments: _.map(strands, function(strand) {
+						var align = DNA.pairwiseAlign(strand,perm);
+						score += align.score;
+						return {
+							strand: strand,
+							alignment: align.sequences,
+							score: align.score,
+
+						};
+					}),
+					score: score
+				};
+			}), function(a) {
+				return a.score
+			}),
+			permOut = _.map(permAligns, function(a) {
+				return 'Perm: '+a.perm+'\n'+'Score: '+a.score+'\n'+_.map(a.alignments, function(block) {
+					return block.alignment.join('\n');
+				}).join('\n\n');
+			}).join('\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n');
+			console.log(permOut);
+
 			var win = new Ext.window.Window({
 				width: 650,
 				height: 400,
-				items: new App.ui.ProtovisPanel({
+				maximizable: true,
+				items: [{
+					xtype: 'textareafield',
+					region: 'north',
+					height: 200,
+					value: permOut,
+					split: true,
+				},new App.ui.ProtovisPanel({
 					length: length,
 					strands: strands,
 					autoRender: true,
 					autoSize: false,
 					autoScroll: true,
+					region: 'center',
 					buildVis: function() {
 
 						this.vis = this.getCanvas();
-						var data = _.sortBy(_.map(this.data, function(value,key) {
-							return {
-								sequence: key,
-								interactions: value
-							};
-						}),function(value) {
-							return value.interactions;
-						}),
+						var data = this.data;
 						w = 600,
 						h = 15*data.length,
 						xScale = pv.Scale.linear(0, this.strands.length).nice().range(0, w),
@@ -3815,13 +3926,13 @@ Ext.define('App.ui.SequenceEditor', {
 						// .anchor("bottom").add(pv.Label)
 						// .text(xScale.tickFormat);
 					},
-					data: out,
-				}),
-				layout: 'fit',
+					data: sortedNmers,
+				}),],
+				layout: 'border',
 				title: 'Brute force '+count+'-mer search',
 			});
 			win.show();
-			console.log(out);
+			console.log(sortedNmers);
 		}
 
 		brute(strands,count);
@@ -4077,6 +4188,8 @@ Ext.define('App.ui.DD', {
 	},
 	mutating: false,
 	initComponent: function() {
+		var designer = this.designer = new DD();
+
 		this.store = Ext.create('Ext.data.ArrayStore', {
 			ref: 'store',
 			fields: [{
@@ -4098,12 +4211,12 @@ Ext.define('App.ui.DD', {
 			data: []
 		});
 
-		this.rowEditor = Ext.create('Ext.grid.plugin.RowEditing', {
+		var rowEditor = this.rowEditor = Ext.create('Ext.grid.plugin.RowEditing', {
 			clicksToMoveEditor: 1,
 			autoCancel: false
 		});
 		this.rowEditor.on('edit', function(e) {
-			this.designer.updateDomain(e.record.get('domain')-1,e.record.get('sequence'),e.record.get('importance'),e.record.get('composition'));
+			this.designer.updateDomain(this.store.indexOf(e.record),e.record.get('sequence'),e.record.get('importance'),e.record.get('composition'));
 		},this)
 		Ext.apply(this, {
 			layout: 'fit',
@@ -4115,6 +4228,7 @@ Ext.define('App.ui.DD', {
 				xtype: 'gridpanel',
 				bodyBorder: false,
 				border: false,
+				ref: 'grid',
 				columns: [Ext.create('Ext.grid.RowNumberer'),{
 					header: 'Sequence',
 					dataIndex: 'sequence',
@@ -4141,10 +4255,36 @@ Ext.define('App.ui.DD', {
 				},{
 					header: 'Composition',
 					dataIndex: 'composition',
+					renderer:  Ext.bind( function(v) {
+						v = this.designer.printComposition(v);
+						var x = {
+							innerHTML: '',
+							nodeType: 1
+						};
+						CodeMirror.runMode(v.toUpperCase(),'sequence',x);
+						return x.innerHTML;
+					},this),
 					width: 100,
-					editor: {
-						allowBlank: false,
-					}
+					// editor: {
+					// xtype: 'combobox',
+					// store: Ext.create('Ext.data.Store',{
+					// fields: ['base','value'],
+					// data: [{base: 'G', value: 8},{base: 'A',value: 4},{base: 'T', value: 2},{base: 'C', value: 1}]
+					// }),
+					// queryMode: 'local',
+					// multiSelect: true,
+					// allowBlank: false,
+					// displayField: 'base',
+					// valueField: 'value',
+					// setValue: function(v,doSelect) {
+					// v = _.compact([v & 8 >> 3, v & 4 >> 2, v & 2 >> 1, v & 1]);
+					// this.callParent([v,doSelect]);
+					// },
+					// getValue: function() {
+					// var x = this.callParent(arguments);
+					// console.log(x);
+					// },
+					// }
 				},{
 					header: 'Score',
 					dataIndex: 'score',
@@ -4160,10 +4300,7 @@ Ext.define('App.ui.DD', {
 				ref: 'mutateButton',
 				handler: this.toggleMutation,
 				scope: this,
-			},{
-				text: 'Modify',
-				iconCls: 'edit',
-			},{
+			},'-',{
 				text: 'Add',
 				ref: 'addDomainButton',
 				handler: this.doAddDomain,
@@ -4186,6 +4323,44 @@ Ext.define('App.ui.DD', {
 					handler: this.doAddDomain,
 					scope: this,
 				}]
+			},{
+				text: 'Modify',
+				ref: 'modDomainButton',
+				iconCls: 'edit',
+				xtype: 'splitbutton',
+				handler: function() {
+					this.rowEditor.startEdit(this.grid.getSelectionModel().getLastSelected(),this.grid.headerCt.getHeaderAtIndex(0));
+				},
+				scope: this,
+				menu: [{
+					text: 'Reseed Domain',
+					handler: this.reseed,
+					scope: this,
+				},{
+					text: 'Reseed All Domains',
+					handler: this.reseedAll,
+					scope: this,
+				}]
+			},{
+				text: 'Delete',
+				ref: 'delDomainButton',
+				handler: this.doDeleteDomain,
+				scope: this,
+				iconCls: 'cross',
+			},'-',{
+				text: 'Advanced',
+				iconCls: 'tools',
+				menu: [{
+					text: 'Design options',
+					iconCls: 'wrench',
+					handler: this.designOptions,
+					scope: this,
+				},{
+					text: 'Tweak score parameters',
+					iconCls: 'ui-slider',
+					handler: this.scoreParams,
+					scope: this,
+				}]
 			},'->',{
 				text: 'Save',
 				iconCls: 'save'
@@ -4204,16 +4379,48 @@ Ext.define('App.ui.DD', {
 			})
 		});
 		this.callParent(arguments);
-		this.designer = new DD();
 		_.each(this.query('*[ref]'), function(cmp) {
 			this[cmp.ref] = cmp;
 		},this);
+	},
+	reseed: function() {
+		
+	},
+	reseedAll: function() {
+		
+	},
+	updateOptions: function(v) {
+		this.designer.updateOptions(v);
+	},
+	updateRules: function() {
+		this.designer.updateRules(v);
+	},
+	designOptions: function () {
+		if(!this.designOptionsWindow) {
+			this.designOptionsWindow = Ext.create('App.ui.DD.RulesWindow',{dd:this});
+		}
+		this.designOptionsWindow.setValues(this.designer.getRules());
+		this.designOptionsWindow.show();
+	},
+	scoreParams: function() {
+		if(!this.scoreParamsWindow) {
+			this.scoreParamsWindow = Ext.create('App.ui.DD.OptionsWindow',{dd:this});
+		}
+		this.scoreParamsWindow.setValues(this.designer.getOptions());
+		this.scoreParamsWindow.show();
 	},
 	updateStatusBar: function() {
 		var attempts = this.designer.getMutationAttempts(),
 		muts = attempts = this.designer.getMutationCount();
 		this.attemptCount.setText(this.attemptCount.baseText+attempts);
 		this.mutCount.setText(this.mutCount.baseText+muts);
+	},
+	doDeleteDomain: function() {
+		var rec = this.grid.getSelectionModel().getLastSelected();
+		if(rec) {
+			this.designer.removeDomain(this.store.indexOf(rec));
+			this.store.remove(rec);
+		}
 	},
 	doAddDomain: function() {
 		var len = this.addDomLen.getValue();
@@ -4227,7 +4434,6 @@ Ext.define('App.ui.DD', {
 			sequence: seq,
 			importance: imp,
 			composition: comp,
-			domain: this.designer.getDomainCount()
 		});
 		this.designer.evaluateAllScores();
 	},
@@ -4244,22 +4450,28 @@ Ext.define('App.ui.DD', {
 			this.designer.mutate();
 		}
 		this.updateStatusBar();
-		var scores = this.designer.getScores(),
+		// true to force a re-tally (since domain_score[] isn't automatically updated when a
+		// mutation is rejected; we risk showing an increased score that was actually rejected)
+		var scores = this.designer.getScores(true),
 		mut_dom = this.designer.getMutatedDomain(),
 		mut_dom_seq = this.designer.printfDomainById(mut_dom), rec;
 		//this.output.update(this.designer.printDomains());
 		// //this.store.suspendEvents();
 		for(var i=0;i<scores.length;i++) {
-			rec = this.store.findRecord('domain',i+1);
+			rec = this.store.getAt(i);//+1);
+			if(rec.get('score') !=0 && rec.get('score') < scores[i]) {
+				throw "Score increase";
+			}
 			rec.set('score',scores[i]);
 		}
-		rec = this.store.findRecord('domain',mut_dom+1);
+		rec = this.store.getAt(mut_dom);
 		rec.set('sequence',mut_dom_seq);
 		//this.store.resumeEvents();
 		this.store.sync();
 	},
 	startMutation: function() {
 		this.mutateButton.setIconCls('pause');
+		_.invoke([this.modDomainButton,this.addDomainButton,this.delDomainButton],'disable');
 		if(!this.mutationTask) {
 			this.mutationTask = Ext.TaskManager.start({
 				run: this.doMutation,
@@ -4273,6 +4485,7 @@ Ext.define('App.ui.DD', {
 	},
 	pauseMutation: function() {
 		this.mutateButton.setIconCls('play');
+		_.invoke([this.modDomainButton,this.addDomainButton,this.delDomainButton],'enable');
 		if(this.mutationTask) {
 			Ext.TaskManager.stop(this.mutationTask);
 		}
@@ -4280,7 +4493,207 @@ Ext.define('App.ui.DD', {
 	}
 });
 
-Ext.define('App.ui.DD.DomainPanel', {})
+// var options = {
+// MAX_MUTATIONS: 10, // maximum number of simultaneous mutations
+// GCstr:2,
+// ATstr:1,
+// GTstr:0,
+// MBstr:-3, // mismatch, bulge
+// LLstr:-0.5, // large loop
+// DHstr:3, // score for domain ending in a base pair
+// LHbases:4,
+// LHstart:2,
+// LHpower:2,
+// MAX_IMPORTANCE:100,
+// INTRA_SCORE:5, // score bonus for intrastrand/dimerization interactions
+// CROSSTALK_SCORE:-5, // score bonus for crosstalk (as compared to interaction)
+// CROSSTALK_DIV:2, // crosstalk score is divided by this much (and then score is subtracted)
+// GGGG_PENALTY:50,
+// ATATAT_PENALTY:20,
+// };
+
+Ext.define('App.ui.DD.OptionsWindow', {
+	extend: 'Ext.window.Window',
+	layout: 'fit',
+	plain: true,
+	bodyBorder: false,
+	border: false,
+	initComponent: function() {
+		Ext.apply(this, {
+			items: {
+				xtype: 'form',
+				frame: true,
+				defaults: {
+					labelAlign: 'right',
+					labelWidth: 150,
+				},
+				items: [{
+					fieldLabel: 'Maximum simultaneous mutations',
+					xtype: 'numberfield',
+					itemId: 'MAX_MUTATIONS',
+				},{
+					fieldLabel: 'GC Score',
+					xtype: 'numberfield',
+					itemId: 'GCstr',
+				},{
+					fieldLabel: 'AT Score',
+					xtype: 'numberfield',
+					itemId: 'ATstr',
+				},{
+					fieldLabel: 'GT score',
+					xtype: 'numberfield',
+					itemId: 'GTstr',
+				},{
+					fieldLabel: 'Mismatch/bulge score',
+					xtype: 'numberfield',
+					itemId: 'MBstr',
+				},{
+					fieldLabel: 'Number of bases before exponential score kicks in',
+					xtype: 'numberfield',
+					itemId: 'LLstr',
+				},{
+					fieldLabel: 'DHstr',
+					xtype: 'numberfield',
+					itemId: 'DHstr',
+				},{
+					fieldLabel: 'MAX_IMPORTANCE',
+					xtype: 'numberfield',
+					itemId: 'MAX_IMPORTANCE',
+				},{
+					fieldLabel: 'Number of bases before exponential score kicks in',
+					xtype: 'numberfield',
+					itemId: 'LHbases',
+				},{
+					fieldLabel: 'Exponential score initial',
+					xtype: 'numberfield',
+					itemId: 'LHstart',
+				},{
+					fieldLabel: 'Exponential score power',
+					xtype: 'numberfield',
+					itemId: 'LHpower',
+				},{
+					fieldLabel: 'Intra-domain bonus score',
+					xtype: 'numberfield',
+					itemId: 'INTRA_SCORE',
+				},{
+					fieldLabel: 'Crosstalk bonus score',
+					xtype: 'numberfield',
+					itemId: 'CROSSTALK_SCORE',
+				},{
+					fieldLabel: 'Crosstalk score divide factor',
+					xtype: 'numberfield',
+					itemId: 'CROSSTALK_DIV',
+				},{
+					fieldLabel: 'GGGG Penalty',
+					xtype: 'numberfield',
+					itemId: 'GGGG_PENALTY',
+				},{
+					fieldLabel: '6 consecutive A/T or G/C score',
+					xtype: 'numberfield',
+					itemId: 'ATATAT_PENALTY',
+				},{
+					fieldLabel: 'Shannon Entropy multiplier',
+					xtype: 'numberfield',
+					itemId: 'SHANNON_MULTIPLIER',
+				},],
+				buttons: [{
+					text: 'Save',
+					handler: this.save,
+					scope: this,
+				}]
+			}
+		});
+		this.callParent(arguments);
+		this.form = this.down('form');
+	},
+	save: function() {
+		this.dd.updateOptions(this.getValues());
+	},
+	getValues: function() {
+		return this.form.getValues();
+	},
+	setValues: function(v) {
+		return this.form.getForm().setValues(v);
+	},
+});
+
+// var rules = {
+// rule_4g : 1, // cannot have 4 G's or 4 C's in a row
+// rule_6at : 1, // cannot have 6 A/T or G/C bases in a row
+// rule_ccend : 1, // domains MUST start and end with C
+// rule_ming : 1, // design tries to minimize usage of G
+// rule_init : 7, // 15 = polyN, 7 = poly-H, 3 = poly-Y, 2 = poly-T
+// rule_targetworst : 1, // target worst domain
+// rule_gatc_avail : 15, // all bases available
+// rule_lockold : 0, // lock all old bases (NO)
+// }
+
+
+
+Ext.define('App.ui.DD.RulesWindow', {
+	extend: 'Ext.window.Window',
+	plain: true,
+	bodyBorder: false,
+	border: false,
+	layout: 'fit',
+	initComponent: function() {
+		Ext.apply(this, {
+			items: {
+				xtype: 'form',
+				frame: true,
+				items: [{
+					fieldLabel: "Prevent 4 G's and 4 C's in a row",
+					xtype: 'checkboxfield',
+					itemId: 'rule_4g',
+				},{
+					fieldLabel: "Prevent 6 A/T bases in a row and 6 G/C bases in a row",
+					xtype: 'checkboxfield',
+					itemId: 'rule_6at',
+				},{
+					fieldLabel: 'Domains must start and end with C',
+					xtype: 'checkboxfield',
+					itemId: 'rule_ccend',
+				},{
+					fieldLabel: "Minimize G's in domain design",
+					xtype: 'checkboxfield',
+					itemId: 'rule_ming',
+				},{
+					fieldLabel: "Constrain initial domain sequences",
+					xtype: 'textfield',
+					itemId: 'rule_init',
+				},{
+					fieldLabel: 'Target worst domain for mutations',
+					xtype: 'checkboxfield',
+					itemId: 'rule_targetworst',
+				},{
+					fieldLabel: 'Constrain bases in domains',
+					xtype: 'textfield',
+					itemId: 'rule_gatc_avail',
+				},{
+					fieldLabel: 'Lock all bases in strands loaded from file',
+					xtype: 'checkboxfield',
+					itemId: 'rule_lockold',
+				},],
+				buttons: [{
+					text: 'Save',
+					handler: this.save,
+					scope: this,
+				}]
+			}
+		});
+		this.callParent(arguments);
+		this.form = this.down('form');
+	},
+	save: function() {
+		this.dd.updateRules(this.getValues());
+	},
+	getValues: function() {
+		return this.form.getValues();
+	},
+	setValues: function(v) {
+		return this.form.getForm().setValues(v);
+	},
+});
 
 Ext.define('App.ui.SequenceStats', {
 	extend: 'Ext.menu.Menu',

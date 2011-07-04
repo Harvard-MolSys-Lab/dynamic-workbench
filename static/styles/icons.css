@@ -424,6 +424,10 @@
 	background-image: url(/images/icons/etc/nupack_favicon.png) !important;		
 }
 
+.ui-slider {
+	background-image: url(/images/icons/fugue/ui-slider.png) !important;		
+}
+
 /* File types */
 .nodal {
 	background-image: url(/images/icons/fugue/node.png) !important;

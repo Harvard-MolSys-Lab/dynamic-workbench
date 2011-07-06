@@ -3828,33 +3828,45 @@ Ext.define('App.ui.SequenceEditor', {
 			}),
 			topNmers = _.compact(_.map(sortedNmers, function(nMer) {
 				return (nMer.interactions == minInteractions) ? nMer.sequence : false;
-			}));
-			perms = (concat!=0) ? permutations(concat,topNmers,topNmers) : sortedNmers,
-			permAligns = _.sortBy(_.map(perms, function(perm) {
-				var score = 0;
-				return {
-					perm: perm,
-					alignments: _.map(strands, function(strand) {
-						var align = DNA.pairwiseAlign(strand,perm);
-						score += align.score;
-						return {
-							strand: strand,
-							alignment: align.sequences,
-							score: align.score,
-
-						};
-					}),
-					score: score
-				};
-			}), function(a) {
-				return a.score
-			}),
-			permOut = _.map(permAligns, function(a) {
-				return 'Perm: '+a.perm+'\n'+'Score: '+a.score+'\n'+_.map(a.alignments, function(block) {
-					return block.alignment.join('\n');
-				}).join('\n\n');
-			}).join('\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n');
-			console.log(permOut);
+			})),
+			perms = (concat!=0) ? permutations(concat,topNmers,topNmers) : sortedNmers, //,
+			des = new DD(), permScores;
+			des.addDomains(strands);
+			des.evaluateAllScores();
+			permScores = _.map(perms,function(perm) {
+				des.addDomains([perm]);
+				des.evaluateScores(des.getDomainCount()-1);
+				return {perm: perm, score: des.popDomain()};
+			});
+			permScores = _.sortBy(permScores,function(block) {
+				return block.score;
+			});
+			console.log(permScores);
+			// permAligns = _.sortBy(_.map(perms, function(perm) {
+				// var score = 0;
+				// return {
+					// perm: perm,
+					// alignments: _.map(strands, function(strand) {
+						// var align = DNA.pairwiseAlign(strand,perm);
+						// score += align.score;
+						// return {
+							// strand: strand,
+							// alignment: align.sequences,
+							// score: align.score,
+// 
+						// };
+					// }),
+					// score: score
+				// };
+			// }), function(a) {
+				// return a.score
+			// }),
+			// permOut = _.map(permAligns, function(a) {
+				// return 'Perm: '+a.perm+'\n'+'Score: '+a.score+'\n'+_.map(a.alignments, function(block) {
+					// return block.alignment.join('\n');
+				// }).join('\n\n');
+			// }).join('\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n');
+			// console.log(permOut);
 
 			var win = new Ext.window.Window({
 				width: 650,
@@ -3864,7 +3876,9 @@ Ext.define('App.ui.SequenceEditor', {
 					xtype: 'textareafield',
 					region: 'north',
 					height: 200,
-					value: permOut,
+					value: _.map(permScores,function(block) {
+						return block.perm + ' : '+block.score;
+					}).join('\n'),
 					split: true,
 				},new App.ui.ProtovisPanel({
 					length: length,
@@ -4199,25 +4213,45 @@ Ext.define('App.ui.DD', {
 				name: 'sequence',
 			},{
 				name: 'importance',
-				type: 'float'
+				type: 'float',
 			},{
 				name: 'composition',
-				type: 'int'
+				type: 'int',
 			},{
 				name: 'score',
 				type: 'float',
+			},{
+				name: 'target',
+				type: 'bool',
+				defaultValue: false,
 			}
 			],
 			data: []
 		});
 
-		var rowEditor = this.rowEditor = Ext.create('Ext.grid.plugin.RowEditing', {
-			clicksToMoveEditor: 1,
+		var cellEditor = this.cellEditor = Ext.create('Ext.grid.plugin.CellEditing', {
+			clicksToEdit: 1,
 			autoCancel: false
 		});
-		this.rowEditor.on('edit', function(e) {
+		this.cellEditor.on('edit', function(editor,e) {
 			this.designer.updateDomain(this.store.indexOf(e.record),e.record.get('sequence'),e.record.get('importance'),e.record.get('composition'));
-		},this)
+			
+		},this);
+		this.targetColumn = Ext.create('Ext.ux.CheckColumn',{
+				header: 'Target',
+				dataIndex: 'target',
+				width: 60,
+				xtype: 'checkcolumn'
+		});
+		this.targetColumn.on('checkchange',function(col,i,checked) {
+			var rec = this.store.getAt(i);
+			 if(rec.get('target')) { 
+				this.designer.targetDomain(i)
+			} else {
+				this.designer.untargetDomain(i)
+			}
+		},this);
+			
 		Ext.apply(this, {
 			layout: 'fit',
 			// items: {
@@ -4265,6 +4299,9 @@ Ext.define('App.ui.DD', {
 						return x.innerHTML;
 					},this),
 					width: 100,
+					editor: {
+						xtype: 'numberfield'
+					},
 					// editor: {
 					// xtype: 'combobox',
 					// store: Ext.create('Ext.data.Store',{
@@ -4290,9 +4327,9 @@ Ext.define('App.ui.DD', {
 					dataIndex: 'score',
 					width: 100,
 					editable: false,
-				}],
+				},this.targetColumn],
 				store: this.store,
-				plugins: [this.rowEditor]
+				plugins: [this.cellEditor]
 			},
 			tbar: [{
 				text: 'Mutate',
@@ -4322,6 +4359,10 @@ Ext.define('App.ui.DD', {
 					ref: 'addDomainItem',
 					handler: this.doAddDomain,
 					scope: this,
+				},'-',{
+					text: 'Add specific domains...',
+					handler: this.addManyDomains,
+					scope: this,
 				}]
 			},{
 				text: 'Modify',
@@ -4329,7 +4370,7 @@ Ext.define('App.ui.DD', {
 				iconCls: 'edit',
 				xtype: 'splitbutton',
 				handler: function() {
-					this.rowEditor.startEdit(this.grid.getSelectionModel().getLastSelected(),this.grid.headerCt.getHeaderAtIndex(0));
+					this.cellEditor.startEdit(this.grid.getSelectionModel().getLastSelected(),this.grid.headerCt.getHeaderAtIndex(0));
 				},
 				scope: this,
 				menu: [{
@@ -4397,14 +4438,14 @@ Ext.define('App.ui.DD', {
 	},
 	designOptions: function () {
 		if(!this.designOptionsWindow) {
-			this.designOptionsWindow = Ext.create('App.ui.DD.RulesWindow',{dd:this});
+			this.designOptionsWindow = Ext.create('App.ui.DD.RulesWindow',{designer:this.designer, closeAction: 'hide'});
 		}
 		this.designOptionsWindow.setValues(this.designer.getRules());
 		this.designOptionsWindow.show();
 	},
 	scoreParams: function() {
 		if(!this.scoreParamsWindow) {
-			this.scoreParamsWindow = Ext.create('App.ui.DD.OptionsWindow',{dd:this});
+			this.scoreParamsWindow = Ext.create('App.ui.DD.OptionsWindow',{designer:this.designer, closeAction: 'hide'});
 		}
 		this.scoreParamsWindow.setValues(this.designer.getOptions());
 		this.scoreParamsWindow.show();
@@ -4421,6 +4462,24 @@ Ext.define('App.ui.DD', {
 			this.designer.removeDomain(this.store.indexOf(rec));
 			this.store.remove(rec);
 		}
+	},
+	addManyDomains: function() {
+		if(!this.addDomainsWindow) {
+			this.addDomainsWindow = Ext.create('App.ui.DD.SequenceWindow',{designer:this});
+		}
+		this.addDomainsWindow.show();
+	},
+	addDomains: function(seqs) {
+		var imp = 1, comp = 15;
+		this.designer.addDomains(seqs,imp,comp);
+		_.each(seqs,function(seq) {
+			this.store.add({
+				sequence: seq,
+				importance: imp,
+				composition: comp,
+			}); 
+		},this);
+		this.designer.evaluateIntrinsicScores();
 	},
 	doAddDomain: function() {
 		var len = this.addDomLen.getValue();
@@ -4493,6 +4552,30 @@ Ext.define('App.ui.DD', {
 	}
 });
 
+Ext.define('App.ui.DD.SequenceWindow',{
+	extend: 'Ext.window.Window',
+	width: 800,
+	height: 600,
+	layout: 'fit',
+	title: 'Add specific sequences to DD',
+	initComponent: function() {
+		this.sequenceEditor = Ext.create('App.ui.CodeMirror',{mode: 'sequence',border: false});
+		Ext.apply(this,{
+			items: [this.sequenceEditor],
+			buttons: [{
+				text: 'Add Domains',
+				iconCls: 'tick',
+				handler: this.addDomains,
+				scope: this,
+			}]
+		});
+		this.callParent(arguments);
+	},
+	addDomains: function() {
+		this.designer.addDomains(this.sequenceEditor.getValue().split('\n'));
+	}
+})
+
 // var options = {
 // MAX_MUTATIONS: 10, // maximum number of simultaneous mutations
 // GCstr:2,
@@ -4518,6 +4601,7 @@ Ext.define('App.ui.DD.OptionsWindow', {
 	plain: true,
 	bodyBorder: false,
 	border: false,
+	width: 675,
 	initComponent: function() {
 		Ext.apply(this, {
 			items: {
@@ -4525,76 +4609,107 @@ Ext.define('App.ui.DD.OptionsWindow', {
 				frame: true,
 				defaults: {
 					labelAlign: 'right',
-					labelWidth: 150,
+					labelWidth: 250,
 				},
 				items: [{
 					fieldLabel: 'Maximum simultaneous mutations',
 					xtype: 'numberfield',
 					itemId: 'MAX_MUTATIONS',
 				},{
-					fieldLabel: 'GC Score',
-					xtype: 'numberfield',
-					itemId: 'GCstr',
+					xtype: 'fieldset',
+					title: 'Base composition',
+					defaults: {
+						labelAlign: 'right',
+						labelWidth: 175,
+					},
+					layout: {
+						type: 'table',columns: 2,
+					},
+					items: [{
+						fieldLabel: 'GC Score',
+						xtype: 'numberfield',
+						itemId: 'GCstr',
+					},{
+						fieldLabel: 'AT Score',
+						xtype: 'numberfield',
+						itemId: 'ATstr',
+					},{
+						fieldLabel: 'GT score',
+						xtype: 'numberfield',
+						itemId: 'GTstr',
+					},{
+						fieldLabel: 'GGGG Penalty',
+						xtype: 'numberfield',
+						itemId: 'GGGG_PENALTY',
+					},{
+						fieldLabel: '6 consecutive A/T or G/C score',
+						xtype: 'numberfield',
+						itemId: 'ATATAT_PENALTY',
+					},{
+						fieldLabel: 'Shannon Entropy multiplier',
+						xtype: 'numberfield',
+						itemId: 'SHANNON_MULTIPLIER',
+					},]
+				},{xtype: 'container', layout: {type: 'table',columns: 2,}, defaults: {margin: 5}, items:[{
+					xtype: 'fieldset',
+					title: 'Matches',
+					defaults: {
+						labelAlign: 'right',
+						labelWidth: 220,
+					},
+					items: [{
+						fieldLabel: 'Mismatch/bulge score',
+						xtype: 'numberfield',
+						itemId: 'MBstr',
+					},{
+						fieldLabel: 'Larger loop score (per extra base)',
+						xtype: 'numberfield',
+						itemId: 'LLstr',
+					},{
+						fieldLabel: 'Penalty for pairing at ends of domains',
+						xtype: 'numberfield',
+						itemId: 'DHstr',
+					},]
 				},{
-					fieldLabel: 'AT Score',
-					xtype: 'numberfield',
-					itemId: 'ATstr',
-				},{
-					fieldLabel: 'GT score',
-					xtype: 'numberfield',
-					itemId: 'GTstr',
-				},{
-					fieldLabel: 'Mismatch/bulge score',
-					xtype: 'numberfield',
-					itemId: 'MBstr',
-				},{
-					fieldLabel: 'Number of bases before exponential score kicks in',
-					xtype: 'numberfield',
-					itemId: 'LLstr',
-				},{
-					fieldLabel: 'DHstr',
-					xtype: 'numberfield',
-					itemId: 'DHstr',
-				},{
-					fieldLabel: 'MAX_IMPORTANCE',
-					xtype: 'numberfield',
-					itemId: 'MAX_IMPORTANCE',
-				},{
-					fieldLabel: 'Number of bases before exponential score kicks in',
-					xtype: 'numberfield',
-					itemId: 'LHbases',
-				},{
-					fieldLabel: 'Exponential score initial',
-					xtype: 'numberfield',
-					itemId: 'LHstart',
-				},{
-					fieldLabel: 'Exponential score power',
-					xtype: 'numberfield',
-					itemId: 'LHpower',
-				},{
-					fieldLabel: 'Intra-domain bonus score',
-					xtype: 'numberfield',
-					itemId: 'INTRA_SCORE',
-				},{
-					fieldLabel: 'Crosstalk bonus score',
-					xtype: 'numberfield',
-					itemId: 'CROSSTALK_SCORE',
-				},{
-					fieldLabel: 'Crosstalk score divide factor',
-					xtype: 'numberfield',
-					itemId: 'CROSSTALK_DIV',
-				},{
-					fieldLabel: 'GGGG Penalty',
-					xtype: 'numberfield',
-					itemId: 'GGGG_PENALTY',
-				},{
-					fieldLabel: '6 consecutive A/T or G/C score',
-					xtype: 'numberfield',
-					itemId: 'ATATAT_PENALTY',
-				},{
-					fieldLabel: 'Shannon Entropy multiplier',
-					xtype: 'numberfield',
-					itemId: 'SHANNON_MULTIPLIER',
+					xtype: 'fieldset',
+					title: 'Exponential Scoring',
+					defaults: {
+						labelAlign: 'right',
+						labelWidth: 220,
+					},
+					items: [{
+						fieldLabel: 'Number of bases before exponential score kicks in',
+						xtype: 'numberfield',
+						itemId: 'LHbases',
+					},{
+						fieldLabel: 'Exponential score initial',
+						xtype: 'numberfield',
+						itemId: 'LHstart',
+					},{
+						fieldLabel: 'Exponential score power',
+						xtype: 'numberfield',
+						itemId: 'LHpower',
+					},]
+				},]},{
+					xtype: 'fieldset',
+					title: 'Crosstalk',
+					defaults: {
+						labelAlign: 'right',
+						labelWidth: 220,
+					},
+					items:[{
+						fieldLabel: 'Intra-domain bonus score',
+						xtype: 'numberfield',
+						itemId: 'INTRA_SCORE',
+					},{
+						fieldLabel: 'Crosstalk bonus score',
+						xtype: 'numberfield',
+						itemId: 'CROSSTALK_SCORE',
+					},{
+						fieldLabel: 'Crosstalk score divide factor',
+						xtype: 'numberfield',
+						itemId: 'CROSSTALK_DIV',
+					}]
 				},],
 				buttons: [{
 					text: 'Save',
@@ -4607,7 +4722,7 @@ Ext.define('App.ui.DD.OptionsWindow', {
 		this.form = this.down('form');
 	},
 	save: function() {
-		this.dd.updateOptions(this.getValues());
+		this.designer.updateOptions(this.getValues());
 	},
 	getValues: function() {
 		return this.form.getValues();
@@ -4641,36 +4756,40 @@ Ext.define('App.ui.DD.RulesWindow', {
 			items: {
 				xtype: 'form',
 				frame: true,
+				defaults: {
+					labelAlign: 'top',
+					// labelWidth: 150,
+				},
 				items: [{
-					fieldLabel: "Prevent 4 G's and 4 C's in a row",
+					boxLabel: "Prevent 4 G's and 4 C's in a row",
 					xtype: 'checkboxfield',
 					itemId: 'rule_4g',
 				},{
-					fieldLabel: "Prevent 6 A/T bases in a row and 6 G/C bases in a row",
+					boxLabel: "Prevent 6 A/T bases in a row and 6 G/C bases in a row",
 					xtype: 'checkboxfield',
 					itemId: 'rule_6at',
 				},{
-					fieldLabel: 'Domains must start and end with C',
+					boxLabel: 'Domains must start and end with C',
 					xtype: 'checkboxfield',
 					itemId: 'rule_ccend',
 				},{
-					fieldLabel: "Minimize G's in domain design",
+					boxLabel: "Minimize G's in domain design",
 					xtype: 'checkboxfield',
 					itemId: 'rule_ming',
+				},{
+					boxLabel: 'Target worst domain for mutations',
+					xtype: 'checkboxfield',
+					itemId: 'rule_targetworst',
 				},{
 					fieldLabel: "Constrain initial domain sequences",
 					xtype: 'textfield',
 					itemId: 'rule_init',
 				},{
-					fieldLabel: 'Target worst domain for mutations',
-					xtype: 'checkboxfield',
-					itemId: 'rule_targetworst',
-				},{
 					fieldLabel: 'Constrain bases in domains',
 					xtype: 'textfield',
 					itemId: 'rule_gatc_avail',
 				},{
-					fieldLabel: 'Lock all bases in strands loaded from file',
+					boxLabel: 'Lock all bases in strands loaded from file',
 					xtype: 'checkboxfield',
 					itemId: 'rule_lockold',
 				},],
@@ -4685,7 +4804,7 @@ Ext.define('App.ui.DD.RulesWindow', {
 		this.form = this.down('form');
 	},
 	save: function() {
-		this.dd.updateRules(this.getValues());
+		this.designer.updateRules(this.getValues());
 	},
 	getValues: function() {
 		return this.form.getValues();

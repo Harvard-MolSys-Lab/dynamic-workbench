@@ -12,6 +12,8 @@ var console, cp;
 
 Ext.ns('App.ui');
 
+Ext.require('App.ui.Launcher');
+
 // Bootstrap user interface
 App.ui.buildInterface = function() {
 
@@ -162,6 +164,9 @@ Ext.define('App.ui.Launcher', {
 				cls: className,
 				config: config
 			};
+		},
+		getActiveApp: function() {
+			return this.tabPanel.getActiveTab();
 		},
 		addTab: function(tab) {
 			if(this.tabPanel) {
@@ -316,6 +321,7 @@ Ext.define('App.ui.Launcher', {
 		iconCls: 'seq',
 		title: 'Domain Design',
 	});
+	App.ui.active = function() { return App.ui.Launcher.getActiveApp(); };
 
 });
 Ext.define('App.ui.CreateMenu', {
@@ -2923,273 +2929,299 @@ Ext.define('App.ui.NupackResults', {
 			.text(xScale.tickFormat);
 
 			mfe.render();
-
+			
+			// this.suspendLayout = true;
+			
 			// render each complex block
-			_.each(sorted, Ext.bind( function(complexData) {
-
-				// compute the adjacency data used in laying out visualizations
-				var nodeLayout  = DNA.generateAdjacency(complexData.structure,complexData.strands,false, {
-					ppairs:complexData.ppairs
-				}),
-				nodeLayout2 = DNA.generateAdjacency(complexData.structure,complexData.strands,true, {
-					ppairs:complexData.ppairs
-				}),
-				// Strand colors
-				colors = pv.Colors.category10(),
-				// Pair probability colors
-				probColors = pv.Scale.linear(0, .5, 1).range("rgba(0,0,180,1)", "rgba(180,180,0,1)", "rgba(180,0,0,1)");
-
-				// Complex block
-				var pane = new Ext.panel.Panel({
-					// render: complex name, concentration, concentration bar
-					title: '<span class="nupack-complex-strands">'+complexData.strandNames.join('+')+'</span>'+'<span class="nupack-concentration-bar"></span><span class="nupack-concentration">'+complexData.concentration+' M&nbsp;|&nbsp;</span>' ,//'Complex: '+complexData.complex+' Order: '+complexData.order,
-					cls: 'nupack-complex-panel',
-					collapsible: true,
-					titleCollapse: true,
-					collapsed: true,
-					resizable: {
-						handles: 'n s'
-					},
-					listeners: {
-						// build visualizations on panel expand
-						expand: function(p) {
-							if(this.force && this.adjacency && this.arc) {
-								this.doLayout();
-								_.invoke([this.force,this.adjacency,this.arc],'afterrender');
-							}
-						}
-					},
-
-					layout: 'border',
-					defaults: {
-						// anchor: '100%',
-						xtype: 'panel',
-						collapsible: true,
-						cls: 'simple-header',
-					},
-					items: [{
-						// Force-directed secondary structure depication
-						xtype: 'pvpanel',
-						ref: 'force',
-						title: 'Secondary Structure',
-						layout: 'fit',
-						region: 'north',
-						split: true,
-						flex: 1,
-						margins: '5 5 0 5',
-						titleCollapse: true,
-						buildVis: function() {
-							this.getCanvas();
-							var forceVis = this.vis;
-							forceVis.fillStyle("white");
-
-							var force = forceVis.add(pv.Layout.Force)
-							.nodes(nodeLayout2.nodes)
-							.links(nodeLayout2.links)
-							.chargeConstant(-220)
-							.springConstant(0.9)
-							//.springLength(20)
-							.bound(false);
-
-							force.link.add(pv.Line)
-							.strokeStyle( function(d,l) {
-								return l.probability ? probColors(l.probability) : 'rgba(0,0,0,0.2)'
-							});
-							force.node.add(pv.Dot)
-							.size( function(d) {
-								return (d.linkDegree + 4) * Math.pow(this.scale, -1.5)
-							})
-							.fillStyle( function(d) {
-								return d.fix ? "brown" : colors(d.strand)
-							})
-							.strokeStyle( function() {
-								return this.fillStyle().darker()
-							})
-							.lineWidth(1)
-							.title( function(d) {
-								return d.nodeName
-							})
-							.event("mousedown", pv.Behavior.drag())
-							.event("drag", force);
-						}
-					},{
-						layout: 'border',
-						region: 'center',
-						flex: 1,
-						collapseMode: 'mini',
-						preventHeader: true,
-						split: true,
-						margins: '0 5 5 5',
-						border: false,
-						items:[{
-							// arc depication
-							// TODO: include option to view linearized
-							title: 'Arc Diagram',
-							xtype: 'pvpanel',
-							ref: 'arc',
-							region: 'center',
-							flex: 1,
-							titleCollapse: true,
-							//margins: '0 0 5 5',
-							collapseDirection: 'left',
-							headerPosition: 'left',
-							zoom:5,
-							buildVis: function() {
-								this.getCanvas();
-								var arcVis = this.vis;
-								// var arcVis = new pv.Panel()
-								// .canvas(arcPanel.getEl().dom)
-								// .width(arcPanel.getEl().getWidth())
-								// .height(arcPanel.getEl().getHeight())
-								// .event("mousedown", pv.Behavior.pan());
-
-								this.arc = arcVis.add(pv.Layout.Arc)
-								.nodes(nodeLayout.nodes)
-								.links(nodeLayout.links)
-								.orient('radial')
-								.fillStyle("white");
-
-								this.arc.link.add(pv.Line)
-								.strokeStyle( function(d) {
-									return d.probability ? probColors(d.probability) : '#ddd'
-								});
-								this.arc.node.add(pv.Dot)
-								.fillStyle( function(d) {
-									return colors(d.strand)
-								});
-								this.arc.label.add(pv.Label);
-
-								this.updateVis();
-							},
-							updateVis: function() {
-								this.arc
-								.top(10)
-								.left(10)
-								.bottom(10)
-								.right(10);
-							},
-						},{
-							// adjacency matrix
-							title: 'Adjacency Matrix',
-							xtype: 'pvpanel',
-							region: 'east',
-							ref:'adjacency',
-							split: true,
-							flex: 1,
-							titleCollapse: true,
-							collapseDirection: 'right',
-							headerPosition: 'right',
-							zoom: 10,
-							buildVis: function() {
-								this.getCanvas();
-								var adjVis = this.vis;
-
-								var layout = this.layout = adjVis.add(pv.Layout.Matrix)
-								.nodes(nodeLayout.nodes)
-								.links(nodeLayout.links)
-								.fillStyle("white");
-
-								layout.link.add(pv.Bar)
-								.fillStyle( function(d,l) {
-									return l.probability ? probColors(l.probability) : '#ddd'
-								})
-								.antialias(false)
-								.lineWidth(1);
-
-								layout.label.add(pv.Label)
-								.textStyle( function(d) {
-									return colors(d.strand)
-								});
-								this.updateVis();
-							},
-							updateVis: function() {
-								var r = Math.max(this.layout.data.length*12,Math.min(this.getBodyWidth(),this.getBodyHeight()));
-								this.layout
-								.top(10)
-								.left(10)
-								.width(r)
-								.height(r);
-							},
-						},]
-					}],
-					// items: [{
-					// title: 'Secondary Structure',
-					// layout: 'fit',
-					// region: 'north',
-					// split: true,
-					// items: {
-					// xtype: 'component',
-					// ref: 'force',
-					// },
-					// flex: 1,
-					// margins: '5 5 0 5',
-					// },{
-					// title: 'Arc Diagram',
-					// layout: 'fit',
-					// region: 'center',
-					// items: {
-					// xtype: 'component',
-					// ref: 'arc',
-					// },
-					// flex: 1,
-					// margins: '0 0 5 5',
-					// collapseDirection: 'left',
-					// headerPosition: 'left',
-					// },{
-					// layout: 'fit',
-					// title: 'Adjacency Matrix',
-					// region: 'east',
-					// split: true,
-					// items: {
-					// xtype: 'component',
-					// ref:'adjacency',
-					// },
-					// flex: 1,
-					// margins: '0 5 5 0',
-					// collapseDirection: 'right',
-					// headerPosition: 'right',
-					// },],
+			var items = _.map(sorted, Ext.bind( function(complexData) {
+				//return {
+				return Ext.create('App.ui.NupackResults.Panel', {
+					xtype: 'resultspanel',
+					complexData: complexData,
+					maxConcentration: maxConcentration, 
 					renderTo: this.body,
-					minHeight: 200,
-					height: 600,
-					// margins: '5 0 20 0',
 				});
-
-				// collect child elements with 'ref' property and set as properties of this
-				_.each(pane.query('*[ref]'), function(cmp) {
-					this[cmp.ref] = cmp;
-				},pane);
-				var forcePanel = pane.force,
-				arcPanel = pane.arc,
-				adjPanel = pane.adjacency;
-
-				// draw concentration bars for all panel blocks
-				var concEl = pane.getEl().down('.nupack-concentration-bar').dom,
-				c = (parseFloat(complexData.concentration)*1000), // .toFixed(),
-				w = 400,
-				h = 10;
-				var pc = Math.abs(c/maxConcentration);
-				var concPanel = new pv.Panel()
-				.canvas(concEl)
-				.width(w)
-				.height(h);
-
-				concPanel.add(pv.Bar)
-				.data([{
-					concentration: pc
-				}])
-				.width( function(d) {
-					return Math.round(d.concentration*w)
-				})
-				.height(h)
-				.top(0)
-				.left(0)
-				.fillStyle('#d00');
-				concPanel.render();
-
+				//};
 			},this));
+			
+			
+			
+			// var resultsContainer = Ext.create('Ext.panel.Panel',{
+				// items: items,
+				// renderTo: this.body,
+			// });
+// 			
+			// this.suspendLayout = false;
+			// this.doLayout();
 		}
 	},
+});
+
+Ext.define('App.ui.NupackResults.Panel',{
+	alias: 'widget.resultspanel',
+	extend: 'Ext.panel.Panel',
+	initComponent: function() {
+		// compute the adjacency data used in laying out visualizations
+		var nodeLayout  = DNA.generateAdjacency(this.complexData.structure,this.complexData.strands,false, {
+			ppairs:this.complexData.ppairs
+		}),
+		nodeLayout2 = DNA.generateAdjacency(this.complexData.structure,this.complexData.strands,true, {
+			ppairs:this.complexData.ppairs
+		}),
+		// Strand colors
+		colors = pv.Colors.category10(),
+		// Pair probability colors
+		probColors = pv.Scale.linear(0, .5, 1).range("rgba(0,0,180,1)", "rgba(180,180,0,1)", "rgba(180,0,0,1)");
+
+		// Complex block
+		Ext.apply(this,{
+			// render: complex name, concentration, concentration bar
+			title: '<span class="nupack-complex-strands">'+this.complexData.strandNames.join('+')+'</span>'+'<span class="nupack-concentration-bar"></span><span class="nupack-concentration">'+this.complexData.concentration+' M&nbsp;|&nbsp;</span>' ,//'Complex: '+this.complexData.complex+' Order: '+this.complexData.order,
+			cls: 'nupack-complex-panel',
+			collapsible: true,
+			titleCollapse: true,
+			collapsed: true,
+			resizable: {
+				handles: 'n s'
+			},
+			listeners: {
+				// build visualizations on panel expand
+				expand: function(p) {
+					if(this.force && this.adjacency && this.arc) {
+						this.doLayout();
+						_.invoke([this.force,this.adjacency,this.arc],'afterrender');
+					}
+				}
+			},
+
+			layout: 'border',
+			defaults: {
+				// anchor: '100%',
+				xtype: 'panel',
+				collapsible: true,
+				cls: 'simple-header',
+			},
+			items: [{
+				// Force-directed secondary structure depication
+				xtype: 'pvpanel',
+				ref: 'force',
+				title: 'Secondary Structure',
+				layout: 'fit',
+				region: 'north',
+				split: true,
+				flex: 1,
+				margins: '5 5 0 5',
+				titleCollapse: true,
+				nodeLayout: nodeLayout2,
+				buildVis: function() {
+					this.getCanvas();
+					var forceVis = this.vis;
+					forceVis.fillStyle("white");
+
+					var force = forceVis.add(pv.Layout.Force)
+					.nodes(this.nodeLayout.nodes)
+					.links(this.nodeLayout.links)
+					.chargeConstant(-220)
+					.springConstant(0.9)
+					//.springLength(20)
+					.bound(false);
+
+					force.link.add(pv.Line)
+					.strokeStyle( function(d,l) {
+						return l.probability ? probColors(l.probability) : 'rgba(0,0,0,0.2)'
+					});
+					force.node.add(pv.Dot)
+					.size( function(d) {
+						return (d.linkDegree + 4) * Math.pow(this.scale, -1.5)
+					})
+					.fillStyle( function(d) {
+						return d.fix ? "brown" : colors(d.strand)
+					})
+					.strokeStyle( function() {
+						return this.fillStyle().darker()
+					})
+					.lineWidth(1)
+					.title( function(d) {
+						return d.nodeName
+					})
+					.event("mousedown", pv.Behavior.drag())
+					.event("drag", force);
+				}
+			},{
+				layout: 'border',
+				region: 'center',
+				flex: 1,
+				collapseMode: 'mini',
+				preventHeader: true,
+				split: true,
+				margins: '0 5 5 5',
+				border: false,
+				items:[{
+					// arc depication
+					// TODO: include option to view linearized
+					title: 'Arc Diagram',
+					xtype: 'pvpanel',
+					ref: 'arc',
+					region: 'center',
+					flex: 1,
+					titleCollapse: true,
+					//margins: '0 0 5 5',
+					collapseDirection: 'left',
+					headerPosition: 'left',
+					zoom:5,
+					nodeLayout: nodeLayout,
+					buildVis: function() {
+						this.getCanvas();
+						var arcVis = this.vis;
+
+						this.arc = arcVis.add(pv.Layout.Arc)
+						.nodes(this.nodeLayout.nodes)
+						.links(this.nodeLayout.links)
+						.orient('radial')
+						.fillStyle("white");
+
+						this.arc.link.add(pv.Line)
+						.strokeStyle( function(d) {
+							return d.probability ? probColors(d.probability) : '#ddd'
+						});
+						this.arc.node.add(pv.Dot)
+						.fillStyle( function(d) {
+							return colors(d.strand)
+						});
+						this.arc.label.add(pv.Label);
+
+						this.updateVis();
+					},
+					updateVis: function() {
+						this.arc
+						.top(10)
+						.left(10)
+						.bottom(10)
+						.right(10);
+					},
+				},{
+					// adjacency matrix
+					title: 'Adjacency Matrix',
+					xtype: 'pvpanel',
+					region: 'east',
+					ref:'adjacency',
+					split: true,
+					flex: 1,
+					titleCollapse: true,
+					collapseDirection: 'right',
+					headerPosition: 'right',
+					zoom: 10,
+					nodeLayout: nodeLayout,
+					buildVis: function() {
+						this.getCanvas();
+						var adjVis = this.vis;
+
+						var layout = this.layout = adjVis.add(pv.Layout.Matrix)
+						.nodes(this.nodeLayout.nodes)
+						.links(this.nodeLayout.links)
+						.fillStyle("white");
+
+						layout.link.add(pv.Bar)
+						.fillStyle( function(d,l) {
+							return l.probability ? probColors(l.probability) : '#ddd'
+						})
+						.antialias(false)
+						.lineWidth(1);
+
+						layout.label.add(pv.Label)
+						.textStyle( function(d) {
+							return colors(d.strand)
+						});
+						this.updateVis();
+					},
+					updateVis: function() {
+						var r = Math.max(this.layout.data.length*12,Math.min(this.getBodyWidth(),this.getBodyHeight()));
+						this.layout
+						.top(10)
+						.left(10)
+						.width(r)
+						.height(r);
+					},
+				},]
+			}],
+			// items: [{
+			// title: 'Secondary Structure',
+			// layout: 'fit',
+			// region: 'north',
+			// split: true,
+			// items: {
+			// xtype: 'component',
+			// ref: 'force',
+			// },
+			// flex: 1,
+			// margins: '5 5 0 5',
+			// },{
+			// title: 'Arc Diagram',
+			// layout: 'fit',
+			// region: 'center',
+			// items: {
+			// xtype: 'component',
+			// ref: 'arc',
+			// },
+			// flex: 1,
+			// margins: '0 0 5 5',
+			// collapseDirection: 'left',
+			// headerPosition: 'left',
+			// },{
+			// layout: 'fit',
+			// title: 'Adjacency Matrix',
+			// region: 'east',
+			// split: true,
+			// items: {
+			// xtype: 'component',
+			// ref:'adjacency',
+			// },
+			// flex: 1,
+			// margins: '0 5 5 0',
+			// collapseDirection: 'right',
+			// headerPosition: 'right',
+			// },],
+			// margins: '5 0 20 0',
+			minHeight: 200,
+			height: 600,
+		});
+
+		this.callParent();
+
+		// collect child elements with 'ref' property and set as properties of this
+		_.each(this.query('*[ref]'), function(cmp) {
+			this[cmp.ref] = cmp;
+		},this);
+		
+		this.on('afterrender',this.afterrender,this);
+		
+	},
+	afterrender: function() {
+
+		// draw concentration bars for all panel blocks
+		var concEl = this.getEl().down('.nupack-concentration-bar').dom,
+		c = (parseFloat(this.complexData.concentration)*1000), // .toFixed(),
+		w = 400,
+		h = 10;
+		var pc = Math.abs(c/this.maxConcentration);
+		var concPanel = new pv.Panel()
+		.canvas(concEl)
+		.width(w)
+		.height(h);
+
+		concPanel.add(pv.Bar)
+		.data([{
+			concentration: pc
+		}])
+		.width( function(d) {
+			return Math.round(d.concentration*w)
+		})
+		.height(h)
+		.top(0)
+		.left(0)
+		.fillStyle('#d00');
+		concPanel.render();
+	}
 });
 
 Ext.define('App.ui.CodeMirror', {
@@ -3544,6 +3576,10 @@ Ext.define('App.ui.SequenceEditor', {
 						handler: this.reverseComplement,
 						scope: this,
 					},{
+						text: 'Duplicate',
+						handler: this.duplicate,
+						scope: this,
+					},{
 						text: 'Pairwise Align',
 						iconCls: 'pairwise-align',
 						ref: 'align',
@@ -3715,6 +3751,30 @@ Ext.define('App.ui.SequenceEditor', {
 							autoCreateMenu: false,
 						}),
 					},{
+						text: 'Subsets MFE Complexes',
+						iconCls: 'nupack-icon',
+						menu: new App.ui.CreateMenu({
+							ref: 'subsetsMenu',
+							labelText: 'Save results to:',
+							createText: 'Run',
+							extraMenuItems: ['-',{
+								xtype: 'numberfield',
+								minValue: 1,
+								allowBlank: true,
+								emptyText: 'Max Complex Size',
+								ref: 'subsetsMaxComplexSize',
+								indent: true,
+							},{
+								checked: true,
+								text: 'Compare against WC complements',
+								ref: 'subsetsWC',
+							},'-'],
+							onCreateButton: Ext.bind(this.subsetsMfe,this),
+							autoCreateMenu: false,
+						}),
+						// handler: this.mfeComplexes,
+						// scope: this,
+					},'-',{
 						text: 'Brute Force',
 						menu: [{
 							text: 'Target length: ',
@@ -3964,6 +4024,19 @@ Ext.define('App.ui.SequenceEditor', {
 		win.show();
 		win.setSequences(this.getSelection());
 	},
+	subsetsMfe: function(fullName) {
+		var strands = this.smartSelect(),
+		maxComplexes = strands.length;
+		maxComplexes = this.subsetsMaxComplexSize.getValue();
+		maxComplexes = Ext.isNumber(maxComplexes) ? maxComplexes : 2;
+		wc = this.subsetsWC.checked;
+		App.runTask('NupackSubsets', {
+			node: App.Path.sameDirectory(this.getPath(),fullName),
+			strands: strands,
+			maxComplex: maxComplexes,
+			wc: wc,
+		});
+	},
 	pairwiseMfeComplexes: function(fullName) {
 		var strands = this.smartSelect(),
 		maxComplexes = strands.length;
@@ -4124,31 +4197,49 @@ Ext.define('App.ui.SequenceEditor', {
 		align = DNA.pairwiseAlign(seqs[0],seqs[1],2, -1, 2, 0, 0);
 		this.editor.codemirror.replaceSelection(align.sequences.join('\n'));
 	},
-	reverse: function() {
-		var sel = this.editor.codemirror.getSelection(), replaceSel = !this.replaceSelection.checked,
-		newVal = DNA.reverse(sel);
-		if(replaceSel) {
-			newVal = sel + '\n'+newVal;
+	transformByLine: function(map) {
+		var sel = this.editor.codemirror.getSelection(), replaceSel = this.replaceSelection.checked,newVal;
+		sel = sel.split('\n');
+		newVal = _.map(sel,function(el) {
+			return map(el.trim());
+		});			
+		if(!replaceSel) {
+			newVal = _.map(_.zip(sel,newVal),function(list) { return list.join('\n'); });
+			//newVal = sel + '\n'+newVal;
 		}
-		this.editor.codemirror.replaceSelection(newVal);
+		this.editor.codemirror.replaceSelection(newVal.join('\n'));
+	},
+	duplicate: function() {
+		this.transformByLine(function(s) { return s+s; });
+	},
+	reverse: function() {
+		this.transformByLine(DNA.reverse);
+		// var sel = this.editor.codemirror.getSelection(), replaceSel = !this.replaceSelection.checked,
+		// newVal = DNA.reverse(sel);
+		// if(replaceSel) {
+			// newVal = sel + '\n'+newVal;
+		// }
+		// this.editor.codemirror.replaceSelection(newVal);
 	},
 	complement: function() {
-		var sel = this.editor.codemirror.getSelection(), replaceSel = !this.replaceSelection.checked,
-		newVal = DNA.complement(sel);
-
-		if(replaceSel) {
-			newVal = sel + '\n'+newVal;
-		}
-		this.editor.codemirror.replaceSelection(newVal);
+		this.transformByLine(DNA.complement);
+		// var sel = this.editor.codemirror.getSelection(), replaceSel = !this.replaceSelection.checked,
+		// newVal = DNA.complement(sel);
+// 
+		// if(replaceSel) {
+			// newVal = sel + '\n'+newVal;
+		// }
+		// this.editor.codemirror.replaceSelection(newVal);
 	},
 	reverseComplement: function() {
-		var sel = this.editor.codemirror.getSelection(), replaceSel = !this.replaceSelection.checked,
-		newVal = DNA.reverseComplement(sel);
-
-		if(replaceSel) {
-			newVal = sel + '\n'+newVal;
-		}
-		this.editor.codemirror.replaceSelection(newVal);
+		this.transformByLine(DNA.reverseComplement);
+		// var sel = this.editor.codemirror.getSelection(), replaceSel = !this.replaceSelection.checked,newVal;
+		// sel = sel.split('\n');
+		// newVal = _.map(sel,DNA.reverseComplement).join('\n');
+		// if(replaceSel) {
+			// newVal = sel + '\n'+newVal;
+		// }
+		// this.editor.codemirror.replaceSelection(newVal);
 	},
 	populateShannon: function() {
 		var menu = this.shannon.menu;
@@ -4230,7 +4321,7 @@ Ext.define('App.ui.DD', {
 		});
 
 		var cellEditor = this.cellEditor = Ext.create('Ext.grid.plugin.CellEditing', {
-			clicksToEdit: 1,
+			clicksToEdit: 2,
 			autoCancel: false
 		});
 		this.cellEditor.on('edit', function(editor,e) {
@@ -4263,7 +4354,9 @@ Ext.define('App.ui.DD', {
 				bodyBorder: false,
 				border: false,
 				ref: 'grid',
-				columns: [Ext.create('Ext.grid.RowNumberer'),{
+				columns: [Ext.create('Ext.grid.RowNumberer',{
+					width: 30,
+				}),{
 					header: 'Sequence',
 					dataIndex: 'sequence',
 					renderer: function(v) {
@@ -4409,6 +4502,10 @@ Ext.define('App.ui.DD', {
 			bbar: new Ext.ux.statusbar.StatusBar({
 				ref: 'statusBar',
 				items: [{
+					baseText: 'Score: ',
+					text: 'Score: ',
+					ref: 'scoreField',
+				},{
 					baseText: 'Attempts: ',
 					text: 'Attempts: ',
 					ref: 'attemptCount',
@@ -4452,9 +4549,11 @@ Ext.define('App.ui.DD', {
 	},
 	updateStatusBar: function() {
 		var attempts = this.designer.getMutationAttempts(),
-		muts = attempts = this.designer.getMutationCount();
+		muts = this.designer.getMutationCount(),
+		score = this.designer.getWorstScore();
 		this.attemptCount.setText(this.attemptCount.baseText+attempts);
 		this.mutCount.setText(this.mutCount.baseText+muts);
+		this.scoreField.setText(this.scoreField.baseText+score);
 	},
 	doDeleteDomain: function() {
 		var rec = this.grid.getSelectionModel().getLastSelected();
@@ -4472,13 +4571,14 @@ Ext.define('App.ui.DD', {
 	addDomains: function(seqs) {
 		var imp = 1, comp = 15;
 		this.designer.addDomains(seqs,imp,comp);
-		_.each(seqs,function(seq) {
-			this.store.add({
+		this.store.add(_.map(seqs,function(seq) {
+			return {
 				sequence: seq,
 				importance: imp,
 				composition: comp,
-			}); 
-		},this);
+			}; 
+		},this));
+		this.scoresDirty = true;
 		this.designer.evaluateIntrinsicScores();
 	},
 	doAddDomain: function() {
@@ -4494,7 +4594,8 @@ Ext.define('App.ui.DD', {
 			importance: imp,
 			composition: comp,
 		});
-		this.designer.evaluateAllScores();
+		this.designer.evaluateIntrinsicScores();
+		this.scoresDirty = true;
 	},
 	toggleMutation: function() {
 		if(this.mutating) {
@@ -4503,11 +4604,20 @@ Ext.define('App.ui.DD', {
 			this.startMutation();
 		}
 	},
-	mutStep: 100,
-	doMutation: function() {
-		for(var i=0; i<this.mutStep;i++) {
-			this.designer.mutate();
+	mutationStep: 50,
+	mutationCount: 0,
+	mutationLoop: function() {
+		if(this.mutationCount > this.mutationStep) {
+			this.updateInterface();
+			this.mutationCount = 0;
 		}
+		this.mutationCount++;
+		this.doMutation();
+	},
+	doMutation: function() {
+		this.designer.mutate();
+	},
+	updateInterface: function() {
 		this.updateStatusBar();
 		// true to force a re-tally (since domain_score[] isn't automatically updated when a
 		// mutation is rejected; we risk showing an increased score that was actually rejected)
@@ -4519,7 +4629,7 @@ Ext.define('App.ui.DD', {
 		for(var i=0;i<scores.length;i++) {
 			rec = this.store.getAt(i);//+1);
 			if(rec.get('score') !=0 && rec.get('score') < scores[i]) {
-				throw "Score increase";
+				//throw "Score increase";
 			}
 			rec.set('score',scores[i]);
 		}
@@ -4527,13 +4637,20 @@ Ext.define('App.ui.DD', {
 		rec.set('sequence',mut_dom_seq);
 		//this.store.resumeEvents();
 		this.store.sync();
+		if(this.designer.getWorstScore() != _.max(scores)) {
+			// throw 'Worst score increase'
+		}
 	},
 	startMutation: function() {
 		this.mutateButton.setIconCls('pause');
 		_.invoke([this.modDomainButton,this.addDomainButton,this.delDomainButton],'disable');
+		if(!this.mutationTask || this.scoresDirty) {
+			this.designer.evaluateAllScores();
+			this.scoresDirty = false;
+		}
 		if(!this.mutationTask) {
 			this.mutationTask = Ext.TaskManager.start({
-				run: this.doMutation,
+				run: this.mutationLoop,
 				interval: 0.1,
 				scope: this,
 			});
@@ -4558,6 +4675,7 @@ Ext.define('App.ui.DD.SequenceWindow',{
 	height: 600,
 	layout: 'fit',
 	title: 'Add specific sequences to DD',
+	closeAction: 'hide',
 	initComponent: function() {
 		this.sequenceEditor = Ext.create('App.ui.CodeMirror',{mode: 'sequence',border: false});
 		Ext.apply(this,{
@@ -4573,6 +4691,7 @@ Ext.define('App.ui.DD.SequenceWindow',{
 	},
 	addDomains: function() {
 		this.designer.addDomains(this.sequenceEditor.getValue().split('\n'));
+		this.close();
 	}
 })
 

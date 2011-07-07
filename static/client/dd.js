@@ -18,23 +18,23 @@ var DD = function() {
 	var NB_DISABLE = 0
 
 	var options = {
-		MAX_MUTATIONS : 10,       // maximum number of simultaneous mutations
+		MAX_MUTATIONS : 10,        // maximum number of simultaneous mutations
 		GCstr : 2,
 		ATstr : 1,
 		GTstr : 0,
-		MBstr : -3,       // mismatch, bulge
-		LLstr : -0.5,       // large loop
-		DHstr : 3,       // score for domain ending in a base pair
+		MBstr : -3,        // mismatch, bulge
+		LLstr : -0.5,        // large loop
+		DHstr : 3,        // score for domain ending in a base pair
 		MAX_IMPORTANCE : 100,
 		LHbases : 4,
 		LHstart : 2,
 		LHpower : 2,
-		INTRA_SCORE : 5,       // score bonus for intrastrand/dimerization interactions
-		CROSSTALK_SCORE : -5,       // score bonus for crosstalk (as compared to interaction)
-		CROSSTALK_DIV : 2,       // crosstalk score is divided by this much (and then score is subtracted)
+		INTRA_SCORE : 5,        // score bonus for intrastrand/dimerization interactions
+		CROSSTALK_SCORE : -5,        // score bonus for crosstalk (as compared to interaction)
+		CROSSTALK_DIV : 2,        // crosstalk score is divided by this much (and then score is subtracted)
 		GGGG_PENALTY : 50,
 		ATATAT_PENALTY : 20,
-		SHANNON_BONUS : 3,     // the adjusted shannon entropy is multiplied by this ammount and subtracted from the score
+		SHANNON_BONUS : 3,      // the adjusted shannon entropy is multiplied by this ammount and subtracted from the score
 		SHANNON_ADJUST : 0.7, // values with less than SHANNON_ADJUST * (maximum expected entropy given alphabet size k)
 	};
 
@@ -126,6 +126,23 @@ var DD = function() {
 				return 'T'
 			case 4:
 				return 'c'
+			case 14:
+				return 'C'
+		}
+	}
+
+	function displayBase(base) {
+		switch(base) {
+			case 1:
+			case 11:
+				return 'G'
+			case 2:
+			case 12:
+				return 'A'
+			case 3:
+			case 13:
+				return 'T'
+			case 4:
 			case 14:
 				return 'C'
 		}
@@ -545,14 +562,14 @@ var DD = function() {
 
 	// Set default parameters
 	var rules = {
-		rule_4g : 1,       // cannot have 4 G's or 4 C's in a row
-		rule_6at : 1,       // cannot have 6 A/T or G/C bases in a row
-		rule_ccend : 1,       // domains MUST start and end with C
-		rule_ming : 1,       // design tries to minimize usage of G
-		rule_init : 7,       // 15 = polyN, 7 = poly-H, 3 = poly-Y, 2 = poly-T
-		rule_targetworst : 1,       // target worst domain
-		rule_gatc_avail : 15,       // all bases available
-		rule_lockold : 0,   // lock all old bases (NO)
+		rule_4g : 1,        // cannot have 4 G's or 4 C's in a row
+		rule_6at : 1,        // cannot have 6 A/T or G/C bases in a row
+		rule_ccend : 1,        // domains MUST start and end with C
+		rule_ming : 1,        // design tries to minimize usage of G
+		rule_init : 7,        // 15 = polyN, 7 = poly-H, 3 = poly-Y, 2 = poly-T
+		rule_targetworst : 1,        // target worst domain
+		rule_gatc_avail : 15,        // all bases available
+		rule_lockold : 0,    // lock all old bases (NO)
 		rule_targetdomain : [],
 	}
 
@@ -1421,7 +1438,7 @@ var DD = function() {
 		evaluateIntrinsicScores();
 		tallyScores();
 	}
-	
+
 	function evaluateIntrinsicScores() {
 		for( i = 0; i < num_domain; i++) {
 			evaluateIntrinsicScore(i);
@@ -1449,6 +1466,15 @@ var DD = function() {
 			if(domain_score[i] > score) {
 				score = domain_score[i];
 				worst_domain = i;
+			}
+		}
+		if(rule_targetdomain && rule_targetdomain.length>0) {
+			score = 0;
+			for( i=0; i< rule_targetdomain.length; i++) {
+				if(domain_score[rule_targetdomain[i]] > score) {
+					score = domain_score[rule_targetdomain[i]];
+					worst_domain = rule_targetdomain[i];
+				}
 			}
 		}
 	}
@@ -1567,7 +1593,7 @@ var DD = function() {
 				// select a domain to mutate
 			}
 		} else if(rule_targetdomain && rule_targetdomain.length != 0) {
-			mut_domain = rule_targetdomain.length == 1 ? 0 : int_urn(0, rule_targetdomain.length - 1);
+			mut_domain = rule_targetdomain[rule_targetdomain.length == 1 ? 0 : int_urn(0, rule_targetdomain.length - 1)];
 		} else {
 			mut_domain = int_urn(0, num_domain - 1);
 			// select a domain to mutate
@@ -1651,6 +1677,7 @@ var DD = function() {
 		/******************************
 		 * Calculate new scores
 		 ******************************/
+		old_score = score;
 		evaluateScores(mut_domain);
 
 		// Domain score is max of interaction and crosstalk scores
@@ -1730,7 +1757,7 @@ var DD = function() {
 		mutate : mutate,
 		evaluateAllScores : evaluateAllScores,
 		evaluateScores : evaluateScores,
-		evaluateIntrinsicScores: evaluateIntrinsicScores,
+		evaluateIntrinsicScores : evaluateIntrinsicScores,
 		popDomain : popDomain,
 		getRules : function() {
 			return _.clone(rules);
@@ -1788,7 +1815,7 @@ var DD = function() {
 		},
 		getScore : function(domainId, forceRecalc) {
 			if(forceRecalc || false) {
-				this.evaluateAllScores();
+				this.evaluthis.domain_length
 			}
 			return domain_score[domainId];
 		},

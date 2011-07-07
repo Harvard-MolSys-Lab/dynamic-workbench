@@ -241,7 +241,7 @@ Ext.define('App.TaskRunner.Task', {
 	extend: 'Ext.data.Model',
 	endpoint: '',
 	iconCls: '',
-	timeout: 60*60*1000,
+	timeout: 6000*60*1000,
 	fields: [{
 		name: 'tool',
 		type: 'string',
@@ -274,7 +274,7 @@ Ext.define('App.TaskRunner.Task', {
 		this.callback = (callback || this.callback);
 		this.onStart();
 		this.log('Starting \"'+this.name+'\" task at '+this.get('startDate')+' on \"'+this.get('target')+'\"', {});
-		Ext.Ajax.request({
+		var req = Ext.Ajax.request({
 			url: this.endpoint,//'/canvas/index.php/workspaces/save',
 			method: 'POST',
 			params: args,
@@ -284,7 +284,7 @@ Ext.define('App.TaskRunner.Task', {
 			},
 			failure: function(res) {
 				this.end(res.responseText,args,false);
-				if(res.status==0) {
+				if(res.timedout==0) {
 					this.log('Error running task on tool: "'+this.name+'". Timeout at '+this.timeout+'ms ('+(this.timeout/1000)+'s)');
 				} else {
 					this.log('Error running task on tool: "'+this.name+'". '+res.responseText);
@@ -292,6 +292,7 @@ Ext.define('App.TaskRunner.Task', {
 			},
 			scope: this
 		});
+		Ext.Ajax.clearTimeout(req);
 	},
 	onStart: function() {
 
@@ -340,6 +341,22 @@ Ext.define('App.TaskRunner.NupackPairwise', {
 	name: 'NUPACK Pairwise Analysis',
 	iconCls: 'nupack-icon',
 	endpoint: '/nupack/pairwise',
+	getGroupName: function() {
+		return this.callParent()+' ('+(this.arguments.node ? this.arguments.node : 'no path')+')'
+	},
+	onEnd: function(out,st,args) {
+		this.log(out);
+		if(this.arguments && this.arguments.node) {
+			var path = App.Path.pop(this.arguments.node);
+			App.ui.filesTree.refresh(App.DocumentStore.tree.getNodeById(path))
+		}
+	}
+});
+Ext.define('App.TaskRunner.NupackSubsets', {
+	extend: 'App.TaskRunner.Task',
+	name: 'NUPACK Subsets Analysis',
+	iconCls: 'nupack-icon',
+	endpoint: '/nupack/subsets',
 	getGroupName: function() {
 		return this.callParent()+' ('+(this.arguments.node ? this.arguments.node : 'no path')+')'
 	},

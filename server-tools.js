@@ -39,6 +39,8 @@ var tools = {
 
 var nupackPath = path.resolve('tools/nupack3');
 
+
+
 exports.configure = function(app,express) {
 	var baseRoute = app.set('baseRoute');
 
@@ -117,9 +119,44 @@ exports.configure = function(app,express) {
 		// console.log('node:'+node);
 		// console.log('basename:'+path.basename(fullPath));
 		// console.log('dirname:'+path.dirname(fullPath));
-		nupackAnalysis(strands,path.basename(fullPath),path.dirname(fullPath), {}, function(out) {
-			if(out.err) {
-				console.log(out.err);
+		nupackAnalysis(strands,path.basename(fullPath),path.dirname(fullPath), {}, function(err,out) {
+			if(err) {
+				console.log(err);
+				sendError(res,'Internal server error',500);
+				return;
+			}
+			
+			if(!!out.stderr) {
+				res.send(out.stderr);
+				return;
+			}
+			res.send(out.stdout);
+
+		});
+	});
+	
+	app.post(baseRoute+'/nupack/pairwise', function(req,res) {
+		var node = req.param('node'),
+		strands = req.param('strands'),
+		maxComplex = req.param('max'),
+		fullPath = utils.userFilePath(node),
+		cmd;
+		console.log(strands);
+		if(!allowedPath(node) || !allowedPath(fullPath)) {
+			forbidden(res);
+			console.log("Can't enter path: '"+fullPath+"'");
+		}
+		// console.log('fullPath:'+fullPath);
+		// console.log('node:'+node);
+		// console.log('basename:'+path.basename(fullPath));
+		// console.log('dirname:'+path.dirname(fullPath));
+		nupackAnalysis(strands,path.basename(fullPath),path.dirname(fullPath), {
+			maxComplexSize:2
+		}, function(err,out) {
+			if(err) {
+				console.log(err);
+				sendError(res,'Internal server error',500);
+				return;
 			}
 
 			if(!!out.stderr) {
@@ -128,6 +165,53 @@ exports.configure = function(app,express) {
 			}
 			res.send(out.stdout);
 
+		});
+	});
+	
+	app.post(baseRoute+'/nupack/subsets', function(req,res) {
+		var node = req.param('node'),
+		strands = req.param('strands'),
+		maxComplex = req.param('max'),
+		wc = req.param('wc'), 
+		fullPath = utils.userFilePath(node),
+		cmd, newStrands;
+		//console.log(strands);
+		if(!allowedPath(node) || !allowedPath(fullPath)) {
+			forbidden(res);
+			console.log("Can't enter path: '"+fullPath+"'");
+		}
+		
+		
+		fs.mkdir(fullPath,777, function(err) {
+			if(err && err.code!='EEXIST') {
+				console.log(err);
+				sendError(res,'Internal Server Error',500);
+				return;
+			}
+			if(wc) {
+				newStrands = _.map(strands,function(strand) {
+					return DNA.reverseComplement(strand);
+				});
+			} else {
+				newStrands = strands;
+			}
+			
+			var combs = _.map(strands,function(strand) {
+				return [strand].concat(newStrands);
+			}), combsLabels = _.range(1,strands.length);
+			
+			var tasks = [];
+			_.each(combs, function(comb,index) {
+				//console.log([comb,'subset-'+index,fullPath].join(';'));
+				tasks.push(_.bind(function(comb,label,path,options,cb) {
+					nupackAnalysis(comb,label,path,options,function(err,out) {
+						cb(err,out);
+					}); 
+				}, {},comb,'subset-'+index,fullPath,{maxComplexSize: maxComplex}));
+			});
+			async.series(tasks, function(err,results) {
+				res.send(results.join('\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n'));
+			});
 		});
 	});
 	app.post(baseRoute+'/brute', function(req,res) {
@@ -162,9 +246,11 @@ exports.configure = function(app,express) {
 
 		nupackAnalysis(strands,path.basename(fullPath),path.dirname(fullPath), {
 			maxComplexSize:2
-		}, function(out) {
-			if(out.err) {
-				console.log(out.err);
+		}, function(err,out) {
+			if(err) {
+				console.log(err);
+				sendError(res,'Internal Server Error',500);
+				return;
 			}
 
 			if(!!out.stderr) {
@@ -184,14 +270,14 @@ exports.configure = function(app,express) {
 		 // combsLabels = combinations(_.range(1,strandList.length+1));
 		 // fullPath = path.dirname(path.resolve(utils.userFilePath(node)));
 		 //
-		 // // var tasks = [];
-		 // // _.each(combs, function(comb,index) {
-		 // // console.log([comb,'combination-'+combsLabels[index].join(','),fullPath].join(';'));
-		 // // tasks.push(_.bind(pairwise, {},comb,'combination-'+combsLabels[index].join(','),fullPath));
-		 // // });
-		 // // async.serial(tasks, function(err,results) {
-		 // // res.send(results);
-		 // // })
+		 // var tasks = [];
+		 // _.each(combs, function(comb,index) {
+		 // console.log([comb,'combination-'+combsLabels[index].join(','),fullPath].join(';'));
+		 // tasks.push(_.bind(pairwise, {},comb,'combination-'+combsLabels[index].join(','),fullPath));
+		 // });
+		 // async.serial(tasks, function(err,results) {
+		 // res.send(results);
+		 // })
 		 // nupackAnalysis(strandList,path.basename(fullPath),path.dirname(fullPath), {maxComplexSize:2}, function(out) {
 		 // if(out.err) {
 		 // console.log(out.err);
@@ -206,36 +292,7 @@ exports.configure = function(app,express) {
 		 // });
 		 */
 	});
-	app.post(baseRoute+'/nupack/pairwise', function(req,res) {
-		var node = req.param('node'),
-		strands = req.param('strands'),
-		maxComplex = req.param('max'),
-		fullPath = utils.userFilePath(node),
-		cmd;
-		console.log(strands);
-		if(!allowedPath(node) || !allowedPath(fullPath)) {
-			forbidden(res);
-			console.log("Can't enter path: '"+fullPath+"'");
-		}
-		// console.log('fullPath:'+fullPath);
-		// console.log('node:'+node);
-		// console.log('basename:'+path.basename(fullPath));
-		// console.log('dirname:'+path.dirname(fullPath));
-		nupackAnalysis(strands,path.basename(fullPath),path.dirname(fullPath), {
-			maxComplexSize:2
-		}, function(out) {
-			if(out.err) {
-				console.log(out.err);
-			}
-
-			if(!!out.stderr) {
-				res.send(out.stderr);
-				return;
-			}
-			res.send(out.stdout);
-
-		});
-	});
+	
 	function permutations(length) {
 		function permute(prev,alphabet) {
 			var o = [];
@@ -419,6 +476,10 @@ exports.configure = function(app,express) {
 			// console.log('begin result: ');
 			// console.log(result);
 			// console.log('end result. ');
+			if(err) {
+				callback(err,null);
+				return;
+			}
 			var scratch = {};
 			_.each(result, function(el) {
 				_.extend(scratch,el);
@@ -449,8 +510,8 @@ exports.configure = function(app,express) {
 					rec.ppairs = ppairs;
 				}
 			});
-			console.log(scratch);
-			callback(scratch);
+			//console.log(scratch);
+			callback(err,scratch);
 		});
 	}
 
@@ -473,9 +534,7 @@ exports.configure = function(app,express) {
 				console.log(name);
 				console.log(dirPath);
 				console.log(err);
-				callback({
-					err:err
-				});
+				callback(err,null);
 				return;
 			}
 			strandPair = _.compact(_.map(strandPair, function(v) {
@@ -497,27 +556,21 @@ exports.configure = function(app,express) {
 				if(err) {
 					//sendError(res,'Couldn\'t write '+inFileName,500);
 					console.log(err);
-					callback({
-						err:err
-					});
+					callback(err,null);
 					return;
 				} else {
 					fs.writeFile(listFileName,'', function(err) {
 						if(err) {
 							//sendError(res,'Couldn\'t write '+listFileName,500);
 							console.log(err);
-							callback({
-								err:err
-							});
+							callback(err,null);
 							return;
 						} else {
 							fs.writeFile(conFileName,conFile, function(err) {
 								if(err) {
 									//sendError(res,'Couldn\'t write '+listFileName,500);
 									console.log(err);
-									callback({
-										err:err
-									});
+									callback(err,null);
 									return;
 								} else {
 									async.series([
@@ -528,7 +581,8 @@ exports.configure = function(app,express) {
 										proc.exec(complexesCmd, {
 											env: {
 												'NUPACKHOME':nupackPath
-											}
+											},
+											maxBuffer: 400*1024,
 										}, function(err,stdout,stderr) {
 											if(err) {
 												console.log(err);
@@ -557,7 +611,8 @@ exports.configure = function(app,express) {
 										proc.exec(concCmd, {
 											env: {
 												'NUPACKHOME':nupackPath
-											}
+											},
+											maxBuffer: 400*1024,
 										}, function(err,stdout,stderr) {
 											if(err) {
 												console.log(err);
@@ -581,14 +636,17 @@ exports.configure = function(app,express) {
 										});
 									}], function(err,data) {
 										// res.send(stdout);
+										if(err) {
+											callback(err,null);
+											return;
+										}
 										var stdout = data[0].stdout,
 										stderr = data[0].stderr;
-										packageNupackOut(prefixPath, function(dat) {
+										packageNupackOut(prefixPath, function(err,dat) {
 											//console.log(data);
 											fs.writeFile(prefixPath+'.nupack-results',JSON.stringify(dat), 'utf8', function(err) {
 												console.log('finished!');
-												callback({
-													err: err,
+												callback(err,{
 													stdout:stdout,
 													stderr:stderr,
 													data: dat,

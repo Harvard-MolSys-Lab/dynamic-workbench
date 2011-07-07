@@ -440,6 +440,7 @@ background-position: 2px 2px;
 
 .nupack-complex-strands {
 	min-width: 40px;
+	float: left;
 }
 
 .nupack-concentration-bar {

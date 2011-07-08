@@ -80,19 +80,19 @@ Ext.define('Ext.debug.ScriptsPanel', {
 
 	initComponent : function() {
 
-		this.scriptField = new App.ui.CodeMirror({
+		this.scriptField = Ext.create('App.ui.CodeMirror',{
 			style:'border-width:0;',
 			mode: 'javascript',
 			tbar: false,
 		});
 
-		this.trapBox = new Ext.form.Checkbox({
+		this.trapBox = Ext.create('Ext.form.Checkbox',{
 			id: 'console-trap',
 			boxLabel: 'Trap Errors',
 			checked: true
 		});
 
-		this.toolbar = new Ext.Toolbar({
+		this.toolbar = Ext.create('Ext.Toolbar',{
 			dock: 'top',
 			items:[{
 				text: 'Run',
@@ -112,7 +112,7 @@ Ext.define('Ext.debug.ScriptsPanel', {
 		this.items = [this.scriptField];
 		this.dockedItems = [this.toolbar];
 
-		Ext.debug.ScriptsPanel.superclass.initComponent.call(this);
+		this.callParent(arguments);
 	},
 	evalScript : function() {
 		var s = this.scriptField.getValue();
@@ -181,7 +181,7 @@ Ext.define('Ext.debug.LogPanel', {
 						// display: 'block',
 					// }
 				});
-				this.groups[groupName] = new Ext.panel.Panel(cfg);
+				this.groups[groupName] = Ext.create('Ext.panel.Panel',cfg);
 			}
 			target = this.groups[groupName].body;
 		} else {

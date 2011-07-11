@@ -21,6 +21,16 @@ exports.allowedPath = function(path) {
 	return path ? (path.indexOf('..')==-1) : false;
 }
 
+function getCommand(spec,args) {
+	if(spec) {
+		var fullArgs = spec.arguments.concat(args);
+		fullArgs.unshift(spec.command);
+		return fullArgs.join(' ');
+	}
+	return false;
+}
+
+exports.getCommand = getCommand; 
 
 function sscanf (str, format) {
     // +   original by: Brett Zamir (http://brett-zamir.me)

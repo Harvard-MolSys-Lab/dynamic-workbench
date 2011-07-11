@@ -16,7 +16,7 @@ tools = require('./server-tools');
 
 app.configure( function() {
 	app.set('views', __dirname + '/views');
-	app.set('baseRoute','');
+	app.set('baseRoute','/');
 	app.use(express.bodyParser());
 	app.use(express['static'](__dirname+'/static'));
 	

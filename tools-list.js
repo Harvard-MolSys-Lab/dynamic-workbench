@@ -1,0 +1,1 @@
+exports.list = ['pepper','nupack/analysis','nupack/pairwise','nupack/subsets','spurious','nodal'];

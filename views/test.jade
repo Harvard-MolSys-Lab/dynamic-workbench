@@ -42,11 +42,12 @@ html(lang="en")
       App.setEndpoint('save','save');
       App.setEndpoint('load','load');
     script(type="text/javascript", src=scriptPath+"/user.js")
+    script(type="text/javascript", src="/toolslist")
     
     script(type="text/javascript", src=scriptPath+"/documents.js")
 
     // Canvas workspace
-    - var scripts = ['ext-bug-fixes','core','workspace', 'objects/objects', 'objects/element', 'objects/vector', 'objects/semantics','tools/tools','tools/draw','tools/annotate','console','canvas','codemirror-modes','dna/nodal/nodal-canvas','dna/nodal/dna','dna/nodal/nodal', 'dd'];
+    - var scripts = ['ext-bug-fixes','core','workspace', 'objects/objects', 'objects/element', 'objects/vector', 'objects/semantics','tools/tools','tools/draw','tools/annotate','console','canvas','codemirror-modes','dna/nodal/nodal-canvas','dna/nodal/dna','dna/nodal/nodal', 'dna/secondary/secondary', 'dna/primary/primary', 'dd'];
     - each script in scripts
       script(type="text/javascript", src=scriptPath+'/'+script+'.js')
   

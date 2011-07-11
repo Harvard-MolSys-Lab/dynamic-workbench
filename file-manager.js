@@ -6,7 +6,8 @@ mongoose = require('mongoose'),
 mongooseAuth = require('mongoose-auth'),
 utils = require('./utils'),
 async = require('async'),
-rm = require("./rm-rf"); //,
+rm = require("./rm-rf"),
+fileTypes = require('./file-types'); //,
 //mime = require('mime');
 
 var sendError = utils.sendError,
@@ -37,36 +38,9 @@ function fileRecord(file,node,stat) {
 	};
 }
 
-var triggers = {
-	tex: 'tex',
-	latex: 'tex',
-	txt: 'txt',
-	js: 'js',
-	xml: 'xml',
-	html: 'html',
-	htm: 'html',
-	dsml: 'dynaml',
-	dyn: 'dynaml',
-	dynaml: 'dynaml',
-	diff: 'diff',
-	pil: 'pil',
-	pepper: 'pepper',
-	sys: 'pepper',
-	comp: 'pepper',
-	crn: 'crn',
-	nodal: 'nodal',
-	seq: 'sequence',
-	dd: 'sequence',
-	nupack: 'nupackedit',
-	svg: 'viewer',
-	pdf: 'viewer',
-	'nupack-results':'nupackresults'
-};
 
-var mimetypes = {
-	'svg':'image/svg+xml',
-	'pdf':'application/pdf',
-};
+var mimetypes = fileTypes.mimetypes, 
+	triggers = fileTypes.triggers;
 
 exports.configure = function(app,express) {
 	var baseRoute = app.set('baseRoute');

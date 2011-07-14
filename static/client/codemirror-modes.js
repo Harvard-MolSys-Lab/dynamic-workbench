@@ -1,98 +1,98 @@
 // CodeMirror.defineMode("nupack", function(config) {
-  // var sequenceMode = CodeMirror.getMode(config,'sequence');
-  // return {
-  	// startState: function() {
-  		// return {value:''};
-  	// },
-    // token: function(stream,state) {
-    	// stream.eatSpace();
-    	// if(state.value=='') {
-	    	// if(stream.eat('%')) {
-	    		// stream.skipToEnd();
-	    		// return 'nupack-comment';
-	    	// } else 	if(stream.match('structure',true,true)) {
-	    		// state.value = 'structure-definition-left';
-	    		// return 'nupack-keyword';
-	    	// } else if(stream.match('sequence',true,true)) {
-	    		// state.value = 'sequence-definition-left';
-	    		// return 'nupack-keyword';
-	    	// } else {
-	    		// state.value='structure-name';
-	    	// }
-	    // } else if(state.value=='structure-definition') {
-	    	// if(stream.eat('[')) {
-	    		// state.value = 'structure-definition-param';
-	    		// return 'pepper-param';
-	    	// } else {
-	    		// state.value = 'structure-definition-left';
-	    		// return '';
-	    	// }
-	    // } else if(state.value=='structure-definition-param') {
+	// var sequenceMode = CodeMirror.getMode(config,'sequence');
+	// return {
+		// startState: function() {
+			// return {value:''};
+		// },
+		// token: function(stream,state) {
+			// stream.eatSpace();
+			// if(state.value=='') {
+				// if(stream.eat('%')) {
+					// stream.skipToEnd();
+					// return 'nupack-comment';
+				// } else 	if(stream.match('structure',true,true)) {
+					// state.value = 'structure-definition-left';
+					// return 'nupack-keyword';
+				// } else if(stream.match('sequence',true,true)) {
+					// state.value = 'sequence-definition-left';
+					// return 'nupack-keyword';
+				// } else {
+					// state.value='structure-name';
+				// }
+			// } else if(state.value=='structure-definition') {
+				// if(stream.eat('[')) {
+					// state.value = 'structure-definition-param';
+					// return 'pepper-param';
+				// } else {
+					// state.value = 'structure-definition-left';
+					// return '';
+				// }
+			// } else if(state.value=='structure-definition-param') {
 			// stream.eatWhile(function(c) {return (c!=']')});
 			// return 'pepper-param';
-    	// } else if(state.value=='structure-definition-left') {
-    		// stream.eatWhile(/\S/);
-    		// state.value = 'structure-definition-assign';
-    		// return 'nupack-structure';
-    	// } else if(state.value=='structure-definition-assign') {
-    		// stream.eatWhile(/[\S=]/);
-    		// state.value = 'structure-definition-right';
-    		// return '';
-    	// } else if(state.value=='structure-definition-right') {
-    		// //stream.eatWhile(/[HhUu\d]/);
-    		// // if(stream.eol()) {
-	    		// // state.value='';
-    			// // return 'nupack-huplus'
-    		// // }
-    		// stream.skipToEnd();
-    		// state.value='';
-    		// return 'nupack-huplus';
-    	// } else if(state.value=='sequence-definition-left') {
-    		// stream.eatWhile(/\S/);
-    		// state.value = 'sequence-definition-assign';
-    		// return 'nupack-sequence';
-    	// } else if(state.value=='sequence-definition-assign') {
-    		// stream.eatWhile(/[\S=]/);
-    		// state.value = 'sequence-definition-right';
-    		// return '';
-    	// } else if(state.value=='sequence-definition-right') {
-    		// var token;
-    		// if(stream.eat(':')) {
-    			// token = 'param'
-    		// } else {
-    			// token = sequenceMode.token(stream);
-    		// }
-    		// if(stream.eol()) {
-    			// state.value='';
-    		// }
-    		// return token;
-    	// } else if(state.value=='structure-name') {
-    		// stream.eatWhile(/\S/);
-    		// state.value = 'structure-assign';
-    		// return 'nupack-structure';
-    	// } else if(state.value=='structure-assign') {
-    		// if(stream.eat(':')) {
-    			// state.value = 'structure-thread'
-    			// return '';
-    		// } else if(stream.eat('<')) {
-    			// state.value = 'structure-objection';
-    			// return '';
-    		// } else {
-    			// stream.skipToEnd();
-    			// state.value = '';
-    			// return 'nupack-error';
-    		// }
-    	// } else if(state.value=='structure-thread') {
-    		// stream.skipToEnd();
-    		// state.value='';
-    		// return 'nupack-sequence';
-    	// } else if(state.value=='param') {
-    		// stream.skipToEnd();
-    		// state.value='';
-    		// return 'nupack-param';
-    	// }
-    // }
-  // };
+			// } else if(state.value=='structure-definition-left') {
+				// stream.eatWhile(/\S/);
+				// state.value = 'structure-definition-assign';
+				// return 'nupack-structure';
+			// } else if(state.value=='structure-definition-assign') {
+				// stream.eatWhile(/[\S=]/);
+				// state.value = 'structure-definition-right';
+				// return '';
+			// } else if(state.value=='structure-definition-right') {
+				// //stream.eatWhile(/[HhUu\d]/);
+				// // if(stream.eol()) {
+					// // state.value='';
+					// // return 'nupack-huplus'
+				// // }
+				// stream.skipToEnd();
+				// state.value='';
+				// return 'nupack-huplus';
+			// } else if(state.value=='sequence-definition-left') {
+				// stream.eatWhile(/\S/);
+				// state.value = 'sequence-definition-assign';
+				// return 'nupack-sequence';
+			// } else if(state.value=='sequence-definition-assign') {
+				// stream.eatWhile(/[\S=]/);
+				// state.value = 'sequence-definition-right';
+				// return '';
+			// } else if(state.value=='sequence-definition-right') {
+				// var token;
+				// if(stream.eat(':')) {
+					// token = 'param'
+				// } else {
+					// token = sequenceMode.token(stream);
+				// }
+				// if(stream.eol()) {
+					// state.value='';
+				// }
+				// return token;
+			// } else if(state.value=='structure-name') {
+				// stream.eatWhile(/\S/);
+				// state.value = 'structure-assign';
+				// return 'nupack-structure';
+			// } else if(state.value=='structure-assign') {
+				// if(stream.eat(':')) {
+					// state.value = 'structure-thread'
+					// return '';
+				// } else if(stream.eat('<')) {
+					// state.value = 'structure-objection';
+					// return '';
+				// } else {
+					// stream.skipToEnd();
+					// state.value = '';
+					// return 'nupack-error';
+				// }
+			// } else if(state.value=='structure-thread') {
+				// stream.skipToEnd();
+				// state.value='';
+				// return 'nupack-sequence';
+			// } else if(state.value=='param') {
+				// stream.skipToEnd();
+				// state.value='';
+				// return 'nupack-param';
+			// }
+		// }
+	// };
 // });
 CodeMirror.defineMode("pepper", function(config, parserConfig) {
 	var indentUnit = config.indentUnit, keywords = (function() {
@@ -269,114 +269,142 @@ CodeMirror.defineMode("pepper", function(config, parserConfig) {
 });
 
 CodeMirror.defineMode("sequence", function() {
-  return {
-    token: function(stream) {
-      var ch = stream.next();
-      switch(ch) {
-      	case '#':
-      		stream.skipToEnd();
-      		return "sequence-comment";
-      	case '>':
-      		stream.skipToEnd();
-      		return 'sequence-name';
-      	case 'a':
-      	case 'A':
-      		return 'sequence-a';
-      	case 'u':
-      	case 'U':
-      		return 'sequence-u';
-      	case 't':
-      	case 'T':
-      	    return 'sequence-t';
-      	case 'c':
-      	case 'C':
-      	    return 'sequence-c';
-      	case 'g':
-      	case 'G':
-      	    return 'sequence-g';
-    }
+	return {
+		token: function(stream) {
+			var ch = stream.next();
+			switch(ch) {
+				case '%':
+				case '#':
+					stream.skipToEnd();
+					return "sequence-comment";
+				case '>':
+					stream.skipToEnd();
+					return 'sequence-name';
+				case 'a':
+				case 'A':
+					return 'sequence-a';
+				case 'u':
+				case 'U':
+					return 'sequence-u';
+				case 't':
+				case 'T':
+						return 'sequence-t';
+				case 'c':
+				case 'C':
+						return 'sequence-c';
+				case 'g':
+				case 'G':
+						return 'sequence-g';
+				case 'n':
+				case 'N':
+						return 'sequence-n';
+				
+			}
+			if(ch.match(/\d/)) {
+				return 'number';
+			}
 
-    }
-  };
+		}
+	};
 });
 
 CodeMirror.defineMode("nupack", function(config) {
-  var sequenceMode = CodeMirror.getMode(config,'sequence');
-  return {
-  	startState: function() {
-  		return {value:''};
-  	},
-    token: function(stream,state) {
-    	stream.eatSpace();
-    	if(state.value=='') {
-	    	if(stream.eat('%')) {
-	    		stream.skipToEnd();
-	    		return 'comment';
-	    	} else 	if(stream.match('structure',true,true)) {
-	    		state.value = 'structure-definition-left';
-	    		return 'keyword';
-	    	} else if(stream.match('sequence',true,true)) {
-	    		state.value = 'sequence-definition-left';
-	    		return 'keyword';
-	    	} else {
-	    		state.value='structure-name';
-	    	}
-    	} else if(state.value=='structure-definition-left') {
-    		stream.eatWhile(/\S/);
-    		state.value = 'structure-definition-assign';
-    		return 'nupack-structure';
-    	} else if(state.value=='structure-definition-assign') {
-    		stream.eatWhile(/[\S=]/);
-    		state.value = 'structure-definition-right';
-    		return '';
-    	} else if(state.value=='structure-definition-right') {
-    		//stream.eatWhile(/[HhUu\d]/);
-    		// if(stream.eol()) {
-	    		// state.value='';
-    			// return 'nupack-huplus'
-    		// }
-    		stream.skipToEnd();
-    		state.value='';
-    		return 'nupack-huplus';
-    	} else if(state.value=='sequence-definition-left') {
-    		stream.eatWhile(/\S/);
-    		state.value = 'sequence-definition-assign';
-    		return 'nupack-sequence';
-    	} else if(state.value=='sequence-definition-assign') {
-    		stream.eatWhile(/[\S=]/);
-    		state.value = 'sequence-definition-right';
-    		return '';
-    	} else if(state.value=='sequence-definition-right') {
-    		var token = sequenceMode.token(stream);
-    		if(stream.eol()) {
-    			state.value='';
-    		}
-    		return token;
-    	} else if(state.value=='structure-name') {
-    		stream.eatWhile(/\S/);
-    		state.value = 'structure-assign';
-    		return 'variable';
-    	} else if(state.value=='structure-assign') {
-    		if(stream.eat(':')) {
-    			state.value = 'structure-thread'
-    			return '';
-    		} else if(stream.eat('<')) {
-    			state.value = 'structure-objection';
-    			return '';
-    		} else {
-    			stream.skipToEnd();
-    			state.value = '';
-    			return 'nupack-error';
-    		}
-    	} else if(state.value=='structure-thread') {
-    		stream.skipToEnd();
-    		state.value='';
-    		return 'nupack-sequence';
-    	} else if(state.value=='structure-objection') {
-    		stream.skipToEnd();
-    		state.value='';
-    		return 'qualifier';
-    	}
-    }
-  };
+	var sequenceMode = CodeMirror.getMode(config,'sequence');
+	return {
+		startState: function() {
+			return {value:''};
+		},
+		token: function(stream,state) {
+			if(stream.eatSpace()) {
+				return '';
+			}
+			if(state.value=='') {
+				if(stream.eat('%')) {
+					stream.skipToEnd();
+					return 'comment';
+				} else 	if(stream.match('structure',true,true)) {
+					state.value = 'structure-definition-left';
+					return 'keyword';
+				} else if(stream.match('sequence',true,true)) {
+					state.value = 'sequence-definition-left';
+					return 'keyword';
+				} else {
+					state.value='structure-name';
+				}
+			} else if(state.value=='structure-definition-left') {
+				stream.eatWhile(/\S/);
+				state.value = 'structure-definition-assign';
+				return 'nupack-structure';
+			} else if(state.value=='structure-definition-assign') {
+				stream.eatWhile(/[\S=]/);
+				state.value = 'structure-definition-right';
+				return 'operator';
+			} else if(state.value=='structure-definition-right') {
+				//stream.eatWhile(/[HhUu\d]/);
+				// if(stream.eol()) {
+					// state.value='';
+					// return 'nupack-huplus'
+				// }
+				stream.skipToEnd();
+				state.value='';
+				return 'nupack-huplus';
+			} else if(state.value=='sequence-definition-left') {
+				stream.eatWhile(/\S/);
+				state.value = 'sequence-definition-assign';
+				return 'string';
+			} else if(state.value=='sequence-definition-assign') {
+				stream.eatWhile(/[\S=]/);
+				state.value = 'sequence-definition-right';
+				return 'operator';
+			} else if(state.value=='sequence-definition-right') {
+				var token = sequenceMode.token(stream);
+				if(stream.eol()) {
+					state.value='';
+				}
+				return token;
+			} else if(state.value=='structure-name') {
+				stream.eatWhile(/\S/);
+				state.value = 'structure-assign';
+				return 'variable';
+			} else if(state.value=='structure-assign') {
+				if(stream.eat(':')) {
+					state.value = 'structure-thread'
+					return 'operator';
+				} else if(stream.eat('<')) {
+					state.value = 'structure-objection';
+					return 'operator';
+				} else {
+					stream.skipToEnd();
+					state.value = '';
+					return 'nupack-error';
+				}
+			} else if(state.value=='structure-thread') {
+				stream.skipToEnd();
+				state.value='';
+				return 'string';
+			} else if(state.value=='structure-objection') {
+				stream.skipToEnd();
+				state.value='';
+				return 'qualifier';
+			}
+		}
+	};
 });
+
+	
+CodeMirror.tokenize = function(string,modespec,callback) {
+	var mode = CodeMirror.getMode({indentUnit: 2}, modespec);
+	var lines = CodeMirror.splitLines(string), state = CodeMirror.startState(mode), stream, out = [];
+	for (var i = 0, e = lines.length; i < e; ++i) {
+		out[i] = [];
+		stream = new CodeMirror.StringStream(lines[i]);
+		while (!stream.eol()) {
+			var style = mode.token(stream, state);
+			if(!!style) {
+				out[i].push([style,stream.current()]);
+			}
+			stream.start = stream.pos;
+		}
+	}
+	return out;
+}

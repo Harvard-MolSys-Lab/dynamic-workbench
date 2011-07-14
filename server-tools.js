@@ -3,7 +3,7 @@ proc = require('child_process'),
 fs = require('fs'),
 _ = require('underscore'),
 async = require('async');
-DNA = require('./static/client/lib/dna-utils').DNA;
+DNA = require('./static/lib/dna-utils').DNA;
 
 var sendError = utils.sendError,
 forbidden = utils.forbidden,

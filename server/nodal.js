@@ -4,7 +4,7 @@ fs = require('fs'),
 _ = require('underscore'), 
 async = require('async'),
 path = require('path'),
-DNA = require('../static/client/lib/dna-utils').DNA;
+DNA = require('../static/lib/dna-utils').DNA;
 
 var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath, getCommand = utils.getCommand;
 

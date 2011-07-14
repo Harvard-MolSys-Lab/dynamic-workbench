@@ -1,8 +1,14 @@
+/**
+ * Mixin which provides shared helper methods to client-side applications within the interface
+ */
 Ext.define('App.ui.Application', {
 	autoHideLoadingMask: true,
 	autoHideSavingMask: true,
 	loadingMsg: 'Loading File...',
 	savingMsg: 'Saving File...',
+	/**
+	 * @constructor
+	 */
 	constructor: function(config) {
 		this.doc = 	this.document = config ? (config.document ? config.document : false) : false;
 
@@ -25,7 +31,6 @@ Ext.define('App.ui.Application', {
 		return this.doc.getPath();
 	},
 	/**
-	 * loadFile
 	 * Loads the file body for this.{@link #document}. Calls {@link #doLoad} or {@link #doLoadFail} as an internal callback, which
 	 * in turn call {@link #onLoad}. These methods handle displaying a loading mask as well.
 	 */
@@ -44,6 +49,9 @@ Ext.define('App.ui.Application', {
 			this.onLoad();
 		}
 	},
+	/**
+	 * Internal callback from {@link #loadFile} which calls user-specified {@link onLoad}
+	 */
 	doLoad: function(text) {
 		this.data = text;
 		this.onLoad();
@@ -51,7 +59,6 @@ Ext.define('App.ui.Application', {
 			this.loadingMask.hide();
 	},
 	/**
-	 * doLoadFail
 	 * callback to inform the user of failed load
 	 */
 	doLoadFail: function(e) {

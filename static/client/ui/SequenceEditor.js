@@ -551,7 +551,7 @@ Ext.define('App.ui.SequenceEditor', {
 		maxComplexes = this.subsetsMaxComplexSize.getValue();
 		maxComplexes = Ext.isNumber(maxComplexes) ? maxComplexes : 2;
 		wc = this.subsetsWC.checked;
-		App.runTask('NupackSubsets', {
+		App.runTask('nupack.Subsets', {
 			node: App.Path.sameDirectory(this.getPath(),fullName),
 			strands: strands,
 			maxComplex: maxComplexes,
@@ -561,7 +561,7 @@ Ext.define('App.ui.SequenceEditor', {
 	pairwiseMfeComplexes: function(fullName) {
 		var strands = this.smartSelect(),
 		maxComplexes = strands.length;
-		App.runTask('NupackPairwise', {
+		App.runTask('nupack.Pairwise', {
 			node: App.Path.sameDirectory(this.getPath(),fullName),
 			strands: strands,
 		});
@@ -570,7 +570,7 @@ Ext.define('App.ui.SequenceEditor', {
 		var strands = this.smartSelect(),
 		maxComplexes = this.mfeMaxComplexSize.getValue();
 		maxComplexes = Ext.isNumber(maxComplexes) ? maxComplexes : strands.length;
-		App.runTask('NupackAnalysis', {
+		App.runTask('nupack.Analysis', {
 			node: App.Path.sameDirectory(this.getPath(),fullName),
 			strands: strands,
 			max: maxComplexes,

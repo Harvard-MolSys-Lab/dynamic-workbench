@@ -4,6 +4,8 @@ Ext.define('App.ui.FilesTree', {
 	title: 'Files',
 	newFileNumber: 0,
 	useArrows: true,
+	createContextMenu: true,
+	
 	//displayRoot: false,
 	initComponent: function() {
 		Ext.apply(this, {
@@ -19,7 +21,7 @@ Ext.define('App.ui.FilesTree', {
 				resizable: false,
 				flex: 1
 			}],
-			viewConfig: {
+			viewConfig: this.allowDrop ? {
 				plugins: [{
 					ptype: 'treeviewdragdrop',
 				},],
@@ -31,10 +33,10 @@ Ext.define('App.ui.FilesTree', {
 						scope: this
 					}
 				}
-			},
+			} : {},
 			store: App.DocumentStore,
-			listeners: {
-				beforeitemcontextmenu: {
+			listeners:  {
+				beforeitemcontextmenu: (this.createContextMenu ? {
 					fn: function(tree,rec,dom,i,e) {
 						this.currentRecord = rec;
 						var ctx = App.ui.filesTree.contextMenu;
@@ -45,91 +47,91 @@ Ext.define('App.ui.FilesTree', {
 						return false;
 					},
 					scope: this
-				},
+				} : {}),
 				itemclick: {
-					fn: function(tree,rec,item,i,e) {
-						this.open(rec);
-					},
+					fn: this.click,
 					scope: this
-				}
+				},
 			},
 		});
 		this.callParent(arguments);
-		this.contextMenu = Ext.create('Ext.menu.Menu', {
-			floating: true,
-			shadow: 'sides',
-			items:[{
-				text: 'Open',
-				iconCls: 'folder-open',
-				handler: function() {
-					this.open(this.currentRecord);
+		if(this.createContextMenu) {
+			this.contextMenu = Ext.create('Ext.menu.Menu', {
+				floating: true,
+				shadow: 'sides',
+				items:[{
+					text: 'Open',
+					iconCls: 'folder-open',
+					handler: function() {
+						this.open(this.currentRecord);
+					},
+					scope: this,
+				},{
+					text: 'Refresh',
+					iconCls: 'refresh',
+					handler: function() {
+						this.refresh(this.currentRecord);
+					},
+					scope:this,
+				},{
+					text: 'Create',
+					iconCls: 'plus-button',
+					menu: Ext.create('App.ui.CreateMenu',{}),
+				},{
+					text: 'Delete',
+					iconCls: 'delete-button',
+					handler: function() {
+						Ext.MessageBox.show({
+							title:'Confirm file deletion',
+							msg:'Are you sure you want to delete '+this.currentRecord.get('text')+' ?',
+							buttons: Ext.MessageBox.YES+Ext.MessageBox.NO,
+							closable: false,
+							fn: function(btn) {
+								if(btn=='yes') {
+									this.deleteSelectedDocument()
+								}
+							},
+							icon: Ext.MessageBox.WARNING,
+							scope:this
+						});
+					},
+					scope: this,
+				},'-',{
+					text: 'Rename:',
+					canActivate: false,
+					iconCls: 'rename',
+				},{
+					xtype: 'textfield',
+					allowBlank: false,
+					itemId: 'filename',
+					ref: 'fileNameField',
+					indent: true,
+				}],
+				renderTo: Ext.getBody(),
+				setFileName: function(filename) {
+					var fileNameField = this.fileNameField;
+					fileNameField.originalValue = filename;
+					fileNameField.setValue(filename);
 				},
-				scope: this,
-			},{
-				text: 'Refresh',
-				iconCls: 'refresh',
-				handler: function() {
-					this.refresh(this.currentRecord);
-				},
-				scope:this,
-			},{
-				text: 'Create',
-				iconCls: 'plus-button',
-				menu: Ext.create('App.ui.CreateMenu',{}),
-			},{
-				text: 'Delete',
-				iconCls: 'delete-button',
-				handler: function() {
-					Ext.MessageBox.show({
-						title:'Confirm file deletion',
-						msg:'Are you sure you want to delete '+this.currentRecord.get('text')+' ?',
-						buttons: Ext.MessageBox.YES+Ext.MessageBox.NO,
-						closable: false,
-						fn: function(btn) {
-							if(btn=='yes') {
-								this.deleteSelectedDocument()
-							}
-						},
-						icon: Ext.MessageBox.WARNING,
-						scope:this
-					});
-				},
-				scope: this,
-			},'-',{
-				text: 'Rename:',
-				canActivate: false,
-				iconCls: 'rename',
-			},{
-				xtype: 'textfield',
-				allowBlank: false,
-				itemId: 'filename',
-				ref: 'fileNameField',
-				indent: true,
-			}],
-			renderTo: Ext.getBody(),
-			setFileName: function(filename) {
-				var fileNameField = this.fileNameField;
-				fileNameField.originalValue = filename;
-				fileNameField.setValue(filename);
-			},
-		});
-		_.each(this.contextMenu.query('*[ref]'), function(cmp) {
-			this[cmp.ref] = cmp;
-		},this);
-		this.contextMenu.fileNameField = this.fileNameField;
-
-		this.fileNameField.on('blur', function() {
-			var v;
-			if(this.fileNameField.isDirty()) {
-				v = this.fileNameField.getValue();
-				this.currentRecord.set('text',v);
-				//this.currentRecord.save();
-				this.getStore().sync();
-				this.fileNameField.originalValue = v;
-				this.fileNameField.checkDirty();
-
-			}
-		},this);
+			});
+			_.each(this.contextMenu.query('*[ref]'), function(cmp) {
+				this[cmp.ref] = cmp;
+			},this);
+			this.contextMenu.fileNameField = this.fileNameField;
+	
+			this.fileNameField.on('blur', function() {
+				var v;
+				if(this.fileNameField.isDirty()) {
+					v = this.fileNameField.getValue();
+					this.currentRecord.set('text',v);
+					//this.currentRecord.save();
+					this.getStore().sync();
+					this.fileNameField.originalValue = v;
+					this.fileNameField.checkDirty();
+	
+				}
+			},this);
+		}
 	},
 	refresh: function(rec) {
 		if(rec) {
@@ -155,10 +157,16 @@ Ext.define('App.ui.FilesTree', {
 			this.getStore().sync();
 		}
 	},
+	click: function(tree,rec,item,i,e) {
+		this.open(rec);
+	},
 	open: function(rec) {
-		if(rec.get('trigger')) {
+		if(rec.get('trigger')) { // && App.ui.Launcher.has(rec.get('trigger'))) {
 			App.ui.Launcher.launch(rec.get('trigger'),rec);
 		}
+		//if(rec.get('type') && App.ui.Launcher.has(rec.get('type'))) {
+		//	App.ui.Launcher.launchType(rec.get('type'),rec);
+		//}
 	},
 	newFileUnderSelection: function(name) {
 		var rec = this.getSelectionModel().getLastSelected();

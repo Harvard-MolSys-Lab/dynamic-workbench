@@ -78,7 +78,7 @@ Ext.define('App.ui.Launcher', {
 		}
 	}
 }, function() {
-	App.ui.Launcher.register('nodal', 'App.ui.Canvas', {
+	App.ui.Launcher.register('nodal', 'App.ui.NodalCanvas', {
 		title : 'Nodal System',
 		editorType: 'Nodal',
 		iconCls : 'nodal',

@@ -20,7 +20,8 @@ Ext.define('App.ui.MotifPalette', {
 				itemId: 'view'
 			}]
 		});
-		App.ui.MotifPalette.superclass.initComponent.apply(this,arguments);
+		this.callParent(arguments);
+		//App.ui.MotifPalette.superclass.initComponent.apply(this,arguments);
 		this.view = this.getComponent('view');
 
 		this.view.on('render', function(v) {

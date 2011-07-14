@@ -4,6 +4,8 @@
  * Copyright (c) 2010 Casey Grun
  *********************************************/
 
+Ext.Loader.setPath('Workspace','client/workspace');
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * @class Workspace
@@ -234,16 +236,23 @@ Ext.define('Workspace', {
 		if (Ext.isArray(objects)) {
 			for (var i = 0, l = objects.length; i < l; i++) {
 				obj = this.buildObject(objects[i]);
-				newObjects.push(obj);
-				this.fireEvent('instantiate', obj);
-
+				if(obj) {	
+					newObjects.push(obj);
+					this.fireEvent('instantiate', obj);
+				} else {
+					throw {message: "Couldn't create object",data: objects[i]};
+				}
 			}
 			// or instantiate objects from object hash
 		} else if (Ext.isObject(objects)) {
 			for (var id in this._objects) {
 				obj = this.buildObject(this._objects[id])
-				newObjects.push(obj);
-				this.fireEvent('instantiate', obj);
+				if(obj) {
+					newObjects.push(obj);
+					this.fireEvent('instantiate', obj);
+				} else {
+					throw {message: "Couldn't create object",data: this._objects[id]};
+				}
 			}
 		}
 
@@ -721,8 +730,8 @@ Ext.define('Workspace', {
 	},
 	/**
 	 * doAction
-	 * Performs the passed {@link WorkspaceAction} on this Workspace
-	 * @param {WorkspaceAction} action The action to perform
+	 * Performs the passed {@link Workspace.actions.Action} on this Workspace
+	 * @param {Workspace.actions.Action} action The action to perform
 	 */
 	doAction: function(action) {
 		if (action.handler) {
@@ -1549,7 +1558,7 @@ Ext.define('Workspace.actions.Action', {
 	 * getUndo
 	 * Gets the action which can be invoked to undo this action. This method must be called before (preferrably immediately before)
 	 * the action is invoked
-	 * @return {WorkspaceAction}
+	 * @return {Workspace.actions.Action}
 	 */
 	getUndo: function() {
 	},
@@ -1575,7 +1584,7 @@ Ext.define('Workspace.actions.Action', {
 		if (this.handler) {
 			this.handler.apply(this.scope);
 		} else {
-			WorkspaceAction.superclass.execute.apply(this, arguments);
+			Workspace.actions.Action.superclass.execute.apply(this, arguments);
 		}
 	}
 });
@@ -1583,7 +1592,7 @@ Ext.define('Workspace.actions.Action', {
 /**
  * @class Workspace.actions.ChangePropertyAction
  * An action which encapsulates a change in one or more properties of a group of {@link Workspace.Object}s
- * @extends WorkspaceAction
+ * @extends Workspace.actions.Action
  * @cfg {Workspace.Object[]} subjects The objects to modify
  * @cfg {Object} values The properties to modify
  */
@@ -1631,7 +1640,7 @@ Ext.define('Workspace.actions.ChangePropertyAction', {
 /**
  * @class Workspace.actions.CreateObjectAction
  * Action which encapsulates creation of one or more Workspace.Objects
- * @extends WorkspaceAction
+ * @extends Workspace.actions.Action
  * @cfg {Object[]} objects
  * Serialized workspace objects to be created
  * @constructor
@@ -1668,7 +1677,7 @@ Ext.define('Workspace.actions.CreateObjectAction', {
 /**
  * @class Workspace.actions.DuplicateObjectAction
  * Action which encapsulates creation of one or more Workspace.Objects
- * @extends WorkspaceAction
+ * @extends Workspace.actions.Action
  * @cfg {Object[]} objects
  * Serialized workspace objects to be created
  * @constructor
@@ -1718,7 +1727,7 @@ Ext.define('Workspace.actions.DuplicateObjectAction', {
 /**
  * @class Workspace.actions.DeleteObjectAction
  * Action which encapsulates deletion of one or more Workspace.Objects
- * @extends WorkspaceAction
+ * @extends Workspace.actions.Action
  * @cfg {Object[]} subjects
  * Workspace objects to be deleted
  * @constructor
@@ -1754,7 +1763,7 @@ Ext.define('Workspace.actions.DeleteObjectAction', {
 /**
  * @class Workspace.actions.FormIdeaAction
  * Action which encapsulates creating an idea from one or more objects
- * @extends WorkspaceAction
+ * @extends Workspace.actions.Action
  * @cfg {Object[]} subjects
  * Workspace objects to be added to the idea
  * @constructor
@@ -1796,7 +1805,7 @@ Ext.define('Workspace.actions.FormIdeaAction', {
 /**
  * @class Workspace.actions.AdoptObjectAction
  * Action which encapsulates orphaning (removing from parent) of one or more Workspace.Objects
- * @extends WorkspaceAction
+ * @extends Workspace.actions.Action
  * @cfg {Object[]} subjects
  * Workspace objects to be deleted
  * @constructor
@@ -1840,7 +1849,7 @@ Ext.define('Workspace.actions.AdoptObjectAction', {
 /**
  * @class Workspace.actions.OrphanObjectAction
  * Action which encapsulates orphaning (removing from parent) of one or more Workspace.Objects
- * @extends WorkspaceAction
+ * @extends Workspace.actions.Action
  * @cfg {Object[]} subjects
  * Workspace objects to be deleted
  * @constructor
@@ -1880,7 +1889,7 @@ Ext.define('Workspace.actions.OrphanObjectAction', {
 /**
  * @class Workspace.actions.ExpandAction
  * Action which encapsulates expansion of a Workspace
- * @extends WorkspaceAction
+ * @extends Workspace.actions.Action
  * @cfg {Number[]} size
  * Amount by which to expand the workspace ([xAmount,yAmount])
  * @constructor
@@ -2057,3 +2066,5 @@ Ext.define('Workspace.Lens', {
 		return obj.set('height',translateToRealHeight(v));
 	}
 });
+
+Ext.require(['Workspace.tools.PointerTool','Workspace.tools.RectTool','Workspace.tools.TextTool','Workspace.tools.MathTool','Workspace.tools.PencilTool']); //,'Workspace.objects.ElementObject','Workspace.objects.VectorObject']);

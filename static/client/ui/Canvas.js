@@ -9,7 +9,7 @@ Ext.define('App.ui.Canvas', {
 	layout: 'border',
 	alias: 'widget.canvas',
 	editorType: 'Nodal',
-	requires: ['App.ui.Ribbon','App.ui.ObjectTree','App.ui.MotifPalette','App.ui.ObjectProperties'],
+	requires: ['App.ui.Ribbon','App.ui.ObjectTree','App.ui.MotifPalette','App.ui.ObjectProperties',],
 	border: false,
 	mixins: {
 		app: 'App.ui.Application'
@@ -97,7 +97,7 @@ Ext.define('App.ui.Canvas', {
 				}), Ext.create('App.ui.MotifPalette',{
 					ref: 'palatte',
 					region: 'south',
-					height: 400,
+					height: 300,
 					split: true,
 					collapsible: true,
 					collapseMode: 'header',

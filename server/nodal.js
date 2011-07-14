@@ -49,7 +49,7 @@ exports.start = function(req, res, params) {
 			return;
 		} else {
 
-			cmd = getCommand(commands['nodal'], ['-i',quote(inFileName),'-n',quote(postfix(fullPath,'nupack')),'-s',quote(postfix(fullPath,'svg'))]);
+			cmd = getCommand(commands['nodal'], ['-i',quote(inFileName),'-d',quote(postfix(fullPath,'domains')),'-n',quote(postfix(fullPath,'nupack')),'-s',quote(postfix(fullPath,'svg'))]);
 			console.log(cmd);
 			proc.exec(cmd, function(err, stdout, stderr) {
 				if(err) {

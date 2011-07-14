@@ -76,6 +76,11 @@ var types = [{
 	"iconCls" : "dd",
 	"name" : "Domain Design"
 }, {
+	"type" : "domains",
+	"trigger" : "dd",
+	"iconCls" : "dd",
+	"name" : "Domain Design"
+}, {
 	"type" : "nupack",
 	"trigger" : "nupackedit",
 	"iconCls" : "nupack",

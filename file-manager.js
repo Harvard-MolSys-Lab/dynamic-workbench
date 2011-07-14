@@ -309,6 +309,7 @@ exports.configure = function(app,express) {
 			}
 		});
 	});
+	/*
 	app.post('/newdir', function(req,res) {
 		var node = req.param('node'),
 		fullPath = utils.userFilePath(node);
@@ -327,6 +328,7 @@ exports.configure = function(app,express) {
 			res.send('');
 		})
 	});
+	*/
 	app.post('/upload', function(req,res) {
 		if(req.xhr) {
 			var //fileName = req.header('x-file-name'),

@@ -10,7 +10,8 @@ sendError = utils.sendError,
 forbidden = utils.forbidden,
 allowedPath = utils.allowedPath,
 getCommand = utils.getCommand,
-nupackAnalysis = nupack.analysis;
+nupackAnalysis = nupack.analysis,
+nupackPath = nupack.path;
 
 exports.name = 'NUPACK MFE Complexes';
 exports.iconCls = 'nupack-icon';

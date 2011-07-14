@@ -10,6 +10,8 @@ forbidden = utils.forbidden,
 allowedPath = utils.allowedPath;
 
 exports.DNA = DNA;
+var nupackPath =  exports.nupackPath = exports.path = path.resolve('tools/nupack3');
+var maxBuffer = 800*1024;
 
 var commands = {
 	nupackAnalysis: {
@@ -312,21 +314,16 @@ function nupackAnalysis(strandPair,name,fullPath,options,callback) {
 										env: {
 											'NUPACKHOME':nupackPath
 										},
-										maxBuffer: 400*1024,
+										maxBuffer: maxBuffer,
 									}, function(err,stdout,stderr) {
 										if(err) {
 											console.log(err);
-											cb({
-												err:err
-											});
+											cb(err,{stderr:stderr,stdout:stdout});
 											return;
 										}
 										if(!(stderr=='' || stderr==false)) {
 											console.log(err);
-											cb({
-												err:err,
-												stderr:stderr,
-											});
+											cb(err,{stderr:stderr,stdout:stdout});
 											return;
 										}
 										cb(null, {
@@ -342,21 +339,16 @@ function nupackAnalysis(strandPair,name,fullPath,options,callback) {
 										env: {
 											'NUPACKHOME':nupackPath
 										},
-										maxBuffer: 400*1024,
+										maxBuffer: maxBuffer,
 									}, function(err,stdout,stderr) {
 										if(err) {
 											console.log(err);
-											cb({
-												err:err
-											});
+											cb(err,{stderr:stderr,stdout:stdout});
 											return;
 										}
 										if(!(stderr=='' || stderr==false)) {
 											console.log(err);
-											cb({
-												err:err,
-												stderr:stderr,
-											});
+											cb(err,{stderr:stderr,stdout:stdout});
 											return;
 										}
 										cb(null, {
@@ -367,7 +359,7 @@ function nupackAnalysis(strandPair,name,fullPath,options,callback) {
 								}], function(err,data) {
 									// res.send(stdout);
 									if(err) {
-										callback(err,null);
+										callback(err,data);
 										return;
 									}
 									var stdout = data[0].stdout,

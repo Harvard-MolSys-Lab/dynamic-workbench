@@ -76,6 +76,7 @@ Ext.define('Ext.debug.ScriptsPanel', {
 	border: false,
 	layout:'fit',
 	bodyBorder: false,
+	padding: '5 0 5 0',
 	//	style:'border-width:0 0 0 1px;',
 
 	initComponent : function() {
@@ -84,6 +85,13 @@ Ext.define('Ext.debug.ScriptsPanel', {
 			style:'border-width:0;',
 			mode: 'javascript',
 			tbar: false,
+			onKeyEvent: Ext.bind(function(editor, e) {
+				if(e.keyCode==13 && e.shiftKey && e.type=='keydown') {
+					e.stop();
+					this.evalScript();
+					return false;
+				}
+			},this)
 		});
 
 		this.trapBox = Ext.create('Ext.form.Checkbox',{
@@ -118,13 +126,15 @@ Ext.define('Ext.debug.ScriptsPanel', {
 		var s = this.scriptField.getValue();
 		if(this.trapBox.getValue()) {
 			try {
-				var rt = eval(s);
+				var rt = new Function(s);
+				rt = rt.apply(App.ui.active()); //eval(s);
 				Ext.dump(rt === undefined? '(no return)' : rt);
 			} catch(e) {
 				Ext.log(e.message || e.descript);
 			}
 		} else {
-			var rt = eval(s);
+			var rt = new Function(s);
+				rt = rt.apply(App.ui.active());
 			Ext.dump(rt === undefined? '(no return)' : rt);
 		}
 	},
@@ -138,8 +148,9 @@ Ext.define('Ext.debug.LogPanel', {
 	extend: 'Ext.panel.Panel',
 	autoScroll: true,
 	region: 'center',
-	border: false,
-	style:'border-width:0 1px 0 0',
+	border: '0 1 0 0',
+	bodyBorder: false,
+	padding: '5 0 5 0',
 	html: '<div class="logBody"></div>',
 	getLogBody: function() {
 		return this.body.down('.logBody');

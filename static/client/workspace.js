@@ -9,8 +9,7 @@ Ext.Loader.setPath('Workspace','client/workspace');
 ////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * @class Workspace
- * @extends SerializableObject
- * Manages the Workspace area, {@link Workspace.tools.BaseTool}s, saving and loading {@link Workspace.Object}s
+ * Manages the Workspace area, {@link Workspace.tools.BaseTool}s, saving and loading {@link Workspace.objects.Object}s
  * @constructor
  * @param {Ext.Element} element The HTML element to which to render this Workspace
  * @param {Object} config Configuration properties
@@ -18,6 +17,7 @@ Ext.Loader.setPath('Workspace','client/workspace');
 Ext.define('Workspace', {
 	wtype: 'Workspace',
 	extend: 'Machine.core.Serializable',
+	requires: ['Ext.core.DomHelper'],
 	constructor: function(containerEl, config) {
 		this.callParent([]);
 
@@ -34,23 +34,38 @@ Ext.define('Workspace', {
 				frequency: 1000
 			}
 		});
-
+		
+		/**
+		 * @property {Ext.Element}
+		 */
 		this.containerEl = containerEl;
 
+		/**
+		 * @property {Ext.Element}
+		 */
 		this.element = Ext.get(Ext.core.DomHelper.append(containerEl, {
 			tagName: 'div',
 			cls: 'workspace'
 		}));
 
 		// Initialize vector layer
+		/**
+		 * @property {Raphael}
+		 */
 		this.paper = Raphael(this.element.id);
 
 		// Initialize drag/drop manager
+		/**
+		 * @property {Workspace.DDManager}
+		 */
 		this.ddManager = new Workspace.DDManager({
 			workspace: this
 		});
 
 		// Initialize lens
+		/**
+		 * @property {Workspace.Lens}
+		 */
 		this.lens = new Workspace.Lens();
 
 		// Cache objects to be constructed later
@@ -94,9 +109,40 @@ Ext.define('Workspace', {
 		this.getActiveTool().activate();
 
 		// Set up events to pass to tools
-		this.addEvents('click', 'dblclick', 'mousedown', 'mouseup', 'mousemove', 'select', 'unselect', 'toolchange');
+		this.addEvents(
+			/**
+			 * @event click
+			 */
+			'click', 
+			/**
+			 * @event dblclick
+			 */
+			'dblclick', 
+			/**
+			 * @event mousedown
+			 */
+			 'mousedown', 
+			/**
+			 * @event mouseup
+			 */
+			 'mouseup', 
+			/**
+			 * @event mousemove
+			 */
+			 'mousemove', 
+			/**
+			 * @event select
+			 */
+			 'select', 
+			/**
+			 * @event unselect
+			 */
+			 'unselect', 
+			/**
+			 * @event toolchange
+			 */
+			 'toolchange');
 
-		//
 		this.ignore = {
 			click: false,
 			dblclick: false,
@@ -116,9 +162,8 @@ Ext.define('Workspace', {
 		Ext.Function.defer(this.initialize,1, this);
 	},
 	/**
-	 * register
 	 * Adds the passed object to this workspace's {@link #objects} property
-	 * @param {Workspace.Object} item
+	 * @param {Workspace.objects.Object} item
 	 */
 	register: function(item) {
 		if (item.id) {
@@ -131,7 +176,6 @@ Ext.define('Workspace', {
 		return item.id;
 	},
 	/**
-	 * unregister
 	 * Removes object with the passed id from this workspace's {@link #objects} property
 	 * @param {String} id
 	 */
@@ -139,15 +183,13 @@ Ext.define('Workspace', {
 		this.objects.removeAtKey(id);
 	},
 	/**
-	 * getObjectById
 	 * @param {String} id
-	 * @return {Workspace.Object} object
+	 * @return {Workspace.objects.Object} object
 	 */
 	getObjectById: function(id) {
 		return this.objects.get(id);
 	},
 	/**
-	 * serialize
 	 * Serializes the workspace. Override required to manually serialize objects
 	 * @see Workspace.Components#serialize
 	 */
@@ -160,7 +202,6 @@ Ext.define('Workspace', {
 		return o;
 	},
 	/**
-	 * initialize
 	 * Deserializes, initializes, and renders serialized objects specified in the config
 	 * Called automatically by the constructor; should not be invoked by application code.
 	 * @private
@@ -192,7 +233,7 @@ Ext.define('Workspace', {
 	},
 	/**
 	 * buildObject
-	 * Instantiates the provided object and registers with Workspace.Components. Called by {@link #createObject} and {@link #createObjects}; don't call directly.
+	 * Instantiates the provided object and registers with {@link Workspace.Components}. Called by {@link #createObject} and {@link #createObjects}; don't call directly.
 	 * @private
 	 * @param {Function} objectClass Constructor to which <var>config</var> should be passed. May be omitted if <var>config</var> contains a registered wtype.
 	 * @param {Object} config Object containing configuration parameters
@@ -214,7 +255,7 @@ Ext.define('Workspace', {
 			workspace: this
 		});
 
-		// apply appropriate signature of Workspace.Components.create() to match this function's call signature
+		// apply appropriate signature of {@link Workspace.Components#create} to match this function's call signature
 		if (objectClass) {
 			obj = Workspace.Components.create(objectClass, cfg);
 		} else {
@@ -299,9 +340,8 @@ Ext.define('Workspace', {
 		}
 	},
 	/**
-	 * deleteObjects
-	 * Removes the provided objects from the workspace; fires the {@link destroy} event for each object
-	 * @param {Workspace.Object[]/Workspace.Object} objects Object or array of objects to remove
+	 * Removes the provided objects from the workspace; fires the {@link #destroy} event for each object
+	 * @param {Workspace.objects.Object[]/Workspace.objects.Object} objects Object or array of objects to remove
 	 */
 	deleteObjects: function(objects) {
 		if (Ext.isArray(objects)) {
@@ -319,9 +359,8 @@ Ext.define('Workspace', {
 		}
 	},
 	/**
-	 * edit
-	 * Begin editing an item by setting the active tool to the object's {@link Workspace.Object#editor} and attaching the tool to that object
-	 * @param {Workspace.Object} item
+	 * Begin editing an item by setting the active tool to the object's {@link Workspace.objects.Object#editor} and attaching the tool to that object
+	 * @param {Workspace.objects.Object} item
 	 */
 	edit: function(item) {
 		this.editingItem = item;
@@ -332,7 +371,6 @@ Ext.define('Workspace', {
 		}
 	},
 	/**
-	 * endEdit
 	 * Ends editing of an item by detaching the editing tool and returning to the default tool.
 	 */
 	endEdit: function() {
@@ -344,9 +382,8 @@ Ext.define('Workspace', {
 		this.changeTool('pointer');
 	},
 	/**
-	 * setSelection
 	 * Selects the passed items and deselects everything else
-	 * @param {Workspace.Objects[]} items Objects to select
+	 * @param {Workspace.objects.Object[]} items Objects to select
 	 */
 	'setSelection': function(items) {
 		if (Ext.type(items) == 'array') {
@@ -355,9 +392,8 @@ Ext.define('Workspace', {
 		}
 	},
 	/**
-	 * select
 	 * Selects the given items. Automatically unselects any ancestors or descendents.
-	 * @param {Workspace.Object/Workspace.Objects[]} items Object or array of objects to select
+	 * @param {Workspace.objects.Object/Workspace.objects.Object[]} items Object or array of objects to select
 	 */
 	'select': function(items) {
 		if (Ext.type(items) == 'array') {
@@ -389,9 +425,8 @@ Ext.define('Workspace', {
 
 	},
 	/**
-	 * unselect
 	 * Unselects the given items, or all items if no items are passed.
-	 * @param {Workspace.Object/Workspace.Objects[]} items Object or array of objects to select (Optional)
+	 * @param {Workspace.objects.Object/Workspace.objects.Object[]} items Object or array of objects to select (Optional)
 	 */
 	unselect: function(items) {
 		if (items) {
@@ -427,14 +462,12 @@ Ext.define('Workspace', {
 		}
 	},
 	/**
-	 * deselect
 	 * Alias for {@link #unselect}
 	 */
 	deselect: function(item) {
 		this.unselect(item);
 	},
 	/**
-	 * hasSelection
 	 * Reports whether any items are selected
 	 * @return {Boolean} selected
 	 */
@@ -443,9 +476,8 @@ Ext.define('Workspace', {
 		return (i > 0);
 	},
 	/**
-	 * getSelection
 	 * Returns an array of currently selected objects
-	 * @return {Workspace.Objects[]} selection
+	 * @return {Workspace.objects.Object[]} selection
 	 */
 	getSelection: function() {
 		return this.selection.getRange();
@@ -454,7 +486,6 @@ Ext.define('Workspace', {
 		return this.selection.getCommonWType();
 	},
 	/**
-	 * getActiveTool
 	 * Returns this workspace's instances of the active tool
 	 * @return {Workspace.tools.BaseTool} activeTool
 	 */
@@ -462,7 +493,6 @@ Ext.define('Workspace', {
 		return this.tools[this.activeTool];
 	},
 	/**
-	 * setActiveTool
 	 * Deactivates the current tool and activates the provided tool
 	 * @param {String} toolName The tool to activate
 	 */
@@ -472,7 +502,6 @@ Ext.define('Workspace', {
 		this.getActiveTool().activate();
 	},
 	/**
-	 * hasTool
 	 * Reports whether the workspace contains the given tool
 	 * @param {String} toolName
 	 */
@@ -480,8 +509,7 @@ Ext.define('Workspace', {
 		return (this.tools[tool] != false);
 	},
 	/**
-	 * changeTool
-	 * Sets the active tool to the given toolName and fires the {@link toolChange} event
+	 * Sets the active tool to the given toolName and fires the {@link #toolChange} event
 	 * @param {String} toolName
 	 */
 	changeTool: function(tool) {
@@ -489,9 +517,9 @@ Ext.define('Workspace', {
 		this.fireEvent('toolchange');
 	},
 	/**
-	 * Finds the WorkspaceObject on which an event occurred
+	 * Finds the {@link Workspace.objects.Object} on which an event occurred
 	 * @param {Event} e
-	 * @return {Workspace.Object} item
+	 * @return {Workspace.objects.Object} item
 	 */
 	getObjectFromEvent: function(item) {
 		// item = e.getTarget('.workspace-object',document.body,true);
@@ -500,11 +528,10 @@ Ext.define('Workspace', {
 		return item ? (item.getId ? item: false) : false;
 	},
 	/**
-	 * click
 	 * Invoked when a click event occurs on the workspace canvas or on a workspace item.
 	 * Invokes the {@link Workspace.tools.BaseTool#click} method of the active tool.
 	 * @param {Event} e
-	 * @param {Workspace.Object} item
+	 * @param {Workspace.objects.Object} item
 	 */
 	click: function(e, item) {
 		item = this.getObjectFromEvent(item);
@@ -521,7 +548,7 @@ Ext.define('Workspace', {
 	 * Invoked when a double-click event occurs on the workspace canvas or on a workspace item.
 	 * Invokes the {@link Workspace.tools.BaseTool#dblclick} method of the active tool.
 	 * @param {Event} e
-	 * @param {Workspace.Object} item
+	 * @param {Workspace.objects.Object} item
 	 */
 	dblclick: function(e, item) {
 		item = this.getObjectFromEvent(item);
@@ -537,9 +564,9 @@ Ext.define('Workspace', {
 	 * mousedown
 	 * Invoked when a mousedown event occurs on the workspace canvas or on a workspace item.
 	 * Invokes the {@link Workspace.tools.BaseTool#mousedown} method of the active tool, although this behavior can be prevented
-	 * if a listener of the {@link mousedown} event returns false.
+	 * if a listener of the {@link #mousedown} event returns false.
 	 * @param {Event} e
-	 * @param {Workspace.Object} item
+	 * @param {Workspace.objects.Object} item
 	 */
 	mousedown: function(e, item) {
 		item = this.getObjectFromEvent(item);
@@ -560,9 +587,9 @@ Ext.define('Workspace', {
 	 * mouseup
 	 * Invoked when a mouseup event occurs on the workspace canvas or on a workspace item.
 	 * Invokes the {@link Workspace.tools.BaseTool#mouseup} method of the active tool, although this behavior can be prevented
-	 * if a listener of the {@link mouseup} event returns false.
+	 * if a listener of the {@link #mouseup} event returns false.
 	 * @param {Event} e
-	 * @param {Workspace.Object} item
+	 * @param {Workspace.objects.Object} item
 	 */
 	mouseup: function(e, item) {
 		item = this.getObjectFromEvent(item);
@@ -581,7 +608,7 @@ Ext.define('Workspace', {
 	 * Invoked when a mouseover event occurs on a workspace item.
 	 * Invokes the {@link Workspace.tools.BaseTool#mouseover} method of the active tool.
 	 * @param {Event} e
-	 * @param {Workspace.Object} item
+	 * @param {Workspace.objects.Object} item
 	 */
 	mouseover: function(e, item) {
 		item = this.getObjectFromEvent(item);
@@ -599,7 +626,7 @@ Ext.define('Workspace', {
 	 * Invoked when a mouseout event occurs on a workspace item.
 	 * Invokes the {@link Workspace.tools.BaseTool#mouseout} method of the active tool.
 	 * @param {Event} e
-	 * @param {Workspace.Object} item
+	 * @param {Workspace.objects.Object} item
 	 */
 	mouseout: function(e, item) {
 		item = this.getObjectFromEvent(item);
@@ -612,12 +639,11 @@ Ext.define('Workspace', {
 		// if(item && item.getId) this.ignore.mouseout = !this.ignore.mouseout;
 	},
 	/**
-	 * mousemove
 	 * Invoked when a mousemove event occurs on the workspace canvas or on a workspace item.
 	 * Invokes the {@link Workspace.tools.BaseTool#mousemove} method of the active tool although this behavior can be prevented
-	 * if a listener of the {@link mousemove} event returns false.
+	 * if a listener of the {@link #mousemove} event returns false.
 	 * @param {Event} e
-	 * @param {Workspace.Object} item
+	 * @param {Workspace.objects.Object} item
 	 */
 	mousemove: function(e, item) {
 		item = this.getObjectFromEvent(item);
@@ -762,6 +788,9 @@ Ext.define('Workspace', {
 /**
  * @class Workspace.Components
  * @singleton
+ * Manages creating, serializing, and deserializing objects which implement the {@link Machine.core.Serializable} pattern.
+ * Stores a registry of created objects which can be accessed by ID, as well as a registry of 
+ * {@link Machine.core.Serializable#wtype}s. 
  */
 Workspace.Components = (function() {
 	var types = {},
@@ -783,7 +812,6 @@ Workspace.Components = (function() {
 
 	return {
 		/**
-		 * register
 		 * Registers the passed <var>wtype</var> with a constructor so that objects deserialized with
 		 * {@link Workspace.Components#deserialize}, {@link Workspace.Components#create}, {@link Workspace#createObject}, etc.
 		 * may have their constructor automatically detected, similar to Ext's xtypes
@@ -881,10 +909,10 @@ Workspace.Components = (function() {
 		 * Traverses properties/elements of the passed item and serializes them. If o is an array, returns an array
 		 * containing the results of applying this function to every element. If o is an object, returns a hash containing
 		 * the results of applying this function to each value in the object. If o has its own <var>serialize</var> function,
-		 * (e.g. if o is a {@link SerializableObject}), returns the result of that function.
+		 * (e.g. if o is a {@link Machine.core.Serializable}), returns the result of that function.
 		 * Note: this function still returns a Javascript Object; it does *not* encode the object to a JSON string. That
 		 * process is performed by Ext.encode.
-		 * @param {Object/Array/SerializableObject} o An object to serialize
+		 * @param {Object/Array/Machine.core.Serializable} o An object to serialize
 		 * @param {Boolean} isChild true to serialize this object as a reference (ie: don't copy any of its properties; just
 		 * @return {Object} serialized An object literal containing each of the serialized properties
 		 */
@@ -1048,7 +1076,7 @@ Workspace.Utils = {
 	/**
 	 * getBox
 	 * Returns the smallest box bounding the passed set of objects
-	 * @param {Workspace.Object[]} items
+	 * @param {Workspace.objects.Object[]} items
 	 * @returns {Object} box The bounding box
 	 */
 	getBox: function(items) {
@@ -1591,9 +1619,9 @@ Ext.define('Workspace.actions.Action', {
 
 /**
  * @class Workspace.actions.ChangePropertyAction
- * An action which encapsulates a change in one or more properties of a group of {@link Workspace.Object}s
+ * An action which encapsulates a change in one or more properties of a group of {@link Workspace.objects.Object}s
  * @extends Workspace.actions.Action
- * @cfg {Workspace.Object[]} subjects The objects to modify
+ * @cfg {Workspace.objects.Object[]} subjects The objects to modify
  * @cfg {Object} values The properties to modify
  */
 Ext.define('Workspace.actions.ChangePropertyAction', {
@@ -1639,13 +1667,13 @@ Ext.define('Workspace.actions.ChangePropertyAction', {
 
 /**
  * @class Workspace.actions.CreateObjectAction
- * Action which encapsulates creation of one or more Workspace.Objects
+ * Action which encapsulates creation of one or more {@link Workspace.objects.Object}s
  * @extends Workspace.actions.Action
  * @cfg {Object[]} objects
  * Serialized workspace objects to be created
  * @constructor
  * @param {Object} config
- * @cfg {Object[]} objects An array of Workspace.Object configs
+ * @cfg {Object[]} objects An array of {@link Workspace.objects.Object} configs
  */
 Ext.define('Workspace.actions.CreateObjectAction', {
 	extend: 'Workspace.actions.Action',
@@ -1676,13 +1704,13 @@ Ext.define('Workspace.actions.CreateObjectAction', {
 
 /**
  * @class Workspace.actions.DuplicateObjectAction
- * Action which encapsulates creation of one or more Workspace.Objects
+ * Action which encapsulates creation of one or more {@link Workspace.objects.Object}s
  * @extends Workspace.actions.Action
  * @cfg {Object[]} objects
  * Serialized workspace objects to be created
  * @constructor
  * @param {Object} config
- * @cfg {Object[]} objects An array of Workspace.Object configs
+ * @cfg {Object[]} objects An array of {@link Workspace.objects.Object} configs
  */
 Ext.define('Workspace.actions.DuplicateObjectAction', {
 	extend: 'Workspace.actions.Action',
@@ -1726,7 +1754,7 @@ Ext.define('Workspace.actions.DuplicateObjectAction', {
 
 /**
  * @class Workspace.actions.DeleteObjectAction
- * Action which encapsulates deletion of one or more Workspace.Objects
+ * Action which encapsulates deletion of one or more {@link Workspace.objects.Object}
  * @extends Workspace.actions.Action
  * @cfg {Object[]} subjects
  * Workspace objects to be deleted
@@ -1804,7 +1832,7 @@ Ext.define('Workspace.actions.FormIdeaAction', {
 
 /**
  * @class Workspace.actions.AdoptObjectAction
- * Action which encapsulates orphaning (removing from parent) of one or more Workspace.Objects
+ * Action which encapsulates adoption (assigning a parent) to one or more {@link Workspace.objects.Object}
  * @extends Workspace.actions.Action
  * @cfg {Object[]} subjects
  * Workspace objects to be deleted
@@ -1848,7 +1876,7 @@ Ext.define('Workspace.actions.AdoptObjectAction', {
 
 /**
  * @class Workspace.actions.OrphanObjectAction
- * Action which encapsulates orphaning (removing from parent) of one or more Workspace.Objects
+ * Action which encapsulates orphaning (removing from parent) of one or more {@link Workspace.objects.Object}
  * @extends Workspace.actions.Action
  * @cfg {Object[]} subjects
  * Workspace objects to be deleted

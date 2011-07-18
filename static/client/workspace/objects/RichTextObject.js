@@ -19,17 +19,24 @@ Ext.define('Workspace.objects.RichTextObject', {
 		this.on('change:text', this.setText, this)
 	},
 	extend: 'Workspace.objects.ElementObject',
+	/**
+	 * @cfg {Number} autoMaxWidth
+	 */
 	autoMaxWidth: 300,
 	wtype: 'Workspace.objects.RichTextObject',
+
 	isEditable: true,
 	isSelectable: true,
 	isResizable: true,
+	/**
+	 * @cfg {String}
+	 */
 	text: '',
 	name: "New Textbox",
 	iconCls: 'text-icon',
 	/**
 	 * @cfg {String} editor
-	 * The name of a {@link WorkspaceTool} to use to edit this object (activated on double-click)
+	 * The name of a {@link Workspace.tools.BaseTool} to use to edit this object (activated on double-click)
 	 */
 	editor: 'aloha',
 	render: function() {

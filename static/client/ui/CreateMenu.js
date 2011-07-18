@@ -60,12 +60,18 @@ Ext.define('App.ui.CreateMenu', {
 			},this);
 		}
 	},
-	// validate: function(value) {
-	// return !Ext.isEmpty(value);
-	// },
+	/**
+	 * Action to perform when the "Create" menu item is selected. By default, creates a new file under the selected item in
+	 * {@link App.ui.filesTree}.
+	 */
 	onCreate: function(type,name,fullName) {
 		App.ui.filesTree.newFileUnderSelection(fullName);
 	},
+	/**
+	 * Builds the menu of file types. Each child item in this menu should have a <var>type</var> property referring to the
+	 * type of resource to be created. 
+	 * @returns {Mixed} config An {@link Ext.menu.Menu} or config object 
+	 */
 	getCreateMenu: function() {
 		if(!this.autoCreateMenu) {
 			return false;

@@ -22,6 +22,7 @@ Ext.define('App.ui.CodeMirror', {
 		this.addEvents(
 		/**
 		 * @event 
+		 * Fires when the cursor changes position
 		 * @param {App.ui.CodeMirror} panel This class
 		 * @param {CodeMirror} editor The codemirror instance
 		 */
@@ -39,7 +40,7 @@ Ext.define('App.ui.CodeMirror', {
 		}
 	},
 	/**
-	 * Fires the {@link #cursorChange} event
+	 * Fires the {@link #cursorchange} event
 	 */
 	onCursorActivity : function() {
 		this.fireEvent('cursorchange', this, this.editor);

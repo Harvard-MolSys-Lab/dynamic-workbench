@@ -32,7 +32,7 @@ Ext.define('Workspace.tools.ConnectorTool', {
 		highlightable: 'Workspace.tools.Highlightable'
 	},
 	/**
-	 * @cfg {String} targetWType the wtype of the {@link Workspace.object.Object} to create upon mouseup
+	 * @cfg {String} targetWType the wtype of the {@link Workspace.objects.Object} to create upon mouseup
 	 */
 	targetWType: 'Workspace.objects.Connection',
 	/**

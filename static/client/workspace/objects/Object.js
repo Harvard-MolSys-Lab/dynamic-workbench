@@ -25,7 +25,10 @@ Ext.define('Workspace.objects.Object', {
 		});
 
 		this.exposeAll(config);
-
+		
+		/**
+		 * @property {Object} state
+		 */
 		this.state = {
 			selected : false,
 			dragging : false,
@@ -93,13 +96,37 @@ Ext.define('Workspace.objects.Object', {
 	 * @cfg {Number} y
 	 */
 	y : 0,
+	/**
+	 * @cfg {Boolean}
+	 */
 	isSelectable : true,
+	/**
+	 * @cfg {Boolean}
+	 */
 	isEditable : false,
+	/**
+	 * @cfg {Boolean}
+	 */
 	isMovable : true,
+	/**
+	 * @property {Workspace.objects.Object}
+	 */
 	parent : false,
+	/**
+	 * @cfg {Boolean}
+	 */
 	selectChildren : false,
+	/**
+	 * @cfg {Boolean}
+	 */
 	editChildren : false,
+	/**
+	 * @cfg {Boolean}
+	 */
 	moveChildren : true,
+	/**
+	 * @cfg {String}
+	 */	
 	name : 'New Object',
 
 	/**

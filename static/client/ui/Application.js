@@ -21,8 +21,11 @@ Ext.define('App.ui.Application', {
 	 */
 	constructor: function(config) {
 		/**
-		 * @property doc
-		 * @property document
+		 * @property {App.Document} doc
+		 * Alias for {@link #document}.
+		 */
+		/**
+		 * @property {App.Document} document
 		 * The currently open {@link App.Document}.
 		 */
 		this.doc = 	this.document = config ? (config.document ? config.document : false) : false;
@@ -71,7 +74,7 @@ Ext.define('App.ui.Application', {
 		}
 	},
 	/**
-	 * Internal callback from {@link #loadFile} which calls user-specified {@link onLoad}
+	 * Internal callback from {@link #loadFile} which calls user-specified {@link #onLoad}
 	 */
 	doLoad: function(text) {
 		this.data = text;
@@ -93,6 +96,12 @@ Ext.define('App.ui.Application', {
 	 * custom logic on {@link App.Document} load
 	 */
 	onLoad: function() {
+	},
+	/**
+	 * Alias for {@link #saveFile}.
+	 */
+	save: function() {
+		return this.saveFile.apply(this,arguments);
 	},
 	/**
 	 * Saves the file body for this.{@link #document}. Retrieves application state with {@link #getSaveData}.

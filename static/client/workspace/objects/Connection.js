@@ -1,14 +1,15 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * @class Workspace.objects.Connection
- * Represents a workspace object connecting two other {@link Workspace.Object}s together
+ * Represents a workspace object connecting two other {@link Workspace.objects.Object}s together
  * @extends Workspace.VectorObject
  */
 Ext.define('Workspace.objects.Connection', {
 	statics : {
 		/**
 		 * getPoint
-		 * Gets an imitation Workspace.Object suitable *only* to be passed to a Workspace.objects.Connection as one of its anchors.
+		 * Gets an imitation {@link Workspace.object.Object} suitable *only* to be passed to a 
+		 * {@link Workspace.objects.Connection} as one of its anchors.
 		 * @static
 		 * @param {Object} x
 		 * @param {Object} y

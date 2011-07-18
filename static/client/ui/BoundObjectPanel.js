@@ -1,6 +1,6 @@
 /**
  * @class App.ui.BoundObjectPanel
- * Allows ribbon tabs to be bound to {@link Workspace.Object}s and fields within the panel to be bound to object properties.
+ * Allows ribbon tabs to be bound to {@link Workspace.objects. Object}s and fields within the panel to be bound to object properties.
  * Components within this panel which contain an {@link #objectBinding} property will be set to the value of that property when objects are bound, and
  * changes to those components triggering the change event (or another event specified in {@link #objectBindingEvent}) will cause {@link WorkspaceAction}s
  * to be generated and applied to the attached workspace.
@@ -13,36 +13,42 @@ Ext.define('App.ui.BoundObjectPanel', {
 
 		this.addEvents('action');
 
-		// objects which have been bound to this panel with #bind
+		/**
+		 * @property {Workspace.objects.ObjectCollection}
+		 * Objects which have been bound to this panel with {#bind}
+		 */
 		this.boundObjects = Ext.create('Workspace.objects.ObjectCollection', {});
 
-		// fields which specify an objectBinding
+		/*
+		 * @property {Ext.util.MixedCollection}
+		 * Fields which specify an {@link #objectBinding}
+		 */
 		this.boundFields = new Ext.util.MixedCollection();
 
-		// fields which specify a displayIf or an enableIf function
+		/*
+		 * @property {Ext.util.MixedCollection}
+		 * Fields which specify a {@link #displayIf} or {@link #enableIf} function
+		 */
 		this.dynamicFields = new Ext.util.MixedCollection();
 
 		// collect all fields with object bindings specified
+		
+		/**
+		 * @property {String} objectBinding
+		 * To be applied to child items: 
+		 * Name of an exposed field in a {@link Machine.core.Serializable} object bound to this panel. When the value
+		 * of the {@link Ext.form.field.Field} with the <var>objectBinding</var> property set changes, the {@link #boundObjects}
+		 * are updated with {@link Machine.core.Serializable#set}.
+		 */
 		var boundFields = this.query('component[objectBinding]'), //[objectBinding!=""]');
-		// this.findBy( function(cmp) {
-		// return (Ext.isDefined(cmp.objectBinding) && cmp.objectBinding != '');
-		// },this),
 		dynamicFields = this.query('component[enableIf]','component[showIf]');
-		// this.findBy( function(cmp) {
-		// return (Ext.isFunction(cmp.enableIf) || Ext.isFunction(cmp.showIf));
-		// },this);
-		// oh, yeah and look in the toolbar too since that's where they're ALL going to be
-		// if (this.topToolbar) {
-		// boundFields = boundFields.concat(this.topToolbar.findBy( function(cmp) {
-		// return (Ext.isDefined(cmp.objectBinding) && cmp.objectBinding != '');
-		// },this));
-		// dynamicFields = dynamicFields.concat(this.topToolbar.findBy( function(cmp) {
-		// return (Ext.isFunction(cmp.enableIf) || Ext.isFunction(cmp.showIf));
-		// },this));
-		// }
 
 		// index fields and add event handlers
 		Ext.each(boundFields, function(field) {
+			/**
+			 * @property {String} objectBindingEvent
+			 * Event to watch for changes to the {@link #boundObjects}
+			 */
 			var eventName = field.objectBindingEvent || 'change';
 			field.addListener(eventName, this.updateObjects, this);
 			this.boundFields.add(field.objectBinding, field);
@@ -82,8 +88,7 @@ Ext.define('App.ui.BoundObjectPanel', {
 		 */
 	},
 	/**
-	 * updateObjects
-	 * listener invoked by bound field on change (or other {@link #objectBinding} event); generates a {@link WorkspaceAction} to update
+	 * listener invoked by bound field on change (or other {@link #objectBinding} event); generates a {@link Workspace.actions.Action} to update
 	 * the specified propery in all bound objects
 	 * @param {Object} field
 	 * @param {Object} newValue

@@ -1,55 +1,55 @@
 /**
  * @class App.ui.Ribbon
  * Provides tabbed, dynamic toolbar which responds to user selection
- * @extends Ext.TabPanel
+ * @extends Ext.tab.Panel
  */
 Ext.define('App.ui.Ribbon', {
-	extend:'Ext.tab.Panel',
-	requires: ['App.ui.ToolsTab','App.ui.InsertTab','App.ui.FillStrokeTab','App.ui.GeometryTab','App.ui.MetaTab'],
-	plain: true,
-	border: false,
-	bodyBorder: true,
-	tabPosition: 'bottom',
-	initComponent: function() {
+	extend : 'Ext.tab.Panel',
+	requires : ['App.ui.ToolsTab', 'App.ui.InsertTab', 'App.ui.FillStrokeTab', 'App.ui.GeometryTab', 'App.ui.MetaTab'],
+	plain : true,
+	border : false,
+	bodyBorder : true,
+	tabPosition : 'bottom',
+	initComponent : function() {
 		Ext.applyIf(this, {
-			activeTab: 0,
-			defaults: {
-				border: true,
+			activeTab : 0,
+			defaults : {
+				border : true,
 			},
-			tabBar: {
-				border: false,
-				bodyBorder: false,
+			tabBar : {
+				border : false,
+				bodyBorder : false,
 			}
 		});
 		if(!this.items) {
 			this.items = [new App.ui.ToolsTab({
-				title: 'Tools',
-				ref: 'toolsTab',
+				title : 'Tools',
+				ref : 'toolsTab',
 			}), new App.ui.InsertTab({
-				title: 'Insert',
-				ref: 'insertTab',
+				title : 'Insert',
+				ref : 'insertTab',
 			}), new App.ui.FillStrokeTab({
-				title: 'Fill and Stroke',
-				ref: 'fillStroke'
+				title : 'Fill and Stroke',
+				ref : 'fillStroke'
 			}), new App.ui.GeometryTab({
-				title: 'Geometry',
-				ref: 'geometry'
+				title : 'Geometry',
+				ref : 'geometry'
 			}), new App.ui.MetaTab({
-				title: 'Meta',
-				ref: 'metaTab'
+				title : 'Meta',
+				ref : 'metaTab'
 			})];
 		}
 		Ext.each(this.items, function(item) {
 			Ext.applyIf(item, {
-				border: false,
-				bodyBorder: false,
+				border : false,
+				bodyBorder : false,
 			})
 		});
 		App.ui.Ribbon.superclass.initComponent.apply(this, arguments);
 
-		_.each(['toolsTab', 'insertTab','fillStroke','geometry','metaTab'], function(item) {
-			this[item] = this.down('*[ref='+item+']');
-		},this);
+		_.each(['toolsTab', 'insertTab', 'fillStroke', 'geometry', 'metaTab'], function(item) {
+			this[item] = this.down('*[ref=' + item + ']');
+		}, this);
 		/*
 		// Allow the tools tab to manage the workspace tool
 		this.mon(this.toolsTab, 'toolChange', this.setActiveTool, this);
@@ -57,21 +57,28 @@ Ext.define('App.ui.Ribbon', {
 		*/
 
 		// allow ribbon tabs to invoke actions on the workspace
-		this.items.each( function(item) {
+		this.items.each(function(item) {
 			item.ribbon = this;
 			this.mon(item, 'action', this.doAction, this);
 
 			// Allow the tools tabs to manage the workspace tool
 			if(item.getActiveTool) {
-				this.mon(item,'toolChange',this.setActiveTool,this);
+				this.mon(item, 'toolChange', this.setActiveTool, this);
 				this.mon(item, 'save', this.saveWorkspace, this);
 			}
-		},
-		this);
-
+		}, this);
 		// allow workspace to be saved
 	},
-	attachTo: function(workspace) {
+	/**
+	 * Attaches this ribbon to a particular workspace
+	 * @param {Workspace} workspace
+	 */
+	attachTo : function(workspace) {
+		/**
+		 * @property {Workspace}
+		 * The workspace to which this ribbon is attached. The ribbon will monitor for selection events
+		 * in this workspace and notify associated child {@link #items} appropriately.
+		 */
 		this.workspace = workspace;
 
 		// bind ribbon to objects when selected in workspace
@@ -79,41 +86,45 @@ Ext.define('App.ui.Ribbon', {
 		this.mon(this.workspace, 'unselect', this.unbind, this);
 
 	},
-	setActiveTool: function(tool) {
+	/**
+	 * Sets the active tool
+	 * @param {String} tool Name of the {@link Workspace.tools.BaseTool} to switch to.
+	 */
+	setActiveTool : function(tool) {
 		this.workspace.setActiveTool(tool);
 	},
 	/**
 	 * doAction
-	 * Invokes the passed {@link WorkspaceAction} on the {@link #workspace}
-	 * @param {WorkspaceAction} action
+	 * Invokes the passed {@link Workspace.actions.Action} on the {@link #workspace}
+	 * @param {Workspace.actions.Action} action
 	 */
-	doAction: function(action) {
+	doAction : function(action) {
 		var undoAction = action.getUndo();
 		this.workspace.doAction(action);
 	},
 	/**
 	 * bind
 	 * Binds the ribbon to the passed items
-	 * @param {Workspace.Object} item
+	 * @param {Workspace.objects.Object} item
 	 */
-	bind: function(item) {
-		this.items.each( function(tab) {
-			if (tab.bind && Ext.isFunction(tab.bind))
+	bind : function(item) {
+		this.items.each(function(tab) {
+			if(tab.bind && Ext.isFunction(tab.bind))
 				tab.bind(item);
 		});
 	},
 	/**
 	 * unbind
 	 * Unbinds the ribbon from the passed items
-	 * @param {Workspace.Object} item
+	 * @param {Workspace.objects.Object} item
 	 */
-	unbind: function(item) {
-		this.items.each( function(tab) {
-			if (tab.unbind && Ext.isFunction(tab.unbind))
+	unbind : function(item) {
+		this.items.each(function(tab) {
+			if(tab.unbind && Ext.isFunction(tab.unbind))
 				tab.unbind(item);
 		});
 	},
-	saveWorkspace: function() {
+	saveWorkspace : function() {
 		this.canvas.saveWorkspace();
 	}
 })

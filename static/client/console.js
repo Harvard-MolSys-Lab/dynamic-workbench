@@ -6,6 +6,10 @@
  */
 
 Ext.apply(Ext, {
+	/**
+	 * @member Ext
+	 * See {@link Ext.debug.LogPanel#log}.
+	 */
 	log : function(args,options) {
 		options || (options = {});
 		Ext.applyIf(options, {
@@ -66,6 +70,10 @@ Ext.apply(Ext, {
 
 Ext.debug = {};
 
+/**
+ * Console code entry window. Allows execution of arbitrary javascript within the context of the currently active
+ * {@link App.ui.Application}. That is, <code>this</code> will refer to the active app. 
+ */
 Ext.define('Ext.debug.ScriptsPanel', {
 	extend: 'Ext.panel.Panel',
 	id:'x-debug-scripts',
@@ -80,7 +88,11 @@ Ext.define('Ext.debug.ScriptsPanel', {
 	//	style:'border-width:0 0 0 1px;',
 
 	initComponent : function() {
-
+		
+		/**
+		 * @property {App.ui.CodeMirror} scriptField
+		 * Field into which code is entered
+		 */
 		this.scriptField = Ext.create('App.ui.CodeMirror',{
 			style:'border-width:0;',
 			mode: 'javascript',
@@ -93,7 +105,11 @@ Ext.define('Ext.debug.ScriptsPanel', {
 				}
 			},this)
 		});
-
+		
+		/**
+		 * @property {Ext.form.Checkbox} trapBox
+		 * Checked to trap errors, unchecked to allow them to bubble to the browser console
+		 */
 		this.trapBox = Ext.create('Ext.form.Checkbox',{
 			id: 'console-trap',
 			boxLabel: 'Trap Errors',
@@ -122,6 +138,9 @@ Ext.define('Ext.debug.ScriptsPanel', {
 
 		this.callParent(arguments);
 	},
+	/**
+	 * Evaluates the script in {@link #scriptField}
+	 */
 	evalScript : function() {
 		var s = this.scriptField.getValue();
 		if(this.trapBox.getValue()) {
@@ -130,7 +149,7 @@ Ext.define('Ext.debug.ScriptsPanel', {
 				rt = rt.apply(App.ui.active()); //eval(s);
 				Ext.dump(rt === undefined? '(no return)' : rt);
 			} catch(e) {
-				Ext.log(e.message || e.descript);
+				Ext.log(e.message || e.descript,{iconCls: 'error'});
 			}
 		} else {
 			var rt = new Function(s);
@@ -138,12 +157,19 @@ Ext.define('Ext.debug.ScriptsPanel', {
 			Ext.dump(rt === undefined? '(no return)' : rt);
 		}
 	},
+	/**
+	 * Clears the script entry field
+	 */
 	clear : function() {
 		this.scriptField.setValue('');
 		this.scriptField.focus();
 	}
 });
 
+/**
+ * Displays console output. Can also show "sub-console" windows for things like {@link App.TaskRunner.Task}s 
+ * which display several related outputs. 
+ */
 Ext.define('Ext.debug.LogPanel', {
 	extend: 'Ext.panel.Panel',
 	autoScroll: true,
@@ -159,6 +185,17 @@ Ext.define('Ext.debug.LogPanel', {
 		this.groups = {};
 		this.callParent(arguments);
 	},
+	/**
+	 * Logs args to the console
+	 * @param {Mixed} args
+	 * @param {Object} options Hash containing the following parameters:
+	 * 	- silent {Boolean} True to prevent the console from automatically showing if closed, false to automatically
+	 *    show the console after this message (defaults to false)
+	 *  - iconCls {String} CSS class for an icon to display next to this message
+	 *  - group {Mixed} String title or panel config object for a "sub-console" to be created to display this message.
+	 *    If the <var>group</var> name exists, this message is directed to that sub-console; else it is created. The 
+	 *    resulting {@link Ext.panel.Panel} can be accessed by {@link #getGroupPanel}. 
+	 */
 	log : function(args,options) {
 		var markup = '',
 		target,
@@ -202,9 +239,22 @@ Ext.define('Ext.debug.LogPanel', {
 		target.insertHtml('beforeend', markup);
 		//target.setHeight('auto');
 		bd.scrollTop = bd.scrollHeight;
-
 	},
+	/**
+	 * Gets the "sub-console" (group panel) for the given name. Panels are created by passing a <var>group</var>
+	 * option to {@link #log}.
+	 */
+	getGroupPanel: function(groupName) {
+		return this.groups[groupName];
+	},
+	/**
+	 * Clears the console
+	 */
 	clear : function() {
+		_.each(this.groups,function(group,name) {
+			group.destroy();
+		});
+		this.groups = {};
 		this.body.update('');
 		this.body.dom.scrollTop = 0;
 	}

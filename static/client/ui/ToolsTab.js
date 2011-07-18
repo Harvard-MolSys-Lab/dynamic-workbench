@@ -265,6 +265,9 @@ Ext.define('App.ui.ToolsTab', {
 		};
 	},
 	initComponent: function() {
+		/**
+		 * @event toolChange
+		 */
 		this.addEvents('toolChange');
 		Ext.apply(this, this.generateConfig());
 
@@ -273,22 +276,18 @@ Ext.define('App.ui.ToolsTab', {
 		_.each(this.query('*[ref]'), function(cmp) {
 			this[cmp.ref] = cmp;
 		},this);
-		// dictionary of all buttons with configured toolName bindings
+
+		/*
+		 * Dictionary of all buttons with configured toolName bindings
+		 */
 		this.toolButtons = new Ext.util.MixedCollection();
 
 		// collect all buttons with tool bindings specified
 		var toolButtons = this.query('component[toolName]'); //[toolname!=""]');
-		// this.findBy( function(cmp) {
-		// return (Ext.isDefined(cmp.toolName) && cmp.toolName != '');
-		// },
-		// this);
-
-		// if (this.topToolbar) {
-		// toolButtons = toolButtons.concat(this.topToolbar.findBy( function(cmp) {
-		// return (Ext.isDefined(cmp.toolName) && cmp.toolName != '');
-		// },
-		// this));
-		// }
+		/**
+		 * @property {String} toolName
+		 * Child buttons should have this property to specify which {@link Workspace.tools.BaseTool} to activate on toggle.
+		 */
 
 		// index buttons and add event handlers
 		Ext.each(toolButtons, function(button) {
@@ -390,7 +389,6 @@ Ext.define('App.ui.ToolsTab', {
 		this.fireEvent('action', action);
 	},
 	/**
-	 * expandWorkspace
 	 * Generates a WorkspaceAction to expand the size of the workspace
 	 */
 	expandWorkspace: function() {
@@ -398,14 +396,12 @@ Ext.define('App.ui.ToolsTab', {
 		this.fireEvent('action', action);
 	},
 	/**
-	 * saveWorkspace
 	 * Generates an event notifying the parent canvas to save the workspace
 	 */
 	saveWorkspace: function() {
 		this.fireEvent('save', this);
 	},
 	/**
-	 * onToggle
 	 * Event handler automatically applied to buttons with configured {@link #toolName}s
 	 * @param {Ext.Button} btn
 	 * @param {Boolean} pressed
@@ -416,7 +412,6 @@ Ext.define('App.ui.ToolsTab', {
 		}
 	},
 	/**
-	 * getActiveTool
 	 * Gets the name of the currently active tool
 	 * @return {String} toolName
 	 */
@@ -424,7 +419,6 @@ Ext.define('App.ui.ToolsTab', {
 		return this.tool;
 	},
 	/**
-	 * setActiveTool
 	 * Allows Tools tab in ribbon to set the active workspace tool
 	 * @param {String} tool
 	 */
@@ -435,7 +429,6 @@ Ext.define('App.ui.ToolsTab', {
 		}
 	},
 	/**
-	 * onToolChange
 	 * Responds to workspace toolChange event and updates UI to reflect
 	 * @param {String} tool
 	 */

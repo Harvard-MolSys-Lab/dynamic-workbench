@@ -291,7 +291,7 @@ Ext.define('App.TaskRunner', {
 
 /**
  * @member App
- * Shortcut for {@link App.TaskRunner.run}
+ * Shortcut for {@link App.TaskRunner#run}
  */
 App.runTask = function() {
 	App.TaskRunner.run.apply(App.TaskRunner, arguments);
@@ -382,7 +382,7 @@ Ext.define('App.TaskRunner.Task', {
 		return this.get('tool')+': '+this.get('startDate')+'';
 	},
 	/**
-	 * Returns the name to display as the title of the group in the {@link #Ext.Console}
+	 * Returns the name to display as the title of the group in the {@link Ext.debug.LogPanel}
 	 */
 	getGroupName : function() {
 		return this.getNameTimestamp() + ' (' + (this.arguments.node ? this.arguments.node : 'no path') + ')'

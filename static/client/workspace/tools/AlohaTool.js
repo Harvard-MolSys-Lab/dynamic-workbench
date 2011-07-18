@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * @class Workspace.tools.AlohaTool
- * Allows {@link Workspace.RichTextObject}s to be edited using the Aloha HTML5 editor.
+ * Allows {@link Workspace.objects.RichTextObject}s to be edited using the Aloha HTML5 editor.
  * Node: Workspace.tools.AlohaTool and Workspace.tools.MathQuillTool are a special subset of tools called 'editor tools'. A separate
  * subclass is forthcoming, but essentially they have two extra methods, attach and detach, which are
  * used to link and delink them to single, specific objects (ie: rich text boxes, math equations).

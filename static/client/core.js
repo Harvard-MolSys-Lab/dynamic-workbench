@@ -14,6 +14,11 @@ Ext.define('Machine.core.Serializable', {
 	extend: 'Ext.util.Observable',
 	alias: 'SerializableObject',
 	constructor: function() {
+		/**
+		 * @property {String} wtype
+		 * The canonical name of the type which this object represents. Inspired by {@link Ext.Component#xtype}.
+		 */
+		
 		this.callParent(arguments);
 		//this.superclass.constructor.apply(this,arguments);
 		//this.mixins.observable.constructor.apply(this,arguments);
@@ -50,13 +55,16 @@ Ext.define('Machine.core.Serializable', {
 		 */
 		'meta'
 		/**
-		 * @event change_(prop)
-		 * <var>x</var> is {@link #set}
+		 * @event change:*
+		 * @event change:(prop)
+		 * Fires when <var>x</var> is {@link #set}
+		 * @param {Mixed} newValue
+		 * @param {Mixed} oldValue
+		 * @param {Mixed} obj This
 		 */
 		);
 	},
 	/**
-	 * getId
 	 * Gets this object's global id
 	 * @return {String} id
 	 */
@@ -68,6 +76,11 @@ Ext.define('Machine.core.Serializable', {
 			return this.id;
 		}
 	},
+	/**
+	 * Determines whether the class implements the passed wtype
+	 * @param {String/Ext.Class} wtype Type name or object to check
+	 * @param {Boolean} shallow True to check only if this object implements the passed wtype (not subclasses; defaults to false)
+	 */
 	isWType : function(wtype, shallow) {
 		//assume a string by default
 		if (Ext.isFunction(wtype)) {
@@ -79,7 +92,7 @@ Ext.define('Machine.core.Serializable', {
 		return !shallow ? ('/' + this.getWTypes() + '/').indexOf('/' + wtype + '/') != -1 : this.constructor.wtype == wtype;
 	},
 	/**
-	 * getWTypes
+	 * Returns a slash (<var>/</var>) separated list of {@link #wtype}s that this class implements
 	 */
 	getWTypes : function() {
 		var tc = this.constructor;
@@ -95,9 +108,8 @@ Ext.define('Machine.core.Serializable', {
 		return tc.wtypes;
 	},
 	/**
-	 * serialize
 	 * Traverses this object's properties which have been {@link #expose}d as serializable, and returns an object
-	 * literal containing a hash of each of the properties, serialized by {@link Workspace.Components.serialize}.
+	 * literal containing a hash of each of the properties, serialized by {@link Workspace.Components#serialize}.
 	 * @param {Boolean} isChild true to serialize this object as a reference (ie: don't copy any of its properties; just
 	 * save its id and wtype).
 	 * @return {Object} serialized An object literal containing each of the serialized properties
@@ -127,6 +139,9 @@ Ext.define('Machine.core.Serializable', {
 			this.set(prop, Workspace.Utils.deserialize(obj[prop]));
 		}
 	},
+	/**
+	 * Returns a hash of properties marked as <var>readable</var> with {@link #expose}.
+	 */
 	getReadableHash: function() {
 		var out = {}, o;
 		for (var prop in this._readable) {
@@ -138,7 +153,6 @@ Ext.define('Machine.core.Serializable', {
 		return out;
 	},
 	/**
-	 * exposeAll
 	 * Exposes all keys in a given object hash as properties of this object
 	 * @param {Object} properties A hash containing as keys the properties to be exposed
 	 */
@@ -148,7 +162,6 @@ Ext.define('Machine.core.Serializable', {
 		}
 	},
 	/**
-	 * expose
 	 * Marks a property as readable with {@link #get} and/or writeable with {@link #set} and/or serializable with {@link #serialize}.
 	 * @param {String} prop The name of the property to be exposed. This is the name that will be passed to {@link #get} and
 	 * {@link #set}, but does not need to be an actual member property of this object, as long as a function or method is passed
@@ -160,7 +173,7 @@ Ext.define('Machine.core.Serializable', {
 	 * or method name can be passed which will be invoked in the context of this object and will serve as an accessor; otherwise an
 	 * accessor function will be generated which will set <var>this[prop]</var> to the passed value. Defaults to false.
 	 * @param {Boolean} serializable (Optional) true to include this property in serialized objects, false not to include it. The value serialized
-	 * will be the value returned by {@link #get}, passed through {@link Workspace.Components.serialize}.
+	 * will be the value returned by {@link #get}, passed through {@link Workspace.Components#serialize}.
 	 * @param {Boolean} user (Optional) true to mark as a user-defined property; false to mark as a system property. (Defaults to false)
 	 */
 	expose: function(prop, readable, writeable, serializable, user) {
@@ -265,12 +278,17 @@ Ext.define('Machine.core.Serializable', {
 			this.change(property,value,old);	
 		}
 	},
+	/**
+	 * Fires the {@link #change} and {@link #change:*} events
+	 */
 	change: function(field,value,old) {
 		this.fireEvent('change', field, value, old, this);
 		this.fireEvent('change:' + field, value, old, this);
 	},
 	/**
-	 * setMany
+	 * Applies {@link #set} on each field in <var>properties</var>
+	 * @param {Object} properties
+	 * @param {Object} options To be passed to {@link #set}
 	 */
 	setMany: function(properties,options) {
 		_(properties).each(function(value, prop) {
@@ -278,7 +296,6 @@ Ext.define('Machine.core.Serializable', {
 		},this);
 	},
 	/**
-	 * previous
 	 * Retrieves the previous value of the given key during {@link #change} events
 	 * @param {String} property The property to retrieve
 	 * @returns {Mixed} value The previous value
@@ -293,7 +310,6 @@ Ext.define('Machine.core.Serializable', {
 		// vestigial
 	},
 	/**
- 	* onChange
  	* Sets an event listener to watch for changes to a given property
  	* @param {String} property The property to watch
  	*/
@@ -301,7 +317,6 @@ Ext.define('Machine.core.Serializable', {
 		this.on.apply(this, ['change:' + arguments[0]].concat(Array.prototype.slice.call(arguments, 1)))
 	},
 	/**
-	 * destroy
 	 * Destroys the object. Fires the {@link #destroy} event
 	 */
 	destroy: function() {
@@ -311,8 +326,7 @@ Ext.define('Machine.core.Serializable', {
 
 Ext.override(Ext.util.MixedCollection, {
 	/**
-	 * serialize
-	 * See {@link SerializeableObject#serialize}
+	 * See {@link Machine.core.Serializable#serialize}
 	 */
 	serialize: function(isChild) {
 		isChild = isChild || false;

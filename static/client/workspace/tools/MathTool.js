@@ -1,13 +1,13 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * @class Workspace.tools.MathTool
- * Builds {@link MathEquationObject}s
+ * Builds {@link Workspace.objects.MathEquationObject}s
  * @extends Workspace.tools.BaseTool
  * @param {Object} workspace
  * @param {Object} config
  */
 Ext.define('Workspace.tools.MathTool', {
-	requires: ['Workspace.tools.MathQuillTool'],
+	requires: ['Workspace.tools.SelectorBand','Workspace.tools.MathQuillTool','Workspace.objects.MathEquationObject'],
 	constructor: function(workspace, config) {
 		this.workspace = workspace;
 		Ext.apply(this, config, {
@@ -59,7 +59,8 @@ Ext.define('Workspace.tools.MathTool', {
 			this.y2 = pos.y;
 			var attr = Workspace.tools.SelectorBand.calculateBandBox(this.x1, this.y1, this.x2, this.y2);
 
-			var obj = this.workspace.createObject(Workspace.MathEquationObject, {
+			var obj = this.workspace.createObject({
+				wtype: 'Workspace.objects.MathEquationObject',
 				x: attr.x,
 				y: attr.y,
 				width: Workspace.Utils.bounds(attr.width, this.minWidth, this.maxWidth),

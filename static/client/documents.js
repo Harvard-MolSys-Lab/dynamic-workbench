@@ -29,7 +29,7 @@ Ext.define('App.Document', {
 		return this.get('node');
 	},
 	/**
-	 * Returns the {@link App.Path.basename} to this document 
+	 * Returns the {@link App.Path#basename} to this document 
 	 */
 	getBasename: function() {
 		return App.Path.basename(this.getPath());
@@ -62,7 +62,7 @@ Ext.define('App.Document', {
 	},
 	/**
 	 * Asynchonously loads the body of this document
-	 * @param {Object} opts Hash containing options to apply to the {@link Ext.Ajax.request} used to load the document
+	 * @param {Object} opts Hash containing options to apply to the {@link Ext.Ajax#request} used to load the document
 	 */
 	loadBody: function(opts) {
 
@@ -95,7 +95,7 @@ Ext.define('App.Document', {
 	/**
 	 * Asynchronously saves the body of this document
 	 * @param {Mixed} data Data to save to the document body
-	 * @param {Object} opts Hash containing options to apply to the {@link Ext.Ajax.request} used to load the document
+	 * @param {Object} opts Hash containing options to apply to the {@link Ext.Ajax#request} used to load the document
 	 */
 	saveBody: function(data,opts) {
 		(function(s,options,me) {

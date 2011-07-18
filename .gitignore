@@ -2,3 +2,6 @@
 *.pyc
 *.pyo
 ./tools
+./test.js
+./old.zip
+

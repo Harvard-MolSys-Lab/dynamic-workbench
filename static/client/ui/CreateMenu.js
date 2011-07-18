@@ -1,8 +1,20 @@
+/**
+ * Menu for creating a file; by default, allows the user to enter a filename and select among several file types.
+ */
 Ext.define('App.ui.CreateMenu', {
 	extend: 'Ext.menu.Menu',
+	/**
+	 * Text to show ahead of the file name field
+	 */
 	labelText: 'File Name:',
+	/**
+	 * Text to show in the item which will show the menu of file types
+	 */
 	createText: 'Create',
 	createIconCls: 'tick',
+	/**
+	 * True to automatically build the file type menu by calling {@link #getCreateMenu}
+	 */
 	autoCreateMenu: true,
 	initComponent: function() {
 		this.extraMenuItems || (this.extraMenuItems = []);

@@ -2,7 +2,17 @@
  * Mixin which provides shared helper methods to client-side applications within the interface
  */
 Ext.define('App.ui.Application', {
+	/**
+	 * @cfg
+	 * Whether to automatically hide the Loading mask on {@link #doLoad}; set to <var>false</var>
+	 * in order to provide custom logic to show or hide the loading mask 
+	 */
 	autoHideLoadingMask: true,
+	/**
+	 * @cfg
+	 * Whether to automatically hide the Saving mask on {@link #doSave}; set to <var>false</var>
+	 * in order to provide custom logic to show or hide the saving mask 
+	 */
 	autoHideSavingMask: true,
 	loadingMsg: 'Loading File...',
 	savingMsg: 'Saving File...',
@@ -10,6 +20,11 @@ Ext.define('App.ui.Application', {
 	 * @constructor
 	 */
 	constructor: function(config) {
+		/**
+		 * @property doc
+		 * @property document
+		 * The currently open {@link App.Document}.
+		 */
 		this.doc = 	this.document = config ? (config.document ? config.document : false) : false;
 
 		if(this.doc) {
@@ -17,6 +32,9 @@ Ext.define('App.ui.Application', {
 			this.updateTitle();
 		}
 	},
+	/**
+	 * Updates title of the Application panel to display the name of the {@link App.Document} being edited
+	 */
 	updateTitle: function() {
 		var title = this.editorType;
 		if(this.doc) {
@@ -27,6 +45,9 @@ Ext.define('App.ui.Application', {
 		} catch (e) {
 		}
 	},
+	/**
+	 * Returns the path ot the currently open doc
+	 */
 	getPath: function() {
 		return this.doc.getPath();
 	},
@@ -59,7 +80,7 @@ Ext.define('App.ui.Application', {
 			this.loadingMask.hide();
 	},
 	/**
-	 * callback to inform the user of failed load
+	 * Internal callback to inform the user of failed load
 	 */
 	doLoadFail: function(e) {
 		if(this.autoHideLoadingMask)
@@ -67,15 +88,17 @@ Ext.define('App.ui.Application', {
 		console.log('File load failed.', e);
 		Ext.log('File load failed.')
 	},
+	/**
+	 * Callback from {@link #doLoad} and {@link #doLoadFail}. Override this callback to provide 
+	 * custom logic on {@link App.Document} load
+	 */
 	onLoad: function() {
 	},
 	/**
-	 * saveFile
 	 * Saves the file body for this.{@link #document}. Retrieves application state with {@link #getSaveData}.
 	 * Calls {@link #doSave} or {@link #doSaveFail} as internal callbacks, which
 	 * in turn call {@link #onSave}. These methods handle displaying a saving mask as well.
 	 */
-
 	saveFile: function() {
 		this.savingMask || (this.savingMask = new Ext.LoadMask(this.body, {
 				msg: this.savingMsg
@@ -110,8 +133,7 @@ Ext.define('App.ui.Application', {
 
 	},
 	/**
-	 * doSave
-	 * callback to restore the UI after successful save
+	 * Internal callback from {@link #save} to restore the UI after successful save
 	 */
 	doSave: function() {
 		if(this.autoHideSavingMask)
@@ -121,8 +143,7 @@ Ext.define('App.ui.Application', {
 		Ext.log('File saved to server.');
 	},
 	/**
-	 * doSaveFail
-	 * callback to inform the user of failed save
+	 * Internal callback from {@link #save} to inform the user of failed save
 	 */
 	doSaveFail: function() {
 		if(this.autoHideSavingMask)
@@ -132,14 +153,13 @@ Ext.define('App.ui.Application', {
 		Ext.log('File save failed.')
 	},
 	/**
-	 * onSave
-	 * Override this method to provide application-specific behavior after a save.
+	 * Callback form {@link #doSave} or {@link #doSaveFail}. Override this method to 
+	 * provide application-specific behavior after a save.
 	 */
 	onSave: function() {
 
 	},
 	/**
-	 * getSaveData
 	 * Override this method to return state data to be saved to the {@link #document} file.
 	 */
 	getSaveData: function() {

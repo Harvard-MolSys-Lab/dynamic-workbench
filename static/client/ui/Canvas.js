@@ -136,6 +136,9 @@ Ext.define('App.ui.Canvas', {
 		this);
 
 	},
+	/**
+	 * Proxies {@link #loadFile}.
+	 */
 	loadWorkspace: function() {
 		this.loadFile();
 		// this.loadingMask = new Ext.LoadMask(this.bodyPanel.body, {
@@ -178,6 +181,9 @@ Ext.define('App.ui.Canvas', {
 	// this.doLoad();
 	// },
 	autoHideLoadingMask: false,
+	/**
+	 * Builds the {@link Workspace} with the data loaded from the {@link App.Document} body
+	 */
 	onLoad: function() {
 		this.workspaceData = Ext.isEmpty(this.data) ? {} : Ext.decode(this.data);
 		this.workspaceData.path = this.getPath();
@@ -210,65 +216,20 @@ Ext.define('App.ui.Canvas', {
 		});
 	},
 	/**
-	 * saveWorkspace
-	 * Serializes, encodes, and saves the workspace to the server
+	 * Serializes, encodes, and saves the workspace to the server (proxies {@link #saveFile}).
 	 */
 	saveWorkspace: function() {
 		this.saveFile();
-		// this.savingMask = new Ext.LoadMask(this.bodyPanel.body, {
-		// msg: 'Saving Workspace...'
-		// });
-		// this.savingMask.show();
-		// //this.statusBar.setBusy();
-		// var o = this.workspace.serialize(),
-		// s = Ext.encode(o);
-		// this._lastSave = o;
-		// if(this.doc) {
-		// this.loadingMask.show();
-		// this.doc.saveBody(s, {
-		// success: this.onLoad,
-		// failure: this.onLoadFail,
-		// scope: this
-		// });
-		// }
-
-		// if(App.User.isLoggedIn()) {
-		// Ext.Ajax.request({
-		// url: App.getEndpoint('save'),//'/canvas/index.php/workspaces/save',
-		// params: {
-		// data: s,
-		// node: this.path,
-		// },
-		// success: this.onSave,
-		// failure: this.onSaveFail,
-		// scope: this
-		// });
-		// } else {
-		// Ext.log('Not logged in; could not save workspace to server.');
-		// }
-		// Ext.log(Ext.encode(o.objects));
 	},
+	/**
+	 * Serializes the workspace to save
+	 */
 	getSaveData: function() {
 		return this.workspace.serialize();
 	},
-	// /**
-	// * onSave
-	// * callback to restore the UI after successful save
-	// */
-	// onSave: function() {
-	// this.savingMask.hide();
-	// console.log('Workspace Saved.', this._lastSave);
-	// Ext.log('Workspace saved to server.');
-	// },
-	// /**
-	// * onSaveFail
-	// * callback to inform the user of failed save
-	// */
-	// onSaveFail: function() {
-	// alert("Workspace saving failed.");
-	// console.log('Workspace save failed.', this._lastSave);
-	// Ext.log('Workspace save failed.')
-	// },
+	/**
+	 * Zooms the workspace to the given zoom value
+	 */
 	zoomWorkspace: function(s,v) {
 		this.workspace.zoomTo(v);
 	}

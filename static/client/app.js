@@ -71,16 +71,31 @@ App.getDefaultWorkspace = function() {
 App.endpoints = function() {
 	var endpoints = {};
 	return {
+		/**
+		 * Returns the endpoint of the given name
+		 * @param {String} name Name of the endpoint
+		 */
 		getEndpoint : function(name) {
 			return App.baseUrl + '/' + endpoints[name];
 		},
+		/**
+		 * Sets the endpoint with the given name
+		 * @param {String} name
+		 * @param {String} value The URL of the endpoint
+		 */
 		setEndpoint : function(name, value) {
 			endpoints[name] = value;
 		}
 	}
 }();
+/**
+ * @member App
+ */
 App.getEndpoint = App.endpoints.getEndpoint;
-App.setEndpoint = App.endpoints.setEndpoint;
+/**
+ * @member App
+ */
+ App.setEndpoint = App.endpoints.setEndpoint;
 
 /**
  * @class App.ribbon
@@ -98,15 +113,26 @@ App.ribbon = function() {
 		},
 	}
 }();
+/**
+ * @member App
+ */
 App.getRibbonItems = App.ribbon.getRibbonItems;
+/**
+ * @member App
+ */
 App.setRibbonItems = App.ribbon.setRibbonItems;
 
 /**
  * @class App.Path
  * Contains utilities for working with paths
- * @static
+ * @singleton
  */
 App.Path = App.path = {
+	/**
+	 * Appends the given extension to a filename, if it is not already included.
+	 * @param {String} name
+	 * @param {String} ext The extension
+	 */
 	addExt : function(name, ext) {
 		if(_.last(name.split('.')) != ext) {
 			return name + '.' + ext;
@@ -114,9 +140,16 @@ App.Path = App.path = {
 			return name;
 		}
 	},
+	/**
+	 * Determines whether the given filename represents a folder
+	 */
 	isFolder : function(name) {
 		return (name && App.Path.basename(name).split('.').length > 0);
 	},
+	/**
+	 * Joins several file paths.
+	 * 		App.Path.join(['hello','world','file.txt']); // -> 'hello/world/file.txt'
+	 */
 	join : function() {
 		if(arguments.length > 1) {
 			paths = arguments;
@@ -127,22 +160,34 @@ App.Path = App.path = {
 		return p.split('/')
 		})).join('/');
 	},
+	/**
+	 * Returns the last portion of the path (the portion following the final <var>/</var>)
+	 */
 	basename : function(path) {
 		var a = path.split('/');
 		return a.length > 0 ? _.last(a) : path;
 	},
+	/**
+	 * Returns the last portion of the path, with a minimum length
+	 * @param {String} path
+	 * @param {Number} minLength
+	 */
 	pop : function(path, minLength) {Ext.isDefined(minLength) || ( minLength = 1);
 		var a = path.split('/');
 		return (a.length) > minLength ? a.slice(0,a.length-1).join('/') : path;
 	},
 	/**
-	 * Returns newPath such that it is in the same directory as the file oldPath
+	 * Returns <var>newPath</var> such that it is in the same directory as the file <var>oldPath</var>
+	 * @param {String} oldPath
+	 * @param {String} newPath
 	 */
 	sameDirectory : function(oldPath, newPath) {
 		return App.Path.join(App.Path.pop(oldPath), newPath);
 	},
 	/**
-	 * Returns a file in the same directory as oldPath, but with ext
+	 * Returns a file in the same directory as <var>oldPath</var>, but with <var>ext</var>
+	 * @param {String} oldPath
+	 * @param {String} ext
 	 */
 	repostfix : function(oldPath, ext) {
 		if(App.path.basename(oldPath).contains('.')) {
@@ -161,14 +206,29 @@ App.Path = App.path = {
  * @singleton
  */
 App.User = {
+	/**
+	 * @property {Number}
+	 * The user's ID
+	 */
 	id : -1,
+	/**
+	 * @property {String}
+	 * The user's name
+	 */
 	name : false,
+	/**
+	 * @property {String}
+	 * The user's email address
+	 */
 	email : false,
+	/**
+	 * Returns true if a user is logged in
+	 * @return {Boolean}
+	 */
 	isLoggedIn : function() {
 		return App.User.id != -1;
 	},
 	/**
-	 * setUser
 	 * Loads data about the logged-in user. This method is invoked automatically by controller code; do not call
 	 * directly.
 	 * @param {Object} data Data blob with the keys <code>id</code>, <code>name</code>, and <code>email</code>
@@ -188,6 +248,10 @@ App.User = {
  */
 Ext.define('App.TaskRunner', {
 	statics : {
+		/**
+		 * Defines subclasses of {@link App.TaskRunner.Task} as members of {@link App.TaskRunner}. Called by server code
+		 * in order to make configured server tools available on the client.
+		 */
 		loadTools : function(tasks) {
 			_.each(tasks, function(def) {
 				var name = _.compact(def.route.split('/'));
@@ -201,43 +265,13 @@ Ext.define('App.TaskRunner', {
 				}));
 			});
 		},
-		// serverTools: {
-		// pepper: {
-		// name: 'Pepper',
-		// iconCls: 'pepper',
-		// endpoint:'/pepper',
-		// callback: function(out,st,args) {
-		// Ext.log(out);
-		// if(args && args.node) {
-		// var path = App.Path.pop(args.node);
-		// App.ui.filesTree.refresh(App.DocumentStore.tree.getNodeById(path))
-		// }
-		// }
-		// },
-		// nupackAnalysis: {
-		// name: 'NUPACK Complex Analysis',
-		// iconCls: 'nupack-icon',
-		// endpoint: '/nupack/analysis',
-		// callback: function(out,st,args) {
-		// Ext.log(out);
-		// if(args && args.node) {
-		// var path = App.Path.pop(args.node);
-		// App.ui.filesTree.refresh(App.DocumentStore.tree.getNodeById(path))
-		// }
-		// }
-		// },
-		// nupackPairwise: {
-		// name: 'NUPACK Pairwise Analysis',
-		// iconCls: 'nupack-icon',
-		// endpoint: '/nupack/pairwise',
-		// callback: function(out,st,args) {
-		// Ext.log(out);
-		// if(args && args.node) {
-		// var path = App.Path.pop(args.node);
-		// App.ui.filesTree.refresh(App.DocumentStore.tree.getNodeById(path))
-		// }
-		// }
-		// }
+		
+		/**
+		 * Runs a task using the given serverTool
+		 * @param {String} serverTool Name of a member of App.TaskRunner; must be configred by server code calling {@link #loadTools}
+		 * @param {Array} args Arguments to pass to the tool
+		 * @param {Function} callback Function to call upon completion
+		 */
 		run : function(serverTool, args, callback) {
 			if(Ext.ClassManager.get(['App.TaskRunner',serverTool].join('.'))) {
 				var startDate = new Date(), target = 'local', task = Ext.create('App.TaskRunner.' + serverTool, {
@@ -255,9 +289,17 @@ Ext.define('App.TaskRunner', {
 	},
 });
 
+/**
+ * @member App
+ * Shortcut for {@link App.TaskRunner.run}
+ */
 App.runTask = function() {
 	App.TaskRunner.run.apply(App.TaskRunner, arguments);
 }
+/**
+ * @class App.TaskRunner.Task
+ * Represents a Task running on the server
+ */
 Ext.define('App.TaskRunner.Task', {
 	extend : 'Ext.data.Model',
 	endpoint : '',
@@ -279,6 +321,9 @@ Ext.define('App.TaskRunner.Task', {
 	callback : function() {
 		return;
 	},
+	/**
+	 * Logs the given message in a custom console group, named by {@link #getGroupName}
+	 */
 	log : function(msg, opts) {
 		opts || ( opts = {});
 		Ext.apply(opts, {
@@ -287,6 +332,9 @@ Ext.define('App.TaskRunner.Task', {
 		});
 		Ext.log(msg, opts);
 	},
+	/**
+	 * Starts the task running on the server
+	 */
 	start : function(args, callback) {
 		this.arguments = (args || {});
 		this.callback = (callback || this.callback);
@@ -312,18 +360,30 @@ Ext.define('App.TaskRunner.Task', {
 		});
 		Ext.Ajax.clearTimeout(req);
 	},
+	/**
+	 * Override this callback to provide custom logic on start of the task
+	 */
 	onStart : function() {
 
 	},
+	/**
+	 * Called upon task completion
+	 */
 	end : function(text, args, success) {
 		this.onEnd(text, args, success);
 		if(Ext.isFunction(this.callback)) {
 			this.callback(text, this.arguments, success);
 		}
 	},
+	/**
+	 * Returns the name of the tool concatenated with the start date
+	 */
 	getNameTimestamp: function() {
 		return this.get('tool')+': '+this.get('startDate')+'';
 	},
+	/**
+	 * Returns the name to display as the title of the group in the {@link #Ext.Console}
+	 */
 	getGroupName : function() {
 		return this.getNameTimestamp() + ' (' + (this.arguments.node ? this.arguments.node : 'no path') + ')'
 	},

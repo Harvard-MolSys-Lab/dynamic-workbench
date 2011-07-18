@@ -1,9 +1,17 @@
+/**
+ * Displays a tree of files in the user's home directory
+ */
 Ext.define('App.ui.FilesTree', {
 	extend: 'Ext.tree.Panel',
 	requires: ['App.ui.CreateMenu','App.ui.Launcher'],
 	title: 'Files',
 	newFileNumber: 0,
 	useArrows: true,
+	/**
+	 * @cfg {Boolean}
+	 * True to show a context menu on right click to allow the user to open, rename, and create new files; 
+	 * set to false to allow custom behavior (e.g. for embedding the {@link App.ui.FilesTree} in a menu)
+	 */
 	createContextMenu: true,
 	
 	//displayRoot: false,
@@ -55,6 +63,8 @@ Ext.define('App.ui.FilesTree', {
 			},
 		});
 		this.callParent(arguments);
+		
+		// Builds the context menu (TODO: move to separate class)
 		if(this.createContextMenu) {
 			this.contextMenu = Ext.create('Ext.menu.Menu', {
 				floating: true,
@@ -133,6 +143,10 @@ Ext.define('App.ui.FilesTree', {
 			},this);
 		}
 	},
+	/**
+	 * Reloads the file heirarchy underneath the provided {@link App.Document}
+	 * @param {App.Document} rec The record under which to refresh
+	 */
 	refresh: function(rec) {
 		if(rec) {
 			//hackity hack
@@ -146,20 +160,39 @@ Ext.define('App.ui.FilesTree', {
 			this.getView().refreshNode(rec.index);
 		}
 	},
+	/**
+	 * Deletes the selected document
+	 */
 	deleteSelectedDocument: function() {
 		//var rec = this.getSelectionModel().getLastSelected();
 		var rec = this.currentRecord;
 		this.deleteDocument(rec);
 	},
+	/**
+	 * Deletes the provided {@link App.Document}
+	 * @param {App.Document} rec
+	 */
 	deleteDocument: function(rec) {
 		if(rec) {
 			rec.remove(false);
 			this.getStore().sync();
 		}
 	},
+	/**
+	 * Called when the user clicks on a cell
+	 * @param {Ext.tree.Panel} tree
+	 * @param {App.Document} rec
+	 * @param {Mixed} item
+	 * @param {Number} i Index of the selected record
+	 * @param {Event} e
+	 */
 	click: function(tree,rec,item,i,e) {
 		this.open(rec);
 	},
+	/**
+	 * Opens the provided {@link App.Document} using {@link App.ui.Launcher#launch}
+	 * @param {App.Document} rec The document to open
+	 */
 	open: function(rec) {
 		if(rec.get('trigger')) { // && App.ui.Launcher.has(rec.get('trigger'))) {
 			App.ui.Launcher.launch(rec.get('trigger'),rec);
@@ -168,10 +201,20 @@ Ext.define('App.ui.FilesTree', {
 		//	App.ui.Launcher.launchType(rec.get('type'),rec);
 		//}
 	},
+	/**
+	 * Creates a new document underneath the last selected record with the passed name
+	 * @param {String} name of the new file 
+	 */
 	newFileUnderSelection: function(name) {
 		var rec = this.getSelectionModel().getLastSelected();
 		this.newFile(rec,name);
 	},
+	/**
+	 * Create a new document underneath the passed <var>rec</var>, if <var>rec</var> is a folder; else creates a 
+	 * sibling to <var>rec</var>. 
+	 * @param {App.Document} rec
+	 * @param {String} name 
+	 */
 	newFile: function(rec,name) {
 		(rec) || (rec = this.getRootNode());
 		if(rec.isLeaf() && rec.parentNode) {

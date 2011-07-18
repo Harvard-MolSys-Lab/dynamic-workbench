@@ -1,5 +1,6 @@
 /**
  * @class App.Document
+ * Encapsulates a document which can be opened and edited by an {@link App.ui.Application}.
  * @extends Ext.data.Model
  */
 Ext.define('App.Document', {
@@ -22,31 +23,46 @@ Ext.define('App.Document', {
 	}
 	],
 	/**
-	 * getPath
-	 * returns the file path to this
+	 * Returns the file path to this document
 	 */
 	getPath: function() {
 		return this.get('node');
 	},
+	/**
+	 * Returns the {@link App.Path.basename} to this document 
+	 */
 	getBasename: function() {
 		return App.Path.basename(this.getPath());
 	},
+	/**
+	 * Searches for a sibling node to this document by the given <var>fn</var
+	 * @param {Function} fn Function to search with
+	 * @param {Mixed} scope Scope within which to execute <var>fn</var>
+	 * @param {Boolean} deep True to search for a descendent of a sibling (defaults to false)
+	 */
 	getSibling: function(fn,scope,deep) {
 		deep = deep || false;
 		return this.parentNode ? this.parentNode.findChildBy.apply(this.parentNode,arguments) : false;
 	},
+	/**
+	 * Searches for a sibling node with the given name
+	 * @param {String} name Name to search
+	 */
 	getSiblingByName: function(name) {
 		return this.getSibling( function(node) {
 			return node.get('text')==name;
 		});
 	},
+	/**
+	 * Creates a sibling {@link App.Document}
+	 */
 	createSibling: function(name) {
 		var parent = this.parentNode ? this.parentNode : this;
 		return App.ui.filesTree.newFile(parent,name);
 	},
 	/**
-	 * loadBody
-	 * asynchonously loads the body of this file
+	 * Asynchonously loads the body of this document
+	 * @param {Object} opts Hash containing options to apply to the {@link Ext.Ajax.request} used to load the document
 	 */
 	loadBody: function(opts) {
 
@@ -77,7 +93,9 @@ Ext.define('App.Document', {
 		})(opts,this);
 	},
 	/**
-	 * saveBody
+	 * Asynchronously saves the body of this document
+	 * @param {Mixed} data Data to save to the document body
+	 * @param {Object} opts Hash containing options to apply to the {@link Ext.Ajax.request} used to load the document
 	 */
 	saveBody: function(data,opts) {
 		(function(s,options,me) {
@@ -116,6 +134,10 @@ Ext.define('App.Document', {
 	},
 });
 
+/**
+ * Manages loading documents for the currently logged-in {@link App.User}
+ * @singleton
+ */
 App.DocumentStore = Ext.create('Ext.data.TreeStore', {
 	model: 'App.Document',
 	folderSort: true,

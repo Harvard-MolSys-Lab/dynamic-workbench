@@ -1,3 +1,6 @@
+/**
+ * Displays a dashboard allowing common actions to be performed when the IDE opens.
+ */
 Ext.define('App.ui.Dashboard', {
 	extend: 'Ext.panel.Panel',
 	initComponent: function() {

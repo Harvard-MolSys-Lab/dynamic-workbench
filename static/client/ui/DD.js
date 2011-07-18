@@ -1,3 +1,6 @@
+/**
+ * Provides an interface allowing the user to performs domain-based sequence design using Web {@link DD}.
+ */
 Ext.define('App.ui.DD', {
 	extend : 'Ext.panel.Panel',
 	mixins : {
@@ -7,8 +10,16 @@ Ext.define('App.ui.DD', {
 		this.mixins.app.constructor.apply(this, arguments);
 		this.callParent(arguments);
 	},
+	/**
+	 * @property
+	 * Reports whether the designer is currently mutating
+	 */
 	mutating : false,
 	initComponent : function() {
+		/**
+		 * @property {DD} designer
+		 * The domain-based sequence designer
+		 */
 		var designer = this.designer = new DD();
 
 		this.store = Ext.create('Ext.data.ArrayStore', {
@@ -16,6 +27,9 @@ Ext.define('App.ui.DD', {
 			fields : [{
 				name : 'domain',
 				type : 'int'
+			}, {
+				name : 'name',
+				type : 'string',
 			}, {
 				name : 'sequence',
 			}, {
@@ -34,17 +48,20 @@ Ext.define('App.ui.DD', {
 			}],
 			data : []
 		});
-		
-		this.designStore = Ext.create('Ext.data.ArrayStore',{
-			fields: [{
-				name: 'sequence',
-			},{
-				name: 'spec',
-			},{
-				name: 'name',
+
+		this.designStore = Ext.create('Ext.data.ArrayStore', {
+			fields : [{
+				name : 'sequence',
+			}, {
+				name : 'spec',
+			}, {
+				name : 'name',
 			}]
 		});
 
+		/**
+		 * @property {Ext.grid.plugin.CellEditing} cellEditor
+		 */
 		var cellEditor = this.cellEditor = Ext.create('Ext.grid.plugin.CellEditing', {
 			clicksToEdit : 2,
 			autoCancel : false
@@ -74,14 +91,30 @@ Ext.define('App.ui.DD', {
 			// ref: 'output',
 			// },
 			items : [{
+				/**
+				 * @property {Ext.grid.Panel} grid
+				 */
 				xtype : 'gridpanel',
-				bodyBorder : false,
-				border : false,
 				ref : 'grid',
 				region : 'center',
+				// title : 'Domains',
 				columns : [Ext.create('Ext.grid.RowNumberer', {
 					width : 30,
+					header : '#',
+					hideable: true,
+					hidden: true,
 				}), {
+					header : 'Name',
+					dataIndex : 'name',
+					width : 50,
+					editor: {
+						allowBlank: true,
+					},
+					renderer : function(v, metaData, record, rowIdx, colIdx, store) {
+						metaData.tdCls = Ext.baseCSSPrefix + 'grid-cell-special';
+						return (!v || v=="false") ? (store.indexOfTotal(record) + 1) : v;
+					},
+				}, {
 					header : 'Sequence',
 					dataIndex : 'sequence',
 					renderer : function(v) {
@@ -147,113 +180,184 @@ Ext.define('App.ui.DD', {
 					editable : false,
 				}, this.targetColumn],
 				store : this.store,
-				plugins : [this.cellEditor]
-			}, {
-				region : 'south',
-				ref : 'design',
-				xtype : 'gridpanel',
-				collapsible: true,
-				viewConfig : {
-					plugins : [{
-						ptype : 'preview',
-						bodyField : 'sequence',
-						expanded : true,
-						pluginId : 'preview'
-					}]
-				},
-				store: this.designStore,
-			}],
-			tbar : [{
-				text : 'Mutate',
-				iconCls : 'play',
-				ref : 'mutateButton',
-				handler : this.toggleMutation,
-				scope : this,
-			}, '-', {
-				text : 'Add',
-				ref : 'addDomainButton',
-				handler : this.doAddDomain,
-				scope : this,
-				iconCls : 'plus',
-				xtype : 'splitbutton',
-				menu : [{
-					text : 'New domain length: ',
-					canActivate : false,
-				}, {
-					xtype : 'numberfield',
-					ref : 'addDomLen',
-					value : 8,
-					min : 2,
-					indent : true,
-				}, {
-					text : 'Add Domain',
-					iconCls : 'tick',
-					ref : 'addDomainItem',
-					handler : this.doAddDomain,
+				plugins : [this.cellEditor],
+				// {
+				// /**
+				// * @property {Ext.grid.Panel} design
+				// * Contains a preview of the threaded design
+				// */
+				// region : 'south',
+				// ref : 'design',
+				// xtype : 'gridpanel',
+				// collapsible: true,
+				// collapsed: true,
+				// title: 'Design Preview',
+				// viewConfig : {
+				// plugins : [{
+				// ptype : 'preview',
+				// bodyField : 'sequence',
+				// expanded : true,
+				// pluginId : 'preview'
+				// }]
+				// },
+				// store: this.designStore,
+				// }
+				tbar : [{
+					/**
+					 * @property {Ext.button.Button} mutateButton
+					 * Starts and stops mutation
+					 */
+					text : 'Mutate',
+					iconCls : 'play',
+					ref : 'mutateButton',
+					handler : this.toggleMutation,
 					scope : this,
 				}, '-', {
-					text : 'Add specific domains...',
-					handler : this.addManyDomains,
+					/**
+					 * @property {Ext.button.Button} addDomainButton
+					 * Shows a menu allowing the user to add domains to the designer
+					 */
+					text : 'Add',
+					ref : 'addDomainButton',
+					handler : this.doAddDomain,
+					scope : this,
+					iconCls : 'plus',
+					xtype : 'splitbutton',
+					menu : [{
+						text : 'New domain length: ',
+						canActivate : false,
+					}, {
+						/**
+						 * @property {Ext.form.field.Number} addDomLen
+						 * Control allowing the user to select the number of bases in the domain to be added
+						 */
+						xtype : 'numberfield',
+						ref : 'addDomLen',
+						value : 8,
+						min : 2,
+						indent : true,
+					}, {
+						/**
+						 * @property {Ext.menu.Item} addDomainItem
+						 * Menu item which triggers a domain of length specified in {@link #addDomLen} to be added to the designer.
+						 */
+						text : 'Add Domain',
+						iconCls : 'tick',
+						ref : 'addDomainItem',
+						handler : this.doAddDomain,
+						scope : this,
+					}, '-', {
+						text : 'Add specific domains...',
+						handler : this.addManyDomains,
+						scope : this,
+					}]
+				}, {
+					/**
+					 * @property {Ext.button.Button} modDomainButton
+					 */
+					text : 'Modify',
+					ref : 'modDomainButton',
+					iconCls : 'edit',
+					xtype : 'splitbutton',
+					handler : function() {
+						this.cellEditor.startEdit(this.grid.getSelectionModel().getLastSelected(), this.grid.headerCt.getHeaderAtIndex(0));
+					},
+					scope : this,
+					menu : [{
+						text : 'Reseed Domain',
+						handler : this.reseed,
+						scope : this,
+					}, {
+						text : 'Reseed All Domains',
+						handler : this.reseedAll,
+						scope : this,
+					}]
+				}, {
+					/**
+					 * @property {Ext.button.Button} delDomainButton
+					 */
+					text : 'Delete',
+					ref : 'delDomainButton',
+					handler : this.doDeleteDomain,
+					scope : this,
+					iconCls : 'cross',
+				}, '-', {
+					text : 'Advanced',
+					iconCls : 'tools',
+					menu : [{
+						text : 'Design options',
+						iconCls : 'wrench',
+						handler : this.designOptions,
+						scope : this,
+					}, {
+						text : 'Tweak score parameters',
+						iconCls : 'ui-slider',
+						handler : this.scoreParams,
+						scope : this,
+					}]
+				}, '->', {
+					text : 'Save',
+					iconCls : 'save'
+				}],
+				bbar : new Ext.ux.statusbar.StatusBar({
+					/**
+					 * @property {Ext.ux.statusbar.Statusbar}
+					 */
+					ref : 'statusBar',
+					items : [{
+						baseText : 'Score: ',
+						text : 'Score: ',
+						ref : 'scoreField',
+					}, {
+						baseText : 'Attempts: ',
+						text : 'Attempts: ',
+						ref : 'attemptCount',
+					}, {
+						baseText : 'Mutations: ',
+						text : 'Mutations: ',
+						ref : 'mutCount',
+					}]
+				}),
+				margin : '2 0 0 2',
+				bodyBorder : false,
+				border : true,   //'0 1 1 0',
+				split : true,
+			}, new App.ui.CodeMirror({
+				region : 'east',
+				title : 'Structure',
+				ref : 'struct',
+				collapsible : true,
+				width : 200,
+				split : true,
+				margin : '2 2 0 0',
+				border : true,   //'0 0 1 1',
+				bodyBorder : true,
+				mode : 'nupack',
+				tbar : [{
+					text : 'Update',
+					xtype : 'splitbutton',
+					menu : [{
+						text : 'Reseed existing domains',
+						ref : 'clobberOnUpdate',
+						checked : false,
+					}],
+					handler : this.updateDomainsFromSpec,
 					scope : this,
 				}]
-			}, {
-				text : 'Modify',
-				ref : 'modDomainButton',
-				iconCls : 'edit',
-				xtype : 'splitbutton',
-				handler : function() {
-					this.cellEditor.startEdit(this.grid.getSelectionModel().getLastSelected(), this.grid.headerCt.getHeaderAtIndex(0));
-				},
-				scope : this,
-				menu : [{
-					text : 'Reseed Domain',
-					handler : this.reseed,
-					scope : this,
-				}, {
-					text : 'Reseed All Domains',
-					handler : this.reseedAll,
-					scope : this,
-				}]
-			}, {
-				text : 'Delete',
-				ref : 'delDomainButton',
-				handler : this.doDeleteDomain,
-				scope : this,
-				iconCls : 'cross',
-			}, '-', {
-				text : 'Advanced',
-				iconCls : 'tools',
-				menu : [{
-					text : 'Design options',
-					iconCls : 'wrench',
-					handler : this.designOptions,
-					scope : this,
-				}, {
-					text : 'Tweak score parameters',
-					iconCls : 'ui-slider',
-					handler : this.scoreParams,
-					scope : this,
-				}]
-			}, '->', {
-				text : 'Save',
-				iconCls : 'save'
-			}],
-			bbar : new Ext.ux.statusbar.StatusBar({
-				ref : 'statusBar',
-				items : [{
-					baseText : 'Score: ',
-					text : 'Score: ',
-					ref : 'scoreField',
-				}, {
-					baseText : 'Attempts: ',
-					text : 'Attempts: ',
-					ref : 'attemptCount',
-				}, {
-					baseText : 'Mutations: ',
-					text : 'Mutations: ',
-					ref : 'mutCount',
-				}]
-			})
+			}), new App.ui.CodeMirror({
+				region : 'south',
+				title : 'Strands',
+				ref : 'strandsPane',
+				collapsible : true,
+				height : 200,
+				split : true,
+				border : true,   //'1 0 0 0',
+				bodyBorder : true,
+				margin : '0 2 2 2',
+				mode : 'sequence'
+
+			})]
+
 		});
 		this.on('afterrender', this.loadFile, this);
 		this.callParent(arguments);
@@ -261,13 +365,22 @@ Ext.define('App.ui.DD', {
 			this[cmp.ref] = cmp;
 		}, this);
 	},
-	setStrands: function() {
-	
-	},
-	onLoad : function() {
-		var spec = DNA.structureSpec(CodeMirror.tokenize(this.data, 'nupack'));
+	updateDomainsFromSpec : function() {
+		var spec = DNA.structureSpec(CodeMirror.tokenize(this.struct.getValue(), 'nupack'));
+		this.syncDomains(spec.domains,this.clobberOnUpdate.checked);
 		this.setStrands(spec.strands);
-		this.addDomains(_.values(spec.domains));
+	},
+	setStrands : function(strands) {
+		this.strands = strands;
+	},
+	/**
+	 * Loads the given design from a *.nupack or *.domains file
+	 */
+	onLoad : function() {
+		if(!!this.data) {
+			this.struct.setValue(this.data);
+			this.updateDomainsFromSpec();
+		}
 	},
 	reseed : function() {
 
@@ -275,12 +388,24 @@ Ext.define('App.ui.DD', {
 	reseedAll : function() {
 
 	},
+	updateDomain: function(rec) {
+		this.designer.updateDomain(this.store.indexOf(rec), rec.get('sequence'), rec.get('importance'), rec.get('composition'));
+	},
+	/**
+	 * Updates the design options in the designer
+	 */
 	updateOptions : function(v) {
 		this.designer.updateOptions(v);
 	},
+	/**
+	 * Updates the design rules in the designer
+	 */
 	updateRules : function() {
 		this.designer.updateRules(v);
 	},
+	/**
+	 * Shows the design rules window
+	 */
 	designOptions : function() {
 		if(!this.designOptionsWindow) {
 			this.designOptionsWindow = Ext.create('App.ui.DD.RulesWindow', {
@@ -291,6 +416,9 @@ Ext.define('App.ui.DD', {
 		this.designOptionsWindow.setValues(this.designer.getRules());
 		this.designOptionsWindow.show();
 	},
+	/**
+	 * Shows the score parameters window
+	 */
 	scoreParams : function() {
 		if(!this.scoreParamsWindow) {
 			this.scoreParamsWindow = Ext.create('App.ui.DD.OptionsWindow', {
@@ -301,12 +429,18 @@ Ext.define('App.ui.DD', {
 		this.scoreParamsWindow.setValues(this.designer.getOptions());
 		this.scoreParamsWindow.show();
 	},
+	/**
+	 * Updates the status bar to reflect the number of attempts and successful mutations
+	 */
 	updateStatusBar : function() {
 		var attempts = this.designer.getMutationAttempts(), muts = this.designer.getMutationCount(), score = this.designer.getWorstScore();
 		this.attemptCount.setText(this.attemptCount.baseText + attempts);
 		this.mutCount.setText(this.mutCount.baseText + muts);
 		this.scoreField.setText(this.scoreField.baseText + score);
 	},
+	/**
+	 * Deletes the selected domain
+	 */
 	doDeleteDomain : function() {
 		var rec = this.grid.getSelectionModel().getLastSelected();
 		if(rec) {
@@ -314,7 +448,30 @@ Ext.define('App.ui.DD', {
 			this.store.remove(rec);
 		}
 	},
+	syncDomains: function(domains,clobber) {
+		clobber = clobber || false;
+		_.each(domains,function(spec,name) {
+			var rec = this.store.findRecord('name',name);
+			if(!rec && _.isNumber(name)) {
+				rec = this.store.getAt(name);
+			}
+			if(!rec) {
+				this.addDomains([spec],[name]);
+			} else {
+				if(clobber) {
+					rec.set('sequence',spec);
+					this.updateDomain(rec);
+				}
+			}
+		},this);
+	},
+	/**
+	 * Shows the {@link #addDomainsWindow}
+	 */
 	addManyDomains : function() {
+		/**
+		 * @property {App.ui.DD.SequenceWindow} addDomainsWindow
+		 */
 		if(!this.addDomainsWindow) {
 			this.addDomainsWindow = Ext.create('App.ui.DD.SequenceWindow', {
 				designer : this
@@ -322,41 +479,57 @@ Ext.define('App.ui.DD', {
 		}
 		this.addDomainsWindow.show();
 	},
-	addDomains : function(seqs) {
-		var imp = 1, comp = 15, start = this.designer.getDomainCount(), end;
+	/**
+	 * Adds the passed domains to the designer
+	 * @param {String[]} seqs Array of sequences to add
+	 */
+	addDomains : function(seqs, names) {
+		var imp = 1, comp = 15; //, start = this.designer.getDomainCount(), end;
 		this.designer.addDomains(seqs, imp, comp);
-		end = this.designer.getDomainCount();
-		var newSeqs = [];
-		for(var i = start; i < end; i++) {
-			newSeqs.push(this.designer.printfDomainById(i));
-		}
-		this.store.add(_.map(newSeqs, function(seq) {
+		// end =   this.designer.getDomainCount() - 1;
+		// var newSeqs = [];
+		// for(var i = start; i < end; i++) {
+			// newSeqs.push(this.designer.printfDomainById(i));
+		// }
+		this.store.add(_.map(seqs /*newSeqs*/, function(seq, i) {
 			return {
 				sequence : seq,
 				importance : imp,
 				composition : comp,
+				name : (names && names[i]) ? names[i] : '',
 			};
 		}, this));
 		this.scoresDirty = true;
 		this.designer.evaluateIntrinsicScores();
 	},
+	/**
+	 * Add a domain from the {@link #addDomainButton}
+	 */
 	doAddDomain : function() {
 		var len = this.addDomLen.getValue();
 		var seq = this.designer.randomSequence(1,len)[0];
 		this.addDomain(this.designer.printfDomain(seq), 1, 15);
 	},
-	addDomain : function(seq, imp, comp) {
+	/**
+	 * Adds a domain to the {@link #designer}
+	 */
+	addDomain : function(seq, imp, comp, name) {
 		// false to not clobber
+		name || (name = '');
 		this.designer.addDomains([seq], imp, comp, false);
-		var seq = this.designer.printfDomainById(this.designer.getDomainCount());
+		var seq = this.designer.printfDomainById(this.designer.getDomainCount() - 1);
 		this.store.add({
 			sequence : seq,
 			importance : imp,
 			composition : comp,
+			name : name,
 		});
 		this.designer.evaluateIntrinsicScores();
 		this.scoresDirty = true;
 	},
+	/**
+	 * Starts or stops mutations
+	 */
 	toggleMutation : function() {
 		if(this.mutating) {
 			this.pauseMutation();
@@ -364,8 +537,20 @@ Ext.define('App.ui.DD', {
 			this.startMutation();
 		}
 	},
+	/**
+	 * @cfg {Number}
+	 * Number of mutations to perform before updating the UI
+	 */
 	mutationStep : 50,
+	/**
+	 * @property {Number}
+	 * Number of mutations performed since the UI was last updated
+	 */
 	mutationCount : 0,
+	/**
+	 * Method run on a loop; to perform mutations and occasionally updating the UI with {@link #updateInterface}
+	 * started by {@link #startMutation}, paused by {@link #pauseMutation}
+	 */
 	mutationLoop : function() {
 		if(this.mutationCount > this.mutationStep) {
 			this.updateInterface();
@@ -377,13 +562,14 @@ Ext.define('App.ui.DD', {
 	doMutation : function() {
 		this.designer.mutate();
 	},
+	/**
+	 * Updates the UI after {@link #mutationStep} mutations
+	 */
 	updateInterface : function() {
 		this.updateStatusBar();
 		// true to force a re-tally (since domain_score[] isn't automatically updated when a
 		// mutation is rejected; we risk showing an increased score that was actually rejected)
 		var scores = this.designer.getScores(true), mut_dom = this.designer.getMutatedDomain(), mut_dom_seq = this.designer.printfDomainById(mut_dom), rec;
-		//this.output.update(this.designer.printDomains());
-		// //this.store.suspendEvents();
 		for(var i = 0; i < scores.length; i++) {
 			rec = this.store.getAt(i);
 			//+1);
@@ -394,12 +580,21 @@ Ext.define('App.ui.DD', {
 		}
 		rec = this.store.getAt(mut_dom);
 		rec.set('sequence', mut_dom_seq);
-		//this.store.resumeEvents();
 		this.store.sync();
-		if(this.designer.getWorstScore() != _.max(scores)) {
-			// throw 'Worst score increase'
+		if(this.strands) {
+			var segments = _.reduce(this.store.getRange(),function(memo,rec) {
+				var name = rec.get('name'), i = this.store.indexOf(rec);
+				memo[name ? name : i] = this.designer.printDomainById(i);
+				return memo;
+			},{},this);
+			this.strandsPane.setValue(_.map(this.strands,function(spec,name) {
+				return name+' : '+DNA.threadSegments(segments,spec);
+			}).join('\n'));
 		}
 	},
+	/**
+	 * Begins mutating on a timer
+	 */
 	startMutation : function() {
 		this.mutateButton.setIconCls('pause');
 		_.invoke([this.modDomainButton, this.addDomainButton, this.delDomainButton], 'disable');
@@ -418,6 +613,9 @@ Ext.define('App.ui.DD', {
 		}
 		this.mutating = true;
 	},
+	/**
+	 * Stops the mutation timer task
+	 */
 	pauseMutation : function() {
 		this.mutateButton.setIconCls('play');
 		_.invoke([this.modDomainButton, this.addDomainButton, this.delDomainButton], 'enable');
@@ -450,64 +648,59 @@ If you are unsure which license is appropriate for your use, please contact the 
  *
  * This plugin assumes that it has control over the features used for this
  * particular grid section and may conflict with other plugins.
- * 
+ *
  * @alias plugin.preview
  * @ptype preview
  */
 Ext.define('Ext.ux.PreviewPlugin', {
-    extend: 'Ext.AbstractPlugin',
-    alias: 'plugin.preview',
-    requires: ['Ext.grid.feature.RowBody', 'Ext.grid.feature.RowWrap'],
-    
-    // private, css class to use to hide the body
-    hideBodyCls: 'x-grid-row-body-hidden',
-    
-    /**
-     * @cfg {String} bodyField
-     * Field to display in the preview. Must me a field within the Model definition
-     * that the store is using.
-     */
-    bodyField: '',
-    
-    /**
-     * @cfg {Boolean} previewExpanded
-     */
-    previewExpanded: true,
-    
-    constructor: function(config) {
-        this.callParent(arguments);
-        var bodyField   = this.bodyField,
-            hideBodyCls = this.hideBodyCls,
-            section     = this.getCmp(),
-            features = [{
-                ftype: 'rowbody',
-                getAdditionalData: function(data, idx, record, orig, view) {
-                    var o = Ext.grid.feature.RowBody.prototype.getAdditionalData.apply(this, arguments);
-                    Ext.apply(o, {
-                        rowBody: data[bodyField],
-                        rowBodyCls: section.previewExpanded ? '' : hideBodyCls
-                    });
-                    return o;
-                }
-            },{
-                ftype: 'rowwrap'
-            }];
-        
-        section.previewExpanded = this.previewExpanded;
-        if (!section.features) {
-            section.features = [];
-        }
-        section.features = features.concat(section.features);
-    },
-    
-    /**
-     * Toggle between the preview being expanded/hidden
-     * @param {Boolean} expanded Pass true to expand the record and false to not show the preview.
-     */
-    toggleExpanded: function(expanded) {
-        var view = this.getCmp();
-        this.previewExpanded = view.previewExpanded = expanded;
-        view.refresh();
-    }
-});
+	extend : 'Ext.AbstractPlugin',
+	alias : 'plugin.preview',
+	requires : ['Ext.grid.feature.RowBody', 'Ext.grid.feature.RowWrap'],
 
+	// private, css class to use to hide the body
+	hideBodyCls : 'x-grid-row-body-hidden',
+
+	/**
+	 * @cfg {String} bodyField
+	 * Field to display in the preview. Must me a field within the Model definition
+	 * that the store is using.
+	 */
+	bodyField : '',
+
+	/**
+	 * @cfg {Boolean} previewExpanded
+	 */
+	previewExpanded : true,
+
+	constructor : function(config) {
+		this.callParent(arguments);
+		var bodyField = this.bodyField, hideBodyCls = this.hideBodyCls, section = this.getCmp(), features = [{
+			ftype : 'rowbody',
+			getAdditionalData : function(data, idx, record, orig, view) {
+				var o = Ext.grid.feature.RowBody.prototype.getAdditionalData.apply(this, arguments);
+				Ext.apply(o, {
+					rowBody : data[bodyField],
+					rowBodyCls : section.previewExpanded ? '' : hideBodyCls
+				});
+				return o;
+			}
+		}, {
+			ftype : 'rowwrap'
+		}];
+
+		section.previewExpanded = this.previewExpanded;
+		if(!section.features) {
+			section.features = [];
+		}
+		section.features = features.concat(section.features);
+	},
+	/**
+	 * Toggle between the preview being expanded/hidden
+	 * @param {Boolean} expanded Pass true to expand the record and false to not show the preview.
+	 */
+	toggleExpanded : function(expanded) {
+		var view = this.getCmp();
+		this.previewExpanded = view.previewExpanded = expanded;
+		view.refresh();
+	}
+});

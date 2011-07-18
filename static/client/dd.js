@@ -1,3 +1,15 @@
+/**
+ * Domain-based sequence design
+ * v. 0.3
+ * by Dave Zhang
+ *
+ * Ported to Javascript by Casey Grun
+ */
+
+/**
+ * @class DD
+ * Domain-based sequence designer
+ */
 var DD = function() {
 
 	// include <stdlib.h>
@@ -18,28 +30,41 @@ var DD = function() {
 	var NB_DISABLE = 0
 
 	var options = {
-		MAX_MUTATIONS : 10,        // maximum number of simultaneous mutations
+		// maximum number of simultaneous mutations
+		MAX_MUTATIONS : 10,
 		GCstr : 2,
 		ATstr : 1,
 		GTstr : 0,
-		MBstr : -3,        // mismatch, bulge
-		LLstr : -0.5,        // large loop
-		DHstr : 3,        // score for domain ending in a base pair
+		// mismatch, bulge
+		MBstr : -3,
+		// large loop
+		LLstr : -0.5,
+		// score for domain ending in a base pair
+		DHstr : 3,
 		MAX_IMPORTANCE : 100,
 		LHbases : 4,
 		LHstart : 2,
 		LHpower : 2,
-		INTRA_SCORE : 5,        // score bonus for intrastrand/dimerization interactions
-		CROSSTALK_SCORE : -5,        // score bonus for crosstalk (as compared to interaction)
-		CROSSTALK_DIV : 2,        // crosstalk score is divided by this much (and then score is subtracted)
+		// score bonus for intrastrand/dimerization interactions
+		INTRA_SCORE : 5,
+		// score bonus for crosstalk (as compared to interaction)
+		CROSSTALK_SCORE : -5,
+		// crosstalk score is divided by this much (and then score is subtracted)
+		CROSSTALK_DIV : 2,            
 		GGGG_PENALTY : 50,
 		ATATAT_PENALTY : 20,
-		SHANNON_BONUS : 3,      // the adjusted shannon entropy is multiplied by this ammount and subtracted from the score
-		SHANNON_ADJUST : 0.7, // values with less than SHANNON_ADJUST * (maximum expected entropy given alphabet size k)
+		     // the adjusted shannon entropy is multiplied by this ammount and subtracted from the score
+		SHANNON_BONUS : 3,     
+		// values with less than SHANNON_ADJUST * (maximum expected entropy given alphabet size k)
+		SHANNON_ADJUST : 0.7, 
 	};
 
 	var GCstr, ATstr, GTstr, MBstr, LLstr, DHstr, MAX_IMPORTANCE, LHbases, LHstart, LHpower, INTRA_SCORE, CROSSTALK_SCORE, CROSSTALK_DIV, GGGG_PENALTY, ATATAT_PENALTY, MAX_MUTATIONS, SHANNON_BONUS, SHANNON_ADJUST;
-
+	
+	/**
+	 * Copies values of {@link options} hash to local variables
+	 * @private
+	 */
 	function copyOptions() {
 		MAX_MUTATIONS = options.MAX_MUTATIONS;
 		// maximum number of simultaneous mutations
@@ -70,6 +95,9 @@ var DD = function() {
 
 	copyOptions();
 
+	/**
+	 * Generates a random number between <var>from</var> and <var>to</var>
+	 */
 	function int_urn(from, to) {
 		// var temp;
 		// var temp2;
@@ -79,37 +107,11 @@ var DD = function() {
 		return Math.round(temp);
 	}
 
-	function out(base) {
-		// 1 = G, 2 = A, 3 = T, 4 = C; 11 = G (locked), etc
-		if(base == 1)
-			return "G";
-		else if(base == 2)
-			return "A";
-		else if(base == 3)
-			return "T";
-		else if(base == 4)
-			return "C";
-		else if(base == 11)
-			return "G";
-		//printf("\033[1;31;47mG\033[0;30;47m");
-		else if(base == 12)
-			return "A";
-		//printf("\033[1;31;47mA\033[0;30;47m");
-		else if(base == 13)
-			return "T";
-		//printf("\033[1;31;47mT\033[0;30;47m");
-		else if(base == 14)
-			return "C";
-		//printf("\033[1;31;47mC\033[0;30;47m");
-		else {
-			console.error("Unknown base! %d \n", base);
-			throw "Unknown base " + base;
-			//throw 'Error';
-		}
-		// ESC[Ps;...;Psm
-		// 0;31;40m sets conditions (check ANSI code)
-	}
-
+	/**
+	 * Converts DD's internal numerical representation of bases to a string, using capitalization to indicate lock state.
+	 * @param {Number} base Base to convert
+	 * @return {String} baseFormatted
+	 */
 	function displayBaseFormatted(base) {
 		switch(base) {
 			case 1:
@@ -131,6 +133,11 @@ var DD = function() {
 		}
 	}
 
+	/**
+	 * Converts DD's internal numerical representation of bases to a string
+	 * @param {Number} base Base to convert
+	 * @return {String} baseFormatted
+	 */
 	function displayBase(base) {
 		switch(base) {
 			case 1:
@@ -148,6 +155,13 @@ var DD = function() {
 		}
 	}
 
+	/**
+	 * Computes the interaction between two domains
+	 * @param {Number[]} seq1
+	 * @param {Number} len1
+	 * @param {Number[]} seq2
+	 * @param {Number} len2
+	 */
 	// double pairscore(int* seq1, int len1, int* seq2, int len2)
 	function pairscore(seq1, len1, seq2, len2) {
 		// Gives the score of the two sequences's crosstalk
@@ -335,6 +349,12 @@ var DD = function() {
 		return score;
 	}
 
+	/**
+	 * selfcrosstalk
+	 * Scores the interaction of a domain with itself
+	 * @param {Number[]} seq1 Numerical representation of domain in question
+	 * @param {Number} len1 Length of domain
+	 */
 	// double selfcrosstalk(int* seq1, int len1)
 	function selfcrosstalk(seq1, len1) {
 		// Gives the score of the two sequences's crosstalk
@@ -516,9 +536,10 @@ var DD = function() {
 		return score;
 	}
 
-	/********************
+	/* *******************
 	 * Main
-	 ********************/
+	 * *******************/
+
 	var i, j, k, x;
 	var score, old_score, old_d_intrinsic;
 	// Score of system
@@ -562,14 +583,14 @@ var DD = function() {
 
 	// Set default parameters
 	var rules = {
-		rule_4g : 1,        // cannot have 4 G's or 4 C's in a row
-		rule_6at : 1,        // cannot have 6 A/T or G/C bases in a row
-		rule_ccend : 1,        // domains MUST start and end with C
-		rule_ming : 1,        // design tries to minimize usage of G
-		rule_init : 7,        // 15 = polyN, 7 = poly-H, 3 = poly-Y, 2 = poly-T
-		rule_targetworst : 1,        // target worst domain
-		rule_gatc_avail : 15,        // all bases available
-		rule_lockold : 0,    // lock all old bases (NO)
+		rule_4g : 1,            // cannot have 4 G's or 4 C's in a row
+		rule_6at : 1,            // cannot have 6 A/T or G/C bases in a row
+		rule_ccend : 1,            // domains MUST start and end with C
+		rule_ming : 1,            // design tries to minimize usage of G
+		rule_init : 7,            // 15 = polyN, 7 = poly-H, 3 = poly-Y, 2 = poly-T
+		rule_targetworst : 1,            // target worst domain
+		rule_gatc_avail : 15,            // all bases available
+		rule_lockold : 0,        // lock all old bases (NO)
 		rule_targetdomain : [],
 	}
 
@@ -702,26 +723,29 @@ var DD = function() {
 			buffer = domains[j-start].trim();
 			i = domains[j-start].length;
 			domain_length[j] = i;
-			domain[j] = new Array(i  /* int */
-			);
-			for( i = 0; i < domain_length[j]; i++) {
-				if(buffer[i] == 'g')
-					domain[j][i] = 1;
-				if(buffer[i] == 'a')
-					domain[j][i] = 2;
-				if(buffer[i] == 't')
-					domain[j][i] = 3;
-				if(buffer[i] == 'c')
-					domain[j][i] = 4;
-				if(buffer[i] == 'G')
-					domain[j][i] = 11;
-				if(buffer[i] == 'A')
-					domain[j][i] = 12;
-				if(buffer[i] == 'T')
-					domain[j][i] = 13;
-				if(buffer[i] == 'C')
-					domain[j][i] = 14;
-			}
+			domain[j] = parseDomain(buffer);
+			// new Array(i  /* int */
+			// );
+			/*
+			 for( i = 0; i < domain_length[j]; i++) {
+			 if(buffer[i] == 'g')
+			 domain[j][i] = 1;
+			 if(buffer[i] == 'a')
+			 domain[j][i] = 2;
+			 if(buffer[i] == 't')
+			 domain[j][i] = 3;
+			 if(buffer[i] == 'c')
+			 domain[j][i] = 4;
+			 if(buffer[i] == 'G')
+			 domain[j][i] = 11;
+			 if(buffer[i] == 'A')
+			 domain[j][i] = 12;
+			 if(buffer[i] == 'T')
+			 domain[j][i] = 13;
+			 if(buffer[i] == 'C')
+			 domain[j][i] = 14;
+			 }
+			 */
 
 			domain_importance[j] = _.isArray(importance) ? importance[ j - start] : (_.isNumber(importance) ? importance : 1 );
 			domain_gatc_avail[j] = _.isArray(composition) ? composition[ j - start] : (_.isNumber(composition) ? composition : 15 );
@@ -732,6 +756,11 @@ var DD = function() {
 
 	}
 
+	/**
+	 * popDomain
+	 * Removes the last domain in the ensemble and returns its score
+	 * @return {Number} score Score of the domain removed
+	 */
 	function popDomain() {
 		domain.pop();
 		domain_length.pop();
@@ -743,6 +772,11 @@ var DD = function() {
 		return ds;
 	}
 
+	/**
+	 * removeDomain
+	 * Removes the given domain from the ensemble
+	 * @param {Number} id The index of the domain to be removed
+	 */
 	function removeDomain(id) {
 		domain.splice(id, 1);
 		domain_length.splice(id, 1);
@@ -755,30 +789,49 @@ var DD = function() {
 
 	}
 
+	/**
+	 * parseDomain
+	 * Builds a numerical representation of a textual domain specification (e.g. ATAG -> [12,13,12,11])
+	 * @param {String} buffer String representation of the domain in question; can contain A,T,C,G. Uppercase
+	 * (ATCG) bases are assumed to be locked, while lowercase (atcg) bases will be mutated by DD.
+	 * @return {Number[]} domain Numerical representation of the domain in question.
+	 * 1 = G, 2 = A, 3 = T, 4 = C; 11 = G (locked), 12 = A (locked), ... etc
+	 */
 	function parseDomain(buffer) {
 		var out = new Array(buffer.length  /* int */
 		);
 		for( i = 0; i < buffer.length; i++) {
 			if(buffer[i] == 'g')
 				out[i] = 1;
-			if(buffer[i] == 'a')
+			else if(buffer[i] == 'a')
 				out[i] = 2;
-			if(buffer[i] == 't')
+			else if(buffer[i] == 't')
 				out[i] = 3;
-			if(buffer[i] == 'c')
+			else if(buffer[i] == 'c')
 				out[i] = 4;
-			if(buffer[i] == 'G')
+			else if(buffer[i] == 'G')
 				out[i] = 11;
-			if(buffer[i] == 'A')
+			else if(buffer[i] == 'A')
 				out[i] = 12;
-			if(buffer[i] == 'T')
+			else if(buffer[i] == 'T')
 				out[i] = 13;
-			if(buffer[i] == 'C')
+			else if(buffer[i] == 'C')
 				out[i] = 14;
+			else if(buffer[i] == 'N' || buffer[i] == 'n')
+				out[i] = randomBase();
 		}
 		return out;
 	}
 
+	/**
+	 * loadFile
+	 * Loads file contents into the designer
+	 * @param {String} fileContents File contents, in the following format:
+	 * 		[domain count]
+	 * 		[domain] [importance ][composition]
+	 * 		...
+	 * @param {Number} newDomains How many new domains to construct
+	 */
 	function loadFile(fileContents, newDomains) {
 		var f = _.compact(fileContents.split('\n'));
 
@@ -823,26 +876,29 @@ var DD = function() {
 			}
 
 			domain_length[j] = i;
-			domain[j] = new Array(i  /* int */
-			);
-			for( i = 0; i < domain_length[j]; i++) {
-				if(buffer[i] == 'g')
-					domain[j][i] = 1;
-				if(buffer[i] == 'a')
-					domain[j][i] = 2;
-				if(buffer[i] == 't')
-					domain[j][i] = 3;
-				if(buffer[i] == 'c')
-					domain[j][i] = 4;
-				if(buffer[i] == 'G')
-					domain[j][i] = 11;
-				if(buffer[i] == 'A')
-					domain[j][i] = 12;
-				if(buffer[i] == 'T')
-					domain[j][i] = 13;
-				if(buffer[i] == 'C')
-					domain[j][i] = 14;
-			}
+			domain[j] = parseDomain(buffer.substr(0, i));
+			//domain[j] = new Array(i  /* int */
+			//);
+			/*
+			 for( i = 0; i < domain_length[j]; i++) {
+			 if(buffer[i] == 'g')
+			 domain[j][i] = 1;
+			 if(buffer[i] == 'a')
+			 domain[j][i] = 2;
+			 if(buffer[i] == 't')
+			 domain[j][i] = 3;
+			 if(buffer[i] == 'c')
+			 domain[j][i] = 4;
+			 if(buffer[i] == 'G')
+			 domain[j][i] = 11;
+			 if(buffer[i] == 'A')
+			 domain[j][i] = 12;
+			 if(buffer[i] == 'T')
+			 domain[j][i] = 13;
+			 if(buffer[i] == 'C')
+			 domain[j][i] = 14;
+			 }
+			 */
 			i = domain_length[j] + 1;
 			domain_importance[j] = 0;
 			while(buffer[i] != ' ') {
@@ -875,6 +931,12 @@ var DD = function() {
 
 	}
 
+	/**
+	 * newDesign
+	 * Generates a given number of new domains
+	 * @param {Number} domainCount How many domains to construct
+	 * @param {Number/Number[]} Scalar length for all new domains, or array of lengths for new domains.
+	 */
 	function newDesign(domainCount, domainLengths) {
 		num_domain = domainCount;
 
@@ -942,6 +1004,11 @@ var DD = function() {
 		startingDomainSequences();
 	}
 
+	/**
+	 * setupScoreMatricies
+	 * Builds domain_score, domain_intrinsic, crosstalk, and interaction Arrays
+	 * TODO: Only mutate existing arrays when adding domains
+	 */
 	function setupScoreMatricies() {
 		// Set up domain score matrix
 		if(( domain_score = new Array(num_domain  /* double */
@@ -986,6 +1053,22 @@ var DD = function() {
 		}
 	}
 
+	function randomBase() {
+		var b = 0;
+		while(b == 0) {
+			k = int_urn(1, 4);
+			if((k == 4) && (Math.floor(rule_init / 8) == 1))
+				b = 1;
+			if((k == 3) && (Math.floor(rule_init / 4) % 2 == 1))
+				b = 2;
+			if((k == 2) && (Math.floor(rule_init / 2) % 2 == 1))
+				b = 3;
+			if((k == 1) && (Math.floor(rule_init % 2) == 1))
+				b = 4;
+		}
+		return b;
+	}
+
 	/**
 	 * Seed domains with new sequences according to base composition rules
 	 */
@@ -997,18 +1080,7 @@ var DD = function() {
 		for( i = 0; i < num_domain; i++) {
 			domain_gatc_avail[i] = rule_gatc_avail;
 			for( j = 0; j < domain_length[i]; j++) {
-				domain[i][j] = 0;
-				while(domain[i][j] == 0) {
-					k = int_urn(1, 4);
-					if((k == 4) && (Math.floor(rule_init / 8) == 1))
-						domain[i][j] = 1;
-					if((k == 3) && (Math.floor(rule_init / 4) % 2 == 1))
-						domain[i][j] = 2;
-					if((k == 2) && (Math.floor(rule_init / 2) % 2 == 1))
-						domain[i][j] = 3;
-					if((k == 1) && (Math.floor(rule_init % 2) == 1))
-						domain[i][j] = 4;
-				}
+				domain[i][j] = randomBase();
 			}
 
 			if(rule_ccend == 1) {
@@ -1033,6 +1105,12 @@ var DD = function() {
 		}
 	}
 
+	/**
+	 * randomSequence
+	 * Generates <var>doms</var> random sequences, subject to configured base composition rules.
+	 * @param {Number} doms How many sequences to construct
+	 * @param {Number/Number[]} len Scalar length for all new domains, or array of lengths for new domains.
+	 */
 	function randomSequence(doms, len) {
 		var out = new Array(doms);
 
@@ -1077,6 +1155,52 @@ var DD = function() {
 			}
 		}
 		return out;
+	}
+
+	/**
+	 * resetSequences
+	 * Resets all sequences
+	 */
+	function resetSequences() {
+		for( i = 0; i < num_domain; i++) {
+			for( j = 0; j < domain_length[i]; j++) {
+				if(domain[i][j] < 10) {
+					domain[i][j] = 0;
+					while(domain[i][j] == 0) {
+						k = int_urn(1, 4);
+						if((k == 4) && (rule_init / 8 == 1))
+							domain[i][j] = 1;
+						if((k == 3) && ((rule_init / 4) % 2 == 1))
+							domain[i][j] = 2;
+						if((k == 2) && ((rule_init / 2) % 2 == 1))
+							domain[i][j] = 3;
+						if((k == 1) && (rule_init % 2 == 1))
+							domain[i][j] = 4;
+					}
+				}
+			}
+
+			if(rule_ccend == 1) {
+				if(domain_gatc_avail[i] % 2 == 1)
+					domain[i][0] = 14;
+				else if(domain_gatc_avail[i] / 8 == 1)
+					domain[i][0] = 11;
+				else if((domain_gatc_avail[i] / 2) % 2 == 1)
+					domain[i][0] = 13;
+				else
+					domain[i][0] = 12;
+
+				if(domain_gatc_avail[i] % 2 == 1)
+					domain[i][domain_length[i] - 1] = 14;
+				else if(domain_gatc_avail[i] / 8 == 1)
+					domain[i][domain_length[i] - 1] = 11;
+				else if((domain_gatc_avail[i] / 4) % 2 == 1)
+					domain[i][domain_length[i] - 1] = 12;
+				else
+					domain[i][domain_length[i] - 1] = 13;
+			}
+
+		}
 	}
 
 	pausemode = 1;
@@ -1169,52 +1293,6 @@ var DD = function() {
 			for( i = 0; i < 10; i++) {
 				for( j = 0; j < SCREENWIDTH; j++)printf(" ");
 				printf("\n");
-			}
-		}
-
-		function resetSequences() {
-			tempchar2 = myhotinput(2, '@', ' ');
-			if(tempchar2 == '@') {
-				for( i = 0; i < num_domain; i++) {
-					for( j = 0; j < domain_length[i]; j++) {
-						if(domain[i][j] < 10) {
-							domain[i][j] = 0;
-							while(domain[i][j] == 0) {
-								k = int_urn(1, 4);
-								if((k == 4) && (rule_init / 8 == 1))
-									domain[i][j] = 1;
-								if((k == 3) && ((rule_init / 4) % 2 == 1))
-									domain[i][j] = 2;
-								if((k == 2) && ((rule_init / 2) % 2 == 1))
-									domain[i][j] = 3;
-								if((k == 1) && (rule_init % 2 == 1))
-									domain[i][j] = 4;
-							}
-						}
-					}
-
-					if(rule_ccend == 1) {
-						if(domain_gatc_avail[i] % 2 == 1)
-							domain[i][0] = 14;
-						else if(domain_gatc_avail[i] / 8 == 1)
-							domain[i][0] = 11;
-						else if((domain_gatc_avail[i] / 2) % 2 == 1)
-							domain[i][0] = 13;
-						else
-							domain[i][0] = 12;
-
-						if(domain_gatc_avail[i] % 2 == 1)
-							domain[i][domain_length[i] - 1] = 14;
-						else if(domain_gatc_avail[i] / 8 == 1)
-							domain[i][domain_length[i] - 1] = 11;
-						else if((domain_gatc_avail[i] / 4) % 2 == 1)
-							domain[i][domain_length[i] - 1] = 12;
-						else
-							domain[i][domain_length[i] - 1] = 13;
-					}
-					gotoxy(6, 5 + i);
-					for( j = 0; j < domain_length[i]; j++)displayBase(domain[i][j]);
-				}
 			}
 		}
 
@@ -1417,7 +1495,11 @@ var DD = function() {
 		}
 	}
 
-	// Evaluate current scores
+	/**
+	 * evaluateAllScores
+	 * Evaluate current scores for all domains in the ensemble. This function can take a long time for large ensembles, so when you're only changing
+	 * one domain, it's better to call {@link #evaluateScores}
+	 */
 	function evaluateAllScores() {
 
 		// Calculate interaction (pairscore) and crosstalk (selfcrosstalk) of each domain
@@ -1439,6 +1521,10 @@ var DD = function() {
 		tallyScores();
 	}
 
+	/**
+	 * evaluateIntrinsicScores
+	 * Evaluates intrinsic (heuristic) scores for all domains in the ensemble
+	 */
 	function evaluateIntrinsicScores() {
 		for( i = 0; i < num_domain; i++) {
 			evaluateIntrinsicScore(i);
@@ -1446,7 +1532,8 @@ var DD = function() {
 	}
 
 	/**
-	 * Populates domain_score for each domain 0...num_domain
+	 * tallyScores
+	 * Populates domain_score for each domain i = 0...num_domain, as follows:
 	 * domain_score[i] = max(weighted interaction score , weighted crosstalk score) + intrinsic score
 	 */
 	function tallyScores() {
@@ -1468,9 +1555,9 @@ var DD = function() {
 				worst_domain = i;
 			}
 		}
-		if(rule_targetdomain && rule_targetdomain.length>0) {
+		if(rule_targetdomain && rule_targetdomain.length > 0) {
 			score = 0;
-			for( i=0; i< rule_targetdomain.length; i++) {
+			for( i = 0; i < rule_targetdomain.length; i++) {
 				if(domain_score[rule_targetdomain[i]] > score) {
 					score = domain_score[rule_targetdomain[i]];
 					worst_domain = rule_targetdomain[i];
@@ -1479,6 +1566,12 @@ var DD = function() {
 		}
 	}
 
+	/**
+	 * evaluateScores
+	 * Evaluates intrinsic score of the given domain, as well as interaction and crosstalk scores between the given domain
+	 * and all other domains in the ensemble. Use this when to evaluate scores after a single domain has been mutated.
+	 * @param {Number} dom Index of the mutated domain
+	 */
 	function evaluateScores(dom) {
 		old_score = score;
 		old_d_intrinsic = domain_intrinsic[dom];
@@ -1505,6 +1598,11 @@ var DD = function() {
 		tallyScores();
 	}
 
+	/**
+	 * evaluateIntrinsicScore
+	 * Evaluates the intrinsic (heuristic) score of a given domain
+	 * @param {Number} dom Index of the domain in question.
+	 */
 	function evaluateIntrinsicScore(dom) {
 		domain_intrinsic[dom] = 0;
 
@@ -1519,6 +1617,11 @@ var DD = function() {
 		}
 	}
 
+	/**
+	 * doRule_4g
+	 * Applies a penalty to domain <var>dom</var> if it contains >= 4 G nucleotides in a row
+	 * @param {Number} dom Index of the domain in question
+	 */
 	function doRule_4g(dom) {
 		k = 0;
 		// G-C counter
@@ -1541,6 +1644,11 @@ var DD = function() {
 		}
 	}
 
+	/**
+	 * doRule_6at
+	 * Applies a penalty to domain <var>dom</var> if it contains >= 6 A or T nucleotides in a row
+	 * @param {Number} dom Index of the domain in question
+	 */
 	function doRule_6at(dom) {
 		k = 0;
 		// AT counter
@@ -1565,6 +1673,15 @@ var DD = function() {
 		}
 	}
 
+	/**
+	 * mutate
+	 * Perform a single round of mutations. The designer will stochastically determine a number between <var>0</var> and {@link #MAX_MUTATIONS}
+	 * to apply to a domain, <var>mut_domain</var>. <var>mut_domain</var> is chosen depending on the value of several rules, applied in the
+	 * following order:
+	 * 	* If {#rule_targetworst}, the domain with the worst score is selected for mutation
+	 * 	* If {#rule_targetdomain}, <var>mut_domain</var> is selected from among {#rule_targetdomain}
+	 * 	* Otherwise, <var>mut_domain</var> is chosen randomly from among all domains in the ensemble.
+	 */
 	function mutate() {
 		num_mut_attempts++;
 
@@ -1573,9 +1690,9 @@ var DD = function() {
 		// gotoxy(30, 11+num_domain);
 		// printf("Mutations: %d", total_mutations);
 
-		/******************************
-		 * Perform mutations
-		 ******************************/
+		/* *****************************
+		* Perform mutations
+		* *****************************/
 
 		// Stochastically determine how many mutations to apply
 		num_mut = 0;
@@ -1674,9 +1791,9 @@ var DD = function() {
 		for( k = 0; k < num_mut; k++)
 		domain[mut_domain][mut_base[k]] = mut_new[k];
 
-		/******************************
+		/* *****************************
 		 * Calculate new scores
-		 ******************************/
+		 * *****************************/
 		old_score = score;
 		evaluateScores(mut_domain);
 
@@ -1759,20 +1876,40 @@ var DD = function() {
 		evaluateScores : evaluateScores,
 		evaluateIntrinsicScores : evaluateIntrinsicScores,
 		popDomain : popDomain,
+
+		/**
+		 * Returns a hash containing all design rules
+		 */
 		getRules : function() {
 			return _.clone(rules);
 		},
+		/**
+		 * Accepts a hash describing a new set of design rules, and updates them within the designer
+		 */
 		updateRules : function(newRules) {
 			_.extend(rules, newRules);
 			copyRules();
 		},
+		/**
+		 * Returns a hash containing all design options (parameters)
+		 */
 		getOptions : function() {
 			return _.clone(options);
 		},
+		/**
+		 * Accepts a hash describing a new set of design options (parameters), and updates them within the designer
+		 */
 		updateOptions : function(newOptions) {
 			_.extend(options, newOptions);
 			copyOptions();
 		},
+		/**
+		 * Updates parameters for a given domain
+		 * @param {Number} domainId Index of the domain in question
+		 * @param {String} seq String representation of the domain's sequence; capitalization indicates lock status
+		 * @param {Number} imp New bscore for the domain (1...{#MAX_IMPORTANCE})
+		 * @param {Number} comp New base composition rules, as bitmask: sum of: 8 (G) + 4 (A) + 2 (T) + 1 (C)
+		 */
 		updateDomain : function(domainId, seq, imp, comp) {
 			seq = seq.trim();
 			domain[domainId] = parseDomain(seq);
@@ -1784,6 +1921,10 @@ var DD = function() {
 				domain_gatc_avail[domainId] = comp;
 			}
 		},
+		/**
+		 * Add <var>dom</var> to the list of domains to be targeted for mutation
+		 * @param {Number} dom Index
+		 */
 		targetDomain : function(dom) {
 			if(rule_targetdomain.indexOf(dom) == -1) {
 				rule_targetdomain.push(dom);
@@ -1791,6 +1932,10 @@ var DD = function() {
 				rules.rule_targetworst = rule_targetworst = 0;
 			}
 		},
+		/**
+		 * Remove <var>dom</var> from the list of domains to be targeted for mutation
+		 * @param {Number} dom Index
+		 */
 		untargetDomain : function(dom) {
 			var i = rule_targetdomain.indexOf(dom)
 			if(i != -1) {
@@ -1869,9 +2014,10 @@ var DD = function() {
 			return this.printComposition(domain_gatc_avail[id]);
 		},
 		printDomains : function() {
-			return _.map(domain, function(dom) {
-				return this.printDomain(dom);
-			}, this);
+			return _.map(domain, this.printDomain(dom), this);
+		},
+		printfDomains : function() {
+			return _.map(domain, this.printfDomain(dom), this);
 		},
 	})
 };

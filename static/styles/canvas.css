@@ -91,11 +91,11 @@ ul.dashboard-actions > li {
 	background-image: url(/images/icons/fugue/layer-shape.png) !important;	
 }
 
-.line {
+.line, .primary {
 	background-image: url(/images/icons/fugue/layer-shape-line.png) !important;	
 }
 
-.path {
+.path, .polyline, .secondary {
 	background-image: url(/images/icons/fugue/layer-shape-polyline.png) !important;	
 }
 
@@ -501,6 +501,9 @@ background-position: 2px 2px;
 } 
 .cm-sequence-g {
 	color: black;
+}
+.cm-sequence-n {
+	color: orange;
 }
 
 .x-tab-inner {

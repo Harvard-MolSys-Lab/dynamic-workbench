@@ -351,7 +351,7 @@ Ext.define('App.ui.SequenceEditor', {
 		this.hamming.on('activate',this.populateHamming,this);
 		this.lev.on('activate',this.populateLev,this);
 		this.stats.on('activate',this.populateStats,this);
-		this.editor.on('cursorChange',this.updateStatusBar,this);
+		this.editor.on('cursorchange',this.updateStatusBar,this);
 	},
 	updateStatusBar: function() {
 		var sel = this.editor.getSelection();

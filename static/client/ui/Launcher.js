@@ -1,5 +1,14 @@
+/**
+ * Manages launching and running {@link App.ui.Application}s. Applications can be launched programattically by calling
+ * {@link App.ui.Launcher#launch}, or simply {App.ui#launch} with a trigger. Triggers identify particular 
+ * applications
+ */
 Ext.define('App.ui.Launcher', {
 	statics : {
+		/**
+		 * @property {String}
+		 * Delimiter to separate trigger properties
+		 */
 		triggerDelimiter : ':',
 		_triggers : {},
 		_openTabs : {},
@@ -62,6 +71,7 @@ Ext.define('App.ui.Launcher', {
 						iconCls : 'application',
 						silent : true
 					});
+					mask.hide();
 				}
 			}
 		},

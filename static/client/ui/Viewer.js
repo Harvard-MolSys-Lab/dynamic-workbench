@@ -2,6 +2,7 @@ Ext.define('App.ui.Viewer', {
 	extend: 'App.ui.Browser',
 	editorType: 'Viewer',
 	iconCls: 'application',
+	autoHideLoadingMask: true,
 	mixins: {
 		app: 'App.ui.Application'
 	},

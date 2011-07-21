@@ -1,13 +1,5 @@
-var utils = require('../utils'),
-proc = require('child_process'),
-fs = require('fs'),
-_ = require('underscore'),
-async = require('async');
-
-sendError = utils.sendError,
-forbidden = utils.forbidden,
-allowedPath = utils.allowedPath,
-getCommand = utils.getCommand;
+var utils = require('../utils'), proc = require('child_process'), fs = require('fs'), _ = require('underscore'), async = require('async'), winston = require('winston');
+sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath, getCommand = utils.getCommand;
 
 exports.name = 'SpuriousC Sequence Design';
 exports.iconCls = 'seq';
@@ -18,7 +10,7 @@ exports.start = function(req, res, params) {
 	st = path.join(fullPath, prefix + '.St'), wc = path.join(fullPath, prefix + '.wc'), eq = path.join(fullPath, prefix + '.eq'), out = 'output="' + path.join(fullPath, prefix + '.seq') + '"', bored = 'bored=1000';
 	quiet = 'quiet=TRUE';
 	cmd = getCommand('spuriousC', ['template=$st wc=$wc eq=$eq', out, bored]);
-	console.log(cmd);
+	winston.log("info", cmd);
 	proc.exec(cmd, {
 		env : {
 			st : st,
@@ -27,8 +19,12 @@ exports.start = function(req, res, params) {
 		},
 	}, function(err, stdout, stderr) {
 		if(err) {
-			console.log(err);
-			console.log(stderr);
+			winston.log("error", "spuriousC: Execution error. ", {
+				cmd : cmd,
+				stderr : stderr,
+				stdout : stdout,
+				err : err
+			});
 		}
 		res.send(stdout);
 	})

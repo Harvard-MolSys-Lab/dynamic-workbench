@@ -1,9 +1,4 @@
-var utils = require('../utils'), 
-proc = require('child_process'), 
-fs = require('fs'), 
-_ = require('underscore'), 
-async = require('async'),
-DNA = require('../static/lib/dna-utils').DNA;
+var utils = require('../utils'), proc = require('child_process'), fs = require('fs'), _ = require('underscore'), async = require('async'), winston = require('winston'), path = require('path'), DNA = require('../static/lib/dna-utils').DNA;
 
 var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath, getCommand = utils.getCommand;
 
@@ -18,12 +13,16 @@ exports.name = 'Pepper Compiler';
 exports.iconCls = 'pepper';
 exports.params = ['node'];
 exports.start = function(req, res, params) {
-	var node = params['node'], fullPath = "'" + path.resolve(utils.userFilePath(node)) + "'", 
-	cmd = getCommand(commands['pepper'], [fullPath]);
-	console.log(cmd);
+	var node = params['node'], fullPath = "'" + path.resolve(utils.userFilePath(node)) + "'", cmd = getCommand(commands['pepper'], [fullPath]);
+	winston.log("info",cmd);
 	proc.exec(cmd, function(err, stdout, stderr) {
 		if(err) {
-			console.log(err);
+			winston.log("error", "pepper: Execution error. ", {
+				cmd : cmd,
+				stderr : stderr,
+				stdout : stdout,
+				err : err
+			});
 		}
 		res.send(stdout);
 	})

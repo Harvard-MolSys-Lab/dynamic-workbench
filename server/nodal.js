@@ -1,10 +1,4 @@
-var utils = require('../utils'), 
-proc = require('child_process'), 
-fs = require('fs'), 
-_ = require('underscore'), 
-async = require('async'),
-path = require('path'),
-DNA = require('../static/lib/dna-utils').DNA;
+var utils = require('../utils'), proc = require('child_process'), fs = require('fs'), _ = require('underscore'), async = require('async'), path = require('path'), winston = require('winston'), DNA = require('../static/lib/dna-utils').DNA;
 
 var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath, getCommand = utils.getCommand;
 
@@ -16,12 +10,12 @@ function prefix(str) {
 	return x.join('.');
 }
 
-function postfix(str,ext) {
+function postfix(str, ext) {
 	return [str,ext].join('.');
 }
 
 function quote(str) {
-	return "'"+str+"'";
+	return "'" + str + "'";
 }
 
 var commands = {
@@ -33,27 +27,30 @@ var commands = {
 
 exports.name = 'Nodal Compiler';
 exports.iconCls = 'nodal';
-exports.params = ['node','data'];
+exports.params = ['node', 'data'];
 exports.start = function(req, res, params) {
-	var node = params['node'], // fullPath = path.resolve(utils.userFilePath(node)), 
-	pre = prefix(node),
-	fullPath = path.resolve(utils.userFilePath(path.join(path.dirname(node),pre))),
-	inFileName = postfix(fullPath,'txt'),
-	inFile = params['data'];
+	var node = params['node'],  // fullPath = path.resolve(utils.userFilePath(node)),
+	pre = prefix(node), fullPath = path.resolve(utils.userFilePath(path.join(path.dirname(node), pre))), inFileName = postfix(fullPath, 'txt'), inFile = params['data'];
 
-	fs.writeFile(inFileName,inFile, function(err) {
+	fs.writeFile(inFileName, inFile, function(err) {
 		if(err) {
-			//sendError(res,'Couldn\'t write '+inFileName,500);
-			console.log(err);
-			sendError(res,'Internal Server Error',500)
+			winston.log("error", "nodal: Couldn't write inFile. ", {
+				err : err,
+				inFileName : inFileName,
+				inFile : inFile,
+			});
+			sendError(res, 'Internal Server Error', 500)
 			return;
 		} else {
-
-			cmd = getCommand(commands['nodal'], ['-i',quote(inFileName),'-d',quote(postfix(fullPath,'domains')),'-n',quote(postfix(fullPath,'nupack')),'-s',quote(postfix(fullPath,'svg'))]);
-			console.log(cmd);
+			cmd = getCommand(commands['nodal'], ['-i', quote(inFileName), '-d', quote(postfix(fullPath, 'domains')), '-n', quote(postfix(fullPath, 'nupack')), '-s', quote(postfix(fullPath, 'svg'))]);
+			winston.log("info",cmd);
 			proc.exec(cmd, function(err, stdout, stderr) {
 				if(err) {
-					console.log(err);
+					winston.log("error", "nodal: Execution error. ", {
+						cmd: cmd,
+						stderr: stderr,
+						stdout: stdout,
+					});
 				}
 				res.send(stdout);
 			})

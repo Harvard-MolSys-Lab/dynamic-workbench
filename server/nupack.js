@@ -2,7 +2,9 @@ var utils = require('../utils'),
 proc = require('child_process'),
 fs = require('fs'),
 _ = require('underscore'),
-async = require('async');
+async = require('async'),
+path = require('path'),
+winston = require('winston'),
 DNA = require('../static/lib/dna-utils').DNA;
 
 var sendError = utils.sendError,
@@ -56,7 +58,6 @@ function combinations(strands) {
 }
 
 function packageNupackOut(prefixPath,callback) {
-	// console.log('prefixPath: '+prefixPath);
 
 	tasks = [
 
@@ -67,7 +68,6 @@ function packageNupackOut(prefixPath,callback) {
 	// max complex size
 	function(cb) {
 		fs.readFile(prefixPath+'.in', 'utf8', function(err,data) {
-			// console.log(typeof data);
 
 			var dataArray = _.compact(_.map(data.split('\n'), function(e) {
 				return e.trim();
@@ -83,10 +83,8 @@ function packageNupackOut(prefixPath,callback) {
 	// eq: complex, order, strands... dG, concentration
 	function(cb) {
 		fs.readFile(prefixPath+'.eq', 'utf8', function(err,data) {
-			//console.log('begin parse ocx');
 			data = DNA.stripNupackHeaders(data);
 			data = data.trim();
-			//console.log('data: '+data);
 			table = DNA.tablify(data);
 
 			// this table actually comes as a bitmap, where, for each row, row[i+2] indicates the number of times strand i+1 appears in the complex.
@@ -103,11 +101,7 @@ function packageNupackOut(prefixPath,callback) {
 				newRow = newRow.concat(row.slice(-2))
 				return newRow;
 			});
-			// console.log('table: ')
-			// console.log(table);
 			table = DNA.indexTable(table);
-
-			// console.log(table);
 
 			cb(err, {
 				eq: table
@@ -133,9 +127,6 @@ function packageNupackOut(prefixPath,callback) {
 			}));
 			var ocx_mfe = _.map(dataArray, function(block) {
 				var blockArray = block.split('\n'), complexOrder = utils.sscanf(blockArray[0].replace('% ',''),'complex%u-order%u');
-				// console.log('blockArray');
-				// console.log(blockArray);
-				// console.log('blockArray[0]: '+blockArray[0]);
 				return {
 					complex: complexOrder[0],
 					order: complexOrder[1],
@@ -145,9 +136,6 @@ function packageNupackOut(prefixPath,callback) {
 					pairs: blockArray.slice(4)
 				};
 			})
-			// console.log('ocx_mfe: ');
-			// console.log(ocx_mfe);
-			// console.log('end ocx_mfe');
 
 			cb(err, {
 				ocx_mfe:ocx_mfe
@@ -172,9 +160,6 @@ function packageNupackOut(prefixPath,callback) {
 			var ppairs = DNA.indexBy('complex','order',_.map(dataArray, function(block) {
 				var blockArray = block.split('\n'), complexOrder = utils.sscanf(blockArray[0].replace('% ',''),'complex%u-order%u'),
 				pairsArray = blockArray.slice(2);
-				// console.log('blockArray');
-				// console.log(blockArray);
-				// console.log('blockArray[0]: '+blockArray[0]);
 				return {
 					complex: complexOrder[0],
 					order: complexOrder[1],
@@ -184,9 +169,6 @@ function packageNupackOut(prefixPath,callback) {
 					}))
 				};
 			}));
-			// console.log('ocx_mfe: ');
-			// console.log(ocx_mfe);
-			// console.log('end ocx_mfe');
 
 			cb(err, {
 				ppairs:ppairs
@@ -202,12 +184,6 @@ function packageNupackOut(prefixPath,callback) {
 	];
 
 	async.series(tasks, function(err,result) {
-		// console.log('begin err: ');
-		// console.log(err);
-		// console.log('end err. ');
-		// console.log('begin result: ');
-		// console.log(result);
-		// console.log('end result. ');
 		if(err) {
 			callback(err,null);
 			return;
@@ -216,11 +192,7 @@ function packageNupackOut(prefixPath,callback) {
 		_.each(result, function(el) {
 			_.extend(scratch,el);
 		});
-		// console.log('begin ocx: ');
-		// console.log(scratch.ocx);
-		// console.log('end ocx. ');
 		_.each(scratch.ocx_mfe, function(rec) {
-			//console.log(rec.complex-1,rec.order-1)
 			if(scratch.eq[rec.complex] && scratch.eq[rec.complex][rec.order]) {
 				var eq = _.reject(_.clone(scratch.eq[rec.complex][rec.order]), function(i) {
 					return (!i || i=='0')
@@ -242,7 +214,6 @@ function packageNupackOut(prefixPath,callback) {
 				rec.ppairs = ppairs;
 			}
 		});
-		//console.log(scratch);
 		callback(err,scratch);
 	});
 }
@@ -262,10 +233,7 @@ function nupackAnalysis(strandPair,name,fullPath,options,callback) {
 	fs.mkdir(dirPath,777, function(err) {
 		// ignore errors raised when the folder already exists.
 		if(err && err.code!='EEXIST') {
-			console.log(fullPath);
-			console.log(name);
-			console.log(dirPath);
-			console.log(err);
+			winston.log("error","nupackAnalysis: Couldn't make results directory. ",{err:err,fullPath:fullPath,dirPath:dirPath,name:name});
 			callback(err,null);
 			return;
 		}
@@ -286,22 +254,19 @@ function nupackAnalysis(strandPair,name,fullPath,options,callback) {
 
 		fs.writeFile(inFileName,inFile, function(err) {
 			if(err) {
-				//sendError(res,'Couldn\'t write '+inFileName,500);
-				console.log(err);
+				winston.log("error","nupackAnalysis: Couldn't write infile. ",{err:err,inFileName:inFileName, inFile:inFile,});
 				callback(err,null);
 				return;
 			} else {
 				fs.writeFile(listFileName,'', function(err) {
 					if(err) {
-						//sendError(res,'Couldn\'t write '+listFileName,500);
-						console.log(err);
+						winston.log("error","nupackAnalysis: Couldn't write listFile. ",{err:err,listFileName:listFileName,});
 						callback(err,null);
 						return;
 					} else {
 						fs.writeFile(conFileName,conFile, function(err) {
 							if(err) {
-								//sendError(res,'Couldn\'t write '+listFileName,500);
-								console.log(err);
+								winston.log("error","nupackAnalysis: Couldn't write conFile. ",{err:err,conFileName:conFileName,conFile:conFile});
 								callback(err,null);
 								return;
 							} else {
@@ -309,7 +274,7 @@ function nupackAnalysis(strandPair,name,fullPath,options,callback) {
 
 								// Run 'complexes' executable
 								function(cb) {
-									console.log(complexesCmd);
+									winston.log("info",complexesCmd);
 									proc.exec(complexesCmd, {
 										env: {
 											'NUPACKHOME':nupackPath
@@ -317,12 +282,12 @@ function nupackAnalysis(strandPair,name,fullPath,options,callback) {
 										maxBuffer: maxBuffer,
 									}, function(err,stdout,stderr) {
 										if(err) {
-											console.log(err);
+											winston.log("error","nupackAnalysis: Execution error. ",{err:err,fullPath:fullPath,cmd:complexesCmd,stdout:stdout,stderr:stderr});
 											cb(err,{stderr:stderr,stdout:stdout});
 											return;
 										}
 										if(!(stderr=='' || stderr==false)) {
-											console.log(err);
+											winston.log("error","nupackAnalysis: Execution error. ",{err:err,fullPath:fullPath,cmd:complexesCmd,stdout:stdout,stderr:stderr});
 											cb(err,{stderr:stderr,stdout:stdout});
 											return;
 										}
@@ -342,12 +307,12 @@ function nupackAnalysis(strandPair,name,fullPath,options,callback) {
 										maxBuffer: maxBuffer,
 									}, function(err,stdout,stderr) {
 										if(err) {
-											console.log(err);
+											winston.log("error","nupackAnalysis: Execution error. ",{err:err,fullPath:fullPath,cmd:concCmd,stdout:stdout,stderr:stderr});
 											cb(err,{stderr:stderr,stdout:stdout});
 											return;
 										}
 										if(!(stderr=='' || stderr==false)) {
-											console.log(err);
+											winston.log("error","nupackAnalysis: Execution error. ",{err:err,fullPath:fullPath,cmd:concCmd,stdout:stdout,stderr:stderr});
 											cb(err,{stderr:stderr,stdout:stdout});
 											return;
 										}
@@ -367,7 +332,9 @@ function nupackAnalysis(strandPair,name,fullPath,options,callback) {
 									packageNupackOut(prefixPath, function(err,dat) {
 										//console.log(data);
 										fs.writeFile(prefixPath+'.nupack-results',JSON.stringify(dat), 'utf8', function(err) {
-											console.log('finished!');
+											if(err) {
+												winston.log("error","nupackAnalysis: packaging error. ",{err:err});
+											}
 											callback(err,{
 												stdout:stdout,
 												stderr:stderr,

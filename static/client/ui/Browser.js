@@ -8,7 +8,7 @@ Ext.define('App.ui.Browser', {
 	},
 	constructor: function() {
 		this.mixins.app.constructor.apply(this,arguments);
-		this.callParent();
+		this.callParent(arguments);
 	},
 	initComponent: function() {
 		/**

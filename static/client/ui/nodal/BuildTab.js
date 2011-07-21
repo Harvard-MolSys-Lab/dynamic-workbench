@@ -15,7 +15,7 @@ Ext.define('App.ui.nodal.BuildTab', {
 					},
 					items: [{
 						iconCls: 'build-24',
-						text: 'Serialize',
+						text: 'Compile',
 						rowspan: 2,
 						iconAlign: 'top',
 						scale: 'medium',
@@ -28,21 +28,45 @@ Ext.define('App.ui.nodal.BuildTab', {
 						handler: this.serializeTerse,
 						scope: this,
 						tooltip: {
-							title: 'Serialize System',
-							text: 'Serializes the workspace to the "TerseML" format accepted by the current version of the compiler; outputs to input.txt in this directory.'
+							title: 'Compile System',
+							text: 'Compiles the system into a domain-level specification. Several output '+
+							'files will be added to this directory, including a graphical representation of the included hairpins, ' +
+							'a NUPACK multi-objective script for thermodynamic sequence design, and a Domain Design specification for '+
+							'interactive sequence design using Web DD. ',
+							//'Serializes the workspace to the "TerseML" format accepted by the current version of the compiler; outputs to input.txt in this directory.'
 						}
 					},{
 						iconCls: 'compile',
-						text: 'Compile',
+						text: 'Serialize',
 						rowspan: 1,
-						disabled: true,
+						disabled: false,
+						menu: [{
+							text: 'TerseML',
+							iconCls: 'txt',
+						},{
+							text: 'PIL',
+							iconCls: 'pil',
+						},{
+							text: 'SVG',
+							iconCls: 'svg',
+						}]
 					},{
 						iconCls: 'sequence',
 						text: 'Sequence',
 						rowspan: 1,
 						disabled: false,
-						handler: this.spuriousDesign,
-						scope: this
+						//handler: this.spuriousDesign,
+						//scope: this,
+						menu: [{
+							text: 'SpuriousC',
+							iconCls: 'spurious-c',
+						},{
+							text: 'NUPACK',
+							iconCls: 'nupack',
+						},{
+							text: 'Web DD',
+							iconCls: 'seq'
+						}]
 					}]
 				},{
 					xtype: 'buttongroup',

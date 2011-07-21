@@ -1,7 +1,8 @@
-var path = require('path');
+var path = require('path'),
+	auth = require('./auth');
 
 
-var filesPath = '/media/sf_fileshare/files'; // path.resolve(__dirname,'../../sf_fileshare/files');// '/mount/sf_fileshare/files'; //'~/file-share/files';//
+var filesPath = auth.filesPath; 
 
 exports.userFilePath = function(node) {
 	return path.join(filesPath,node);

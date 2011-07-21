@@ -1,0 +1,27 @@
+
+!!! 5
+html(lang="en")
+  head
+    title DyNAMiC Workbench
+    meta(http-equiv="Content-Type", content="text/html; charset=UTF-8")
+  - var scriptPath = 'client';
+  - var libPath    =  'lib'; // scriptPath + '/lib';
+  - var extPath    =  libPath + '/ext-4.0.1';
+  - var stylePath  = 'static/styles';
+  - var extStyles  =  extPath + '/resources/css/ext-all';
+  - var codeMirrorPath    =  libPath + '/CodeMirror-2.11';
+  - var styles    = [extStyles,'styles/canvas','styles/icons','styles/infomachine',];
+  - each sheet in styles
+    link(rel="stylesheet",href=sheet+".css")
+  
+  // ExtJS 4
+  script(src=extPath+"/bootstrap.js", type="text/javascript")
+  
+  // App and InfoMachine
+  script(type="text/javascript", src=scriptPath+"/login.js")
+  
+  body
+      div
+        - if(!!message)
+          script
+            Ext.onReady(msg("#{message}"));

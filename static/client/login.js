@@ -6,7 +6,12 @@ if(!App)
 function msg(message) {
 	return function() {
 		if(!!message)
-			Ext.Msg.alert('', message);
+			Ext.Msg.show({
+				title : 'Login',
+				msg : message,
+				buttons : Ext.Msg.OK,
+				iconCls : 'lock'
+			});
 	};
 }
 

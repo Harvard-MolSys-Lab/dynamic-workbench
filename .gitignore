@@ -4,4 +4,6 @@
 ./tools
 ./test.js
 ./old.zip
-
+*.eot
+*.ttf
+*.woff

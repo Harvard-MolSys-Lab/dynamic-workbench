@@ -19,12 +19,13 @@ App = new Ext.util.Observable();
 Ext.apply(App, {
 
 	name : 'DyNAMiC Workbench',
+	nameFormatted : '<b>DyNAMiC</b> Workbench',
 	version : '0.2.0a',
 	getFullTitle : function() {
 		return App.name + ' (' + App.version + ')'
 	},
 	getFullTitleFormatted : function() {
-		return '<span class="app-title"><b>' + App.name + '</b> (' + App.version + ')</span>'
+		return '<span class="app-title"><span>' + App.nameFormatted + '</span> (' + App.version + ')</span>'
 	},
 	/**
 	 * nextId

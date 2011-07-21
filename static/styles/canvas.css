@@ -1,12 +1,28 @@
+.app-title {
+	font-family: ColaborateThinRegular;
+	font-size: 9pt;
+}
+.app-title b {
+	font-family: ColaborateMediumRegular;
+	font-weight: normal;
+}
+.app-title span {
+	font-family: ColaborateLightRegular
+}
 .dashboard {
 	font-size: small;	
-	font-family: Helvetica Neue, Helvetica;
+	font-family: ColaborateLightRegular,Helvetica Neue, Helvetica;
 }
-
-.dashboard h1, {
-	font-size: 48pt !important;
+h1 {
+	font-size: 24pt !important;
+	font-weight: normal;
 	border-bottom: solid 1px silver;
-	margin-bottom: 12pt;	
+	margin-bottom: 12pt;
+	color:#222;	
+	font-family: ColaborateLightRegular;
+}
+h1 span {	
+	font-family: ColaborateThinRegular;
 }
 ul.dashboard-actions li {
 	padding: 2px 0px 0px 20px;

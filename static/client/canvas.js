@@ -73,7 +73,7 @@ App.ui.buildInterface = function() {
 			bodyBorder : false,
 			tbar : {
 				items : [{
-					text : App.getFullTitle(),
+					text : App.getFullTitleFormatted(),
 				}, '-', {
 					text : 'New',
 					//handler: App.ui.Launcher.makeLauncher('nodal'),
@@ -139,6 +139,9 @@ App.ui.buildInterface = function() {
 					text : 'Logout',
 					disabled : !App.User.isLoggedIn(),
 					iconAlign : 'left',
+					handler: function() {
+						window.location = "/logout";
+					}
 					//handler: ,
 					//scope: this
 				}]

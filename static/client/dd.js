@@ -50,17 +50,17 @@ var DD = function() {
 		// score bonus for crosstalk (as compared to interaction)
 		CROSSTALK_SCORE : -5,
 		// crosstalk score is divided by this much (and then score is subtracted)
-		CROSSTALK_DIV : 2,            
+		CROSSTALK_DIV : 2,
 		GGGG_PENALTY : 50,
 		ATATAT_PENALTY : 20,
-		     // the adjusted shannon entropy is multiplied by this ammount and subtracted from the score
-		SHANNON_BONUS : 3,     
+		// the adjusted shannon entropy is multiplied by this ammount and subtracted from the score
+		SHANNON_BONUS : 3,
 		// values with less than SHANNON_ADJUST * (maximum expected entropy given alphabet size k)
-		SHANNON_ADJUST : 0.7, 
+		SHANNON_ADJUST : 0.7,
 	};
 
 	var GCstr, ATstr, GTstr, MBstr, LLstr, DHstr, MAX_IMPORTANCE, LHbases, LHstart, LHpower, INTRA_SCORE, CROSSTALK_SCORE, CROSSTALK_DIV, GGGG_PENALTY, ATATAT_PENALTY, MAX_MUTATIONS, SHANNON_BONUS, SHANNON_ADJUST;
-	
+
 	/**
 	 * Copies values of {@link options} hash to local variables
 	 * @private
@@ -561,6 +561,13 @@ var DD = function() {
 	var domain_intrinsic;
 	// intrinsic score to domains from various rules
 
+	var p_g = 0;
+	var p_a = 0;
+	var p_t = 0;
+	var p_c = 0;
+	var base = 0;
+	var available = 0;
+
 	var doneflag, pausemode;
 	var tempchar, tempchar2;
 	var tempdouble;
@@ -575,7 +582,7 @@ var DD = function() {
 	// 1 = G, 2 = A, 3 = T, 4 = C; 11 = G (locked), etc
 
 	var num_mut_attempts, total_mutations;
-	var rule_4g, rule_6at, rule_ccend, rule_ming, rule_init, rule_lockold, rule_targetworst, rule_gatc_avail, rule_targetdomain;
+	var rule_4g, rule_6at, rule_ccend, rule_ming, rule_init, rule_lockold, rule_targetworst, rule_gatc_avail, rule_targetdomain, rule_shannon;
 
 	var dom1 = new Array(30);
 	var dom2 = new Array(30);
@@ -583,19 +590,21 @@ var DD = function() {
 
 	// Set default parameters
 	var rules = {
-		rule_4g : 1,            // cannot have 4 G's or 4 C's in a row
-		rule_6at : 1,            // cannot have 6 A/T or G/C bases in a row
-		rule_ccend : 1,            // domains MUST start and end with C
-		rule_ming : 1,            // design tries to minimize usage of G
-		rule_init : 7,            // 15 = polyN, 7 = poly-H, 3 = poly-Y, 2 = poly-T
-		rule_targetworst : 1,            // target worst domain
-		rule_gatc_avail : 15,            // all bases available
-		rule_lockold : 0,        // lock all old bases (NO)
-		rule_targetdomain : [],
+		rule_4g : 1,             // cannot have 4 G's or 4 C's in a row
+		rule_6at : 1,             // cannot have 6 A/T or G/C bases in a row
+		rule_ccend : 1,             // domains MUST start and end with C
+		rule_ming : 1,             // design tries to minimize usage of G
+		rule_init : 7,             // 15 = polyN, 7 = poly-H, 3 = poly-Y, 2 = poly-T
+		rule_targetworst : 1,             // target worst domain
+		rule_gatc_avail : 15,             // all bases available
+		rule_lockold : 0,         // lock all old bases (NO)
+		rule_targetdomain : [],  // array of domain indicies to target
+		rule_shannon : 1,		// true to reward domains with a low shannon entropy
 	}
 
 	function copyRules() { rule_4g = rules.rule_4g, rule_6at = rules.rule_6at, rule_ccend = rules.rule_ccend, rule_ming = rules.rule_ming, rule_init = rules.rule_init, rule_lockold = rules.rule_lockold, rule_targetworst = rules.rule_targetworst, rule_gatc_avail = rules.rule_gatc_avail;
 		rule_targetdomain = rules.rule_targetdomain;
+		rule_shannon = rules.rule_shannon;
 	}
 
 	copyRules();
@@ -625,52 +634,6 @@ var DD = function() {
 		console.error("Insufficient memory for declaring mutation memories!\n");
 		throw 'Error';
 	}
-
-	// Start selfcrosstalk debug
-	/*
-	printf("Enter sequence for Domain 1: ");
-	fgets(buffer, 80, stdin);
-
-	i = 0;
-	while (buffer[i] != '\n') {
-	if (buffer[i] == 'g')
-	dom1[i] = 1;
-	if (buffer[i] == 'a')
-	dom1[i] = 2;
-	if (buffer[i] == 't')
-	dom1[i] = 3;
-	if (buffer[i] == 'c')
-	dom1[i] = 4;
-	if (buffer[i] == 'G')
-	dom1[i] = 11;
-	if (buffer[i] == 'A')
-	dom1[i] = 12;
-	if (buffer[i] == 'T')
-	dom1[i] = 13;
-	if (buffer[i] == 'C')
-	dom1[i] = 14;
-	i++;
-	}
-	len1 = i;
-
-	printf("len1 = %d\n", len1);
-	printf("\nSelfcrosstalk: %f\n", selfcrosstalk(dom1, len1));
-
-	printf("Domain 1: ");
-	for (i = 0; i < len1; i++)
-	printf("%d ", dom1[i]);
-	printf("\n");
-
-	exit(0);
-	*/
-	// End pairscore debug
-
-	// printf("\n           Domain-based sequence design\n");
-	// printf("                     v. 0.2\n");
-	// printf("                 by Dave Zhang\n\n");
-	// printf("(S)tart new sequence design from scratch or (L)oad existing design?  (e(X)it at any time)");
-	//
-	// tempchar = myhotinput(2, 'S', 'L');
 
 	/**
 	 * add new domains to the system
@@ -1568,8 +1531,9 @@ var DD = function() {
 
 	/**
 	 * evaluateScores
-	 * Evaluates intrinsic score of the given domain, as well as interaction and crosstalk scores between the given domain
-	 * and all other domains in the ensemble. Use this when to evaluate scores after a single domain has been mutated.
+	 * Evaluates {@link #evaluateIntrinsicScore intrinsic} score of the given domain, as well as {@link #pairscore interaction} and 
+	 * {@link #selfcrosstalk crosstalk} scores between the given domain and all other domains in the ensemble. Use this to evaluate scores 
+	 * after a single domain has been mutated.
 	 * @param {Number} dom Index of the mutated domain
 	 */
 	function evaluateScores(dom) {
@@ -1614,6 +1578,10 @@ var DD = function() {
 		// Search for 6at, if rule applied
 		if(rule_6at == 1) {
 			doRule_6at(dom);
+		}
+
+		if(rule_shannon == 1) {
+			doRule_shannon(dom)
 		}
 	}
 
@@ -1670,6 +1638,47 @@ var DD = function() {
 			if(k > 5)
 				domain_intrinsic[dom] = domain_intrinsic[dom] + ATATAT_PENALTY;
 
+		}
+	}
+
+	function doRule_shannon(i) {
+		if(rule_shannon == 1) {
+			p_g = 0;
+			p_a = 0;
+			p_t = 0;
+			p_c = 0;
+			base = 0;
+			available = 0;
+
+			// determine base frequencies
+			for( j = 0; j < domain_length[i]; j++) {
+
+				// 1 = G, 2 = A, 3 = T, 4 = C; 11 = G (locked), etc
+				base = domain[i][j] % 10;
+				if(base == 1) {
+					p_g++;
+				} else if(base == 2) {
+					p_a++;
+				} else if(base == 3) {
+					p_t++;
+				} else if(base == 4) {
+					p_c++;
+				}
+			}
+
+			// convert to distributions
+			p_g = p_g / domain_length[i];
+			p_a = p_a / domain_length[i];
+			p_t = p_t / domain_length[i];
+			p_c = p_c / domain_length[i];
+			shannon = -(p_g * (p_g > 0 ? log2(p_g) : 0) + p_a * (p_a > 0 ? log2(p_a) : 0) + p_t * (p_t > 0 ? log2(p_t) : 0) + p_c * (p_c > 0 ? log2(p_c) : 0));
+
+			// compute the number of available bases in the alphabet
+			available = domain_gatc_avail[i];
+			available = (available & 1) + ((available & 2) >> 1) + ((available & 4) >> 2) + ((available & 8) >> 3);
+			
+			domain_intrinsic[i] -= ( shannon - SHANNON_ADJUST * log2(available)) * SHANNON_BONUS;
+			//(shannon-domain_length[i]*SHANNON_ADJUST)*SHANNON_BONUS;
 		}
 	}
 

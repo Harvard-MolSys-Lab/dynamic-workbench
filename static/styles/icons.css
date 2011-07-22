@@ -423,11 +423,22 @@
 .nupack-icon {
 	background-image: url(/images/icons/etc/nupack_favicon.png) !important;		
 }
+.nupackage {
+	background-image: url(/images/icons/etc/box-nupack.png) !important;		
+}
 
 .ui-slider {
 	background-image: url(/images/icons/fugue/ui-slider.png) !important;		
 }
-
+.package {
+	background-image: url(/images/icons/fugue/box.png) !important;		
+}
+.manifest {
+	background-image: url(/images/icons/etc/manifest.png) !important;		
+}
+.preferences {
+	background-image: url(/images/icons/fugue/switch.png) !important;		
+}
 /* File types */
 .nodal {
 	background-image: url(/images/icons/fugue/node.png) !important;

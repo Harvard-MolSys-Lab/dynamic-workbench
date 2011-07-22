@@ -229,7 +229,7 @@ function nupackAnalysis(strandPair,name,fullPath,options,callback) {
 		na: 0,
 	},options);
 
-	dirPath = path.join(fullPath,name);
+	dirPath = path.join(fullPath,name)+'.package';
 	fs.mkdir(dirPath,777, function(err) {
 		// ignore errors raised when the folder already exists.
 		if(err && err.code!='EEXIST') {
@@ -335,10 +335,17 @@ function nupackAnalysis(strandPair,name,fullPath,options,callback) {
 											if(err) {
 												winston.log("error","nupackAnalysis: packaging error. ",{err:err});
 											}
-											callback(err,{
-												stdout:stdout,
-												stderr:stderr,
-												data: dat,
+											var contentsPath = path.join(path.dirname(prefixPath),"contents.json"),
+											contents = {redirect: './'+prefix+'.nupack-results',trigger: 'nupackresults',iconCls:'nupackage'};
+											fs.writeFile(contentsPath,JSON.stringify(contents),'utf8',function(err) {
+												if(err) {
+													winston.log("error","nupackAnalysis: Couldn't write package.json. ",{err:err});
+												}
+												callback(err,{
+													stdout:stdout,
+													stderr:stderr,
+													data: dat,
+												});
 											});
 										});
 									});

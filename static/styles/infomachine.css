@@ -1,5 +1,5 @@
 .infoMachine_color {
-	background-image: url(/canvas/icons/fugue/color.png) !important;	
+	background-image: url(/images/icons/fugue/color.png) !important;	
 
 }
 
@@ -16,10 +16,10 @@
 }
 
 .infoMachine_string {
-	background-image: url(/canvas/icons/fugue/edit-all-caps.png) !important;	
+	background-image: url(/images/icons/fugue/edit-all-caps.png) !important;	
 
 }
 
 .infoMachine_number {
-	background-image: url(/canvas/icons/fugue/edit-number.png) !important;	
+	background-image: url(/images/icons/fugue/edit-number.png) !important;	
 }

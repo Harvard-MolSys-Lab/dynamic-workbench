@@ -1,7 +1,7 @@
-var _ = require('underscore');
+var _ = require('underscore'), utils = require('./utils'), path = require('path'), fs = require('fs'), winston = require('winston');
 
 var types = [{
-	"type" : ["tex",'latex'],
+	"type" : ["tex", 'latex'],
 	"trigger" : "tex",
 	"iconCls" : "tex",
 	"name" : "TeX Document"
@@ -11,7 +11,7 @@ var types = [{
 	"iconCls" : "txt",
 	"name" : "Plain Text"
 }, {
-	"type" : "js",
+	"type" : ["js","json"],
 	"trigger" : "js",
 	"iconCls" : "js",
 	"name" : "Javascript File"
@@ -21,12 +21,12 @@ var types = [{
 	"iconCls" : "xml",
 	"name" : "XML File"
 }, {
-	"type" : ["html","htm"],
+	"type" : ["html", "htm"],
 	"trigger" : "html",
 	"iconCls" : "html",
 	"name" : "HTML File"
 }, {
-	"type" : ["dynaml","dsml","dyn"],
+	"type" : ["dynaml", "dsml", "dyn"],
 	"trigger" : "dynaml",
 	"iconCls" : "dynaml",
 	"name" : "DyNAML Document"
@@ -110,51 +110,164 @@ var types = [{
 	"trigger" : "secondary",
 	"iconCls" : "secondary",
 	"name" : "Secondary Structure"
+}, {
+	"type" : "package",
+	"iconCls" : "package",
+	"trigger" : "package",
+	"name" : "Package"
+}, {
+	"type" : "app",
+	"iconCls" : "app",
+	"trigger" : "app",
+	"name" : "Application"
 }];
 
 // var triggers = {
-	// tex : 'tex',
-	// latex : 'tex',
-	// txt : 'txt',
-	// js : 'js',
-	// xml : 'xml',
-	// html : 'html',
-	// htm : 'html',
-	// dsml : 'dynaml',
-	// dyn : 'dynaml',
-	// dynaml : 'dynaml',
-	// diff : 'diff',
-	// pil : 'pil',
-	// pepper : 'pepper',
-	// sys : 'pepper',
-	// comp : 'pepper',
-	// crn : 'crn',
-	// nodal : 'nodal',
-	// seq : 'sequence',
-	// dd : 'sequence',
-	// nupack : 'nupackedit',
-	// svg : 'viewer',
-	// pdf : 'viewer',
-	// 'nupack-results' : 'nupackresults',
-	// primary : 'primary',
-	// secondary : 'secondary',
+// tex : 'tex',
+// latex : 'tex',
+// txt : 'txt',
+// js : 'js',
+// xml : 'xml',
+// html : 'html',
+// htm : 'html',
+// dsml : 'dynaml',
+// dyn : 'dynaml',
+// dynaml : 'dynaml',
+// diff : 'diff',
+// pil : 'pil',
+// pepper : 'pepper',
+// sys : 'pepper',
+// comp : 'pepper',
+// crn : 'crn',
+// nodal : 'nodal',
+// seq : 'sequence',
+// dd : 'sequence',
+// nupack : 'nupackedit',
+// svg : 'viewer',
+// pdf : 'viewer',
+// 'nupack-results' : 'nupackresults',
+// primary : 'primary',
+// secondary : 'secondary',
 // };
-var triggers = {};
-_.each(types,function(block) {
+var triggers = {}, icons = {}
+_.each(types, function(block) {
 	if(_.isArray(block.type)) {
-		_.each(block.type,function(ext) {
+		_.each(block.type, function(ext) {
 			triggers[ext] = block.trigger;
+			icons[ext] = block.iconCls;
 		});
 	} else {
-		triggers[block.type] = block.trigger
+		triggers[block.type] = block.trigger;
+		icons[block.type] = block.iconCls; 
 	}
 });
-
 var mimetypes = {
 	'svg' : 'image/svg+xml',
 	'pdf' : 'application/pdf',
 };
 
+var packageContentsJsonKeys = {
+	'redirect' : function(data, value) {
+		return path.join(data.node, value);
+	},
+	'text' : true,
+	'iconCls' : true,
+};
+
+function contentsJson(data, contents, contentsJsonKeys) {
+	_.each(contentsJsonKeys, function(trans, key) {
+		var value = contents[key];
+		if(value) {
+			if(_.isFunction(trans)) {
+				value = trans(data, value);
+			}
+			data[key] = value;
+		}
+	});
+	_.extend(data, contents);
+	return data;
+}
+
+var transforms = {
+	'.app' : function(data, callback) {
+		var fullPath = path.join(utils.userFilePath(data.node), 'contents.json');
+		fs.readFile(fullPath, function(err, contents) {
+			if(err) {
+				callback(err, null);
+				return;
+			}
+			contents = JSON.parse(contents);
+			data = contentsJson(data, contents, packageContentsJsonKeys);
+			callback(null, data);
+		});
+	},
+	'.package' : function(data, callback) {
+		var fullPath = path.join(utils.userFilePath(data.node), 'contents.json');
+		fs.readFile(fullPath, function(err, contents) {
+			if(err) {
+				winston.log("warn","Couldn\'t read package.json",{fullPath: fullPath,code: err.code, err: err});
+				callback(err, data);
+				return;
+			}
+			try {
+				contents = JSON.parse(contents);
+			} catch(e) {
+				contents = {};
+				err = e;
+				winston.log("error","Error parsing contents.json. ",{contents: contents});
+			}
+			data = contentsJson(data, contents, packageContentsJsonKeys);
+			data.leaf = false;
+			callback(err, data);
+		});
+	},
+	'contents.json' : function(data,callback) {
+		data.text = "Package contents";
+		data.renamable = false;
+		data.iconCls = 'manifest';
+		callback(null,data);
+	},
+	'preferences.json' : function(data, callback) {
+		data.text = "Preferences";
+		data.iconCls = "preferences";
+		data.renamable = false;
+		callback(null,data);
+	},
+};
+
+var contentTransforms = {
+	'.package' : function(fullPath, callback) {
+		var fullPath = path.join(fullPath, 'contents.json');
+		fs.readFile(fullPath, function(err, contents) {
+			if(err) {
+				winston.log("error","Failed to transform package file; couldn't read contents.json",{fullPath:fullPath, err: err})
+				callback(err, null);
+				return;
+			}
+			try {
+				contents = JSON.parse(contents);
+			} catch(e) {
+				contents = {};
+				err = e;
+				winston.log("error","Error parsing contents.json. ",{contents: contents});
+			}
+			if(contents.data) {
+				callback(null, contents.data);
+			} else if(contents.redirect) {
+				fs.readFile(path.join(path.dirname(fullPath), contents.redirect), function(err, data) {
+					callback(err, data);
+				});
+			} else {
+				winston.log("error","Failed to transform package file; contents.json doesn't contain anything relevant.",{fullPath:fullPath, err: err, contents: contents})
+				callback(null,null);
+			}
+		});
+	}
+}
+
+exports.contentTransforms = contentTransforms;
+exports.transforms = transforms;
 exports.types = types;
+exports.icons = icons;
 exports.triggers = triggers;
 exports.mimetypes = mimetypes;

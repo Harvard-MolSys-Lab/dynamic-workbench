@@ -3,6 +3,8 @@ proc = require('child_process'),
 fs = require('fs'),
 _ = require('underscore'),
 async = require('async'),
+path = require('path'),
+winston = require('winston'),
 nupack = require('../nupack');
 
 var DNA = nupack.DNA,

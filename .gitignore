@@ -1,9 +1,15 @@
+.DS_STORE
+.pydevproject
 *.class
 *.pyc
 *.pyo
 ./tools
 ./test.js
 ./old.zip
+old
 *.eot
 *.ttf
 *.woff
+test.js
+test.html
+logs

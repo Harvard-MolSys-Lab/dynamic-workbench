@@ -4,34 +4,37 @@
  * @extends Ext.data.Model
  */
 Ext.define('App.Document', {
-	extend: 'Ext.data.Model',
-	fields: [{
-		name: 'text',
-		type: 'string'
+	extend : 'Ext.data.Model',
+	fields : [{
+		name : 'text',
+		type : 'string'
+	}, {
+		name : 'type',
+		type : 'string'
+	}, {
+		name : 'trigger',
+		type : 'string',
+	}, {
+		name : 'node',
+		type : 'string'
+	}, {
+		name : 'size',
+		type : 'int'
 	},{
-		name: 'type',
-		type: 'string'
-	},{
-		name: 'trigger',
-		type: 'string',
-	},{
-		name: 'node',
-		type: 'string'
-	},{
-		name: 'size',
-		type: 'int'
-	}
-	],
+		name : 'preventRename',
+		type : 'bool',
+		defaultValue: false,
+	}],
 	/**
 	 * Returns the file path to this document
 	 */
-	getPath: function() {
+	getPath : function() {
 		return this.get('node');
 	},
 	/**
-	 * Returns the {@link App.Path#basename} to this document 
+	 * Returns the {@link App.Path#basename} to this document
 	 */
-	getBasename: function() {
+	getBasename : function() {
 		return App.Path.basename(this.getPath());
 	},
 	/**
@@ -40,96 +43,103 @@ Ext.define('App.Document', {
 	 * @param {Mixed} scope Scope within which to execute <var>fn</var>
 	 * @param {Boolean} deep True to search for a descendent of a sibling (defaults to false)
 	 */
-	getSibling: function(fn,scope,deep) {
+	getSibling : function(fn, scope, deep) {
 		deep = deep || false;
-		return this.parentNode ? this.parentNode.findChildBy.apply(this.parentNode,arguments) : false;
+		return this.parentNode ? this.parentNode.findChildBy.apply(this.parentNode, arguments) : false;
 	},
 	/**
 	 * Searches for a sibling node with the given name
 	 * @param {String} name Name to search
 	 */
-	getSiblingByName: function(name) {
-		return this.getSibling( function(node) {
-			return node.get('text')==name;
+	getSiblingByName : function(name) {
+		return this.getSibling(function(node) {
+			return node.get('text') == name;
 		});
 	},
 	/**
 	 * Creates a sibling {@link App.Document}
 	 */
-	createSibling: function(name) {
+	createSibling : function(name) {
 		var parent = this.parentNode ? this.parentNode : this;
-		return App.ui.filesTree.newFile(parent,name);
+		return App.ui.filesTree.newFile(parent, name);
+	},
+	/**
+	 * Downloads the selected file in a new window
+	 */
+	download : function() {
+		var url = Ext.urlAppend(App.getEndpoint('load'), Ext.Object.toQueryString({
+			node : this.getPath(),
+			download : true,
+		}));
+		window.open(url, '_blank');
 	},
 	/**
 	 * Asynchonously loads the body of this document
 	 * @param {Object} opts Hash containing options to apply to the {@link Ext.Ajax#request} used to load the document
 	 */
-	loadBody: function(opts) {
-
-		(function(options,me) {
+	loadBody : function(opts) {(function(options, me) {
 			Ext.applyIf(options, {
-				success: function() {
+				success : function() {
 				},
-				failure: function() {
+				failure : function() {
 				},
-				scope: window,
+				scope : window,
 			});
 			req = {
-				url: App.getEndpoint('load'),//'/canvas/index.php/workspaces/save',
-				method: 'GET',
-				params: {
-					node: me.getPath(),
+				url : App.getEndpoint('load'), //'/canvas/index.php/workspaces/save',
+				method : 'GET',
+				params : {
+					node : me.getPath(),
 				},
-				success: function(response) {
-					Ext.bind(options.success,options.scope)(response.responseText,me,response);
+				success : function(response) {
+					Ext.bind(options.success,options.scope)(response.responseText, me, response);
 				},
-				failure: function(response) {
-					Ext.bind(options.failure,options.scope)(response.responseText,me,response);
+				failure : function(response) {
+					Ext.bind(options.failure,options.scope)(response.responseText, me, response);
 				}
 			};
 
 			Ext.Ajax.request(req);
 
-		})(opts,this);
+		})(opts, this);
 	},
 	/**
 	 * Asynchronously saves the body of this document
 	 * @param {Mixed} data Data to save to the document body
 	 * @param {Object} opts Hash containing options to apply to the {@link Ext.Ajax#request} used to load the document
 	 */
-	saveBody: function(data,opts) {
-		(function(s,options,me) {
+	saveBody : function(data, opts) {(function(s, options, me) {
 			Ext.applyIf(options, {
-				success: function() {
+				success : function() {
 				},
-				failure: function() {
+				failure : function() {
 				},
-				scope: window,
+				scope : window,
 			});
 			req = {
-				url: App.getEndpoint('save'),//'/canvas/index.php/workspaces/save',
-				method: 'POST',
-				params: {
-					data: s,
-					node: me.getPath(),
+				url : App.getEndpoint('save'), //'/canvas/index.php/workspaces/save',
+				method : 'POST',
+				params : {
+					data : s,
+					node : me.getPath(),
 				},
-				success: function(response) {
-					Ext.bind(options.success,options.scope)(response.responseText,me,response);
+				success : function(response) {
+					Ext.bind(options.success,options.scope)(response.responseText, me, response);
 				},
-				failure: function(response) {
-					Ext.bind(options.failure,options.scope)(response.responseText,me,response);
+				failure : function(response) {
+					Ext.bind(options.failure,options.scope)(response.responseText, me, response);
 				}
 			};
 
 			Ext.Ajax.request(req);
 
-		})(data,opts,this);
+		})(data, opts, this);
 	},
 	/**
 	 * checkout
 	 * associates this file with an opened application
 	 */
-	checkout: function() {
+	checkout : function() {
 
 	},
 });
@@ -139,51 +149,51 @@ Ext.define('App.Document', {
  * @singleton
  */
 App.DocumentStore = Ext.create('Ext.data.TreeStore', {
-	model: 'App.Document',
-	folderSort: true,
-	autoSync: true,
-	batchActions: false,
-	root: {
-		text: App.User.home,
-		id: App.User.home,
-		expanded: true,
-		iconCls: 'folder',
-		node: App.User.home,
+	model : 'App.Document',
+	folderSort : true,
+	autoSync : true,
+	batchActions : false,
+	root : {
+		text : App.User.home,
+		id : App.User.home,
+		expanded : true,
+		iconCls : 'folder',
+		node : App.User.home,
 	},
-	proxy: {
-		type: 'ajax',
+	proxy : {
+		type : 'ajax',
 		// TODO: Make these configurable
-		api: {
-			read:'/tree',
-			create:'/new',
-			update:'/rename',
-			destroy: '/delete'
+		api : {
+			read : '/tree',
+			create : '/new',
+			update : '/rename',
+			destroy : '/delete'
 		},
-		reader: {
-			type: 'json'
+		reader : {
+			type : 'json'
 		},
-		writer: {
-			type: 'json',
-			nameProperty: 'name',
+		writer : {
+			type : 'json',
+			nameProperty : 'name',
 		}
 	},
 	/**
 	 * checkout
 	 * associates the passed document with the given application
 	 */
-	checkout: function(doc, application) {
+	checkout : function(doc, application) {
 
 	},
-	afterEdit: function(rec) {
-		rec.fireEvent('edit',rec);
+	afterEdit : function(rec) {
+		rec.fireEvent('edit', rec);
 		this.callParent(arguments);
 	},
-	afterReject: function(rec) {
-		rec.fireEvent('reject',rec);
+	afterReject : function(rec) {
+		rec.fireEvent('reject', rec);
 		this.callParent(arguments);
 	},
-	afterCommit: function(rec) {
-		rec.fireEvent('commit',rec);
+	afterCommit : function(rec) {
+		rec.fireEvent('commit', rec);
 		this.callParent(arguments);
 	},
 });

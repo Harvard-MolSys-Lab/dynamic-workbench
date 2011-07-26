@@ -3,9 +3,10 @@
  */
 Ext.define('App.ui.FilesTree', {
 	extend: 'Ext.tree.Panel',
-	requires: ['App.ui.CreateMenu','App.ui.Launcher'],
+	require: ['App.ui.CreateMenu','App.ui.Launcher','App.ui.FilesTree.FileUploader','App.ui.FilesTree.DragDropManager'],
 	title: 'Files',
 	newFileNumber: 0,
+	loaders: 0,
 	useArrows: true,
 	/**
 	 * @cfg {Boolean}
@@ -17,6 +18,7 @@ Ext.define('App.ui.FilesTree', {
 	//displayRoot: false,
 	initComponent: function() {
 		Ext.apply(this, {
+			/*
 			columns: [{
 				xtype:'treecolumn',
 				header: 'File',
@@ -29,6 +31,7 @@ Ext.define('App.ui.FilesTree', {
 				resizable: false,
 				flex: 1
 			}],
+			*/
 			viewConfig: this.allowDrop ? {
 				plugins: [{
 					ptype: 'treeviewdragdrop',
@@ -45,16 +48,8 @@ Ext.define('App.ui.FilesTree', {
 			store: App.DocumentStore,
 			listeners:  {
 				beforeitemcontextmenu: (this.createContextMenu ? {
-					fn: function(tree,rec,dom,i,e) {
-						this.currentRecord = rec;
-						var ctx = App.ui.filesTree.contextMenu;
-						ctx.setFileName(rec.get('text'));
-						ctx.show();//dom);
-						ctx.alignTo(Ext.get(dom),'tl-bl',[5,0]);
-						e.stopEvent();
-						return false;
-					},
-					scope: this
+					fn: this.showContextMenu,
+					scope: this,
 				} : {}),
 				itemclick: {
 					fn: this.click,
@@ -84,6 +79,16 @@ Ext.define('App.ui.FilesTree', {
 					},
 					scope:this,
 				},{
+					text: 'Download',
+					iconCls: 'download',
+					handler: function() {
+						this.download(this.currentRecord)
+					},
+					scope:this,
+					enableIf: function(rec) {
+						return (rec.isLeaf());
+					}
+				},{
 					text: 'Create',
 					iconCls: 'plus-button',
 					menu: Ext.create('App.ui.CreateMenu',{}),
@@ -110,12 +115,18 @@ Ext.define('App.ui.FilesTree', {
 					text: 'Rename:',
 					canActivate: false,
 					iconCls: 'rename',
+					enableIf: function(rec) {
+						return (rec.get('preventRename') != true) && (!rec.isRoot());
+					}
 				},{
 					xtype: 'textfield',
 					allowBlank: false,
 					itemId: 'filename',
 					ref: 'fileNameField',
 					indent: true,
+					enableIf: function(rec) {
+						return (rec.get('preventRename') != true) && (!rec.isRoot());
+					}
 				}],
 				renderTo: Ext.getBody(),
 				setFileName: function(filename) {
@@ -141,8 +152,33 @@ Ext.define('App.ui.FilesTree', {
 	
 				}
 			},this);
+			this.on('afterrender',this.afterrender,this)
 		}
 	},
+	afterrender: function() {
+		this.ddManager = Ext.create('App.ui.FilesTree.DragDropManager',{
+			filesTree: this
+		});
+		this.ddManager.render();
+	},
+	showContextMenu: function(tree,rec,dom,i,e) {
+						this.currentRecord = rec;
+						var ctx = this.contextMenu;
+						ctx.setFileName(rec.get('text'));
+						_.each(ctx.query('*[enableIf]'),function(cmp) {
+							if(_.isFunction(cmp.enableIf)) {
+								if(cmp.enableIf(rec)) {
+									cmp.enable();
+								} else {
+									cmp.disable();
+								}
+							}
+						});
+						ctx.show();//dom);
+						ctx.alignTo(Ext.get(dom),'tl-bl',[5,0]);
+						e.stopEvent();
+						return false;
+					},
 	/**
 	 * Reloads the file heirarchy underneath the provided {@link App.Document}
 	 * @param {App.Document} rec The record under which to refresh
@@ -158,6 +194,14 @@ Ext.define('App.ui.FilesTree', {
 			// single: true
 			// })
 			this.getView().refreshNode(rec.index);
+		}
+	},
+	/**
+	 * Downloads the requested file
+	 */
+	download: function(rec) {
+		if(rec) {
+			rec.download();
 		}
 	},
 	/**

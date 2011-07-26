@@ -1190,48 +1190,9 @@ Workspace.Utils = {
  * @class Workspace.FileUploader
  * Manages uploading a file and building an appropriate embedded object
  */
-
 Ext.define('Workspace.FileUploader', {
 	alias: 'WorkspaceFileUploader',
-	extend: 'Ext.util.Observable',
-	constructor: function(cfg) {
-		Workspace.FileUploader.superclass.constructor.apply(this, arguments);
-		Ext.apply(this, cfg);
-	},
-	statics: {
-		handlers: {},
-		handlerOrder: [],
-		addHandler: function(mimeType, handler) {
-			if(Ext.isArray(mimeType)) {
-				Ext.each(mimeType, function(mt) {
-					this.handlers[mt] = handler;
-					this.handlerOrder.unshift(mt);
-				}, this);
-			} else {
-				this.handlers[mimeType] = handler;
-				this.handlerOrder.unshift(mimeType);
-			}
-		},
-		hasHandler: function(mimeType) {
-			return (this.handlers[mimeType]!=false);
-		},
-		getHandler: function(mimeType) {
-			return this.handlers[mimeType];
-		},
-		eachHandler: function(f) {
-			Ext.each(this.handlerOrder,f);
-		},
-		getExtension: function(fileName) {
-			return fileName.split('.').pop();
-		},
-	},
-	getConfig: function() {
-		return {
-			onComplete: Ext.bind(this.onComplete,this),
-			onProgress: Ext.bind(this.onProgress,this),
-			onCancel: Ext.bind(this.onCancel,this)
-		};
-	},
+	extend: 'App.ui.FileUploader',
 	showThrobber: function() {
 		this.throbber = this.workspace.addElement({
 			tag: 'div',
@@ -1244,27 +1205,7 @@ Ext.define('Workspace.FileUploader', {
 			this.throbber.hide();
 		}
 	},
-	onComplete: function(id, fileName, response) {
-		var data = response,ext,name;
-		if(response.success) {
-			name = response.readablePath;
-			ext = Workspace.FileUploader.getExtension(name);
-
-			if(Workspace.FileUploader.hasHandler(ext)) {
-				Workspace.FileUploader.getHandler(ext).call(this,name)
-			} else {
-				//Workspace.FileUploader.getHandler('default')
-			}
-		}
-	},
-	onProgress: function(id, fileName, loaded, total) {
-
-	},
-	onCancel: function(id, fileName) {
-
-	}
-}, function() {
-
+},function() {
 	Workspace.FileUploader.addHandler(['jpg','png','gif'], function(fileName) {
 		this.workspace.createObject({
 			wtype: 'Workspace.objects.ImageObject',
@@ -1283,7 +1224,10 @@ Ext.define('Workspace.FileUploader', {
 		});
 		this.hideThrobber();
 	});
+
 });
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * @class Workspace.DDManager
@@ -1291,133 +1235,13 @@ Ext.define('Workspace.FileUploader', {
  * Manages drop actions on the workspace
  * @cfg {Workspace} workspace
  */
-jQuery.event.props.push("dataTransfer");
-
-Ext.define('Workspace.DDManager', {
+Ext.define('Workspace.DDManager',{
+	extend: 'App.ui.DragDropManager',
 	alias: 'WorkspaceDDManager',
-	extend: 'Ext.util.Observable',
 	allowExtDD: true,
-	constructor: function(cfg) {
-		Workspace.DDManager.superclass.constructor.apply(this, arguments);
-		Ext.apply(this, cfg);
-	},
-	statics: {
-		handlers: {},
-		handlerOrder: [],
-		addHandler: function(mimeType, handler) {
-			if(Ext.isArray(mimeType)) {
-				Ext.each(mimeType, function(mt) {
-					this.handlers[mt] = handler;
-					this.handlerOrder.unshift(mt);
-				}, this);
-			} else {
-				this.handlers[mimeType] = handler;
-				this.handlerOrder.unshift(mimeType);
-			}
-		},
-		hasHandler: function(mimeType) {
-			return (this.handlers[mimeType]!=false);
-		},
-		getHandler: function(mimeType) {
-			return this.handlers[mimeType];
-		},
-		eachHandler: function(f) {
-			Ext.each(this.handlerOrder,f);
-		},
-	},
-	getEl: function() {
-		return this.workspace.getEl();
-	},
-	render: function() {
-		var el = $(this.getEl().dom);
-		//el.get(0).addEventListener("drop", this.onDrop.createDelegate(this), true);
-		el.bind('drop',Ext.bind(this.onDrop,this));
-		el.bind('dragenter',this.onDragEnter,this);
-		el.bind('dragover',this.onDragOver,this);
-		//el.bind('dropCreate',this.dropCreate.createDelegate(this));
-		if(this.allowExtDD) {
-			this.dropZone = new Ext.dd.DropTarget(this.workspace.getEl(), {
-				notifyDrop: Ext.bind(this.notifyDrop,this),
-				// notifyEnter: function() {
-				// //alert('Enter');
-				// return true;
-				// }
-			});
-		}
-	},
-	// ExtJS Drop
-	notifyDrop: function(dd, e,
-	data) {
-		if(data.mimeType && Workspace.DDManager.hasHandler(data.mimeType)) {
-			var h = Workspace.DDManager.getHandler(data.mimeType);
-			h.call(this,data,e);
-			return true;
-		} else {
-			return false;
-		}
-	},
-	// Browser Drop
-	onDrop: function(e,t,o) {
-		var that = this, pos = this.getAdjustedXYcoords(e.pageX,e.pageY);
-		if(e.dataTransfer.files && this.fileHandler) {
-			this.fileHandler(e.dataTransfer.files,pos);
-		}
-		Workspace.DDManager.eachHandler( function(mimeType) {
-			if(e.dataTransfer.types.indexOf(mimeType)!=-1) {
-				var h = Workspace.DDManager.getHandler(mimeType);
-				h.call(that,e.dataTransfer.getData(mimeType),e);
-				return false;
-			}
-		});
-		e.preventDefault();
-	},
-	onDragEnter: function(e,t,o) {
-		e.preventDefault();
-	},
-	onDragOver: function(e,t,o) {
-		e.preventDefault();
-	},
-	destroy: function() {
-		this.workspace.getEl().un('drop',this.onDrop,this);
-	},
-	getAdjustedXYcoords: function() {
-		return Workspace.tools.BaseTool.prototype.getAdjustedXYcoords.apply(this,arguments);
-	},
-	getAdjustedXY: function() {
-		return Workspace.tools.BaseTool.prototype.getAdjustedXY.apply(this,arguments);
-	},
-	// File drop
-	onFileComplete: function(id, fileName, response) {
-		if(this.fileUploaders[id]) {
-			this.fileUploaders[id].onComplete(id, fileName, response);
-			delete this.fileUploaders[id];
-		}
-	},
-	onFileProgress: function(id, fileName, loaded, total) {
-		if(this.fileUploaders[id]) {
-			this.fileUploaders[id].onProgress(id, fileName, loaded, total);
-		}
-	},
-	onFileCancel: function(id, fileName) {
-		if(this.fileUploaders[id]) {
-			this.fileUploaders[id].onCancel(id, fileName);
-			delete this.fileUploaders[id];
-		}
-	},
-	getUploadHandler: function() {
-		if(!this.uploadHandler) {
-			this.uploadHandler = new qq.UploadHandlerXhr({
-				action: this.getUploadUrl(),
-				onComplete: Ext.bind(this.onFileComplete,this),
-				onCancel: Ext.bind(this.onFileCancel,this),
-				onProgress: Ext.bind(this.onFileProgress,this)
-			});
-			this.fileUploaders = {};
-		}
-		return this.uploadHandler;
-	},
-	fileHandler: function(files,pos) {
-		var uh = this.getUploadHandler();
+	fileHandler: function(files,e) {
+		var pos = this.getAdjustedXYcoords(e.pageX,e.pageY), 
+		uh = this.getUploadHandler();
 		Ext.each(files, function(file) {
 			var id = uh.add(file),
 			uploader = new Workspace.FileUploader({
@@ -1433,11 +1257,10 @@ Ext.define('Workspace.DDManager', {
 			uploader.showThrobber();
 		},this);
 	},
-	getUploadUrl: function() {
-		return App.getEndpoint('upload');
-	}
-}, function() {
-
+	getEl: function() {
+		return this.workspace.getEl();
+	},
+},function() {
 	Workspace.DDManager.addHandler('text/plain', function(data,e) {
 		var pos = this.getAdjustedXYcoords(e.pageX,e.pageY),
 		obj = this.workspace.createObject(Workspace.RichTextObject, {
@@ -1472,7 +1295,9 @@ Ext.define('Workspace.DDManager', {
 			});
 		}
 	});
-});
+})
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * @class Workspace.Scoller

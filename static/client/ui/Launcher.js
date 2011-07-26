@@ -75,6 +75,9 @@ Ext.define('App.ui.Launcher', {
 				}
 			}
 		},
+		getLaunchers: function() {
+			return this._triggers;
+		},
 		makeLauncher : function(trigger) {
 			return Ext.bind(function() {
 				this.launch(trigger);

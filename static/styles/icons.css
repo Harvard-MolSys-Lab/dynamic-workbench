@@ -148,6 +148,9 @@
 .plus-button, .add-button {
 	background-image: url(/images/icons/fugue/plus-button.png) !important;
 }
+.download {
+	background-image: url(/images/icons/fugue/drive-download.png) !important;
+}
 .user-silhouette {
 	background-image: url(/images/icons/fugue/user-silhouette.png) !important;
 }

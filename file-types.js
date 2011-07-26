@@ -223,14 +223,14 @@ var transforms = {
 	},
 	'contents.json' : function(data,callback) {
 		data.text = "Package contents";
-		data.renamable = false;
+		data.preventRename = true;
 		data.iconCls = 'manifest';
 		callback(null,data);
 	},
 	'preferences.json' : function(data, callback) {
 		data.text = "Preferences";
 		data.iconCls = "preferences";
-		data.renamable = false;
+		data.preventRename = true;
 		callback(null,data);
 	},
 };

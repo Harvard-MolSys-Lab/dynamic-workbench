@@ -4,8 +4,6 @@ var utils = require('./utils'), async = require('async'), rm = require("./rm-rf"
 var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath;
 var restrict = auth.restrict;
 
-
-
 function fileRecord(file, node, stat, cb) {
 	var ext = path.extname(file), type, id = path.join(node, file), trigger, out, transform;
 
@@ -28,9 +26,9 @@ function fileRecord(file, node, stat, cb) {
 	};
 	transform = fileTypes.transforms[file] || fileTypes.transforms[ext];
 	if(transform) {
-		transform(out,cb);
+		transform(out, cb);
 	} else {
-		cb(null,out);
+		cb(null, out);
 	}
 }
 
@@ -66,9 +64,12 @@ exports.configure = function(app, express) {
 			}
 			transform = fileTypes.contentTransforms[basename] || fileTypes.contentTransforms[ext];
 			if(transform) {
-				transform(fullPath,function(err,data) {
+				transform(fullPath, function(err, data) {
 					if(err) {
-						winston.log("error","/files: failed to transform file.",{err: err, fullPath:fullPath });
+						winston.log("error", "/files: failed to transform file.", {
+							err : err,
+							fullPath : fullPath
+						});
 						sendError(res, 'Internal Server Error', 500);
 						return;
 					}
@@ -112,7 +113,7 @@ exports.configure = function(app, express) {
 				if(err) {
 					winston.log("error", "/tree: Couldn't read directory contents: ", {
 						err : err,
-						fullPath: fullPath
+						fullPath : fullPath
 					});
 					sendError(res, 'Internal Server Error', 500);
 				}
@@ -120,11 +121,11 @@ exports.configure = function(app, express) {
 					if(file != '.DS_Store') {
 						fileRecord(file, node, null, cb);
 					}
-				},function(err,outTree) {
+				}, function(err, outTree) {
 					if(err) {
-						winston.log("error","Couldn't generate file records. ",{
-							fullPath: fullPath,
-							err: err
+						winston.log("error", "Couldn't generate file records. ", {
+							fullPath : fullPath,
+							err : err
 						});
 					}
 					res.send(_.compact(outTree));
@@ -271,51 +272,84 @@ exports.configure = function(app, express) {
 		});
 	});
 	app.get('/load', restrict('json'), function(req, res) {
-		var node = req.param('node'), fullPath = utils.userFilePath(node), ext = path.extname(node), basename = path.basename(fullPath), transform, type;
+		var node = req.param('node'), download = req.param('download'), fullPath = utils.userFilePath(node), ext = path.extname(node), basename = path.basename(fullPath), transform, type;
 		if(type != '') {
 			type = ext.substring(1);
 		}
 
-		// send file directly with associated mime type if it makes sense (e.g. for PDF or SVG to pass to Viewer)
-		if(mimetypes[type]) {
-			res.sendfile(fullPath, function(err) {
-				if(err) {
-					winston.log("error", "/load: Couldn't send file. ", {
-						fullPath : fullPath,
-						err : err
-					});
-					sendError("Couldn't send file: " + node);
+		fs.stat(fullPath, function(err, stat) {
+			if(err) {
+				if(err.code == 'ERRNO') {
+					sendError(res, 'Not Found', 404);
 					return;
+				} else {
+					sendError(res, 'Internal Server Error', 500);
+					throw err;
 				}
-			})
-		} else {
+			}
+			
 			transform = fileTypes.contentTransforms[basename] || fileTypes.contentTransforms[ext];
+			
 			if(transform) {
-				transform(fullPath,function(err,data) {
+				transform(fullPath, function(err, data) {
 					if(err) {
-						winston.log("error","/load: failed to transform file.",{err: err, fullPath:fullPath });
+						winston.log("error", "/load: failed to transform file.", {
+							err : err,
+							fullPath : fullPath
+						});
 						sendError(res, 'Internal Server Error', 500);
 						return;
 					}
+					if(!!download) {
+						res.attachment(fullPath);
+					}
 					res.send(data);
 				})
-			} else {
-			fs.readFile(fullPath, function(err, data) {
-				if(err) {
-					winston.log("warn", "/load: Can't open file. ", {
-						fullPath : fullPath,
-						node : node,
-						err : err,
-					});
-					forbidden(res, "Can't open file: " + node);
-					return;
-				} else {
+			} else if(stat.isDirectory()) {
+				sendError(res, 'Cannot send directories', 403);
+				winston.log("warn", "Cannot send directory.", {
+					fullPath : fullPath
+				});
 
-					res.send(data);
+				return;
+			} else {
+
+				// send file directly with associated mime type if it makes sense (e.g. for PDF or SVG to pass to Viewer)
+				if(mimetypes[type]) {
+					if(!!download) {
+						res.attachment(fullPath);
+					}
+					res.sendfile(fullPath, function(err) {
+						if(err) {
+							winston.log("error", "/load: Couldn't send file. ", {
+								fullPath : fullPath,
+								err : err
+							});
+							sendError("Couldn't send file: " + node);
+							return;
+						}
+					})
+				} else {
+					// TODO: either stream the file of use res.sendfile
+					fs.readFile(fullPath, function(err, data) {
+						if(err) {
+							winston.log("warn", "/load: Can't open file. ", {
+								fullPath : fullPath,
+								node : node,
+								err : err,
+							});
+							forbidden(res, "Can't open file: " + node);
+							return;
+						} else {
+							if(!!download) {
+								res.attachment(fullPath);
+							}
+							res.send(data);
+						}
+					});
 				}
-			});
 			}
-		}
+		});
 	})
 	app.post('/save', restrict('json'), function(req, res) {
 		var node = req.param('node'), fullPath = utils.userFilePath(node), data = req.param('data');

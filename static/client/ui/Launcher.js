@@ -121,6 +121,8 @@ Ext.define('App.ui.Launcher', {
 			// border : false,
 		}],
 	});
+	App.ui.Launcher.register('help', 'App.ui.Help', {
+	});
 	App.ui.Launcher.register('whiteboard', 'App.ui.Canvas', {
 		title : 'Whiteboard',
 	});

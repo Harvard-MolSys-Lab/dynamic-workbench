@@ -407,6 +407,12 @@
 .books {
 	background-image: url(/images/icons/fugue/books.png) !important;	
 }
+.help {
+	background-image: url(/images/icons/fugue/question.png) !important;	
+}
+.home {
+	background-image: url(/images/icons/fugue/home.png) !important;	
+}
 .dropbox {
 	background-image: url(/images/icons/etc/dropbox.png) !important;		
 }

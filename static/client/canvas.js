@@ -103,6 +103,10 @@ App.ui.buildInterface = function() {
 						iconCls : 'nupack-icon',
 						handler : App.ui.Launcher.makeLauncher('nupack'),
 						menu : Ext.create('App.ui.NupackMenu'),
+					},'-',{
+						text: 'Help',
+						iconCls: 'help',
+						handler : App.ui.Launcher.makeLauncher('help'),
 					}]
 				}, '->', {
 					scale : 'small',

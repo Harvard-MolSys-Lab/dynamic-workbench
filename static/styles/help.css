@@ -1,0 +1,41 @@
+.help-navigation {
+	font-family: ColaborateLightRegular;
+	text-shadow: 1px 0 white;
+	background-color: #dfdfdf;
+	border-bottom: 1px solid silver;
+	padding: 5px;
+	width: 100%;
+	margin: 0px auto 10px auto;
+	position: fixed;
+	top: 0px;
+	left: 0px;
+}
+
+body {
+	font-family: ColaborateThinRegular;
+	padding-top:36px;
+}
+
+h1 {
+	font-family: ColaborateRegular;
+	font-weight: normal;
+}
+
+h2 {
+	font-family: ColaborateRegular;
+	font-weight: normal;
+}
+
+a {
+	font-family: ColaborateLightRegular;
+	color: #4183C4;
+}
+
+span.home {
+	background-repeat: no-repeat;
+	background-position:top left;
+	display: block;
+	float: right;
+	padding-left: 20px;
+	margin-right: 10px;
+}

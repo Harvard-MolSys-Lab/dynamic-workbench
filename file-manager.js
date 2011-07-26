@@ -1,5 +1,6 @@
 var form = require('connect-form'), auth = require('./auth'), fs = require('fs'), path = require('path'), _ = require('underscore');
 var utils = require('./utils'), async = require('async'), rm = require("./rm-rf"), fileTypes = require('./file-types'), winston = require('winston');
+var md = require('markdown').markdown;
 
 var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath;
 var restrict = auth.restrict;
@@ -36,6 +37,27 @@ var mimetypes = fileTypes.mimetypes, triggers = fileTypes.triggers, icons = file
 
 exports.configure = function(app, express) {
 	var baseRoute = app.set('baseRoute');
+
+	app.get('/help/:page', restrict('html'),function(req,res) {
+		var page = req.param('page') || 'index', fullPath = path.join('help',page)+'.md';
+	
+		fs.readFile(fullPath, 'utf8', function(err, data) {
+			if(err) {
+				sendError(res, 'Not Found', 404);
+				winston.log("warn", "Can't find documentation. ", {
+					page : page,
+					fullPath : fullPath,
+					err : err,
+				});
+				return;
+			}
+			res.render(path.join(__dirname,'help/layout.jade'),{
+				layout: false,
+				body : md.toHTML(data),
+				page : page,
+			});
+		});
+	});
 
 	app.get(/\/files\/([\s\S]*)/, restrict('json'), function(req, res) {
 		var node = req.param('node') || req.params[0], fullPath = utils.userFilePath(node), basename = path.basename(fullPath), ext = path.extname(fullPath), transform;

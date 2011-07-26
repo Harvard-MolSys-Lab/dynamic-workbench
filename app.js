@@ -37,10 +37,18 @@ app.configure(function() {
 
 	// application landing page
 	app.get('/',auth.restrict('html'), function(req, res) {
-		res.render('test.jade', {
+		res.render('index.jade', {
+			manifest: require('./manifest'),
 			layout : false
 		});
 	});
+	app.get('/build', function(req, res) {
+		res.render('build.jade', {
+			manifest: require('./manifest'),
+			layout : false
+		});
+	});
+	
 	// configure file manager
 	fm.configure(app, express);
 

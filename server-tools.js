@@ -70,7 +70,7 @@ exports.configure = function(app, express) {
 			return function(req, res) {
 				// parse parameters
 				var params = _.reduce(spec.params, function(memo, param) {
-					memo[param] = req.param(param);
+					memo[param] = sanitize(req.param(param)).xss();
 					return memo;
 				}, {});
 
@@ -85,7 +85,7 @@ exports.configure = function(app, express) {
 			var out = {};
 			_.each(clientParams, function(param) {
 				if(block[param])
-					out[param] = block[param];
+					out[param] = sanitize(block[param]).xss();
 			});
 			out['endpoint'] = path.join(baseRoute, block.route);
 			return out;

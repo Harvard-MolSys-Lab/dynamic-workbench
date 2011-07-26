@@ -46,31 +46,48 @@ Ext.onReady(function() {
 			margins : '5 5 0 5'
 		}, {
 			region : 'center',
+			layout: 'anchor',
 			frame : true,
 			margins : '0 5 5 5',
 			xtype : 'form',
 			ref : 'form',
 			defaults : {
 				xtype : 'textfield',
-				anchor : '100%'
 			},
 			items : [{
+				anchor : '100%',
 				name : 'email',
 				fieldLabel : 'E-mail',
 				allowBlank : false,
-				blankText : "We need your email address to log you in."
+				blankText : "We need your email address to log you in.",
+				value : Ext.util.Cookies.get('infomachine-email') || '',
 			}, {
+				anchor : '100%',
 				name : 'password',
 				fieldLabel : 'Password',
 				inputType : 'password',
 				allowBlank : false,
-				blankText : "We need your password too."
+				blankText : "We need your password too.",
+				value : Ext.util.Cookies.get('infomachine-password') || '',
+			},{
+				anchor: '-5',
+				name: 'remember',
+				xtype: 'checkbox',
+				checked: Ext.util.Cookies.get('infomachine-remember') || false,
+                boxLabel: 'Remember Me',
+                tooltip: 'Check to remember your username and password.'
 			}],
 			buttons : [{
 				text : "Login",
 				iconCls : 'key',
 				formBind : true,
 				handler : function() {
+					var remember = loginWindow.down('[name=remember]');
+					if(remember.checked) {
+						Ext.util.Cookies.set('infomachine-email',loginWindow.down('[name=email]').getValue());
+						Ext.util.Cookies.set('infomachine-password',loginWindow.down('[name=password]').getValue());
+						Ext.util.Cookies.set('infomachine-remember',true);
+					}
 					loginWindow.down('form').submit({
 						url : '/login',
 						method : 'POST',

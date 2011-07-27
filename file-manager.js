@@ -142,6 +142,8 @@ exports.configure = function(app, express) {
 				async.map(files, function(file, cb) {
 					if(file != '.DS_Store') {
 						fileRecord(file, node, null, cb);
+					} else {
+						cb(null,null);
 					}
 				}, function(err, outTree) {
 					if(err) {

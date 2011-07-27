@@ -24,15 +24,25 @@ Ext.define('App.ui.CreateMenu', {
 				canActivate: false,
 				iconCls: 'rename',
 			},{
+				/**
+				 * @property {Ext.form.field.Text} fileNameField
+				 */
 				xtype: 'textfield',
 				allowBlank: false,
 				//validate: Ext.bind(this.validate,this),
 				iconCls: 'rename',
 				ref: 'fileNameField',
 				indent: true,
+				/**
+				 * @cfg {Mixed[]} extraMenuItems
+				 * An optional array of menu items to insert between the {@link #fileNameField} and the {@link #createButton}
+				 */
 			},].concat(this.extraMenuItems,[{
 				text: this.createText,
 				iconCls: this.createIconCls,
+				/**
+				 * @property {Ext.menu.Item} createButton
+				 */
 				ref: 'createButton',
 				disabled: true,
 				menu: Ext.apply(this.getCreateMenu(), {
@@ -59,6 +69,9 @@ Ext.define('App.ui.CreateMenu', {
 				}
 			},this);
 		}
+	},
+	onCreateButton: function() {
+		
 	},
 	/**
 	 * Action to perform when the "Create" menu item is selected. By default, creates a new file under the selected item in

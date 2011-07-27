@@ -45,6 +45,7 @@ App.ui.buildInterface = function() {
 		collapsible : true,
 		collapsed : true,
 		collapseMode : 'mini',
+		titleCollapse: true,
 		title : 'Console',
 		layout : 'border',
 		items : [scriptPanel, logView]
@@ -154,6 +155,7 @@ App.ui.buildInterface = function() {
 				xtype : 'tabpanel',
 				region : 'center',
 				border : false,
+				bodyBorder: false,
 				bodyCls : 'x-docked-noborder-top',
 				items : []
 			}, App.ui.Launcher.console]

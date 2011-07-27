@@ -1,99 +1,152 @@
 /**
  * Manages launching and running {@link App.ui.Application}s. Applications can be launched programattically by calling
- * {@link App.ui.Launcher#launch}, or simply {App.ui#launch} with a trigger. Triggers identify particular 
+ * {@link App.ui.Launcher#launch}, or simply {App.ui#launch} with a trigger. Triggers identify particular
  * applications
+ * @singleton
  */
 Ext.define('App.ui.Launcher', {
-	statics : {
+	singleton : true,
+	/**
+	 * @property {String}
+	 * Delimiter to separate trigger properties
+	 */
+	triggerDelimiter : ':',
+	_triggers : {},
+	_openTabs : {},
+	/**
+	 * Registers a trigger with the provided {@link App.ui.Application} subclass
+	 * @param {String} name Name of the trigger
+	 * @param {String} className Name of the {@link App.ui.Application} subclass
+	 * @param {Object} config Config options to be passed to {@link Ext#create} along with <var>className</var>
+	 */
+	register : function(name, className, config) {
+		config || ( config = {});
+		this._triggers[name] = {
+			cls : className,
+			config : config
+		};
+	},
+	/**
+	 * Returns the currently active {@link App.ui.Application}
+	 */
+	getActiveApp : function() {
+		return this.tabPanel.getActiveTab();
+	},
+	/**
+	 * Adds a tab to the main {@link #tabPanel}
+	 */
+	addTab : function(tab) {
 		/**
-		 * @property {String}
-		 * Delimiter to separate trigger properties
+		 * @property {Ext.tab.Panel} tabPanel
+		 * The main tab panel which holds {@link App.ui.Application application} tabs
 		 */
-		triggerDelimiter : ':',
-		_triggers : {},
-		_openTabs : {},
-		register : function(name, className, config) {
-			config || ( config = {});
-			this._triggers[name] = {
-				cls : className,
-				config : config
-			};
-		},
-		getActiveApp : function() {
-			return this.tabPanel.getActiveTab();
-		},
-		addTab : function(tab) {
-			if(this.tabPanel) {
-				this.tabPanel.add(tab);
-			}
-		},
-		launch : function(trigger, doc) {
-			if(!trigger || trigger=="false") {
-				return;
-			}
-			tab = this._openTabs[trigger];
-			if(tab) {
-				this.tabPanel.setActiveTab(tab);
-			} else {
-				var triggers = trigger.split(this.triggerDelimiter), rootTrigger = triggers.shift(), a = this._triggers[rootTrigger];
-				var mask, tab;
-				if(a) {
-					// mask workspace while deserializing
-					mask = this.tabPanel.setLoading('Loading...');
-					tab = Ext.create(a.cls, Ext.apply({}, a.config, {
-						document : (doc || false),
-						initialTrigger : trigger,
-						triggers : triggers,
-						closable : true,
-						listeners : {
-							afterrender : {
-								fn : function() {
-									mask.hide();
-								},
-								single : true
-							}
-						}
-					}));
-				} else {
-					mask = this.tabPanel.setLoading('Loading...');
-					tab = Ext.createByAlias('app.' + rootTrigger);
-				}
-				if(tab) {
-					this.addTab(tab);
-					this.tabPanel.setActiveTab(tab);
-					this._openTabs[trigger] = tab;
-					// Ext.History.add(trigger,true);
-
-					tab.on('close', function(tab) { delete
-						this._openTabs[tab.initialTrigger];
-					}, this);
-					Ext.log('Launched InfoMachine application with trigger: ' + trigger, {
-						iconCls : 'application',
-						silent : true
-					});
-					mask.hide();
-				}
-			}
-		},
-		getLaunchers: function() {
-			return this._triggers;
-		},
-		makeLauncher : function(trigger) {
-			return Ext.bind(function() {
-				this.launch(trigger);
-			}, this);
-		},
-		toggleConsole : function() {
-			this.console.toggleCollapse();
-		},
-		showConsole : function() {
-			this.console.expand();
+		if(this.tabPanel) {
+			this.tabPanel.add(tab);
 		}
+	},
+	/**
+	 * Attempts to {@link #launch launch} the passed {@link App.ui.Document document} by
+	 * {@link App.ui.Document#checkout attached app} or {@link App.ui.Document#trigger}, if configured.
+	 */
+	launchDocument : function(rec) {
+		if(rec.app) {
+			// TODO: more sophisticated activation logic
+			this.tabPanel.setActive(rec.app);
+			return rec.app;
+		} else if(rec.get('trigger')) { // && App.ui.Launcher.has(rec.get('trigger'))) {
+			return App.ui.Launcher.launch(rec.get('trigger'), rec);
+		}
+		return null;
+	},
+	/**
+	 * Launches the passed {@link #trigger trigger} attached to the passed {@link App.ui.Document}. Generally results in
+	 * opening a new {@link App.ui.Application application} in a tab within the main {@link #tabPanel tab panel}
+	 *
+	 */
+	launch : function(trigger, doc) {
+		if(!trigger || trigger == "false") {
+			return;
+		}
+		tab = this._openTabs[trigger];
+		if(tab) {
+			this.tabPanel.setActiveTab(tab);
+		} else {
+			var triggers = trigger.split(this.triggerDelimiter), rootTrigger = triggers.shift(), a = this._triggers[rootTrigger];
+			var mask, tab;
+			if(a) {
+				// mask workspace while deserializing
+				mask = this.tabPanel.setLoading('Loading...');
+				tab = Ext.create(a.cls, Ext.apply({}, a.config, {
+					document : (doc || false),
+					initialTrigger : trigger,
+					triggers : triggers,
+					closable : true,
+					listeners : {
+						afterrender : {
+							fn : function() {
+								mask.hide();
+							},
+							single : true
+						}
+					}
+				}));
+			} else {
+				mask = this.tabPanel.setLoading('Loading...');
+				tab = Ext.createByAlias('app.' + rootTrigger);
+			}
+			if(tab) {
+				this.addTab(tab);
+				this.tabPanel.setActiveTab(tab);
+				this._openTabs[trigger] = tab;
+				// Ext.History.add(trigger,true);
+
+				tab.on('close', function(tab) { delete
+					this._openTabs[tab.initialTrigger];
+				}, this);
+				Ext.log('Launched InfoMachine application with trigger: ' + trigger, {
+					iconCls : 'application',
+					silent : true
+				});
+				mask.hide();
+				return tab;
+			}
+		}
+	},
+	/**
+	 * Gets a hash of configured {@link #triggers}
+	 * @return {Object} triggers
+	 */
+	getLaunchers : function() {
+		return this._triggers;
+	},
+	/**
+	 * Returns a bound function to launch the given trigger. Useful for attaching to the handler property of
+	 * {@link Ext.button.Button}s and {@link Ext.menu.Item}s.
+	 * @return {Function} launcher
+	 */
+	makeLauncher : function(trigger) {
+		return Ext.bind(function() {
+			this.launch(trigger);
+		}, this);
+	},
+	/**
+	 * Toggles collapse state of the {@link #console console}.
+	 */
+	toggleConsole : function() {
+		this.console.toggleCollapse();
+	},
+	/**
+	 * Expands the {@link #console console}
+	 */
+	showConsole : function() {
+		this.console.expand();
 	}
 }, function() {
+	App.ui.Launcher.register('help', 'App.ui.Help', {
+	});
 	App.ui.Launcher.register('nodal', 'App.ui.NodalCanvas', {
 		title : 'Nodal System',
-		editorType: 'Nodal',
+		editorType : 'Nodal',
 		iconCls : 'nodal',
 		border : false,
 		ribbonItems : [{
@@ -108,21 +161,20 @@ Ext.define('App.ui.Launcher', {
 	});
 	App.ui.Launcher.register('primary', 'App.ui.Canvas', {
 		title : 'Primary Structure',
-		editorType: 'Primary',
+		editorType : 'Primary',
 		iconCls : 'line',
 		border : false,
 		ribbonItems : [{
 			xtype : 'primary-hometab',
 			title : 'Home',
 			border : false,
-		// }, {
+			// }, {
 			// xtype : 'nodal-buildtab',
 			// title : 'Build',
 			// border : false,
 		}],
 	});
-	App.ui.Launcher.register('help', 'App.ui.Help', {
-	});
+
 	App.ui.Launcher.register('whiteboard', 'App.ui.Canvas', {
 		title : 'Whiteboard',
 	});
@@ -148,8 +200,7 @@ Ext.define('App.ui.Launcher', {
 		title : 'NUPACK'
 	});
 	App.ui.Launcher.register('viewer', 'App.ui.Viewer', {
-		editorType : 'Viewer',
-		iconCls : 'document',
+
 	});
 	App.ui.Launcher.register('nupackedit', 'App.ui.NupackEditor', {});
 	App.ui.Launcher.register('taskmanager', 'App.ui.TaskManager', {
@@ -192,8 +243,7 @@ Ext.define('App.ui.Launcher', {
 		mode : 'pepper',
 	});
 	App.ui.Launcher.register('sequence', 'App.ui.SequenceEditor', {
-		iconCls : 'sequence',
-		editorType : 'Sequence',
+
 	});
 	App.ui.Launcher.register('nupackresults', 'App.ui.NupackResults', {
 		iconCls : 'nupack-icon',
@@ -201,7 +251,6 @@ Ext.define('App.ui.Launcher', {
 	});
 	App.ui.Launcher.register('dd', 'App.ui.DD', {
 		iconCls : 'seq',
-		title : 'Domain Design',
 	});
 	App.ui.active = function() {
 		return App.ui.Launcher.getActiveApp();

@@ -38,6 +38,13 @@ Ext.define('App.Document', {
 		return App.Path.basename(this.getPath());
 	},
 	/**
+	 * If this record represents a folder, returns this; otherwise returns this record's parent node.
+	 * This is the moral equivalent of {@link App.path#pop}
+	 */
+	getFolder: function() {
+		return (this.isLeaf() && !this.isRoot()) ? this.parentNode : this;
+	},
+	/**
 	 * Searches for a sibling node to this document by the given <var>fn</var
 	 * @param {Function} fn Function to search with
 	 * @param {Mixed} scope Scope within which to execute <var>fn</var>
@@ -139,8 +146,9 @@ Ext.define('App.Document', {
 	 * checkout
 	 * associates this file with an opened application
 	 */
-	checkout : function() {
-
+	checkout : function(app) {
+		this.app = app;
+		this.fireEvent('checkout',this,app);
 	},
 });
 

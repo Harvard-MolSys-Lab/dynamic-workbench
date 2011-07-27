@@ -88,6 +88,7 @@ Ext.define('App.ui.Canvas', {
 					split: true,
 					collapsible: true,
 					collapseMode: 'header',
+					titleCollapse: true,
 					title: 'Objects',
 					root: {
 						text: 'Workspace',
@@ -101,6 +102,7 @@ Ext.define('App.ui.Canvas', {
 					split: true,
 					collapsible: true,
 					collapseMode: 'header',
+					titleCollapse: true,
 					border: true,
 					frame: false,
 					title: 'Motifs',
@@ -111,6 +113,7 @@ Ext.define('App.ui.Canvas', {
 				split: true,
 				collapseMode: 'mini',
 				collapsible: true,
+				titleCollapse: true,
 				border: true,
 				frame: false,
 				region: 'east'

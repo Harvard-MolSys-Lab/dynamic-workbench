@@ -10,6 +10,10 @@ Ext.define('App.ui.DD', {
 		this.mixins.app.constructor.apply(this, arguments);
 		this.callParent(arguments);
 	},
+	title : 'Domain Design',
+	editorType : 'WebDD',
+	border : false,
+	bodyBorder : false,
 	/**
 	 * @property
 	 * Reports whether the designer is currently mutating
@@ -101,18 +105,18 @@ Ext.define('App.ui.DD', {
 				columns : [Ext.create('Ext.grid.RowNumberer', {
 					width : 30,
 					header : '#',
-					hideable: true,
-					hidden: true,
+					hideable : true,
+					hidden : true,
 				}), {
 					header : 'Name',
 					dataIndex : 'name',
 					width : 50,
-					editor: {
-						allowBlank: true,
+					editor : {
+						allowBlank : true,
 					},
 					renderer : function(v, metaData, record, rowIdx, colIdx, store) {
 						metaData.tdCls = Ext.baseCSSPrefix + 'grid-cell-special';
-						return (!v || v=="false") ? (store.indexOfTotal(record) + 1) : v;
+						return (!v || v == "false") ? (store.indexOfTotal(record) + 1) : v;
 					},
 				}, {
 					header : 'Sequence',
@@ -202,104 +206,108 @@ Ext.define('App.ui.DD', {
 				// },
 				// store: this.designStore,
 				// }
-				tbar : [{
-					/**
-					 * @property {Ext.button.Button} mutateButton
-					 * Starts and stops mutation
-					 */
-					text : 'Mutate',
-					iconCls : 'play',
-					ref : 'mutateButton',
-					handler : this.toggleMutation,
-					scope : this,
-				}, '-', {
-					/**
-					 * @property {Ext.button.Button} addDomainButton
-					 * Shows a menu allowing the user to add domains to the designer
-					 */
-					text : 'Add',
-					ref : 'addDomainButton',
-					handler : this.doAddDomain,
-					scope : this,
-					iconCls : 'plus',
-					xtype : 'splitbutton',
-					menu : [{
-						text : 'New domain length: ',
-						canActivate : false,
-					}, {
+				tbar : {
+					// cls: 'noborder-top noborder-left noborder-right',
+					items : [{
 						/**
-						 * @property {Ext.form.field.Number} addDomLen
-						 * Control allowing the user to select the number of bases in the domain to be added
+						 * @property {Ext.button.Button} mutateButton
+						 * Starts and stops mutation
 						 */
-						xtype : 'numberfield',
-						ref : 'addDomLen',
-						value : 8,
-						min : 2,
-						indent : true,
-					}, {
-						/**
-						 * @property {Ext.menu.Item} addDomainItem
-						 * Menu item which triggers a domain of length specified in {@link #addDomLen} to be added to the designer.
-						 */
-						text : 'Add Domain',
-						iconCls : 'tick',
-						ref : 'addDomainItem',
-						handler : this.doAddDomain,
+						text : 'Mutate',
+						iconCls : 'play',
+						ref : 'mutateButton',
+						handler : this.toggleMutation,
 						scope : this,
 					}, '-', {
-						text : 'Add specific domains...',
-						handler : this.addManyDomains,
+						/**
+						 * @property {Ext.button.Button} addDomainButton
+						 * Shows a menu allowing the user to add domains to the designer
+						 */
+						text : 'Add',
+						ref : 'addDomainButton',
+						handler : this.doAddDomain,
 						scope : this,
-					}]
-				}, {
-					/**
-					 * @property {Ext.button.Button} modDomainButton
-					 */
-					text : 'Modify',
-					ref : 'modDomainButton',
-					iconCls : 'edit',
-					xtype : 'splitbutton',
-					handler : function() {
-						this.cellEditor.startEdit(this.grid.getSelectionModel().getLastSelected(), this.grid.headerCt.getHeaderAtIndex(0));
-					},
-					scope : this,
-					menu : [{
-						text : 'Reseed Domain',
-						handler : this.reseed,
-						scope : this,
+						iconCls : 'plus',
+						xtype : 'splitbutton',
+						menu : [{
+							text : 'New domain length: ',
+							canActivate : false,
+						}, {
+							/**
+							 * @property {Ext.form.field.Number} addDomLen
+							 * Control allowing the user to select the number of bases in the domain to be added
+							 */
+							xtype : 'numberfield',
+							ref : 'addDomLen',
+							value : 8,
+							min : 2,
+							indent : true,
+						}, {
+							/**
+							 * @property {Ext.menu.Item} addDomainItem
+							 * Menu item which triggers a domain of length specified in {@link #addDomLen} to be added to the designer.
+							 */
+							text : 'Add Domain',
+							iconCls : 'tick',
+							ref : 'addDomainItem',
+							handler : this.doAddDomain,
+							scope : this,
+						}, '-', {
+							text : 'Add specific domains...',
+							handler : this.addManyDomains,
+							scope : this,
+						}]
 					}, {
-						text : 'Reseed All Domains',
-						handler : this.reseedAll,
+						/**
+						 * @property {Ext.button.Button} modDomainButton
+						 */
+						text : 'Modify',
+						ref : 'modDomainButton',
+						iconCls : 'edit',
+						xtype : 'splitbutton',
+						handler : function() {
+							this.cellEditor.startEdit(this.grid.getSelectionModel().getLastSelected(), this.grid.headerCt.getHeaderAtIndex(0));
+						},
 						scope : this,
-					}]
-				}, {
-					/**
-					 * @property {Ext.button.Button} delDomainButton
-					 */
-					text : 'Delete',
-					ref : 'delDomainButton',
-					handler : this.doDeleteDomain,
-					scope : this,
-					iconCls : 'cross',
-				}, '-', {
-					text : 'Advanced',
-					iconCls : 'tools',
-					menu : [{
-						text : 'Design options',
-						iconCls : 'wrench',
-						handler : this.designOptions,
-						scope : this,
+						menu : [{
+							text : 'Reseed Domain',
+							handler : this.reseed,
+							scope : this,
+						}, {
+							text : 'Reseed All Domains',
+							handler : this.reseedAll,
+							scope : this,
+						}]
 					}, {
-						text : 'Tweak score parameters',
-						iconCls : 'ui-slider',
-						handler : this.scoreParams,
+						/**
+						 * @property {Ext.button.Button} delDomainButton
+						 */
+						text : 'Delete',
+						ref : 'delDomainButton',
+						handler : this.doDeleteDomain,
 						scope : this,
+						iconCls : 'cross',
+					}, '-', {
+						text : 'Advanced',
+						iconCls : 'tools',
+						menu : [{
+							text : 'Design options',
+							iconCls : 'wrench',
+							handler : this.designOptions,
+							scope : this,
+						}, {
+							text : 'Tweak score parameters',
+							iconCls : 'ui-slider',
+							handler : this.scoreParams,
+							scope : this,
+						}]
+					}, '->', {
+						text : 'Save',
+						iconCls : 'save'
 					}]
-				}, '->', {
-					text : 'Save',
-					iconCls : 'save'
-				}],
+				},
 				bbar : new Ext.ux.statusbar.StatusBar({
+					//cls : 'noborder-left',
 					/**
 					 * @property {Ext.ux.statusbar.Statusbar}
 					 */
@@ -318,23 +326,29 @@ Ext.define('App.ui.DD', {
 						ref : 'mutCount',
 					}]
 				}),
-				margin : '2 0 0 2',
+				margin : 0,  //'2 0 0 2',
 				bodyBorder : false,
-				border : true,   //'0 1 1 0',
+				//cls : 'noborder-left',
+				//bodyCls : 'noborder-left',
+				border : true,    //'0 1 1 0',
 				split : true,
-			}, new App.ui.CodeMirror({
+			}, Ext.create('App.ui.NupackEditor', {
 				region : 'east',
 				title : 'Structure',
+				editorType : 'Structure',
 				ref : 'struct',
 				collapsible : true,
 				width : 200,
 				split : true,
-				margin : '2 2 0 0',
-				border : true,   //'0 0 1 1',
+				margin : 0,  //'2 2 0 0',
+				border : true,    //'0 0 1 1',
 				bodyBorder : true,
 				mode : 'nupack',
-				tbar : [{
+				showNupackButton : false,
+				showEditButton : false,
+				extraTbarItems : [{
 					text : 'Update',
+					iconCls : 'refresh',
 					xtype : 'splitbutton',
 					menu : [{
 						text : 'Reseed existing domains',
@@ -344,21 +358,21 @@ Ext.define('App.ui.DD', {
 					handler : this.updateDomainsFromSpec,
 					scope : this,
 				}]
-			}), new App.ui.CodeMirror({
+			}), Ext.create('App.ui.SequenceEditor', {
 				region : 'south',
 				title : 'Strands',
+				editorType : 'Strands',
 				ref : 'strandsPane',
 				collapsible : true,
 				height : 200,
 				split : true,
-				border : true,   //'1 0 0 0',
+				border : true,    //'1 0 0 0',
 				bodyBorder : true,
-				margin : '0 2 2 2',
-				mode : 'sequence'
-
+				margin : 0, //'0 2 2 2',
 			})]
 
 		});
+
 		this.on('afterrender', this.loadFile, this);
 		this.callParent(arguments);
 		_.each(this.query('*[ref]'), function(cmp) {
@@ -367,7 +381,7 @@ Ext.define('App.ui.DD', {
 	},
 	updateDomainsFromSpec : function() {
 		var spec = DNA.structureSpec(CodeMirror.tokenize(this.struct.getValue(), 'nupack'));
-		this.syncDomains(spec.domains,this.clobberOnUpdate.checked);
+		this.syncDomains(spec.domains, this.clobberOnUpdate.checked);
 		this.setStrands(spec.strands);
 	},
 	setStrands : function(strands) {
@@ -388,7 +402,7 @@ Ext.define('App.ui.DD', {
 	reseedAll : function() {
 
 	},
-	updateDomain: function(rec) {
+	updateDomain : function(rec) {
 		this.designer.updateDomain(this.store.indexOf(rec), rec.get('sequence'), rec.get('importance'), rec.get('composition'));
 	},
 	/**
@@ -448,22 +462,22 @@ Ext.define('App.ui.DD', {
 			this.store.remove(rec);
 		}
 	},
-	syncDomains: function(domains,clobber) {
+	syncDomains : function(domains, clobber) {
 		clobber = clobber || false;
-		_.each(domains,function(spec,name) {
-			var rec = this.store.findRecord('name',name);
+		_.each(domains, function(spec, name) {
+			var rec = this.store.findRecord('name', name);
 			if(!rec && _.isNumber(name)) {
 				rec = this.store.getAt(name);
 			}
 			if(!rec) {
-				this.addDomains([spec],[name]);
+				this.addDomains([spec], [name]);
 			} else {
 				if(clobber) {
-					rec.set('sequence',spec);
+					rec.set('sequence', spec);
 					this.updateDomain(rec);
 				}
 			}
-		},this);
+		}, this);
 	},
 	/**
 	 * Shows the {@link #addDomainsWindow}
@@ -484,12 +498,13 @@ Ext.define('App.ui.DD', {
 	 * @param {String[]} seqs Array of sequences to add
 	 */
 	addDomains : function(seqs, names) {
-		var imp = 1, comp = 15; //, start = this.designer.getDomainCount(), end;
+		var imp = 1, comp = 15;
+		//, start = this.designer.getDomainCount(), end;
 		this.designer.addDomains(seqs, imp, comp);
 		// end =   this.designer.getDomainCount() - 1;
 		// var newSeqs = [];
 		// for(var i = start; i < end; i++) {
-			// newSeqs.push(this.designer.printfDomainById(i));
+		// newSeqs.push(this.designer.printfDomainById(i));
 		// }
 		this.store.add(_.map(seqs /*newSeqs*/, function(seq, i) {
 			return {
@@ -515,7 +530,7 @@ Ext.define('App.ui.DD', {
 	 */
 	addDomain : function(seq, imp, comp, name) {
 		// false to not clobber
-		name || (name = '');
+		name || ( name = '');
 		this.designer.addDomains([seq], imp, comp, false);
 		var seq = this.designer.printfDomainById(this.designer.getDomainCount() - 1);
 		this.store.add({
@@ -582,13 +597,13 @@ Ext.define('App.ui.DD', {
 		rec.set('sequence', mut_dom_seq);
 		this.store.sync();
 		if(this.strands) {
-			var segments = _.reduce(this.store.getRange(),function(memo,rec) {
+			var segments = _.reduce(this.store.getRange(), function(memo, rec) {
 				var name = rec.get('name'), i = this.store.indexOf(rec);
-				memo[name ? name : i] = this.designer.printDomainById(i);
+				memo[ name ? name : i] = this.designer.printDomainById(i);
 				return memo;
-			},{},this);
+			}, {}, this);
 			this.strandsPane.setValue(_.map(this.strands,function(spec,name) {
-				return name+' : '+DNA.threadSegments(segments,spec);
+			return name+' : '+DNA.threadSegments(segments,spec);
 			}).join('\n'));
 		}
 	},

@@ -79,7 +79,14 @@ Ext.define('App.ui.SequenceStats', {
 						return v.toUpperCase();
 					}
 				}
-			}]
+			}],
+			destroy : function() {
+				// TODO : remove on upgrade
+				// hack to fix a bug in Ext 4.0.1
+				if(!this.surface) {
+					this.surface = {destroy:function(){}};
+				}
+			}
 		});
 		Ext.apply(this, {
 			items: [

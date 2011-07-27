@@ -1,6 +1,11 @@
 Ext.define('App.ui.SequenceEditor', {
 	extend: 'App.ui.TextEditor',
 	mode: 'sequence',
+	mixins : {
+		tips : 'App.ui.TipHelper',
+	},
+	iconCls : 'sequence',
+	editorType : 'Sequence',
 	initComponent: function() {
 		Ext.applyIf(this, {
 			tbar: [{
@@ -12,15 +17,30 @@ Ext.define('App.ui.SequenceEditor', {
 						menu: Ext.create('App.ui.SequenceStats',{
 							ref: 'statsPanel'
 						}),
+						tooltip: {
+							anchor: 'bottom',
+							title: 'Sequence Statistics',
+							html: 'Displays various statistics about the base composition of the sequence.'
+						},
 						ref: 'stats'
 					},{
 						text: 'Levenshtein distance',
+						tooltip: {
+							anchor: 'bottom',
+							title: 'Levenshtein distance',
+							html: 'The <a href="http://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein Distance</a> '+ 									'between two strings measures the minimum number of changes, or "edits" (insertions,  '+ 											'deletions, and substitutions) necessary two make the two strings equal.',
+						},
 						menu: Ext.create('App.ui.CompareMenu',{
 							algorithm:DNA.levenshtein,
 						}),
 						ref: 'lev',
 					},{
 						text: 'Hamming distance',
+						tooltip: {
+							anchor: 'bottom',
+							title: 'Hamming Distance',
+							html: 'The <a href="http://en.wikipedia.org/wiki/Hamming_distance">Hamming Distance</a> '+ 											'between two strings of equal length measures the number of positions at which they are different; '+ 								'(i.e. it considers substitutions, but not insertions, deletions, or truncations.).'
+						},
 						menu: Ext.create('App.ui.CompareMenu',{
 							algorithm:DNA.hamming,
 							validate: function(v1,v2) {
@@ -30,6 +50,12 @@ Ext.define('App.ui.SequenceEditor', {
 						ref: 'hamming',
 					},{
 						text: 'Shannon Entropy',
+						tooltip: {
+							anchor: 'bottom',
+							title: 'Shannon Entropy',
+							html: 'The <a href="http://en.wikipedia.org/wiki/Entropy_(information_theory)">Shannon Entropy</a> '+ 								'of a string measures the information complexity of that string. This can be used to approximate the '+
+							'base diversity in a sequence (higher is better).'
+						},
 						menu: Ext.create('App.ui.StatMenu',{
 							labelText: 'Calculate Shannon Entropy (∆S°)',
 							baseText: 'Shannon: ',
@@ -78,91 +104,46 @@ Ext.define('App.ui.SequenceEditor', {
 				},
 				scope: this,
 			},{
-				text: 'Edit',
-				iconCls: 'pencil',
-				menu: {
-					items: [{
+				text: 'Transform',
+				iconCls: 'transform',
+				tooltip: '',
+				menu: [{
 						text: 'Reverse',
 						iconCls: 'arrow-reverse',
 						handler: this.reverse,
 						scope: this,
+						tooltip: 'Reverse the order of bases in each strand in the selection. If "Replace Selection" '+
+						'is unchecked, the reverse strands will be inserted below the originals.',
 					},{
 						text: 'Complement',
 						iconCls: 'arrow-complement',
 						handler: this.complement,
 						scope: this,
+						tooltip: 'Insert the Watson-Crick complement of each base in each strand in the selection.'+ 
+						'If "Replace Selection" is unchecked, the complement strands will be inserted below the originals. '+
+						'<b>Note:</b> this will not reverse the order of the bases; to present the complement in the 5\'$rarr;3\' '+
+						'direction, use "Reverse Complement."'
 					},{
 						text: 'Reverse Complement',
 						iconCls: 'arrow-reverse-complement',
 						handler: this.reverseComplement,
 						scope: this,
+						tooltip: 'Insert the Watson-Crick complement of each base in each strand in the selection, in the '+
+						'5\'$rarr;3\' direction. '+ 
+						'If "Replace Selection" is unchecked, the complement strands will be inserted below the originals. ',
 					},{
 						text: 'Duplicate',
 						handler: this.duplicate,
 						scope: this,
-					},{
-						text: 'Pairwise Align',
-						iconCls: 'pairwise-align',
-						ref: 'align',
-						handler: this.pairwiseAlign,
-						scope:this,
-					},{
-						text: 'Replace Selection',
-						checked: true,
-						ref: 'replaceSelection',
-					},'-',{
-						text: 'To DNA',
-						handler: this.convertToDNA,
-						scope: this,
-					},{
-						text: 'To RNA',
-						handler: this.convertToRNA,
-						scope: this,
-					},'-',{
-						text: 'Strip extra characters',
-						handler: this.stripExtra,
-						scope: this,
-					},{
-						text: 'Strip whitespace',
-						handler: this.stripWhitespace,
-						scope: this,
-					},{
-						text: 'Strip newlines',
-						handler: this.stripNewlines,
-						scope: this,
-					},{
-						text: 'Insert line breaks',
-						handler: this.autoLineBreaks,
-						scope: this,
-					},{
-						text: 'Uppercase',
-						handler: this.uppercase,
-						scope: this,
-					},{
-						text: 'Lowercase',
-						handler: this.lowercase,
-						scope: this,
-					},{
-						text: 'Comment/Uncomment',
-						handler: this.toggleComment,
-						scope: this,
-					},'-',{
-						text: 'Make DD input file',
-						handler: this.insertDD,
-						scope: this,
-					},{
-						text: 'NUPACK out to FASTA',
-						handler: this.nupackToFasta,
-						scope: this,
-					},'-',{
-						text: 'Thread sequences to strand',
-						handler: this.threadStrands,
-						scope: this,
+						tooltip: 'Duplicate strands in the selection. If "Replace Selection" is unchecked, '+
+						'each duplicate strand will be inserted below the original. '
 					},{
 						text: 'Truncate',
+						iconCls: 'cutter',
+						tooltip: 'Remove bases from the beginning or end of strands in the selection',
 						menu: [{
 							text: 'Bases to truncate: ',
-							tip: "Use a positive number for 5' truncations, negative number for 3' truncations.",
+							tooltip: "Use a positive number for 5' truncations, negative number for 3' truncations.",
 							canActivate: false,
 						},{
 							xtype: 'numberfield',
@@ -175,7 +156,97 @@ Ext.define('App.ui.SequenceEditor', {
 							scope: this,
 						}]
 					},{
+						text: 'Pairwise Align',
+						iconCls: 'pairwise-align',
+						ref: 'align',
+						handler: this.pairwiseAlign,
+						scope:this,
+					},{
+						text: 'Replace Selection',
+						checked: true,
+						ref: 'replaceSelection',
+					},]
+			},{
+				text: 'Format',
+				iconCls: 'pencil',
+				tooltip: "Apply various formatting options to the selection.",
+				menu: {
+					items: [{
+						text: 'Strip extra characters',
+						handler: this.stripExtra,
+						scope: this,
+						tooltip: 'Removes characters other than A, T, C, G, U, and whitespace from the selection',
+					},{
+						text: 'Strip whitespace',
+						handler: this.stripWhitespace,
+						scope: this,
+						tooltip: 'Removes whitespace characters (spaces, tabs, line returns) from the selection'
+					},{
+						text: 'Strip newlines',
+						handler: this.stripNewlines,
+						scope: this,
+						tooltip: 'Removes line return characters from the selection'
+					},{
+						text: 'Insert line breaks',
+						handler: this.autoLineBreaks,
+						scope: this,
+						tooltip: 'Replaces spaces in the selection with line returns'
+					},{
+						text: 'Uppercase',
+						handler: this.uppercase,
+						scope: this,
+						iconCls: 'edit-uppercase',
+						tooltip: 'Converts the selection to uppercase',
+					},{
+						text: 'Lowercase',
+						handler: this.lowercase,
+						scope: this,
+						iconCls: 'edit-lowercase',
+						tooltip: 'Converts the selection to lowercase',
+					},{
+						text: 'Comment/Uncomment',
+						handler: this.toggleComment,
+						scope: this,
+						iconCls: 'comment', 
+						tooltip: 'Adds/removes comment characters (# or %)'
+					},]
+				}
+			},{
+				text: 'Export',
+				iconCls: 'document-export',
+				tooltip: 'Generate various input and output formats, or transform the strands for output',
+				menu: {
+					items:[{
+						text: 'To DNA',
+						handler: this.convertToDNA,
+						scope: this,
+						iconCls: 'document-d',
+						tooltip: 'Convert the selection to DNA',
+					},{
+						text: 'To RNA',
+						handler: this.convertToRNA,
+						scope: this,
+						iconCls: 'document-r',
+						tooltip: 'Convert the selection to RNA',
+					},'-',{
+						iconCls: 'seq',
+						text: 'Make DD input file',
+						handler: this.insertDD,
+						scope: this,
+						tooltip: 'Generates an input file for DD or WebDD which can be used to mutate the selected domains.'
+					},{
+						text: 'NUPACK out to FASTA',
+						handler: this.nupackToFasta,
+						scope: this,
+						tooltip: 'Convert NUPACK "M1 : ATCG..."-style labels to FASTA "M1> ATCG..."-style labels'
+					},'-',{
+						text: 'Thread sequences to strand',
+						handler: this.threadStrands,
+						scope: this,
+						tooltip: 'Assemble the selected sequences into a set of strands using NUPACK strand-builder notation',
+					},{
 						text: 'Name Strands',
+						tooltip :'Automatically prepend a name to each of the strands in the selection',
 						menu: [{
 							text: 'Strand name prefix: ',
 							canActivate: false,
@@ -190,7 +261,9 @@ Ext.define('App.ui.SequenceEditor', {
 							scope: this,
 						}]
 					},{
+						iconCls: 'prepend',
 						text: 'Prepend strands',
+						tooltip: 'Add a string to the beginning of each of the strands in the selection',
 						menu: [{
 							text: 'Strand Prefix: ',
 							canActivate: false,
@@ -209,6 +282,7 @@ Ext.define('App.ui.SequenceEditor', {
 			},{
 				text: 'Compute',
 				iconCls: 'calculator',
+				tooltip: 'Perform various thermodynamic calculations on the selection',
 				menu: {
 					items:[{
 						text: 'MFE Complexes',
@@ -322,14 +396,11 @@ Ext.define('App.ui.SequenceEditor', {
 						}]
 					}]
 				}
-			},'->',{
+			},'->',Ext.create('App.ui.SaveButton',{
 				text: 'Save',
 				iconCls: 'save',
-				handler: function() {
-					this.saveFile();
-				},
-				scope: this,
-			}],
+				app: this,
+			})],
 			bbar: Ext.create('Ext.ux.statusbar.StatusBar',{
 				ref: 'statusBar',
 				items: [{
@@ -347,6 +418,9 @@ Ext.define('App.ui.SequenceEditor', {
 		_.each(this.query('*[ref]'), function(cmp) {
 			this[cmp.ref] = cmp;
 		},this);
+		
+		this.mixins.tips.init.apply(this,arguments);
+		
 		this.shannon.on('activate',this.populateShannon,this);
 		this.hamming.on('activate',this.populateHamming,this);
 		this.lev.on('activate',this.populateLev,this);

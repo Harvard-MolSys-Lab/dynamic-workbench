@@ -379,7 +379,15 @@
 .feed-minus {
 	background-image: url(/images/icons/fugue/feed--minus.png) !important;
 }
-
+.prepend {
+	background-image: url(/images/icons/fugue/edit-padding-left.png) !important;
+}
+.document-d {
+background-image: url(/images/icons/fugue/document-attribute-d.png) !important;		
+}
+.document-r {
+background-image: url(/images/icons/fugue/document-attribute-r.png) !important;		
+}
 .document-word {
 	background-image: url(/images/icons/fugue/document-word.png) !important;	
 }
@@ -400,6 +408,21 @@
 }
 .document-code, .svg {
 	background-image: url(/images/icons/fugue/document-code.png) !important;	
+}
+.transform {
+	background-image: url(/images/icons/fugue/arrow-transition.png) !important;	
+}
+.duplicate {
+	background-image: url(/images/icons/fugue/document-copy.png) !important;	
+}
+.comment { 
+	background-image: url(/images/icons/fugue/edit-number.png) !important;	
+}
+.edit-uppercase { 
+	background-image: url(/images/icons/fugue/edit-uppercase.png) !important;	
+}
+.edit-lowercase { 
+	background-image: url(/images/icons/fugue/edit-lowercase.png) !important;	
 }
 .book {
 	background-image: url(/images/icons/fugue/book.png) !important;	

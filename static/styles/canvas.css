@@ -453,8 +453,20 @@ background-repeat: no-repeat;
 background-position: 2px 2px;
 }
 
-.no-bottom-border {
+.no-bottom-border, .noborder-bottom {
 	border-bottom: none !important;
+}
+
+.noborder-top {
+	border-top: none !important;
+}
+
+.noborder-left {
+	border-left: none !important;
+}
+
+.noborder-right {
+	border-right: none !important;
 }
 
 .simple-header .x-panel-header {
@@ -534,42 +546,14 @@ background-position: 2px 2px;
 	height: 16px !important;
 }
 
-/*
- * Resize Handles
- */
-/*
-.x-resizable-handle{
-    width:8px;
-    height:8px;
-    background: #dceafb;
-    border: solid 1px #6593cf;
-    margin:0px;
+.file-upload-throbber {
+  width: 100px;
+  height: 100px;
+  text-align:center;
+  vertical-align:middle;
+  border: solid 1px silver;
+  content: 'Uploading...';
 }
-*/
-/*
- .x-resizable-handle-west,  .x-resizable-handle-east{
-    top: 50%;
-    margin-top: -5px;
-}
- .x-resizable-handle-north,  .x-resizable-handle-south{
-    left: 50%;
-    margin-left: -5px;
-}
-
- .x-resizable-handle-east,  .x-resizable-handle-northeast,  .x-resizable-handle-southeast{
-    right: -11px;
-}
- .x-resizable-hustom-rzwrap .x-resizable-handle-northwest,  .x-resizable-handle-southwest{
-    left: -11px;
-}
-
- .x-resizable-handle-north,  .x-resizable-handle-northeast,  .x-resizable-handle-northwest{
-    top: -11px;
-}
- .x-resizable-handle-south,  .x-resizable-handle-southeast,  .x-resizable-handle-southwest{
-    bottom: -11px;
-}
-*/
 
 /* http://dev.sencha.com/deploy/dev/docs/resources/docs.css */
 
@@ -604,11 +588,39 @@ background-position: 2px 2px;
     vertical-align: middle;
 }
 
-.file-upload-throbber {
-  width: 100px;
-  height: 100px;
-  text-align:center;
-  vertical-align:middle;
-  border: solid 1px silver;
-  content: 'Uploading...';
+/*!
+ * Ext JS
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+.msg .x-box-mc {
+    font-size:14px;
 }
+#msg-div {
+    position:absolute;
+    left:35%;
+    top:10px;
+    width:300px;
+    z-index:20000;
+    font-family:ColaborateLightRegular,Tahoma;
+}
+#msg-div .msg {
+    border-radius: 8px;
+    -moz-border-radius: 8px;
+    background: #F6F6F6;
+    border: 2px solid #ccc;
+    margin-top: 2px;
+    padding: 10px 15px;
+    color: #555;
+}
+#msg-div .msg h3 {
+    margin: 0 0 8px;
+    font-weight: normal;
+    font-size: 15px;
+    font-family:ColaborateMediumRegular
+}
+#msg-div .msg p {
+    margin: 0;
+}
+

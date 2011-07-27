@@ -42,5 +42,11 @@ Ext.define('App.ui.TextEditor', {
 	},
 	replace: function(text,replace) {
 		this.editor.replace(text,replace);
+	},
+	setValue: function() {
+		return this.editor.setValue.apply(this.editor,arguments);
+	},
+	getValue: function() {
+		return this.editor.getValue.apply(this.editor,arguments);
 	}
 });

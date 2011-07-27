@@ -3,29 +3,38 @@ Ext.define('App.ui.NupackEditor', {
 	iconCls:'nupack',
 	editorType: 'NUPACK',
 	mode: 'nupack',
+	showNupackButton:true,
+	showEditButton:true,
+	showSaveButton:true,
 	initComponent: function() {
-		Ext.apply(this, {
-			tbar: [{
+		this.extraTbarItems = (this.extraTbarItems || []); 
+		var tbar = this.extraTbarItems.concat([]);
+		if(this.showNupackButton) {
+			tbar.push({
 				xtype: 'splitbutton',
 				text: 'Open NUPACK',
 				iconCls: 'nupack-icon',
 				handler: App.ui.Launcher.makeLauncher('nupack'),
 				menu: new App.ui.NupackMenu({}),
-			},{
+			});
+		}
+		if(this.showEditButton) {
+			tbar.push({
 				text: 'Edit',
 				iconCls: 'pencil',
 				menu: [{
 					text: 'Thread segments to sequences',
 					handler: this.threadStrands
 				},]
-			},'->',{
-				text: 'Save',
-				iconCls: 'save',
-				handler: function() {
-					this.saveFile();
-				},
-				scope: this,
-			}]
+			})
+		}
+		if(this.showSaveButton) {
+			tbar = tbar.concat(['->',Ext.create('App.ui.SaveButton',{
+				app: this,
+			})]);
+		}
+		Ext.apply(this, {
+			tbar: tbar
 		})
 		this.callParent(arguments);
 	},

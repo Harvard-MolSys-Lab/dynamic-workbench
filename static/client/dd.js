@@ -94,7 +94,11 @@ var DD = function() {
 	}
 
 	copyOptions();
-
+	
+	function log2(x) {
+		return Math.log(x)/Math.LN2
+	}
+	
 	/**
 	 * Generates a random number between <var>from</var> and <var>to</var>
 	 */

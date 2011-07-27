@@ -53,9 +53,9 @@ Ext.define('App.ui.DragDropManager', {
 		}
 	},
 	// ExtJS Drop
-	notifyDrop: function(dd, e,
-	data) {
+	notifyDrop: function(dd, e,	data) {
 		if(data.mimeType && Ext.getClass(this).hasHandler(data.mimeType)) {
+			var h = Ext.getClass(this).getHandler(data.mimeType);
 			h.call(this,data,e);
 			return true;
 		} else {

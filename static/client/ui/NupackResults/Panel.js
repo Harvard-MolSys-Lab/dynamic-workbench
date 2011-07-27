@@ -165,7 +165,7 @@ Ext.define('App.ui.NupackResults.Panel',{
 
 						layout.link.add(pv.Bar)
 						.fillStyle( function(d,l) {
-							return l.probability ? probColors(l.probability) : '#ddd'
+							return d.probability ? probColors(d.probability) : '#ddd'
 						})
 						.antialias(false)
 						.lineWidth(1);

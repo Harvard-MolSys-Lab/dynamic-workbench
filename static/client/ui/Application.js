@@ -20,6 +20,12 @@ Ext.define('App.ui.Application', {
 	 * @constructor
 	 */
 	constructor: function(config) {
+		this.bindDocument(config ? (config.document ? config.document : null) : null);
+	},
+	/**
+	 * Attaches a {@link App.Document} to this Application, which can be saved by 
+	 */
+	bindDocument: function(doc) {
 		/**
 		 * @property {App.Document} doc
 		 * Alias for {@link #document}.
@@ -28,12 +34,12 @@ Ext.define('App.ui.Application', {
 		 * @property {App.Document} document
 		 * The currently open {@link App.Document}.
 		 */
-		this.doc = 	this.document = config ? (config.document ? config.document : false) : false;
+		this.doc = 	this.document = doc
 
 		if(this.doc) {
 			this.doc.on('edit',this.updateTitle,this);
 			this.updateTitle();
-		}
+		}		
 	},
 	/**
 	 * Updates title of the Application panel to display the name of the {@link App.Document} being edited
@@ -89,7 +95,8 @@ Ext.define('App.ui.Application', {
 		if(this.autoHideLoadingMask)
 			this.loadingMask.hide();
 		console.log('File load failed.', e);
-		Ext.log('File load failed.')
+		Ext.log('File load failed.',{silent: true});
+		Ext.msg('File','Couldn\'t load file <strong>{0}</strong>. Message: {1}',this.document.get('text'),e.message || 'none');
 	},
 	/**
 	 * Callback from {@link #doLoad} and {@link #doLoadFail}. Override this callback to provide 
@@ -124,21 +131,6 @@ Ext.define('App.ui.Application', {
 			failure: this.doSaveFail,
 			scope: this
 		});
-		// if(App.User.isLoggedIn()) {
-		// Ext.Ajax.request({
-		// url: App.getEndpoint('save'),//'/canvas/index.php/workspaces/save',
-		// params: {
-		// data: o,
-		// node: this.path,
-		// },
-		// success: this.onSave,
-		// failure: this.onSaveFail,
-		// scope: this
-		// });
-		// } else {
-		// Ext.log('Not logged in; could not save workspace to server.');
-		// }
-		//Ext.log(Ext.encode(s));
 
 	},
 	/**
@@ -148,8 +140,9 @@ Ext.define('App.ui.Application', {
 		if(this.autoHideSavingMask)
 			this.savingMask.hide();
 		this.onSave();
-		console.log('File Saved.', this._lastSave);
-		Ext.log('File saved to server.');
+		//console.log('File Saved.', this._lastSave);
+		Ext.log('File saved to server.',{silent: true});
+		Ext.msg('File','<strong>{0}</strong> saved to server.',this.document.get('text'));
 	},
 	/**
 	 * Internal callback from {@link #save} to inform the user of failed save
@@ -157,9 +150,8 @@ Ext.define('App.ui.Application', {
 	doSaveFail: function() {
 		if(this.autoHideSavingMask)
 			this.savingMask.hide();
-		alert("File saving failed.");
-		console.log('File save failed.', this._lastSave);
-		Ext.log('File save failed.')
+		Ext.log('File save failed.',{silent: true});
+		Ext.msg('File','Couldn\'t save file <strong>{0}</strong>. Message: {1}',this.document.get('text'),e.message || 'none');
 	},
 	/**
 	 * Callback form {@link #doSave} or {@link #doSaveFail}. Override this method to 

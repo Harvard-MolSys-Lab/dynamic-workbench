@@ -68,6 +68,35 @@ Ext.apply(Ext, {
 	}
 });
 
+Ext.apply(Ext,(function() {
+	var msgCt;
+
+    function createBox(t, s){
+       // return ['<div class="msg">',
+       //         '<div class="x-box-tl"><div class="x-box-tr"><div class="x-box-tc"></div></div></div>',
+       //         '<div class="x-box-ml"><div class="x-box-mr"><div class="x-box-mc"><h3>', t, '</h3>', s, '</div></div></div>',
+       //         '<div class="x-box-bl"><div class="x-box-br"><div class="x-box-bc"></div></div></div>',
+       //         '</div>'].join('');
+       return '<div class="msg"><h3>' + t + '</h3><p>' + s + '</p></div>';
+    }
+    return {
+        msg : function(title, format){
+            if(!msgCt){
+                msgCt = Ext.core.DomHelper.insertFirst(document.body, {id:'msg-div'}, true);
+            }
+            var s;
+            if(arguments.length>2){
+            	s = Ext.String.format.apply(String, Array.prototype.slice.call(arguments, 1));
+            } else {
+            	s = format;
+            }
+            var m = Ext.core.DomHelper.append(msgCt, createBox(title, s), true);
+            m.hide();
+            m.slideIn('t').ghost("t", { delay: 1000, remove: true});
+        },
+    };
+})());
+
 Ext.debug = {};
 
 /**
@@ -84,7 +113,8 @@ Ext.define('Ext.debug.ScriptsPanel', {
 	border: false,
 	layout:'fit',
 	bodyBorder: false,
-	padding: '5 0 5 0',
+	padding: '0 0 5 0',
+	cls: 'noborder-top',
 	//	style:'border-width:0 0 0 1px;',
 
 	initComponent : function() {
@@ -120,10 +150,12 @@ Ext.define('Ext.debug.ScriptsPanel', {
 			dock: 'top',
 			items:[{
 				text: 'Run',
+				iconCls: 'run',
 				scope: this,
 				handler: this.evalScript
 			},{
 				text: 'Clear',
+				iconCls: 'cross',
 				scope: this,
 				handler: this.clear
 			},
@@ -176,7 +208,9 @@ Ext.define('Ext.debug.LogPanel', {
 	region: 'center',
 	border: '0 1 0 0',
 	bodyBorder: false,
-	padding: '5 0 5 0',
+	padding: '0 0 5 0',
+	cls: 'noborder-top',
+	bodyCls: 'noborder-top',
 	html: '<div class="logBody"></div>',
 	getLogBody: function() {
 		return this.body.down('.logBody');

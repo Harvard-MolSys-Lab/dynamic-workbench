@@ -3,7 +3,7 @@
  */
 Ext.define('App.ui.FilesTree', {
 	extend: 'Ext.tree.Panel',
-	require: ['App.ui.CreateMenu','App.ui.Launcher','App.ui.FilesTree.FileUploader','App.ui.FilesTree.DragDropManager'],
+	requires: ['App.ui.CreateMenu','App.ui.Launcher','App.ui.FilesTree.FileUploader','App.ui.FilesTree.DragDropManager'],
 	title: 'Files',
 	newFileNumber: 0,
 	loaders: 0,
@@ -14,7 +14,7 @@ Ext.define('App.ui.FilesTree', {
 	 * set to false to allow custom behavior (e.g. for embedding the {@link App.ui.FilesTree} in a menu)
 	 */
 	createContextMenu: true,
-	
+	allowDrop : true,
 	//displayRoot: false,
 	initComponent: function() {
 		Ext.apply(this, {
@@ -51,7 +51,7 @@ Ext.define('App.ui.FilesTree', {
 					fn: this.showContextMenu,
 					scope: this,
 				} : {}),
-				itemclick: {
+				itemdblclick: {
 					fn: this.click,
 					scope: this
 				},
@@ -162,23 +162,24 @@ Ext.define('App.ui.FilesTree', {
 		this.ddManager.render();
 	},
 	showContextMenu: function(tree,rec,dom,i,e) {
-						this.currentRecord = rec;
-						var ctx = this.contextMenu;
-						ctx.setFileName(rec.get('text'));
-						_.each(ctx.query('*[enableIf]'),function(cmp) {
-							if(_.isFunction(cmp.enableIf)) {
-								if(cmp.enableIf(rec)) {
-									cmp.enable();
-								} else {
-									cmp.disable();
-								}
-							}
-						});
-						ctx.show();//dom);
-						ctx.alignTo(Ext.get(dom),'tl-bl',[5,0]);
-						e.stopEvent();
-						return false;
-					},
+		this.currentRecord = rec;
+		var ctx = this.contextMenu;
+		ctx.setFileName(rec.get('text'));
+		_.each(ctx.query('*[enableIf]'),function(cmp) {
+			if(_.isFunction(cmp.enableIf)) {
+				if(cmp.enableIf(rec)) {
+					cmp.enable();
+				} else {
+					cmp.disable();
+				}
+			}
+		});
+		ctx.showAt(e.getXY());
+		//ctx.show();//dom);
+		//ctx.alignTo(Ext.get(dom),'tl-bl',[5,0]);
+		e.stopEvent();
+		return false;
+	},
 	/**
 	 * Reloads the file heirarchy underneath the provided {@link App.Document}
 	 * @param {App.Document} rec The record under which to refresh
@@ -238,12 +239,27 @@ Ext.define('App.ui.FilesTree', {
 	 * @param {App.Document} rec The document to open
 	 */
 	open: function(rec) {
-		if(rec.get('trigger')) { // && App.ui.Launcher.has(rec.get('trigger'))) {
-			App.ui.Launcher.launch(rec.get('trigger'),rec);
+		if(rec) {
+			if(!App.ui.Launcher.launchDocument(rec) && !rec.isLeaf()) {
+				this.getView().expand(rec);
+			}
 		}
-		//if(rec.get('type') && App.ui.Launcher.has(rec.get('type'))) {
-		//	App.ui.Launcher.launchType(rec.get('type'),rec);
-		//}
+	},
+	/**
+	 * Opens the last selected document
+	 */
+	openSelection: function() {
+		this.open(this.getSelectionModer().getLastSelected());
+	},
+	/**
+	 * Selects a node based on a file path
+	 */
+	selectNode : function(node) {
+		this.selectPath(node);
+		// var rec = this.getStore().findRecord('node',node);
+		// if(rec) {
+			// this.getSelectionModel().
+		// }
 	},
 	/**
 	 * Creates a new document underneath the last selected record with the passed name
@@ -251,7 +267,7 @@ Ext.define('App.ui.FilesTree', {
 	 */
 	newFileUnderSelection: function(name) {
 		var rec = this.getSelectionModel().getLastSelected();
-		this.newFile(rec,name);
+		return this.newFile(rec,name);
 	},
 	/**
 	 * Create a new document underneath the passed <var>rec</var>, if <var>rec</var> is a folder; else creates a 

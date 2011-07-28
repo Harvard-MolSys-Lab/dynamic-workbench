@@ -188,9 +188,13 @@ exports.configure = function(app, express) {
 						});
 					} else {
 						fs.stat(newPath, function(err, stat) {
-							fileRecord(path.basename(newPath), path.dirname(newPath), null, function(outRec) {
-								outRec.id = node;
-								res.send([outRec]);
+							fileRecord(path.basename(newPath), path.dirname(newPath), null, function(err,outRec) {
+								if(outRec) { 
+									outRec.id = node;
+									res.send([outRec]);
+								} else {
+									res.send([]);
+								}
 							});
 						});
 					}
@@ -215,11 +219,14 @@ exports.configure = function(app, express) {
 							sendError(res, 'Internal Server Error', 500);
 							return;
 						} else {
-							fs.stat(node, function(err, stat) {
-								fileRecord(path.basename(node), path.dirname(node), stat, function(err, rec) {
-									res.send([rec]);
-								})
+							fileRecord(path.basename(node), path.dirname(node), null, function(err, rec) {
+								res.send([rec]);
 							});
+							// fs.stat(node, function(err, stat) {
+								// fileRecord(path.basename(node), path.dirname(node), stat, function(err, rec) {
+									// res.send([rec]);
+								// })
+							// });
 						}
 					});
 				} else {

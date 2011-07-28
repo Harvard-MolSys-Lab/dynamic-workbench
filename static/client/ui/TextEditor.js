@@ -12,14 +12,13 @@ Ext.define('App.ui.TextEditor', {
 	},
 	initComponent: function() {
 		Ext.applyIf(this, {
-			tbar: ['->',{
-				text: 'Save',
-				iconCls: 'save',
-				handler: function() {
-					this.saveFile();
-				},
-				scope: this,
-			}],
+			tbar: ['->',Ext.create('App.ui.SaveButton',{
+				app: this,
+				// handler: function() {
+					// this.saveFile();
+				// },
+				// scope: this,
+			})],
 			items: [{
 				xtype: 'codemirror',
 				itemId: 'editor',

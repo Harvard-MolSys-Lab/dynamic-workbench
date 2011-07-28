@@ -105,6 +105,7 @@ Ext.debug = {};
  */
 Ext.define('Ext.debug.ScriptsPanel', {
 	extend: 'Ext.panel.Panel',
+	requires: ['App.ui.CodeMirror',],
 	id:'x-debug-scripts',
 	region: 'east',
 	minWidth: 200,
@@ -175,17 +176,20 @@ Ext.define('Ext.debug.ScriptsPanel', {
 	 */
 	evalScript : function() {
 		var s = this.scriptField.getValue();
-		if(this.trapBox.getValue()) {
+		this.executeInContext(s,App.ui.active(),this.trapBox.getValue());
+	},
+	executeInContext: function(s,ctx,trap) {
+		if(trap) {
 			try {
 				var rt = new Function(s);
-				rt = rt.apply(App.ui.active()); //eval(s);
+				rt = rt.apply(ctx); //eval(s);
 				Ext.dump(rt === undefined? '(no return)' : rt);
 			} catch(e) {
 				Ext.log(e.message || e.descript,{iconCls: 'error'});
 			}
 		} else {
 			var rt = new Function(s);
-				rt = rt.apply(App.ui.active());
+				rt = rt.apply(ctx);
 			Ext.dump(rt === undefined? '(no return)' : rt);
 		}
 	},

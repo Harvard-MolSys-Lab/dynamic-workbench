@@ -100,10 +100,10 @@ Ext.define('App.ui.Launcher', {
 				this._openTabs[trigger] = tab;
 				// Ext.History.add(trigger,true);
 
-				tab.on('close', function(tab) { delete
-					this._openTabs[tab.initialTrigger];
+				tab.on('close', function(tab) { 
+					delete this._openTabs[tab.initialTrigger];
 				}, this);
-				Ext.log('Launched InfoMachine application with trigger: ' + trigger, {
+				Ext.log('Launched application with trigger: ' + trigger, {
 					iconCls : 'application',
 					silent : true
 				});
@@ -140,6 +140,26 @@ Ext.define('App.ui.Launcher', {
 	 */
 	showConsole : function() {
 		this.console.expand();
+	},
+	/**
+	 * Gets a {@link Ext.menu.Menu} containing a list of currently running {@link App.ui.Application applications}
+	 */
+	getAppMenu : function(handler) {
+		if(!this.appMenu) {
+			this.appMenu = Ext.create('Ext.menu.Menu',{	});
+		}
+		this.appMenu.removeAll();
+		this.appMenu.suspendLayout = true;
+		_.each(this._openTabs,function(tab,trigger) {
+			this.appMenu.add({
+				text: tab.title,
+				iconCls: tab.iconCls || 'application',
+				handler: !!handler ? _.bind(handler,tab,tab,trigger) : this.makeLauncher(trigger), 
+			});
+		},this)
+		this.appMenu.suspendLayout = false;
+		this.appMenu.doLayout();
+		return this.appMenu;
 	}
 }, function() {
 	App.ui.Launcher.register('help', 'App.ui.Help', {
@@ -207,10 +227,7 @@ Ext.define('App.ui.Launcher', {
 		iconCls : 'system-monitor',
 		title : 'Task Manager'
 	});
-	App.ui.Launcher.register('js', 'App.ui.TextEditor', {
-		iconCls : 'js',
-		editorType : 'JS',
-		mode : 'javascript',
+	App.ui.Launcher.register('js', 'App.ui.JavascriptEditor', {
 	});
 	App.ui.Launcher.register('txt', 'App.ui.TextEditor', {
 		iconCls : 'txt',

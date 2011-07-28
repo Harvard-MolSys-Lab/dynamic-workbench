@@ -5,6 +5,7 @@ Ext.define('App.ui.DD.SequenceWindow',{
 	layout: 'fit',
 	title: 'Add specific sequences to DD',
 	closeAction: 'hide',
+	value: '',
 	initComponent: function() {
 		this.sequenceEditor = Ext.create('App.ui.CodeMirror',{mode: 'sequence',border: false});
 		Ext.apply(this,{
@@ -17,6 +18,7 @@ Ext.define('App.ui.DD.SequenceWindow',{
 			}]
 		});
 		this.callParent(arguments);
+		this.sequenceEditor.setValue(this.value);
 	},
 	addDomains: function() {
 		this.designer.addDomains(this.sequenceEditor.getValue().split('\n'));

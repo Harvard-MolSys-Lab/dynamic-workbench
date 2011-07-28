@@ -145,7 +145,7 @@ App.Path = App.path = {
 	 * Determines whether the given filename represents a folder
 	 */
 	isFolder : function(name) {
-		return (name && App.Path.basename(name).split('.').length > 0);
+		return (name && !!App.Path.extname(name));
 	},
 	/**
 	 * Joins several file paths.
@@ -160,6 +160,13 @@ App.Path = App.path = {
 		return _.flatten(_.map(paths, function(p) {
 		return p.split('/')
 		})).join('/');
+	},
+	/**
+	 * Returns the file extension of the path
+	 * @param {String} path
+	 */
+	extname: function(path) {
+		return _.last(App.Path.basename(path).split('.'));
 	},
 	/**
 	 * Returns the last portion of the path (the portion following the final <var>/</var>)

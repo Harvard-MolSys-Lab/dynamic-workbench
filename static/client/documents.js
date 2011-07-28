@@ -37,6 +37,9 @@ Ext.define('App.Document', {
 	getBasename : function() {
 		return App.Path.basename(this.getPath());
 	},
+	getExt: function() {
+		return App.Path.extname(this.getPath());
+	},
 	/**
 	 * If this record represents a folder, returns this; otherwise returns this record's parent node.
 	 * This is the moral equivalent of {@link App.path#pop}

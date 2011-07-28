@@ -4,7 +4,8 @@
 Ext.define('App.ui.DD', {
 	extend : 'Ext.panel.Panel',
 	mixins : {
-		app : 'App.ui.Application'
+		app : 'App.ui.Application',
+		tip: 'App.ui.TipHelper',
 	},
 	constructor : function() {
 		this.mixins.app.constructor.apply(this, arguments);
@@ -218,6 +219,8 @@ Ext.define('App.ui.DD', {
 						ref : 'mutateButton',
 						handler : this.toggleMutation,
 						scope : this,
+						tooltip: 'Click to start/pause mutations.',
+						
 					}, '-', {
 						/**
 						 * @property {Ext.button.Button} addDomainButton
@@ -229,6 +232,8 @@ Ext.define('App.ui.DD', {
 						scope : this,
 						iconCls : 'plus',
 						xtype : 'splitbutton',
+						tooltip: 'Click the button to add a new domain of the default length. Click the arrow to choose the default length, '+
+						'or add domains with specific sequences to the design. ',
 						menu : [{
 							text : 'New domain length: ',
 							canActivate : false,
@@ -256,6 +261,8 @@ Ext.define('App.ui.DD', {
 							text : 'Add specific domains...',
 							handler : this.addManyDomains,
 							scope : this,
+							tooltip: 'Open a window to add domains with specific sequences to the design.'
+							
 						}]
 					}, {
 						/**
@@ -269,6 +276,7 @@ Ext.define('App.ui.DD', {
 							this.cellEditor.startEdit(this.grid.getSelectionModel().getLastSelected(), this.grid.headerCt.getHeaderAtIndex(0));
 						},
 						scope : this,
+						tooltip: 'Click the button to edit the sequence of the selected domain. Click the arrow to see options to reseed existing domains.',
 						menu : [{
 							text : 'Reseed Domain',
 							handler : this.reseed,
@@ -287,6 +295,7 @@ Ext.define('App.ui.DD', {
 						handler : this.doDeleteDomain,
 						scope : this,
 						iconCls : 'cross',
+						tooltip: 'Delete the selected domain',
 					}, '-', {
 						text : 'Advanced',
 						iconCls : 'tools',
@@ -295,16 +304,19 @@ Ext.define('App.ui.DD', {
 							iconCls : 'wrench',
 							handler : this.designOptions,
 							scope : this,
+							tooltip: 'Change options about how DD picks sequences, such as which bases are permitted and particular motifs to penalize. ',
 						}, {
 							text : 'Tweak score parameters',
 							iconCls : 'ui-slider',
 							handler : this.scoreParams,
 							scope : this,
+							tooltip: 'Change DD\'s objective (scoring) function.'
 						}]
-					}, '->', {
+					}, '->', Ext.create('App.ui.SaveButton',{
 						text : 'Save',
-						iconCls : 'save'
-					}]
+						iconCls : 'save',
+						app : this,
+					})]
 				},
 				bbar : new Ext.ux.statusbar.StatusBar({
 					//cls : 'noborder-left',
@@ -336,7 +348,7 @@ Ext.define('App.ui.DD', {
 				region : 'east',
 				title : 'Structure',
 				editorType : 'Structure',
-				ref : 'struct',
+				ref : 'structPane',
 				collapsible : true,
 				width : 200,
 				split : true,
@@ -375,29 +387,44 @@ Ext.define('App.ui.DD', {
 
 		this.on('afterrender', this.loadFile, this);
 		this.callParent(arguments);
+		this.mixins.tips.init.apply(this,arguments);
 		_.each(this.query('*[ref]'), function(cmp) {
 			this[cmp.ref] = cmp;
 		}, this);
 	},
 	updateDomainsFromSpec : function() {
-		var spec = DNA.structureSpec(CodeMirror.tokenize(this.struct.getValue(), 'nupack'));
+		var spec = DNA.structureSpec(CodeMirror.tokenize(this.structPane.getValue(), 'nupack'));
 		this.syncDomains(spec.domains, this.clobberOnUpdate.checked);
 		this.setStrands(spec.strands);
 	},
 	setStrands : function(strands) {
 		this.strands = strands;
 	},
+	getSaveData: function() {
+		return this.designer.printfDomains().join('\n');
+	},
 	/**
 	 * Loads the given design from a *.nupack or *.domains file
 	 */
 	onLoad : function() {
 		if(!!this.data) {
-			this.struct.setValue(this.data);
-			this.updateDomainsFromSpec();
+			var ext = this.document.getExt();
+			if(ext=='nupack' || ext=='domains') {		
+				this.structPane.setValue(this.data);
+				this.updateDomainsFromSpec();
+				this.structPane.bindDocument(this.document);
+				this.bindDocument(null);
+			} else if(ext=='seq') {
+				this.addManyDomains(this.data);
+			}
 		}
 	},
 	reseed : function() {
-
+		var rec = this.grid.getSelectionModel().getLastSelected(), dom = this.store.indexOf(rec);
+		if(rec) {
+			this.designer.reseedDomain(dom);
+			rec.set('sequence', this.designer.printfDomainById(dom));
+		}
 	},
 	reseedAll : function() {
 
@@ -482,13 +509,14 @@ Ext.define('App.ui.DD', {
 	/**
 	 * Shows the {@link #addDomainsWindow}
 	 */
-	addManyDomains : function() {
+	addManyDomains : function(data) {
 		/**
 		 * @property {App.ui.DD.SequenceWindow} addDomainsWindow
 		 */
 		if(!this.addDomainsWindow) {
 			this.addDomainsWindow = Ext.create('App.ui.DD.SequenceWindow', {
-				designer : this
+				designer : this,
+				value: data || '',
 			});
 		}
 		this.addDomainsWindow.show();
@@ -613,10 +641,18 @@ Ext.define('App.ui.DD', {
 	startMutation : function() {
 		this.mutateButton.setIconCls('pause');
 		_.invoke([this.modDomainButton, this.addDomainButton, this.delDomainButton], 'disable');
+		// update dirty scores in designer
 		if(!this.mutationTask || this.scoresDirty) {
 			this.designer.evaluateAllScores();
 			this.scoresDirty = false;
 		}
+		
+		// update all sequences in grid (since some might have been Ns, and DD will have picked new sequences by now)
+		var doms = this.designer.printfDomains();
+		_.each(doms,function(seq,dom) {
+			this.store.getAt(dom).set('sequence',seq);
+		},this);
+		
 		if(!this.mutationTask) {
 			this.mutationTask = Ext.TaskManager.start({
 				run : this.mutationLoop,

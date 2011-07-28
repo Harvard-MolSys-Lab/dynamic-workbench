@@ -16,142 +16,168 @@
 // GGGG_PENALTY:50,
 // ATATAT_PENALTY:20,
 // };
-
 Ext.define('App.ui.DD.OptionsWindow', {
-	extend: 'Ext.window.Window',
-	layout: 'fit',
-	plain: true,
-	bodyBorder: false,
-	border: false,
-	width: 675,
-	initComponent: function() {
-		Ext.apply(this, {
-			items: {
-				xtype: 'form',
-				frame: true,
-				defaults: {
-					labelAlign: 'right',
-					labelWidth: 250,
-				},
-				items: [{
-					fieldLabel: 'Maximum simultaneous mutations',
-					xtype: 'numberfield',
-					itemId: 'MAX_MUTATIONS',
-				},{
-					xtype: 'fieldset',
-					title: 'Base composition',
-					defaults: {
-						labelAlign: 'right',
-						labelWidth: 175,
-					},
-					layout: {
-						type: 'table',columns: 2,
-					},
-					items: [{
-						fieldLabel: 'GC Score',
-						xtype: 'numberfield',
-						itemId: 'GCstr',
-					},{
-						fieldLabel: 'AT Score',
-						xtype: 'numberfield',
-						itemId: 'ATstr',
-					},{
-						fieldLabel: 'GT score',
-						xtype: 'numberfield',
-						itemId: 'GTstr',
-					},{
-						fieldLabel: 'GGGG Penalty',
-						xtype: 'numberfield',
-						itemId: 'GGGG_PENALTY',
-					},{
-						fieldLabel: '6 consecutive A/T or G/C score',
-						xtype: 'numberfield',
-						itemId: 'ATATAT_PENALTY',
-					},{
-						fieldLabel: 'Shannon Entropy multiplier',
-						xtype: 'numberfield',
-						itemId: 'SHANNON_MULTIPLIER',
-					},]
-				},{xtype: 'container', layout: {type: 'table',columns: 2,}, defaults: {margin: 5}, items:[{
-					xtype: 'fieldset',
-					title: 'Matches',
-					defaults: {
-						labelAlign: 'right',
-						labelWidth: 220,
-					},
-					items: [{
-						fieldLabel: 'Mismatch/bulge score',
-						xtype: 'numberfield',
-						itemId: 'MBstr',
-					},{
-						fieldLabel: 'Larger loop score (per extra base)',
-						xtype: 'numberfield',
-						itemId: 'LLstr',
-					},{
-						fieldLabel: 'Penalty for pairing at ends of domains',
-						xtype: 'numberfield',
-						itemId: 'DHstr',
-					},]
-				},{
-					xtype: 'fieldset',
-					title: 'Exponential Scoring',
-					defaults: {
-						labelAlign: 'right',
-						labelWidth: 220,
-					},
-					items: [{
-						fieldLabel: 'Number of bases before exponential score kicks in',
-						xtype: 'numberfield',
-						itemId: 'LHbases',
-					},{
-						fieldLabel: 'Exponential score initial',
-						xtype: 'numberfield',
-						itemId: 'LHstart',
-					},{
-						fieldLabel: 'Exponential score power',
-						xtype: 'numberfield',
-						itemId: 'LHpower',
-					},]
-				},]},{
-					xtype: 'fieldset',
-					title: 'Crosstalk',
-					defaults: {
-						labelAlign: 'right',
-						labelWidth: 220,
-					},
-					items:[{
-						fieldLabel: 'Intra-domain bonus score',
-						xtype: 'numberfield',
-						itemId: 'INTRA_SCORE',
-					},{
-						fieldLabel: 'Crosstalk bonus score',
-						xtype: 'numberfield',
-						itemId: 'CROSSTALK_SCORE',
-					},{
-						fieldLabel: 'Crosstalk score divide factor',
-						xtype: 'numberfield',
-						itemId: 'CROSSTALK_DIV',
-					}]
-				},],
-				buttons: [{
-					text: 'Save',
-					handler: this.save,
-					scope: this,
-				}]
-			}
-		});
-		this.callParent(arguments);
-		this.form = this.down('form');
-	},
-	save: function() {
-		this.designer.updateOptions(this.getValues());
-	},
-	getValues: function() {
-		return this.form.getValues();
-	},
-	setValues: function(v) {
-		return this.form.getForm().setValues(v);
-	},
+    extend: 'Ext.window.Window',
+    title: 'Score Parameters',
+    layout: 'fit',
+    plain: true,
+    bodyBorder: false,
+    border: false,
+    width: 730,
+    initComponent: function () {
+        Ext.apply(this, {
+            items: {
+                xtype: 'form',
+                frame: true,
+                defaults: {
+                    labelAlign: 'right',
+                    labelWidth: 250,
+                },
+                items: [{
+                    fieldLabel: 'Maximum simultaneous mutations',
+                    xtype: 'numberfield',
+                    name: 'MAX_MUTATIONS',
+                }, {
+                    xtype: 'fieldset',
+                    title: 'Base composition',
+                    defaults: {
+                        labelAlign: 'right',
+                        labelWidth: 175,
+                    },
+                    layout: {
+                        type: 'table',
+                        columns: 2,
+                    },
+                    items: [{
+                        fieldLabel: 'GC Score',
+                        xtype: 'numberfield',
+                        name: 'GCstr',
+                    }, {
+                        fieldLabel: 'GT score',
+                        xtype: 'numberfield',
+                        name: 'GTstr',
+                    }, {
+                        fieldLabel: 'AT Score',
+                        xtype: 'numberfield',
+                        name: 'ATstr',
+                    },{
+                        fieldLabel: 'Shannon Entropy multiplier',
+                        xtype: 'numberfield',
+                        name: 'SHANNON_BONUS',
+                        tooltip: {
+                        	html: 'Amount by which to multiply the adjusted Shannon entropy. Increase to increase the importance of sequence diversity relative '+
+                        	'to other factors. Adjusted Shannon entropy = (Shannon entropy - offset) * multiplier'
+                        }
+                    },  {
+                        fieldLabel: 'GGGG Penalty',
+                        xtype: 'numberfield',
+                        name: 'GGGG_PENALTY',
+                    }, {
+                    	fieldLabel: 'Shannon Entropy offset',
+                    	xtype: 'numberfield',
+                    	name: 'SHANNON_ADJUST',
+                    	tooltip: {
+                    		html: 'Expected Shannon entropy for a sequence, as a percent. 1 = 100% information density. Higher values will actively penalize '+
+                    		'sequences with low entropy. '
+                    	}
+                    }, {
+                        fieldLabel: '6 consecutive A/T or G/C score',
+                        xtype: 'numberfield',
+                        name: 'ATATAT_PENALTY',
+                    },]
+                }, {
+                    xtype: 'container',
+                    layout: {
+                        type: 'table',
+                        columns: 2,
+                    },
+                    height: 130,
+                    defaults: {
+                        margin: 2,
+                        height: 125,
+                    },
+                    items: [{
+                        xtype: 'fieldset',
+                        title: 'Matches',
+                        defaults: {
+                            labelAlign: 'right',
+                            labelWidth: 175,
+                        },
+                        items: [{
+                            fieldLabel: 'Mismatch/bulge score',
+                            xtype: 'numberfield',
+                            name: 'MBstr',
+                        }, {
+                            fieldLabel: 'Larger loop score (per extra base)',
+                            xtype: 'numberfield',
+                            name: 'LLstr',
+                        }, {
+                            fieldLabel: 'Penalty for pairing at ends of domains',
+                            xtype: 'numberfield',
+                            name: 'DHstr',
+                        }, ]
+                    }, {
+                        xtype: 'fieldset',
+                        title: 'Exponential Scoring',
+                        defaults: {
+                            labelAlign: 'right',
+                            labelWidth: 175,
+                        },
+                        items: [{
+                            fieldLabel: 'Number of bases before exponential score kicks in',
+                            xtype: 'numberfield',
+                            name: 'LHbases',
+                        }, {
+                            fieldLabel: 'Exponential score initial',
+                            xtype: 'numberfield',
+                            name: 'LHstart',
+                        }, {
+                            fieldLabel: 'Exponential score power',
+                            xtype: 'numberfield',
+                            name: 'LHpower',
+                        }, ]
+                    }, ]
+                }, {
+                    xtype: 'fieldset',
+                    title: 'Crosstalk',
+                    defaults: {
+                        labelAlign: 'right',
+                        labelWidth: 175,
+                    },
+                    items: [{
+                        fieldLabel: 'Intra-domain bonus score',
+                        xtype: 'numberfield',
+                        name: 'INTRA_SCORE',
+                    }, {
+                        fieldLabel: 'Crosstalk bonus score',
+                        xtype: 'numberfield',
+                        name: 'CROSSTALK_SCORE',
+                    }, {
+                        fieldLabel: 'Crosstalk score divide factor',
+                        xtype: 'numberfield',
+                        name: 'CROSSTALK_DIV',
+                    }]
+                }, ],
+                buttons: [{
+                    text: 'Save',
+                    handler: this.save,
+                    scope: this,
+                }]
+            }
+        });
+        this.callParent(arguments);
+        this.form = this.down('form');
+    },
+    save: function () {
+        this.designer.updateOptions(this.getValues());
+        this.hide();
+    },
+    getValues: function () {
+        return this.form.getValues();
+    },
+    setValues: function (v) {
+        return this.form.getForm().setValues(v);
+    },
 });
 
 // var rules = {

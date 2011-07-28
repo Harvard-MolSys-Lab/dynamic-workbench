@@ -94,11 +94,11 @@ var DD = function() {
 	}
 
 	copyOptions();
-	
+
 	function log2(x) {
-		return Math.log(x)/Math.LN2
+		return Math.log(x) / Math.LN2
 	}
-	
+
 	/**
 	 * Generates a random number between <var>from</var> and <var>to</var>
 	 */
@@ -594,15 +594,15 @@ var DD = function() {
 
 	// Set default parameters
 	var rules = {
-		rule_4g : 1,             // cannot have 4 G's or 4 C's in a row
-		rule_6at : 1,             // cannot have 6 A/T or G/C bases in a row
-		rule_ccend : 1,             // domains MUST start and end with C
-		rule_ming : 1,             // design tries to minimize usage of G
-		rule_init : 7,             // 15 = polyN, 7 = poly-H, 3 = poly-Y, 2 = poly-T
-		rule_targetworst : 1,             // target worst domain
-		rule_gatc_avail : 15,             // all bases available
-		rule_lockold : 0,         // lock all old bases (NO)
-		rule_targetdomain : [],  // array of domain indicies to target
+		rule_4g : 1,              // cannot have 4 G's or 4 C's in a row
+		rule_6at : 1,              // cannot have 6 A/T or G/C bases in a row
+		rule_ccend : 1,              // domains MUST start and end with C
+		rule_ming : 1,              // design tries to minimize usage of G
+		rule_init : 7,              // 15 = polyN, 7 = poly-H, 3 = poly-Y, 2 = poly-T
+		rule_targetworst : 1,              // target worst domain
+		rule_gatc_avail : 15,              // all bases available
+		rule_lockold : 0,          // lock all old bases (NO)
+		rule_targetdomain : [],   // array of domain indicies to target
 		rule_shannon : 1,		// true to reward domains with a low shannon entropy
 	}
 
@@ -1045,30 +1045,34 @@ var DD = function() {
 		// 1 = G, 2 = A, 3 = T, 4 = C; 11 = G (locked), etc
 
 		for( i = 0; i < num_domain; i++) {
-			domain_gatc_avail[i] = rule_gatc_avail;
-			for( j = 0; j < domain_length[i]; j++) {
-				domain[i][j] = randomBase();
-			}
+			reseedDomain(i)
+		}
+	}
 
-			if(rule_ccend == 1) {
-				if(Math.floor(rule_gatc_avail % 2) == 1)
-					domain[i][0] = 14;
-				else if(Math.floor(rule_gatc_avail / 8) == 1)
-					domain[i][0] = 11;
-				else if(Math.floor(rule_gatc_avail / 2) % 2 == 1)
-					domain[i][0] = 13;
-				else
-					domain[i][0] = 12;
+	function reseedDomain(i) {
+		domain_gatc_avail[i] = rule_gatc_avail;
+		for( j = 0; j < domain_length[i]; j++) {
+			domain[i][j] = randomBase();
+		}
 
-				if(rule_gatc_avail % 2 == 1)
-					domain[i][domain_length[i] - 1] = 14;
-				else if(Math.floor(rule_gatc_avail / 8) == 1)
-					domain[i][domain_length[i] - 1] = 11;
-				else if(Math.floor(rule_gatc_avail / 4) % 2 == 1)
-					domain[i][domain_length[i] - 1] = 12;
-				else
-					domain[i][domain_length[i] - 1] = 13;
-			}
+		if(rule_ccend == 1) {
+			if(Math.floor(rule_gatc_avail % 2) == 1)
+				domain[i][0] = 14;
+			else if(Math.floor(rule_gatc_avail / 8) == 1)
+				domain[i][0] = 11;
+			else if(Math.floor(rule_gatc_avail / 2) % 2 == 1)
+				domain[i][0] = 13;
+			else
+				domain[i][0] = 12;
+
+			if(rule_gatc_avail % 2 == 1)
+				domain[i][domain_length[i] - 1] = 14;
+			else if(Math.floor(rule_gatc_avail / 8) == 1)
+				domain[i][domain_length[i] - 1] = 11;
+			else if(Math.floor(rule_gatc_avail / 4) % 2 == 1)
+				domain[i][domain_length[i] - 1] = 12;
+			else
+				domain[i][domain_length[i] - 1] = 13;
 		}
 	}
 
@@ -1535,8 +1539,8 @@ var DD = function() {
 
 	/**
 	 * evaluateScores
-	 * Evaluates {@link #evaluateIntrinsicScore intrinsic} score of the given domain, as well as {@link #pairscore interaction} and 
-	 * {@link #selfcrosstalk crosstalk} scores between the given domain and all other domains in the ensemble. Use this to evaluate scores 
+	 * Evaluates {@link #evaluateIntrinsicScore intrinsic} score of the given domain, as well as {@link #pairscore interaction} and
+	 * {@link #selfcrosstalk crosstalk} scores between the given domain and all other domains in the ensemble. Use this to evaluate scores
 	 * after a single domain has been mutated.
 	 * @param {Number} dom Index of the mutated domain
 	 */
@@ -1680,7 +1684,7 @@ var DD = function() {
 			// compute the number of available bases in the alphabet
 			available = domain_gatc_avail[i];
 			available = (available & 1) + ((available & 2) >> 1) + ((available & 4) >> 2) + ((available & 8) >> 3);
-			
+
 			domain_intrinsic[i] -= ( shannon - SHANNON_ADJUST * log2(available)) * SHANNON_BONUS;
 			//(shannon-domain_length[i]*SHANNON_ADJUST)*SHANNON_BONUS;
 		}
@@ -1882,6 +1886,7 @@ var DD = function() {
 		newDesign : newDesign,
 		randomSequence : randomSequence,
 		reseed : startingDomainSequences,
+		reseedDomain : reseedDomain,
 		addDomains : addDomains,
 		removeDomain : removeDomain,
 		mutate : mutate,
@@ -2030,7 +2035,7 @@ var DD = function() {
 			return _.map(domain, this.printDomain(dom), this);
 		},
 		printfDomains : function() {
-			return _.map(domain, this.printfDomain(dom), this);
+			return _.map(domain, this.printfDomain, this);
 		},
 	})
 };

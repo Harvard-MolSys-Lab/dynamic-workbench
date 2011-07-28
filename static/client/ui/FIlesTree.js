@@ -249,7 +249,7 @@ Ext.define('App.ui.FilesTree', {
 	 * Opens the last selected document
 	 */
 	openSelection: function() {
-		this.open(this.getSelectionModer().getLastSelected());
+		this.open(this.getSelectionModel().getLastSelected());
 	},
 	/**
 	 * Selects a node based on a file path

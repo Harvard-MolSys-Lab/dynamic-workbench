@@ -471,6 +471,13 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 .preferences {
 	background-image: url(/images/icons/fugue/switch.png) !important;		
 }
+.error {
+	background-image: url(/images/icons/fugue/exclamation-red.png) !important;		
+}
+.warning {
+	background-image: url(/images/icons/fugue/exclamation.png) !important;		
+}
+
 /* File types */
 .nodal {
 	background-image: url(/images/icons/fugue/node.png) !important;

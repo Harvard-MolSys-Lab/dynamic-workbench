@@ -36,7 +36,11 @@ App.ui.buildInterface = function() {
 	var scriptPanel = new Ext.debug.ScriptsPanel();
 	var logView = new Ext.debug.LogPanel();
 	cp = logView;
-	App.ui.Launcher.console = new Ext.Panel({
+	/**
+	 * @property {Ext.panel.Panel}
+	 * @member App.ui.Launcher
+	 */
+	App.ui.Launcher.console = Ext.create('Ext.panel.Panel', {
 		ref : 'console',
 		iconCls : 'terminal',
 		region : 'south',
@@ -45,10 +49,15 @@ App.ui.buildInterface = function() {
 		collapsible : true,
 		collapsed : true,
 		collapseMode : 'mini',
-		titleCollapse: true,
+		titleCollapse : true,
 		title : 'Console',
 		layout : 'border',
-		items : [scriptPanel, logView]
+		items : [scriptPanel, logView],
+		scriptPanel : scriptPanel,
+		logView : logView, 
+		executeInContext : function() {
+			this.scriptPanel.executeInContext.apply(this.scriptPanel, arguments);
+		},
 	});
 
 	var cellEditing = Ext.create('Ext.grid.plugin.CellEditing', {
@@ -64,6 +73,13 @@ App.ui.buildInterface = function() {
 		// preventHeader: true,
 
 	});
+
+	var tabs = Ext.create('App.ui.TabPanel', {
+		region : 'center',
+		border : false,
+		bodyBorder : false,
+	});
+
 	// Build canvas to fill viewport
 	var viewport = new Ext.Viewport({
 		layout : 'fit',
@@ -83,6 +99,9 @@ App.ui.buildInterface = function() {
 				}, {
 					text : 'Open',
 					iconCls : 'folder-open',
+					handler : function() {
+						App.ui.filesTree.openSelection();
+					}
 				}, {
 					text : 'Tools',
 					iconCls : 'tools',
@@ -104,9 +123,9 @@ App.ui.buildInterface = function() {
 						iconCls : 'nupack-icon',
 						handler : App.ui.Launcher.makeLauncher('nupack'),
 						menu : Ext.create('App.ui.NupackMenu'),
-					},'-',{
-						text: 'Help',
-						iconCls: 'help',
+					}, '-', {
+						text : 'Help',
+						iconCls : 'help',
 						handler : App.ui.Launcher.makeLauncher('help'),
 					}]
 				}, '->', {
@@ -144,26 +163,29 @@ App.ui.buildInterface = function() {
 					text : 'Logout',
 					disabled : !App.User.isLoggedIn(),
 					iconAlign : 'left',
-					handler: function() {
+					handler : function() {
 						window.location = "/logout";
 					}
 					//handler: ,
 					//scope: this
 				}]
 			},
-			items : [tree, {
-				xtype : 'tabpanel',
-				region : 'center',
-				border : false,
-				bodyBorder: false,
-				bodyCls : 'x-docked-noborder-top',
-				items : []
-			}, App.ui.Launcher.console]
+			items : [tree, tabs, App.ui.Launcher.console]
 		}]
 
 	});
-	App.ui.filesTree = tree;
-	App.ui.Launcher.tabPanel = viewport.down('tabpanel');
+		/**
+	 * @property {App.ui.FilesTree} filesTree
+	 * @member App.ui.Launcher
+	 * The main files tree containing all {@link App.ui.Document documents} in the IDE
+	 */
+	App.ui.Launcher.filesTree = App.ui.filesTree = tree;
+	/**
+	 * @property {App.ui.TabPanel} tabPanel
+	 * @member App.ui.Launcher
+	 * The main {@link App.ui.Application application} tab panel
+	 */
+	 App.ui.Launcher.tabPanel = tabs;
 
 	App.ui.Launcher.launch('dashboard');
 };

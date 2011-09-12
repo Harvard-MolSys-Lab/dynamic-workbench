@@ -61,7 +61,7 @@ Ext.define('Workspace.objects.Connection', {
 		}
 	},
 	extend : 'Workspace.objects.VectorObject',
-	require: ['Workspace.objects.Path'],
+	requires: ['Workspace.objects.Path'],
 	shape : 'path',
 	isMovable : false,
 	name : 'New Connection',

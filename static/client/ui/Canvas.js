@@ -8,9 +8,11 @@ Ext.define('App.ui.Canvas', {
 	extend: 'Ext.panel.Panel',
 	layout: 'border',
 	alias: 'widget.canvas',
-	editorType: 'Nodal',
+	editorType: 'Whiteboard',
+	iconCls: 'whiteboard',
 	requires: ['App.ui.Ribbon','App.ui.ObjectTree','App.ui.MotifPalette','App.ui.ObjectProperties',],
 	border: false,
+	palettes: [],
 	mixins: {
 		app: 'App.ui.Application'
 	},
@@ -95,18 +97,22 @@ Ext.define('App.ui.Canvas', {
 						id: 'workspace',
 						nodeType: 'node'
 					}
-				}), Ext.create('App.ui.MotifPalette',{
-					ref: 'palatte',
+				}), {
+					xtype: 'tabpanel',
+					preventHeader: true,
+					plain: true,
+					title: 'Palettes',
+					ref: 'palettes',
 					region: 'south',
 					height: 300,
 					split: true,
 					collapsible: true,
-					collapseMode: 'header',
 					titleCollapse: true,
 					border: true,
 					frame: false,
-					title: 'Motifs',
-				})]
+					items: this.palettes,
+					collapsed: (this.palettes.length > 0),
+				}]
 			}, Ext.create('App.ui.ObjectProperties',{
 				ref: 'objectProperties',
 				width: 250,
@@ -119,7 +125,7 @@ Ext.define('App.ui.Canvas', {
 				region: 'east'
 			}), ]
 		});
-		App.ui.Canvas.superclass.initComponent.call(this);
+		this.callParent(arguments);
 		_.each(['ribbon', 'bodyPanel','zoomField','objectTree','palatte','objectProperties'], function(item) {
 			this[item] = this.down('*[ref='+item+']');
 		},this);

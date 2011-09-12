@@ -14,7 +14,8 @@ Ext.define('App.ui.Ribbon', {
 		Ext.applyIf(this, {
 			activeTab : 0,
 			defaults : {
-				border : true,
+				border : false,
+				bodyBorder: false,
 			},
 			tabBar : {
 				border : false,

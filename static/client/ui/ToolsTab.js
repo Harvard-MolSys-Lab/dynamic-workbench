@@ -4,12 +4,14 @@
  * @extends App.ui.BoundObjectPanel
  */
 Ext.define('App.ui.ToolsTab', {
+	requires: ['Workspace.tools.PointerTool','Workspace.tools.PencilTool','Workspace.tools.IdeaTool','Workspace.tools.ConnectorTool','Workspace.tools.IdeaAdderTool'],
 	extend:'App.ui.BoundObjectPanel',
 	/**
 	 * @cfg {String} tool
 	 * The default tool
 	 */
 	tool: 'pointer',
+	border: false,
 	generateConfig: function() {
 		return {
 			tbar: [{
@@ -20,7 +22,7 @@ Ext.define('App.ui.ToolsTab', {
 				columns: 2,
 
 				items: [{
-					iconCls: 'cursor',
+					iconCls: 'cursor-icon',
 					enableToggle: true,
 					toggleGroup: 'toolbox',
 					toolName: 'pointer',

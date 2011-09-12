@@ -5,6 +5,7 @@
  */
 Ext.define('App.ui.InsertTab', {
 	extend:'App.ui.ToolsTab',
+	requires: ['Workspace.tools.LineTool','Workspace.tools.RectTool','Workspace.tools.EllipseTool','Workspace.tools.PolyLineTool','Workspace.tools.PolygonTool','Workspace.tools.TextTool','Workspace.tools.MathTool'],
 	generateConfig: function() {
 		return {
 			tbar:[{

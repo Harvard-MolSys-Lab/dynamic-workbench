@@ -168,16 +168,6 @@ Ext.define('App.ui.Launcher', {
 		title : 'Nodal System',
 		editorType : 'Nodal',
 		iconCls : 'nodal',
-		border : false,
-		ribbonItems : [{
-			xtype : 'nodal-hometab',
-			title : 'Home',
-			border : false,
-		}, {
-			xtype : 'nodal-buildtab',
-			title : 'Build',
-			border : false,
-		}],
 	});
 	App.ui.Launcher.register('primary', 'App.ui.Canvas', {
 		title : 'Primary Structure',

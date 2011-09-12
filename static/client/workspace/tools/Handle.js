@@ -91,13 +91,16 @@ Ext.define('Workspace.tools.Handle', {
 			y: this.y
 		};
 	},
+	antiAlias: function(v) {
+		return Math.round(v)+0.5;
+	},
 	setPosition: function(x, y) {
 		this.x = x;
 		this.y = y;
 
 		this.handleShape.attr({
-			x: this.x - (this.width / 2),
-			y: this.y - (this.width / 2)
+			x: this.antiAlias(this.x - (this.width / 2)),
+			y: this.antiAlias(this.y - (this.width / 2)),
 		});
 	},
 	accept: function() {

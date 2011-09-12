@@ -139,6 +139,10 @@ Ext.define('Workspace.objects.VectorObject', {
 		}, this);
 	},
 	updateAttr : function(attrName, value) {
+		// hack to prevent anti-aliasing for rectangular things
+		if(attrName=='x' || attrName=='y') {
+			value = Math.round(value)+0.5;
+		}
 		this.vectorElement.attr(attrName, value);
 	},
 	/**
@@ -169,15 +173,17 @@ Ext.define('Workspace.objects.VectorObject', {
 	},
 	updateX : function(x) {
 		Workspace.objects.VectorObject.superclass.updateX.apply(this, arguments);
+		// Anti-aliasing
 		this.vectorElement.attr({
-			x : x
+			x : Math.round(x)+0.5
 		});
 		//this.x});
 	},
 	updateY : function(y) {
 		Workspace.objects.VectorObject.superclass.updateY.apply(this, arguments);
+		// Anti-aliasing
 		this.vectorElement.attr({
-			y : y
+			y : Math.round(y)+0.5
 		});
 		//this.y});
 	},

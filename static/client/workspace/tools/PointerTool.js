@@ -64,6 +64,7 @@ Ext.define('Workspace.tools.PointerTool', {
 		if (item.editor && this.workspace.hasTool(item.editor)) {
 			//Ext.type(item.edit)=='function') {
 			this.workspace.edit(item);
+			e.stopEvent();
 		} else {
 			if (Ext.type(item.select) == 'function') {
 				item.select();
@@ -444,6 +445,9 @@ Ext.define('Workspace.tools.PointerTool', {
 		this);
 	},
 	deactivate: function() {
+		// hack to remove phantom highlights
+		this.mixins.highlightable.mouseout.apply(this,arguments);
+		
 		Workspace.tools.PointerTool.superclass.deactivate.call(this);
 		this.workspace.un('select', this.selectHandler, this);
 		this.workspace.un('unselect', this.unselectHandler, this);

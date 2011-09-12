@@ -13,13 +13,13 @@ Ext.define('Workspace.tools.Highlightable', {
 			item.highlight();
 			this.setHoverItem(item);
 		}
-		e.stopEvent();
+		if(e) e.stopEvent();
 	},
 	mouseout: function(e,item) {
 		if(item && item.unhighlight) {
 			item.unhighlight();
 			this.setHoverItem(false);
 		}
-		e.stopEvent();
+		if(e) e.stopEvent();
 	}
 });

@@ -23,6 +23,7 @@ Ext.define('Workspace.tools.RectTool', {
 		this.y1 = 0;
 	},
 	extend:'Workspace.tools.BaseTool',
+	requires: ['Workspace.objects.Rectangle'],
 	minWidth: 10,
 	maxWidth: false,
 	minHeight: 10,
@@ -53,7 +54,8 @@ Ext.define('Workspace.tools.RectTool', {
 			this.y2 = pos.y;
 			var attr = Workspace.tools.SelectorBand.calculateBandBox(this.x1, this.y1, this.x2, this.y2);
 
-			var obj = this.workspace.createObject(Workspace.VectorRectObject, {
+			var obj = this.workspace.createObject({
+				wtype: 'Workspace.objects.Rectangle',
 				x: attr.x,
 				y: attr.y,
 				width: Workspace.Utils.bounds(attr.width, this.minWidth, this.maxWidth),

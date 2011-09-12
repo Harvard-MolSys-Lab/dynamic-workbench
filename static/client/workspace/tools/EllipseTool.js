@@ -21,6 +21,7 @@ Ext.define('Workspace.tools.EllipseTool', {
 		this.x1 = 0;
 		this.y1 = 0;
 	},
+	require: ['Workspace.objects.Ellipse'],
 	extend:'Workspace.tools.BaseTool',
 	click: function(e, item) {
 
@@ -73,7 +74,7 @@ Ext.define('Workspace.tools.EllipseTool', {
 			var pos = this.getAdjustedXY(e);
 			this.x2 = pos.x;
 			this.y2 = pos.y;
-			var attr = SelectorBand.calculateBandBox(this.x1, this.y1, this.x2, this.y2);
+			var attr = Workspace.tools.SelectorBand.calculateBandBox(this.x1, this.y1, this.x2, this.y2);
 			var ellipseAttr = {
 				cx: attr.x + (attr.width / 2),
 				cy: attr.y + (attr.height / 2),

@@ -138,6 +138,10 @@ Ext.define('App.ui.CreateMenu', {
 				type: 'sbml',
 				disabled: true,
 			},'-',{
+				text: 'Workspace',
+				iconCls: 'workspace',
+				type: 'workspace',
+			},{
 				text: 'HTML File',
 				iconCls: 'html',
 				type: 'html',

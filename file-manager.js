@@ -38,6 +38,11 @@ var mimetypes = fileTypes.mimetypes, triggers = fileTypes.triggers, icons = file
 exports.configure = function(app, express) {
 	var baseRoute = app.set('baseRoute');
 
+
+	app.get('/typeslist',restrict('json'),function(req,res) {
+		res.send("App.triggers = "+JSON.stringify(fileTypes.triggers)+";App.icons="+JSON.stringify(fileTypes.icons)+";");
+	});
+	
 	app.get('/help/:page', restrict('html'),function(req,res) {
 		var page = req.param('page') || 'index', fullPath = path.join('help',page)+'.md';
 	
@@ -53,7 +58,7 @@ exports.configure = function(app, express) {
 			}
 			res.render(path.join(__dirname,'help/layout.jade'),{
 				layout: false,
-				body : md.toHTML(data),
+				body : md.toHTML(data,'Maruku'),
 				page : page,
 			});
 		});
@@ -397,6 +402,16 @@ exports.configure = function(app, express) {
 			}
 		});
 	});
+	app.post('/image',restrict('json'),function(req,res) {
+		var node = req.param('node'), fullPath = utils.userFilePath(node), img = req.param('img');
+		var data = img.replace(/^data:image\/\w+;base64,/, "");
+		var buf = new Buffer(data, 'base64'); 
+		fs.writeFile(fullPath,buf,function(err) {
+			if(err) {
+				winston.log('error','/image: failed to save image',{fullPath:fullPath,err:err});
+			}
+		})
+	})
 	app.post('/upload', restrict('json'), function(req, res) {
 		if(req.xhr) {
 			//fileName = req.header('x-file-name'),

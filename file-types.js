@@ -1,6 +1,16 @@
+/*
+ * file-types.js
+ * Centralized definition of various file types and how they should be handled. Various exports defined in this module are passed to the client.
+ */
+
 var _ = require('underscore'), utils = require('./utils'), path = require('path'), fs = require('fs'), winston = require('winston');
 
 var types = [{
+	"type" : ["whiteboard","workspace"],
+	"trigger" : "whiteboard",
+	"iconCls" : "whiteboard",
+	"name" : "Whiteboard",
+}, {
 	"type" : ["tex", 'latex'],
 	"trigger" : "tex",
 	"iconCls" : "tex",
@@ -11,7 +21,7 @@ var types = [{
 	"iconCls" : "txt",
 	"name" : "Plain Text"
 }, {
-	"type" : ["js","json"],
+	"type" : ["js", "json"],
 	"trigger" : "js",
 	"iconCls" : "js",
 	"name" : "Javascript File"
@@ -158,7 +168,7 @@ _.each(types, function(block) {
 		});
 	} else {
 		triggers[block.type] = block.trigger;
-		icons[block.type] = block.iconCls; 
+		icons[block.type] = block.iconCls;
 	}
 });
 var mimetypes = {
@@ -205,7 +215,11 @@ var transforms = {
 		var fullPath = path.join(utils.userFilePath(data.node), 'contents.json');
 		fs.readFile(fullPath, function(err, contents) {
 			if(err) {
-				winston.log("warn","Couldn\'t read package.json",{fullPath: fullPath,code: err.code, err: err});
+				winston.log("warn", "Couldn\'t read package.json", {
+					fullPath : fullPath,
+					code : err.code,
+					err : err
+				});
 				callback(err, data);
 				return;
 			}
@@ -214,24 +228,26 @@ var transforms = {
 			} catch(e) {
 				contents = {};
 				err = e;
-				winston.log("error","Error parsing contents.json. ",{contents: contents});
+				winston.log("error", "Error parsing contents.json. ", {
+					contents : contents
+				});
 			}
 			data = contentsJson(data, contents, packageContentsJsonKeys);
 			data.leaf = false;
 			callback(err, data);
 		});
 	},
-	'contents.json' : function(data,callback) {
+	'contents.json' : function(data, callback) {
 		data.text = "Package contents";
 		data.preventRename = true;
 		data.iconCls = 'manifest';
-		callback(null,data);
+		callback(null, data);
 	},
 	'preferences.json' : function(data, callback) {
 		data.text = "Preferences";
 		data.iconCls = "preferences";
 		data.preventRename = true;
-		callback(null,data);
+		callback(null, data);
 	},
 };
 
@@ -240,7 +256,10 @@ var contentTransforms = {
 		var fullPath = path.join(fullPath, 'contents.json');
 		fs.readFile(fullPath, function(err, contents) {
 			if(err) {
-				winston.log("error","Failed to transform package file; couldn't read contents.json",{fullPath:fullPath, err: err})
+				winston.log("error", "Failed to transform package file; couldn't read contents.json", {
+					fullPath : fullPath,
+					err : err
+				})
 				callback(err, null);
 				return;
 			}
@@ -249,7 +268,9 @@ var contentTransforms = {
 			} catch(e) {
 				contents = {};
 				err = e;
-				winston.log("error","Error parsing contents.json. ",{contents: contents});
+				winston.log("error", "Error parsing contents.json. ", {
+					contents : contents
+				});
 			}
 			if(contents.data) {
 				callback(null, contents.data);
@@ -258,8 +279,12 @@ var contentTransforms = {
 					callback(err, data);
 				});
 			} else {
-				winston.log("error","Failed to transform package file; contents.json doesn't contain anything relevant.",{fullPath:fullPath, err: err, contents: contents})
-				callback(null,null);
+				winston.log("error", "Failed to transform package file; contents.json doesn't contain anything relevant.", {
+					fullPath : fullPath,
+					err : err,
+					contents : contents
+				})
+				callback(null, null);
 			}
 		});
 	}

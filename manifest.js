@@ -4,13 +4,14 @@ var libPath = 'lib';
 var extPath = libPath + '/ext-4.0.1';
 var stylePath = 'static/styles';
 var extStyles = extPath + '/resources/css/ext-all';
-var codeMirrorPath = libPath + '/CodeMirror-2.11';
+var codeMirrorVersion = '2.13';
+var codeMirrorPath = libPath + '/CodeMirror-'+codeMirrorVersion;
 
 var styles = [extStyles, 'styles/canvas', 'styles/icons', 'styles/infomachine', 'styles/colaborate/stylesheet', libPath + '/color-field-1.0.0/color-field', codeMirrorPath + '/lib/codemirror', codeMirrorPath + '/theme/default', libPath + '/valums-file-uploader/client/fileuploader', libPath + '/ux/css/CheckHeader',
 libPath + '/extjs-boxselect/src/BoxSelect'];
-var libs = ['jquery-1.5.1.min', 'underscore', 'string', 'color-field-1.0.0/color-field', 'raphael/raphael-min', 'raphael/plugins/raphael.primitives', 'CodeMirror-2.11/lib/codemirror', 'CodeMirror-2.11/lib/runmode', 'valums-file-uploader/client/fileuploader', 'dna-utils', 'Ext.ux.StatusBar', 'protovis-3.2/protovis-d3.2','/extjs-boxselect/src/BoxSelect'];
+var libs = ['jquery-1.5.1.min', 'underscore', 'string', 'color-field-1.0.0/color-field', 'raphael/raphael-min', 'raphael/plugins/raphael.primitives', 'CodeMirror-'+codeMirrorVersion+'/lib/codemirror', 'CodeMirror-'+codeMirrorVersion+'/lib/runmode', 'valums-file-uploader/client/fileuploader', 'dna-utils', 'Ext.ux.StatusBar', 'protovis-3.2/protovis-d3.2','/extjs-boxselect/src/BoxSelect'];
 var uxs = ['RowExpander', 'CheckColumn'];
-var modes = ['javascript', 'stex', 'xml', 'diff', 'htmlmixed', 'css', 'clike'];
+var modes = ['javascript', 'stex', 'xml', 'diff', 'htmlmixed', 'css', 'clike','python','ruby','coffeescript',];
 
 var scripts = ['ext-bug-fixes','core','canvas','workspace',]; //'objects/objects', 'objects/element', 'objects/vector', 'objects/semantics','tools/tools','tools/draw','tools/annotate',
 scripts = scripts.concat(['console','codemirror-modes','dd']); //'dna/nodal/nodal-canvas','dna/nodal/dna','dna/nodal/nodal', 'dna/secondary/secondary', 'dna/primary/primary',]);
@@ -43,6 +44,16 @@ function getResources(staticOnly) {
 	        links.push(codeMirrorPath+"/mode/"+mode+"/"+mode+".css")
 	});
 	
+	// Mathquill
+	js.push(libPath+'/mathquill/build/mathquill.js');
+	links.push(libPath+'/mathquill/mathquill.css');
+	
+	// Aloha
+	// var alohaPath = libPath+'/aloha-0.9.3/aloha';//'/Aloha-Editor/build/out/aloha-nightly';
+	// js.push(libPath+'/aloha-dependencies.js');
+	// js.push(alohaPath+'/aloha-nodeps.js');
+	//links.push(alohaPath+'/css/aloha.css');
+	
 	// App and InfoMachine
 	js.push(scriptPath+"/app.js")
 	
@@ -50,6 +61,7 @@ function getResources(staticOnly) {
 	if(!staticOnly) {
 		js.push("/user")
 		js.push("/toolslist")
+		js.push("/typeslist")
 	}
 	
 	js.push(scriptPath+"/documents.js")

@@ -32,6 +32,13 @@ h1 {
 h1 span {	
 	font-family: ColaborateThinRegular;
 }
+
+.aa-fix {
+	font-family: sans;
+	font-size: 12px;
+	display: block; 
+	float: right;
+}
 ul.dashboard-actions li {
 	padding: 2px 0px 0px 20px;
 	background-repeat: no-repeat;
@@ -67,7 +74,7 @@ ul.dashboard-actions > li {
 
 
 /* Tool icon Classes */
-.cursor {
+.cursor-icon, .pointer {
 	background-image: url(/images/icons/fugue/cursor.png) !important;	
 }
 
@@ -167,6 +174,10 @@ ul.dashboard-actions > li {
 
 .arrange-back {
 	background-image: url(/images/icons/fugue/layers-stack-arrange-back.png) !important;	
+}
+
+.desktop, .whiteboard {
+  background-image: url(/images/icons/fugue/desktop.png) !important;  
 }
 
 .pdf {

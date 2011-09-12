@@ -7,9 +7,11 @@ This document will get you started with Workbench as quickly as possible. For a 
 Setup
 -----
 
+**Note:** This part assumes you've already [installed](install) Workbench Server, or that you're using a hosted installation. See the [server](server) page if you're confused.
+
 In order to get up and running, you need to do three quick bits of setup:
 
-1.	Start the Workbench Server: **Note:** if you're using a hosted server, you can skip this step.
+1.	Start the [Workbench Server](server): **Note:** if you're using a hosted server, you can skip this step.
 	-	On Mac OS X:
 		1.	Launch the 'Workbench Server' application from your Applications folder 
 		2.	Click 'Start' from the server control window. You will see a Terminal window open with lots of output. You'll also see a VirtualBox window open.
@@ -26,7 +28,7 @@ In order to get up and running, you need to do three quick bits of setup:
 	-	Click "Launch in Browser" from the 'Workbench Server' Application (Mac OS X only), or
 	-	Launch the 'DyNAMiC Workbench' application from your Applications folder (Mac OS X only), or
 	-	Open a web browser and navigate to [http://192.168.56.10:3000](http://192.168.56.10:3000).
-3.	Create a user account; from the login screen:
+3.	Create a [user account](users); from the login screen:
 	1.	Click the link titled "Don't have an account?"
 	2.	Enter your name, email, and password, as well as the invite code provided with this distribution.
 	3.	Click "Sign Up"

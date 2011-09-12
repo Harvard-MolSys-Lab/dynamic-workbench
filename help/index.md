@@ -12,6 +12,7 @@ Contents
 --------
 - [Overview](overview)
 - [Getting Started](quickstart)
+- [Workbench Server](server)
 - [File Management](files)
 - [Applications](applications)
 - [Behavioral Design](behavioral)

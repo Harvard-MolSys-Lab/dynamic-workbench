@@ -29,9 +29,29 @@ Workbench includes two main components:
 Contents of your Installation
 -----------------------------
 
-- DyNAMiC Workbench.app
-- Workbench Server.app
+If you downloaded Workbench as a disk image (.dmg) file for Mac OS X, several utilities have been provided to make your life a bit easier. These applications will be copied to your Applications directory as part of the [installation](install) process
+
+-	DyNAMiC Workbench.app - This contains a "site-specific broweser" -- a mini web browser, automatically configured to connect to a locally hosted Workbench server. 	This is just for conveinience; you can just as easily navigate to the specified URL in a web browser.
+-	Workbench Server.app - This is a helper to allow you to launch and log in to the server. To start the server:
 	
+	1.	Launch the 'Workbench Server' application from your Applications folder 
+	2.	Click 'Start' from the server control window. You will see a Terminal window open with lots of output. You'll also see a VirtualBox window open.
+		Wait until you see `webserver-user@192.168.56.10's password: `; then enter the password for your server (the default is `" "`, 
+		a single space).
+	3.	Wait until you see `Server running from /media/sf_vmshare/infomachine2 at http://192.168.56.10:3000`. Congratulations, your server is running!
+	
+See the [Getting Started guide](quickstart) for details on how to start on another operating system.
+
+Installing Workbench
+--------------------
+
+See [Installation](install) for details on how to install Workbench server.
+
+Getting started
+---------------
+
+See the [Getting Started guide](quickstart) for a quick introduction to the various things you can do with Workbench.
+
 Further Reading
 ---------------
 

@@ -20,11 +20,13 @@ Ext.define('App.ui.FillStrokeTab', {
 					ref: '../../fillColorField',
 					fieldLabel: 'Fill Color',
 					objectBinding: 'fill',
+					anchor: 'left',
 					width: 100,
 					tooltip: {
 						title: 'Fill Color',
 						text: 'Color of the object\'s background (fill).'
 					},
+					cellCls: 'table-cell-padded-right',
 				}),{
 					ref: '../../fillOpacityField',
 					xtype: 'slider',
@@ -39,6 +41,7 @@ Ext.define('App.ui.FillStrokeTab', {
 							return String.format('{0}%', thumb.value * 100);
 						}
 					}),
+					cellCls: 'table-cell-padded-right',
 					width: 100,
 					tooltip: {
 						title: 'Fill Opacity',

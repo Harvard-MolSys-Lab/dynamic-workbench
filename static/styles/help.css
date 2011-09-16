@@ -1,8 +1,8 @@
 .help-navigation {
 	font-family: ColaborateLightRegular;
 	text-shadow: 1px 0 white;
-	background-color: #dfdfdf;
-	border-bottom: 1px solid silver;
+	background-color: whiteSmoke;
+	border-bottom: 1px solid #eee;
 	padding: 5px;
 	width: 100%;
 	margin: 0px auto 10px auto;
@@ -14,21 +14,31 @@
 body {
 	font-family: ColaborateThinRegular;
 	padding-top:36px;
+	color: #555;
+	line-height:18px
 }
 
+h1,h2,h3 {
+	font-family: ColaborateRegular;
+	font-weight: normal;
+	color: #333;
+}
 h1 {
-	font-family: ColaborateRegular;
-	font-weight: normal;
+	line-height: 24pt;
+	padding-bottom: 4pt;
 }
-
 h2 {
-	font-family: ColaborateRegular;
-	font-weight: normal;
+	line-height: 24pt;
 }
 
 a {
 	font-family: ColaborateLightRegular;
-	color: #4183C4;
+	color: #0069d6;
+	text-decoration: none;
+}
+a:hover {
+  color: #0050a3;
+  text-decoration: underline;
 }
 
 span.home {

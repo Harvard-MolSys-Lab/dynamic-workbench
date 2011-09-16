@@ -18,7 +18,7 @@ Contents
 - [Behavioral Design](behavioral)
 	- [Nodal Systems](nodal)
 	- [Pepper Systems](pepper)
-- [Sequence Design](sequence)
+- [Sequences](sequence)
 	- [Sequence Editor](sequence-edit)
 	- [Sequence Design with Web Domain Designer](web-dd) (Web DD)
 - [Simulation and Analysis](simulation-analysis)

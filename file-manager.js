@@ -315,12 +315,16 @@ exports.configure = function(app, express) {
 
 		fs.stat(fullPath, function(err, stat) {
 			if(err) {
-				if(err.code == 'ERRNO') {
+				if(err.code == 'ERRNO' || err.code == 'ENOENT') {
 					sendError(res, 'Not Found', 404);
 					return;
 				} else {
 					sendError(res, 'Internal Server Error', 500);
-					throw err;
+					winston.log("error", "/load: Could not determine file stats.", {
+						fullPath : fullPath,
+						err : err,
+					});
+					return;
 				}
 			}
 			

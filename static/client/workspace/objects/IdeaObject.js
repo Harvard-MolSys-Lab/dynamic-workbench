@@ -19,11 +19,8 @@ Ext.define('Workspace.objects.IdeaObject', {
 		// set up the label editor
 		this.addShim(Ext.create('Workspace.Label',this.shimConfig));
 
-		this._children = this.children;
-		this.children = Ext.create('Ext.util.MixedCollection');
 		this.initLayout(this.layout); //new Workspace.idea.FreeLayout({idea: this});
 
-		this.expose('children', true, false, true, false);
 		this.expose('layout', function() {
 			return this.layout.ltype
 		}, function(ltype) {
@@ -50,11 +47,6 @@ Ext.define('Workspace.objects.IdeaObject', {
 		this.layout.doFirstLayout();
 		this.toBack();
 	},
-	initialize: function() {
-		this.callParent(arguments);
-		//Workspace.objects.IdeaObject.superclass.initialize.apply(this, arguments);
-		this.buildChildren();
-	},
 	initLayout: function(ltype) {
 		this.layout = Workspace.Layouts.create(ltype, {
 			idea: this
@@ -64,33 +56,11 @@ Ext.define('Workspace.objects.IdeaObject', {
 		}
 	},
 	/**
-	 * buildChildren
-	 * Realizes child objects passed to constructor. Automatically invoked by initialize
-	 * @private
-	 */
-	buildChildren: function() {
-		var children = this._children;
-		if (Ext.isArray(children)) {
-			Ext.each(children, function(child) {
-				this.addChild(Workspace.Components.realize(child));
-			},
-			this)
-		} else if (Ext.isObject(children)) {
-			var child;
-			for (var id in children) {
-				child = children[id];
-				this.addChild(Workspace.Components.realize(child))
-			}
-		}
-	},
-	/**
-	 * addChild
 	 * Adds a child to this idea
 	 * @param {Workspace.Object} child
 	 */
 	addChild: function(child) {
-		this.children.add(child);
-		child.setParent(this);
+		this.callParent(arguments);
 		child.on('move', this.adjustSize, this);
 		child.on('resize', this.adjustSize, this);
 		if(child.is('rendered')) {
@@ -98,19 +68,11 @@ Ext.define('Workspace.objects.IdeaObject', {
 		}
 	},
 	/**
-	 * adopt
-	 * Alias for {@link #addChild}
-	 */
-	adopt: function() {
-		this.addChild.apply(this, arguments);
-	},
-	/**
-	 * removeChild
 	 * Removes a child from this idea
 	 * @param {Workspace.Object} child
 	 */
 	removeChild: function(child) {
-		this.children.remove(child);//.getId());
+		this.callParent(arguments);
 		child.un('move', this.adjustSize, this);
 		child.un('resize', this.adjustSize, this);
 		this.adjustSize();

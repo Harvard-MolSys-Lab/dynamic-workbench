@@ -25,7 +25,14 @@ Ext.define('Workspace.objects.Object', {
 		});
 
 		this.exposeAll(config);
-		
+				
+		this._children = this.children;
+		/**
+		 * @property {Ext.util.MixedCollection} children
+		 */
+		this.children = Ext.create('Ext.util.MixedCollection');
+
+				
 		/**
 		 * @property {Object} state
 		 */
@@ -62,7 +69,8 @@ Ext.define('Workspace.objects.Object', {
 		 * @param {Workspace.objects.Object} this
 		 */
 		'destroy');
-
+		
+		this.expose('children', true, false, true, false);
 		this.expose('x', true, true, true, false);
 		//'getX','updateX');
 		this.expose('y', true, true, true, false);
@@ -138,6 +146,7 @@ Ext.define('Workspace.objects.Object', {
 		if(this.parent) {
 			this.set('parent', Workspace.Components.realize(this.parent));
 		}
+		this.buildChildren();
 	},
 	/**
 	 * getParent
@@ -170,6 +179,50 @@ Ext.define('Workspace.objects.Object', {
 		}
 		this.set('parent', false);
 	},
+	/**
+	 * Realizes child objects passed to constructor. Automatically invoked by initialize
+	 * @private
+	 */
+	buildChildren: function() {
+		var children = this._children;
+		if (Ext.isArray(children)) {
+			Ext.each(children, function(child) {
+				this.addChild(Workspace.Components.realize(child));
+			},
+			this)
+		} else if (Ext.isObject(children)) {
+			var child;
+			for (var id in children) {
+				child = children[id];
+				this.addChild(Workspace.Components.realize(child))
+			}
+		}
+	},
+	/**
+	 * Adds a child to this object
+	 * @param {Workspace.Object} child
+	 */
+	addChild: function(child) {
+		this.children.add(child);
+		child.setParent(this);
+	},
+	/**
+	 * Alias for {@link #addChild}
+	 */
+	adopt: function() {
+		this.addChild.apply(this, arguments);
+	},
+	/**
+	 * Removes a child from this idea
+	 * @param {Workspace.Object} child
+	 */
+	removeChild: function(child) {
+		this.children.remove(child);//.getId());
+	},
+	childCanMove: function(child) {
+		return true;
+	},
+	
 	/**
 	 * select
 	 * invokes {@link Workspace#select} for this object

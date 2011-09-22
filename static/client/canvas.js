@@ -90,7 +90,7 @@ App.ui.buildInterface = function() {
 			bodyBorder : false,
 			tbar : {
 				items : [{
-					text : App.getFullTitleFormatted(),
+					text : App.getFullTitleFormatted()+ (App.isPreRelease ? '&nbsp;|&nbsp;<strong class="pre-release">Pre-release. Do not distribute</strong>' : ''),
 				}, '-', {
 					text : 'New',
 					//handler: App.ui.Launcher.makeLauncher('nodal'),

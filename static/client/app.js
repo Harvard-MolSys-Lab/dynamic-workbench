@@ -21,6 +21,7 @@ Ext.apply(App, {
 	name : 'DyNAMiC Workbench',
 	nameFormatted : '<b>DyNAMiC</b> Workbench',
 	version : '0.3.0a',
+	isPreRelease : true,
 	getFullTitle : function() {
 		return App.name + ' (' + App.version + ')'
 	},

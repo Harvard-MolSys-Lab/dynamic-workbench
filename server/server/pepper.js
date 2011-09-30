@@ -1,5 +1,4 @@
-var utils = require('../utils'), proc = require('child_process'), fs = require('fs'), _ = require('underscore'), async = require('async'), winston = require('winston'), path = require('path'), DNA = require('../static/lib/dna-utils').DNA;
-
+var utils = require('../utils'), proc = require('child_process'), fs = require('fs'), _ = require('underscore'), async = require('async'), winston = require('winston'), path = require('path');
 var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath, getCommand = utils.getCommand;
 
 var commands = {

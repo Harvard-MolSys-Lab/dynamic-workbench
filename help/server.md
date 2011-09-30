@@ -22,8 +22,7 @@ If you are reading this documentation, you've likely already obtained a copy of 
 
 It's important to understand how this setup works: The Workbench server virtual machine will run (using VirtualBox) on your computer (which is called the "host" in this circumstance); it contains a separate operating system (the "guest" operating system, which in this case is a version of Ubuntu linux), and a lot of software, including a web server and the server tools. All of this software which will run within the virtual machine, sharing your processor and memory, but essentially isolated from your computer. There are two special communication channels between the virtual machine and the host:
 
--	Shared folders: this VirtualBox feature allows folders on the host to be mirrored in the guest, and vice-versa. This lets you to access your files stored on
-	Workbench from within your normal operating system file manager (e.g. Finder, Nautilus, Windows Explorer). 
+-	Shared folders: this VirtualBox feature allows folders on the host to be mirrored in the guest, and vice-versa. This lets you to access your files stored on Workbench from within your normal operating system file manager (e.g. Finder, Nautilus, Windows Explorer). 
 -	Host-to-guest network: this creates a special network only between the host and guest. This means that the virtual machine will not be visible to the internet at 	large, but it will be able to connect only to the host (for instance to expose the Workbench web server).
 
 ### Running the server

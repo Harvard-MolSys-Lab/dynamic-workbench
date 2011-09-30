@@ -2,7 +2,7 @@
  * @author Casey Grun
  */
 
-var express = require('express'), app = express.createServer(), winston = require('winston'), fm = require('./file-manager'), tools = require('./server-tools'), auth = require('./auth');
+var express = require('express'), app = express.createServer(), winston = require('winston'), fm = require('./server/file-manager'), tools = require('./server/server-tools'), auth = require('./server/auth');
 
 // var Schema = mongoose.Schema,
 // UserSchema = new Schema({});
@@ -10,10 +10,14 @@ var express = require('express'), app = express.createServer(), winston = requir
 // facebook: true
 // });
 
+
+app.configure('production',function() {
+	app.set('invite', 'yinlab-workbench');
+});
+
 app.configure(function() {
 	app.set('views', __dirname + '/views');
 	app.set('baseRoute', '/');
-	app.set('invite', 'yinlab-workbench');
 	app.use(express.bodyParser());
 	app.use(express.cookieParser());
 	app.use(express.session({
@@ -29,7 +33,7 @@ app.configure(function() {
 		filename : 'logs/full.log'
 	});
 
-	// static file server
+	// static file server1
 	app.use(express['static'](__dirname + '/static'));
 
 	// auth
@@ -38,13 +42,13 @@ app.configure(function() {
 	// application landing page
 	app.get('/',auth.restrict('html'), function(req, res) {
 		res.render('index.jade', {
-			manifest: require('./manifest'),
+			manifest: require('./server/manifest'),
 			layout : false
 		});
 	});
 	app.get('/build', function(req, res) {
 		res.render('build.jade', {
-			manifest: require('./manifest'),
+			manifest: require('./server/manifest'),
 			layout : false
 		});
 	});

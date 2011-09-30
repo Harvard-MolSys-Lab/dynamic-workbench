@@ -38,14 +38,13 @@ var mimetypes = fileTypes.mimetypes, triggers = fileTypes.triggers, icons = file
 exports.configure = function(app, express) {
 	var baseRoute = app.set('baseRoute');
 
-
-	app.get('/typeslist',restrict('json'),function(req,res) {
-		res.send("App.triggers = "+JSON.stringify(fileTypes.triggers)+";App.icons="+JSON.stringify(fileTypes.icons)+";");
+	app.get('/typeslist', restrict('json'), function(req, res) {
+		res.send("App.triggers = " + JSON.stringify(fileTypes.triggers) + ";App.icons=" + JSON.stringify(fileTypes.icons) + ";");
 	});
-	
-	app.get('/help/:page', restrict('html'),function(req,res) {
-		var page = req.param('page') || 'index', fullPath = path.join('help',page)+'.md';
-	
+
+	app.get('/help/:page', restrict('html'), function(req, res) {
+		var page = req.param('page') || 'index', fullPath = path.join('help', page) + '.md';
+
 		fs.readFile(fullPath, 'utf8', function(err, data) {
 			if(err) {
 				sendError(res, 'Not Found', 404);
@@ -56,13 +55,46 @@ exports.configure = function(app, express) {
 				});
 				return;
 			}
-			res.render(path.join(__dirname,'help/layout.jade'),{
-				layout: false,
-				body : md.toHTML(data,'Maruku'),
+			res.render(path.join(__dirname, 'help/layout.jade'), {
+				layout : false,
+				body : md.toHTML(data, 'Maruku'),
 				page : page,
 			});
 		});
 	});
+
+	app.get('/build/help', restrict('html'), function(req, res) {
+		var fullPath = 'help', outPath = path.join(fullPath, 'out'), writeFile, contents;
+		fs.readdir(fullPath, function(err, files) {
+			if(err) {
+				winston.log("error", "/build/help: Couldn't read directory contents: ", {
+					err : err,
+					fullPath : fullPath
+				});
+				sendError(res, 'Internal Server Error', 500);
+				return;
+			}
+			fs.mkdir(outPath, 777, function() {
+				async.serial('files', function(file, cb) {
+					writeFile = path.join(outPath, path.basename(file) + '.html');
+					fs.writeFile(writeFile, '', function(err) {
+						if(err) {
+							winston.log("error", "/build/help: Couldn't make file.", {
+								err : err,
+								writeFile : writeFile,
+							});
+							sendError(res, 'Internal Server Error', 500);
+							cb(err);
+						}
+					});
+				}, function(err) {
+					if(!err) {
+						res.send('Help built successfully')
+					}
+				})
+			})
+		});
+	})
 
 	app.get(/\/files\/([\s\S]*)/, restrict('json'), function(req, res) {
 		var node = req.param('node') || req.params[0], fullPath = utils.userFilePath(node), basename = path.basename(fullPath), ext = path.extname(fullPath), transform;
@@ -148,7 +180,7 @@ exports.configure = function(app, express) {
 					if(file != '.DS_Store') {
 						fileRecord(file, node, null, cb);
 					} else {
-						cb(null,null);
+						cb(null, null);
 					}
 				}, function(err, outTree) {
 					if(err) {
@@ -193,8 +225,8 @@ exports.configure = function(app, express) {
 						});
 					} else {
 						fs.stat(newPath, function(err, stat) {
-							fileRecord(path.basename(newPath), path.dirname(newPath), null, function(err,outRec) {
-								if(outRec) { 
+							fileRecord(path.basename(newPath), path.dirname(newPath), null, function(err, outRec) {
+								if(outRec) {
 									outRec.id = node;
 									res.send([outRec]);
 								} else {
@@ -228,9 +260,9 @@ exports.configure = function(app, express) {
 								res.send([rec]);
 							});
 							// fs.stat(node, function(err, stat) {
-								// fileRecord(path.basename(node), path.dirname(node), stat, function(err, rec) {
-									// res.send([rec]);
-								// })
+							// fileRecord(path.basename(node), path.dirname(node), stat, function(err, rec) {
+							// res.send([rec]);
+							// })
 							// });
 						}
 					});
@@ -327,9 +359,8 @@ exports.configure = function(app, express) {
 					return;
 				}
 			}
-			
 			transform = fileTypes.contentTransforms[basename] || fileTypes.contentTransforms[ext];
-			
+
 			if(transform) {
 				transform(fullPath, function(err, data) {
 					if(err) {
@@ -406,13 +437,16 @@ exports.configure = function(app, express) {
 			}
 		});
 	});
-	app.post('/image',restrict('json'),function(req,res) {
+	app.post('/image', restrict('json'), function(req, res) {
 		var node = req.param('node'), fullPath = utils.userFilePath(node), img = req.param('img');
 		var data = img.replace(/^data:image\/\w+;base64,/, "");
-		var buf = new Buffer(data, 'base64'); 
-		fs.writeFile(fullPath,buf,function(err) {
+		var buf = new Buffer(data, 'base64');
+		fs.writeFile(fullPath, buf, function(err) {
 			if(err) {
-				winston.log('error','/image: failed to save image',{fullPath:fullPath,err:err});
+				winston.log('error', '/image: failed to save image', {
+					fullPath : fullPath,
+					err : err
+				});
 			}
 		})
 	})

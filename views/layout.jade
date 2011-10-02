@@ -1,0 +1,31 @@
+!!! 5
+html
+  - var title = page.replace(/^\w/, function($0) { return $0.toUpperCase(); })
+  head
+    title= title
+    link(rel="stylesheet", href="/styles/canvas.css")
+    link(rel="stylesheet", href="/styles/icons.css")
+    link(rel="stylesheet", href="/styles/colaborate/stylesheet.css")
+    //link(rel="stylesheet", href="/lib/bootstrap/bootstrap-1.2.0.css")
+    link(rel="stylesheet", href="/styles/help.css")
+
+  body
+    div.help-navigation
+      = title
+      span.home
+        a(href="index")
+          | Home
+  | !{body}
+  
+//    div(class="topbar") 
+//      div(class="topbar-inner") 
+//      div(class="container") 
+//        h3
+//          a(href="index")
+//            | DyNAMiC Workbench Help
+//        ul(class="nav") 
+//          li(class="active")
+//            a(href="#")
+//              = title
+
+

@@ -13,7 +13,12 @@ var express = require('express'), app = express.createServer(), winston = requir
 
 app.configure('production',function() {
 	app.set('invite', 'yinlab-workbench');
+	app.set('env','production');
 });
+
+app.configure('debug',function() {
+	app.set('env','debug');
+})
 
 app.configure(function() {
 	app.set('views', __dirname + '/views');
@@ -43,12 +48,16 @@ app.configure(function() {
 	app.get('/',auth.restrict('html'), function(req, res) {
 		res.render('index.jade', {
 			manifest: require('./server/manifest'),
+			env: app.set('env'),
 			layout : false
 		});
 	});
-	app.get('/build', function(req, res) {
+	
+	// TODO: Add to local configuration environment
+	app.get('/build.html', function(req, res) {
 		res.render('build.jade', {
 			manifest: require('./server/manifest'),
+			env: app.set('env'),
 			layout : false
 		});
 	});

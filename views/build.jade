@@ -3,14 +3,14 @@ html(lang="en")
   head
     title DyNAMiC Workbench (Builder)
     - // true to only retrieve static resources
-    - var resources = manifest.getResources(true);
+    - var resources = manifest.getResources(true,'build');
     - each sheet in resources.links
       link(rel="stylesheet",href=sheet)
 
     - each script in resources.scripts
       script(type="text/javascript", src=script)
    
-    script(type="text/javascript", src=manifest.scriptPath+'/build.js')
+    script(type="text/javascript", src=manifest.scriptPath+'/build-client.js')
     
   body
     div#loading_mask

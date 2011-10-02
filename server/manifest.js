@@ -1,3 +1,5 @@
+var _ = require('underscore');
+
 var scriptPath = 'client';
 var libPath = 'lib';
 // scriptPath + '/lib';
@@ -17,15 +19,23 @@ var scripts = ['ext-bug-fixes','core','canvas','workspace',]; //'objects/objects
 scripts = scripts.concat(['console','codemirror-modes','dd']); //'dna/nodal/nodal-canvas','dna/nodal/dna','dna/nodal/nodal', 'dna/secondary/secondary', 'dna/primary/primary',]);
 
 
-function getResources(staticOnly) {
+function getResources(staticOnly,env) {
 	staticOnly = staticOnly || false;
+	env = env || 'production';
+	
 	var links = [], js = [];
 	
 	_.each(styles,function(sheet) {
 	  links.push(sheet+".css")
 	});
 	// ExtJS 4
-	js.push(extPath+"/bootstrap.js")
+	//js.push(extPath+"/bootstrap.js")
+	if(env != 'production') {
+		js.push(extPath+"/bootstrap.js");
+		js.push(scriptPath+'/loader.js')
+	} else {
+		js.push(extPath+'/ext-all.js');
+	}
 	
 	// Libraries
 	_.each(libs ,function(lib) {

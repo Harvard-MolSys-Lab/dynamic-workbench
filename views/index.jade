@@ -2,13 +2,17 @@
 html(lang="en")
   head
     title DyNAMiC Workbench
-    - var resources = manifest.getResources();
+    - var resources = manifest.getResources(false,env);
     - each sheet in resources.links
       link(rel="stylesheet",href=sheet)
-
-    - each script in resources.scripts
-      script(type="text/javascript", src=script)
-  
+    
+    - env = 'production';
+    if env == 'production'
+      script(type="text/javascript", src="all.js")
+    else
+      each script in resources.scripts
+        script(type="text/javascript", src=script)
+    
   body
     div#loading_mask
       div#loading

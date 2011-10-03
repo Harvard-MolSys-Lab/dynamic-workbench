@@ -2,7 +2,9 @@
 html(lang="en")
   head
     title DyNAMiC Workbench
-    - var resources = manifest.getResources(false,env);
+    - var resources = manifest.getResources(true,env);
+    - var dynamic = manifest.getDynamicResources();
+    - var bootstrap = manifest.bootstrap;
     - each sheet in resources.links
       link(rel="stylesheet",href=sheet)
     
@@ -12,6 +14,11 @@ html(lang="en")
     else
       each script in resources.scripts
         script(type="text/javascript", src=script)
+        
+    each script in dynamic
+      script(type="text/javascript", src=script)
+    
+    script(type="text/javascript", src=bootstrap)
     
   body
     div#loading_mask

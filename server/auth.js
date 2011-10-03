@@ -109,6 +109,8 @@ function userData(req, proto) {
 	proto.id = u.userId;
 	return proto;
 }
+exports.userData = exports.getUserData = userData;
+
 
 function login(req, user, cb) {
 	// Regenerate session when signing in

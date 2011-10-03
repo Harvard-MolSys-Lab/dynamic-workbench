@@ -1,6 +1,14 @@
+/**
+ * DyNAMiC Workbench
+ * Copyright (c) 2011 Casey Grun, Molecular Systems Lab, Harvard University
+ *
+ * PRE-RELEASE CODE. DISTRIBUTION IS PROHIBITED.
+ */
+
 var form = require('connect-form'), auth = require('./auth'), fs = require('fs'), path = require('path'), _ = require('underscore');
 var utils = require('./utils'), async = require('async'), rm = require("./rm-rf"), fileTypes = require('./file-types'), winston = require('winston');
-var md = require('markdown').markdown;
+var md = require('markdown').markdown, validate = require('validator');
+var check = validate.check, sanitize = validate.sanitize;
 
 var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath;
 var restrict = auth.restrict;
@@ -55,7 +63,7 @@ exports.configure = function(app, express) {
 				});
 				return;
 			}
-			res.render(path.join(__dirname, 'help/layout.jade'), {
+			res.render('layout.jade', {
 				layout : false,
 				body : md.toHTML(data, 'Maruku'),
 				page : page,
@@ -288,7 +296,7 @@ exports.configure = function(app, express) {
 	});
 	app.post('/delete', restrict('json'), function(req, res) {
 		var node = req.param('id'), fullPath = utils.userFilePath(node);
-		if(!allowedPath(node)) {
+		if(!allowedPath(fullPath)) {
 			forbidden(res);
 			winston.log("warn", "Can't enter path; access denied. ", {
 				fullPath : fullPath
@@ -344,83 +352,87 @@ exports.configure = function(app, express) {
 		if(type != '') {
 			type = ext.substring(1);
 		}
+		if(allowedPath(fullPath, req)) {
 
-		fs.stat(fullPath, function(err, stat) {
-			if(err) {
-				if(err.code == 'ERRNO' || err.code == 'ENOENT') {
-					sendError(res, 'Not Found', 404);
-					return;
-				} else {
-					sendError(res, 'Internal Server Error', 500);
-					winston.log("error", "/load: Could not determine file stats.", {
-						fullPath : fullPath,
-						err : err,
-					});
-					return;
-				}
-			}
-			transform = fileTypes.contentTransforms[basename] || fileTypes.contentTransforms[ext];
-
-			if(transform) {
-				transform(fullPath, function(err, data) {
-					if(err) {
-						winston.log("error", "/load: failed to transform file.", {
-							err : err,
-							fullPath : fullPath
-						});
+			fs.stat(fullPath, function(err, stat) {
+				if(err) {
+					if(err.code == 'ERRNO' || err.code == 'ENOENT') {
+						sendError(res, 'Not Found', 404);
+						return;
+					} else {
 						sendError(res, 'Internal Server Error', 500);
+						winston.log("error", "/load: Could not determine file stats.", {
+							fullPath : fullPath,
+							err : err,
+						});
 						return;
 					}
-					if(!!download) {
-						res.attachment(fullPath);
-					}
-					res.send(data);
-				})
-			} else if(stat.isDirectory()) {
-				sendError(res, 'Cannot send directories', 403);
-				winston.log("warn", "Cannot send directory.", {
-					fullPath : fullPath
-				});
-
-				return;
-			} else {
-
-				// send file directly with associated mime type if it makes sense (e.g. for PDF or SVG to pass to Viewer)
-				if(mimetypes[type]) {
-					if(!!download) {
-						res.attachment(fullPath);
-					}
-					res.sendfile(fullPath, function(err) {
-						if(err) {
-							winston.log("error", "/load: Couldn't send file. ", {
-								fullPath : fullPath,
-								err : err
-							});
-							sendError("Couldn't send file: " + node);
-							return;
-						}
-					})
-				} else {
-					// TODO: either stream the file of use res.sendfile
-					fs.readFile(fullPath, function(err, data) {
-						if(err) {
-							winston.log("warn", "/load: Can't open file. ", {
-								fullPath : fullPath,
-								node : node,
-								err : err,
-							});
-							forbidden(res, "Can't open file: " + node);
-							return;
-						} else {
-							if(!!download) {
-								res.attachment(fullPath);
-							}
-							res.send(data);
-						}
-					});
 				}
-			}
-		});
+				transform = fileTypes.contentTransforms[basename] || fileTypes.contentTransforms[ext];
+
+				if(transform) {
+					transform(fullPath, function(err, data) {
+						if(err) {
+							winston.log("error", "/load: failed to transform file.", {
+								err : err,
+								fullPath : fullPath
+							});
+							sendError(res, 'Internal Server Error', 500);
+							return;
+						}
+						if(!!download) {
+							res.attachment(fullPath);
+						}
+						res.send(data);
+					})
+				} else if(stat.isDirectory()) {
+					sendError(res, 'Cannot send directories', 403);
+					winston.log("warn", "Cannot send directory.", {
+						fullPath : fullPath
+					});
+
+					return;
+				} else {
+
+					// send file directly with associated mime type if it makes sense (e.g. for PDF or SVG to pass to Viewer)
+					if(mimetypes[type]) {
+						if(!!download) {
+							res.attachment(fullPath);
+						}
+						res.sendfile(fullPath, function(err) {
+							if(err) {
+								winston.log("error", "/load: Couldn't send file. ", {
+									fullPath : fullPath,
+									err : err
+								});
+								sendError("Couldn't send file: " + node);
+								return;
+							}
+						})
+					} else {
+						// TODO: either stream the file of use res.sendfile
+						fs.readFile(fullPath, function(err, data) {
+							if(err) {
+								winston.log("warn", "/load: Can't open file. ", {
+									fullPath : fullPath,
+									node : node,
+									err : err,
+								});
+								forbidden(res, "Can't open file: " + node);
+								return;
+							} else {
+								if(!!download) {
+									res.attachment(fullPath);
+								}
+								res.send(data);
+							}
+						});
+					}
+				}
+			});
+		} else {
+			forbidden(res, "Not authorized.");
+		}
 	})
 	app.post('/save', restrict('json'), function(req, res) {
 		var node = req.param('node'), fullPath = utils.userFilePath(node), data = req.param('data');

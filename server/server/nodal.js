@@ -52,7 +52,7 @@ exports.start = function(req, res, params) {
 						stdout: stdout,
 					});
 				}
-				res.send(stdout);
+				res.send(stdout+"\n Build completed.");
 			})
 		}
 	});

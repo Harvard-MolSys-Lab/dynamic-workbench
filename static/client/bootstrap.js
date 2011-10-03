@@ -1,0 +1,1 @@
+Ext.onReady(App.ui.buildInterface);

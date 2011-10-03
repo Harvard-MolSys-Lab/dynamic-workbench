@@ -18,6 +18,7 @@ var modes = ['javascript', 'stex', 'xml', 'diff', 'htmlmixed', 'css', 'clike','p
 var scripts = ['ext-bug-fixes','core','canvas','workspace',]; //'objects/objects', 'objects/element', 'objects/vector', 'objects/semantics','tools/tools','tools/draw','tools/annotate',
 scripts = scripts.concat(['console','codemirror-modes','dd']); //'dna/nodal/nodal-canvas','dna/nodal/dna','dna/nodal/nodal', 'dna/secondary/secondary', 'dna/primary/primary',]);
 
+var bootstrap = scriptPath+'/bootstrap.js';
 
 function getResources(staticOnly,env) {
 	staticOnly = staticOnly || false;
@@ -67,11 +68,10 @@ function getResources(staticOnly,env) {
 	// App and InfoMachine
 	js.push(scriptPath+"/app.js")
 	
+	
 	js.push(scriptPath+"/endpoints.js")
 	if(!staticOnly) {
-		js.push("/user")
-		js.push("/toolslist")
-		js.push("/typeslist")
+	js = js.concat(getDynamicResources())
 	}
 	
 	js.push(scriptPath+"/documents.js")
@@ -84,6 +84,14 @@ function getResources(staticOnly,env) {
 	return {links: links, scripts:js};
 }
 
+function getDynamicResources() {
+	var js = [];
+			js.push("/user")
+		js.push("/toolslist")
+		js.push("/typeslist")
+	return js;	
+}
+
 module.exports = {
 	scriptPath : scriptPath, 
 	libPath : libPath,
@@ -92,4 +100,6 @@ module.exports = {
 	uxs : uxs,
 	scripts : scripts, 
 	getResources : getResources,
+	getDynamicResources : getDynamicResources,
+	bootstrap: bootstrap,
 }

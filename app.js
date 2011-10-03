@@ -1,5 +1,8 @@
 /**
- * @author Casey Grun
+ * DyNAMiC Workbench
+ * Copyright (c) 2011 Casey Grun, Molecular Systems Lab, Harvard University
+ * 
+ * PRE-RELEASE CODE. DISTRIBUTION IS PROHIBITED.
  */
 
 var express = require('express'), app = express.createServer(), winston = require('winston'), fm = require('./server/file-manager'), tools = require('./server/server-tools'), auth = require('./server/auth');
@@ -21,6 +24,7 @@ app.configure('debug',function() {
 })
 
 app.configure(function() {
+	app.set('invite', 'yinlab-workbench');
 	app.set('views', __dirname + '/views');
 	app.set('baseRoute', '/');
 	app.use(express.bodyParser());

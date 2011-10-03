@@ -1,3 +1,10 @@
+/**
+ * DyNAMiC Workbench
+ * Copyright (c) 2011 Casey Grun, Molecular Systems Lab, Harvard University
+ * 
+ * PRE-RELEASE CODE. DISTRIBUTION IS PROHIBITED.
+ */
+
 var utils = require('./utils'), auth = require('./auth'), proc = require('child_process'), fs = require('fs'), _ = require('underscore'), async = require('async'), path = require('path'), DNA = require('../static/lib/dna-utils').DNA, validate = require('validator'), winston = require('winston');
 var check = validate.check, sanitize = validate.sanitize;
 
@@ -70,7 +77,7 @@ exports.configure = function(app, express) {
 			return function(req, res) {
 				// parse parameters
 				var params = _.reduce(spec.params, function(memo, param) {
-					memo[param] = sanitize(req.param(param)).xss();
+					memo[param] = sanitize(req.param(param) || '').xss();
 					return memo;
 				}, {});
 

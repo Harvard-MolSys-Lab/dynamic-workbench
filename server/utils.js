@@ -1,8 +1,10 @@
 var path = require('path'),
-	auth = require('./auth');
+	auth = require('./auth'),
+	fs = require('fs');
 
 
-var filesPath = auth.filesPath; 
+var filesPath = auth.filesPath,
+	getUserData = auth.getUserData;
 
 exports.userFilePath = function(node) {
 	return path.join(filesPath,node);
@@ -19,8 +21,21 @@ exports.forbidden = function(res,msg) {
 	msg || (msg = '');
 	sendError(res,'Forbidden. '+msg,403);
 }
-exports.allowedPath = function(path) {
-	return path ? (path.indexOf('..')==-1) : false;
+exports.allowedPath = function(testPath,req) {
+	req = req || false;
+	var user, home, authAllowed = false;
+	if(req) {
+		user = auth.getUserData(req);
+		if(user) {
+			home = fs.realpathSync(path.join(filesPath,user.home));
+			testPath = fs.realpathSync(testPath);
+			authAllowed = testPath.indexOf(home)==0;
+		} else {
+			// not logged in
+			return false;
+		}
+	}
+	return (req ? authAllowed : true) && (testPath ? (testPath.indexOf('..')==-1) : false);
 }
 
 function getCommand(spec,args) {

@@ -16,7 +16,7 @@ Ext.define('App.ui.nodal.HomeTab', {
 						// cellCls: 'table-cell-padded'
 					},
 					items: [{
-						iconCls: 'cursor',
+						iconCls: 'cursor-icon',
 						enableToggle: true,
 						toggleGroup: 'toolbox',
 						toolName: 'pointer',

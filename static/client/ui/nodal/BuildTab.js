@@ -39,33 +39,62 @@ Ext.define('App.ui.nodal.BuildTab', {
 						iconCls: 'compile',
 						text: 'Serialize',
 						rowspan: 1,
-						disabled: false,
+						disabled: true,
+						ref:'serializeMenu',
+						tooltip: {
+							title: 'Serialize System',
+							text: 'View and edit serialized forms of nodal system, including TerseML, PIL, and SVG, for further processing (must compile first). ',
+						},
 						menu: [{
 							text: 'TerseML',
 							iconCls: 'txt',
+							ref: 'txt',
+							disabled: true,
+							handler: _.bind(this.openFile,this,'txt'),
 						},{
 							text: 'PIL',
 							iconCls: 'pil',
+							ref: 'pil',
+							disabled: true,
+							handler: _.bind(this.openFile,this,'pil'),
 						},{
 							text: 'SVG',
 							iconCls: 'svg',
+							ref: 'svg',
+							disabled: true,
+							handler: _.bind(this.openFile,this,'svg'),
 						}]
 					},{
 						iconCls: 'sequence',
 						text: 'Sequence',
 						rowspan: 1,
-						disabled: false,
+						disabled: true,
+						ref:'sequenceMenu',
+						tooltip: {
+							title: 'Sequence System',
+							text: 'Opens the system in a sequence editor to perform sequence design. Available sequence editors: NUPACK multi-objective, Web DD, and SpuriousC.',
+						},
+
 						//handler: this.spuriousDesign,
 						//scope: this,
 						menu: [{
 							text: 'SpuriousC',
 							iconCls: 'spurious-c',
+							ref: 'spur',
+							disabled: true,
+							handler: _.bind(this.openFile,this,'spur'),
 						},{
 							text: 'NUPACK',
 							iconCls: 'nupack',
+							ref: 'nupack',
+							disabled: true,
+							handler: _.bind(this.openFile,this,'nupack'),
 						},{
 							text: 'Web DD',
-							iconCls: 'seq'
+							iconCls: 'seq',
+							ref: 'domains',
+							disabled: true,
+							handler: _.bind(this.openFile,this,'domains'),
 						}]
 					}]
 				},{
@@ -89,8 +118,51 @@ Ext.define('App.ui.nodal.BuildTab', {
 			}]
 		}
 	},
+	getDoc: function() {
+		return this.ribbon.canvas.doc ? this.ribbon.canvas.doc : this.ribbon.canvas.document; 
+	},
 	initComponent: function() {
 		this.callParent(arguments);
+		_.each(this.query('*[ref]'), function(cmp) {
+			this[cmp.ref] = cmp;
+		}, this);
+		this.sequenceMenu.on('click',this.doUpdateMenus,this);
+		this.serializeMenu.on('click',this.doUpdateMenus,this);
+	},
+	init: function() {
+		this.updateMenus(true);
+	},
+	doUpdateMenus: function() {
+		this.updateMenus(false);
+	},
+	updateMenus: function(firstTime) {
+		firstTime = firstTime || false;
+		if(!firstTime) {
+			this.ribbon.canvas.renew();
+		}
+		var doc = this.getDoc(), basename = doc.getBasename();
+		if(doc) {
+			_.each(['txt','pil','svg','nupack','spur','domains'],function(ext) {
+				if(doc.getSiblingByName(App.Path.repostfix(basename,ext))) {
+					this.sequenceMenu.enable();
+					this.serializeMenu.enable();
+					this[ext].enable();			
+				} else {
+					this[ext].disable();
+				}
+			},this);
+		}
+	},
+	enableMenus: function() {
+		this.sequenceMenu.enable();
+		this.serializeMenu.enable();			
+	},
+	openFile: function(ext) {
+		var doc = this.getDoc(), basename = doc.getBasename();
+		var sibling = doc.getSiblingByName(App.Path.repostfix(basename,ext));
+		if(sibling) {
+			App.ui.Launcher.launchDocument(sibling);
+		}
 	},
 	serializeTerse: function() {
 		// if(Ext.log) {
@@ -104,7 +176,10 @@ Ext.define('App.ui.nodal.BuildTab', {
 		App.runTask('Nodal',{
 			node:node,
 			data:data,
-		});
+		},_.bind(function() {
+			//this.enableMenus();
+			Ext.msg('Nodal Build','Build of system <strong>{0}</strong> completed.',this.getDoc().getBasename());
+		},this));
 		// doc = this.ribbon.canvas.doc.getSiblingByName('input.txt');
 		// if(!doc) {
 			// doc = this.ribbon.canvas.doc.createSibling('input.txt');

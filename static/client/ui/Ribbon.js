@@ -5,6 +5,7 @@
  */
 Ext.define('App.ui.Ribbon', {
 	extend : 'Ext.tab.Panel',
+	alias: 'widget.ribbon',
 	requires : ['App.ui.ToolsTab', 'App.ui.InsertTab', 'App.ui.FillStrokeTab', 'App.ui.GeometryTab', 'App.ui.MetaTab'],
 	plain : true,
 	border : false,
@@ -66,6 +67,9 @@ Ext.define('App.ui.Ribbon', {
 			if(item.getActiveTool) {
 				this.mon(item, 'toolChange', this.setActiveTool, this);
 				this.mon(item, 'save', this.saveWorkspace, this);
+			}
+			if(item.init) {
+				item.init();
 			}
 		}, this);
 		// allow workspace to be saved

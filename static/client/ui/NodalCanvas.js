@@ -22,6 +22,6 @@ Ext.define('App.ui.NodalCanvas',{
 				ref: 'palatte',
 				title: 'Motifs',
 		})];
-		this.callParent(arguments)
+		this.callParent(arguments);
 	} 
 });

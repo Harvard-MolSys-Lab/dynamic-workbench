@@ -21,7 +21,7 @@ Ext.define('Workspace', {
 	uses: ['Workspace.actions.CreateObjectAction','Workspace.actions.ChangePropertyAction','Workspace.actions.DuplicateObjectAction',
 'Workspace.actions.DeleteObjectAction','Workspace.actions.FormIdeaAction','Workspace.actions.AdoptObjectAction',
 'Workspace.actions.OrphanObjectAction','Workspace.actions.ExpandAction','Workspace.DDManager','Workspace.FileUploader','Workspace.tools.PointerTool',
-'Workspace.tools.RectTool','Workspace.tools.TextTool','Workspace.tools.MathTool','Workspace.tools.PencilTool'],
+'Workspace.tools.RectTool','Workspace.tools.TextTool','Workspace.tools.MathTool','Workspace.tools.PencilTool','Workspace.objects.Object','Workspace.objects.ObjectCollection'],
 	constructor: function(containerEl, config) {
 		this.callParent([]);
 

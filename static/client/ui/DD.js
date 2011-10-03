@@ -7,6 +7,7 @@ Ext.define('App.ui.DD', {
 		app : 'App.ui.Application',
 		tip: 'App.ui.TipHelper',
 	},
+	requires: ['App.ui.SequenceEditor','App.ui.dd.RulesWindow','App.ui.dd.OptionsWindow'],
 	constructor : function() {
 		this.mixins.app.constructor.apply(this, arguments);
 		this.callParent(arguments);
@@ -156,7 +157,15 @@ Ext.define('App.ui.DD', {
 					}, this),
 					width : 100,
 					editor : {
-						xtype : 'numberfield'
+						//xtype: 'numberfield'
+						xtype: 'combobox',
+		                typeAhead: true,
+		                triggerAction: 'all',
+		                forceSelection: true,
+		                selectOnTab: true,
+		                store: [[15,"GATC"],[7,"ATC"],[11,"GTC"],[14,"GAT"],[13,"GAC"],[12,"GA"],[6,"AT"],[9,"GC"],[10,"GT"],[5,"AC"],[3,"TC"],[8,"G"],[4,"A"],[3,"T"],[1,"C"]],
+		                lazyRender: true,
+		                listClass: 'x-combo-list-small'
 					},
 					// editor: {
 					// xtype: 'combobox',
@@ -312,11 +321,13 @@ Ext.define('App.ui.DD', {
 							scope : this,
 							tooltip: 'Change DD\'s objective (scoring) function.'
 						}]
-					}, '->', Ext.create('App.ui.SaveButton',{
-						text : 'Save',
-						iconCls : 'save',
-						app : this,
-					})]
+					}, 
+					// '->', Ext.create('App.ui.SaveButton',{
+						// text : 'Save',
+						// iconCls : 'save',
+						// app : this,
+					// })
+					]
 				},
 				bbar : new Ext.ux.statusbar.StatusBar({
 					//cls : 'noborder-left',
@@ -401,7 +412,7 @@ Ext.define('App.ui.DD', {
 		this.strands = strands;
 	},
 	getSaveData: function() {
-		return this.designer.printfDomains().join('\n');
+		return this.designer.saveFile(); //this.designer.printfDomains().join('\n');
 	},
 	/**
 	 * Loads the given design from a *.nupack or *.domains file
@@ -416,6 +427,9 @@ Ext.define('App.ui.DD', {
 				this.bindDocument(null);
 			} else if(ext=='seq') {
 				this.addManyDomains(this.data);
+			} else if(ext=='dd') {
+				this.designer.loadFile(this.data);
+				this.addDomains(this.designer.printfSequences(),[],this.designer.getCompositions(),this.designer.getImportances());
 			}
 		}
 	},
@@ -449,7 +463,7 @@ Ext.define('App.ui.DD', {
 	 */
 	designOptions : function() {
 		if(!this.designOptionsWindow) {
-			this.designOptionsWindow = Ext.create('App.ui.DD.RulesWindow', {
+			this.designOptionsWindow = Ext.create('App.ui.dd.RulesWindow', {
 				designer : this.designer,
 				closeAction : 'hide'
 			});
@@ -462,7 +476,7 @@ Ext.define('App.ui.DD', {
 	 */
 	scoreParams : function() {
 		if(!this.scoreParamsWindow) {
-			this.scoreParamsWindow = Ext.create('App.ui.DD.OptionsWindow', {
+			this.scoreParamsWindow = Ext.create('App.ui.dd.OptionsWindow', {
 				designer : this.designer,
 				closeAction : 'hide'
 			});
@@ -511,10 +525,10 @@ Ext.define('App.ui.DD', {
 	 */
 	addManyDomains : function(data) {
 		/**
-		 * @property {App.ui.DD.SequenceWindow} addDomainsWindow
+		 * @property {App.ui.dd.SequenceWindow} addDomainsWindow
 		 */
 		if(!this.addDomainsWindow) {
-			this.addDomainsWindow = Ext.create('App.ui.DD.SequenceWindow', {
+			this.addDomainsWindow = Ext.create('App.ui.dd.SequenceWindow', {
 				designer : this,
 				value: data || '',
 			});
@@ -525,10 +539,15 @@ Ext.define('App.ui.DD', {
 	 * Adds the passed domains to the designer
 	 * @param {String[]} seqs Array of sequences to add
 	 */
-	addDomains : function(seqs, names) {
-		var imp = 1, comp = 15;
+	addDomains : function(seqs, names, imp, comp, dummy) {
+		imp || (imp = 1);
+		comp || (comp = 15);
+		dummy = dummy || false;
 		//, start = this.designer.getDomainCount(), end;
-		this.designer.addDomains(seqs, imp, comp);
+		
+		if(!dummy) {
+			this.designer.addDomains(seqs, imp, comp);
+		}
 		// end =   this.designer.getDomainCount() - 1;
 		// var newSeqs = [];
 		// for(var i = start; i < end; i++) {
@@ -537,8 +556,8 @@ Ext.define('App.ui.DD', {
 		this.store.add(_.map(seqs /*newSeqs*/, function(seq, i) {
 			return {
 				sequence : seq,
-				importance : imp,
-				composition : comp,
+				importance : _.isArray(imp) ? imp[i] : imp,
+				composition : _.isArray(comp) ? comp[i] : comp,
 				name : (names && names[i]) ? names[i] : '',
 			};
 		}, this));

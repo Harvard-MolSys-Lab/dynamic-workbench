@@ -1,4 +1,4 @@
-Ext.define('App.ui.NupackResults.Panel',{
+Ext.define('App.ui.nupack.Panel',{
 	alias: 'widget.resultspanel',
 	requires: ['App.ui.ProtovisPanel'],
 	extend: 'Ext.panel.Panel',

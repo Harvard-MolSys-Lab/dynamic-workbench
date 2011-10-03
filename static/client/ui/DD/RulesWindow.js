@@ -1,5 +1,6 @@
-Ext.define('App.ui.DD.RulesWindow', {
+Ext.define('App.ui.dd.RulesWindow', {
 	extend: 'Ext.window.Window',
+	requires: ['App.ui.BasePicker'],
 	plain: true,
 	bodyBorder: false,
 	border: false,

@@ -16,7 +16,7 @@
 // GGGG_PENALTY:50,
 // ATATAT_PENALTY:20,
 // };
-Ext.define('App.ui.DD.OptionsWindow', {
+Ext.define('App.ui.dd.OptionsWindow', {
     extend: 'Ext.window.Window',
     title: 'Score Parameters',
     layout: 'fit',

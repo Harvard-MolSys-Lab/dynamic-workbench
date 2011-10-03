@@ -1,4 +1,4 @@
-Ext.define('App.ui.DD.SequenceWindow',{
+Ext.define('App.ui.dd.SequenceWindow',{
 	extend: 'Ext.window.Window',
 	width: 800,
 	height: 600,

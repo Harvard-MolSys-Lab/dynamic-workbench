@@ -895,7 +895,6 @@ var DD = function() {
 		}
 
 		setupScoreMatricies();
-
 	}
 
 	/**
@@ -1438,32 +1437,33 @@ var DD = function() {
 
 	}
 
-	function save() {
-
+	function saveFile() {
+		
 		var out = ''
-		out += sprintf("%d\n", num_domain);
+		out += num_domain+'\n';
 
 		for( i = 0; i < num_domain; i++) {
 			for( j = 0; j < domain_length[i]; j++) {
 				if(domain[i][j] == 1)
-					out += sprintf("g");
+					out += "g";
 				if(domain[i][j] == 11)
-					out += sprintf("G");
+					out += "G";
 				if(domain[i][j] == 2)
-					out += sprintf("a");
+					out += "a";
 				if(domain[i][j] == 12)
-					out += sprintf("A");
+					out += "A";
 				if(domain[i][j] == 3)
-					out += sprintf("t");
+					out += "t";
 				if(domain[i][j] == 13)
-					out += sprintf("T");
+					out += "T";
 				if(domain[i][j] == 4)
-					out += sprintf("c");
+					out += "c";
 				if(domain[i][j] == 14)
-					out += sprintf("C");
+					out += "C";
 			}
-			out += sprintf(" %d %d\n", domain_importance[i], domain_gatc_avail[i]);
+			out += " "+domain_importance[i]+" "+domain_gatc_avail[i]+"\n";
 		}
+		return out;
 	}
 
 	/**
@@ -1883,6 +1883,7 @@ var DD = function() {
 
 	_.extend(this, {
 		loadFile : loadFile,
+		saveFile : saveFile,
 		newDesign : newDesign,
 		randomSequence : randomSequence,
 		reseed : startingDomainSequences,
@@ -2015,6 +2016,15 @@ var DD = function() {
 		printfDomainById : function(id) {
 			var dom = domain[id];
 			return this.printfDomain(dom);
+		},
+		getImportance: function() {
+			return domain_gatc_avail;
+		},
+		getCompositions: function() {
+			return domain_gatc_avail;
+		},
+		getImportances: function() {
+			return domain_importance;
 		},
 		printComposition : function(comp) {
 			var out = '';

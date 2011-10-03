@@ -12,14 +12,10 @@ var console, cp;
 
 Ext.ns('App.ui');
 
-Ext.Loader.setConfig({
-	enabled : true,
-	paths : {
-		App : 'client'
-	}
-});
+Ext.Loader.setPath('App', 'client');
 
-Ext.require(['App.ui.Launcher', 'App.ui.Application']);
+Ext.require(['App.ui.Launcher', 'App.ui.Application', // hack to make sure App.ui.FilesTree.DragDropManager is require'd before App.ui.FilesTree. For some reason Sencha Builder has trouble with that one
+ 'App.ui.FilesTree', 'App.ui.TabPanel', 'App.ui.NupackMenu', 'App.ui.console.ScriptsPanel', 'App.ui.console.LogPanel']);
 
 // Bootstrap user interface
 App.ui.buildInterface = function() {
@@ -33,8 +29,8 @@ App.ui.buildInterface = function() {
 		remove : true
 	});
 
-	var scriptPanel = new Ext.debug.ScriptsPanel();
-	var logView = new Ext.debug.LogPanel();
+	var scriptPanel = Ext.create('App.ui.console.ScriptsPanel');
+	var logView = Ext.create('App.ui.console.LogPanel');
 	cp = logView;
 	/**
 	 * @property {Ext.panel.Panel}
@@ -54,7 +50,7 @@ App.ui.buildInterface = function() {
 		layout : 'border',
 		items : [scriptPanel, logView],
 		scriptPanel : scriptPanel,
-		logView : logView, 
+		logView : logView,
 		executeInContext : function() {
 			this.scriptPanel.executeInContext.apply(this.scriptPanel, arguments);
 		},
@@ -62,6 +58,22 @@ App.ui.buildInterface = function() {
 
 	var cellEditing = Ext.create('Ext.grid.plugin.CellEditing', {
 		clicksToEdit : 2
+	});
+
+	/**
+	 * @class App.DocumentStore
+	 * Manages loading documents for the currently logged-in {@link App.User}
+	 * @singleton
+	 */
+	App.DocumentStore = Ext.create('App.DocumentTreeStore', {
+		root : {
+			text : App.User.home,
+			id : App.User.home,
+			expanded : true,
+			iconCls : 'folder',
+			node : App.User.home,
+		},
+
 	});
 
 	var tree = Ext.create('App.ui.FilesTree', {
@@ -90,7 +102,7 @@ App.ui.buildInterface = function() {
 			bodyBorder : false,
 			tbar : {
 				items : [{
-					text : App.getFullTitleFormatted()+ (App.isPreRelease ? '&nbsp;|&nbsp;<strong class="pre-release">Pre-release. Do not distribute</strong>' : ''),
+					text : App.getFullTitleFormatted() + (App.isPreRelease ? '&nbsp;|&nbsp;<strong class="pre-release">Pre-release. Do not distribute</strong>' : ''),
 				}, '-', {
 					text : 'New',
 					//handler: App.ui.Launcher.makeLauncher('nodal'),
@@ -174,7 +186,7 @@ App.ui.buildInterface = function() {
 		}]
 
 	});
-		/**
+	/**
 	 * @property {App.ui.FilesTree} filesTree
 	 * @member App.ui.Launcher
 	 * The main files tree containing all {@link App.ui.Document documents} in the IDE
@@ -185,8 +197,7 @@ App.ui.buildInterface = function() {
 	 * @member App.ui.Launcher
 	 * The main {@link App.ui.Application application} tab panel
 	 */
-	 App.ui.Launcher.tabPanel = tabs;
+	App.ui.Launcher.tabPanel = tabs;
 
 	App.ui.Launcher.launch('dashboard');
 };
-Ext.onReady(App.ui.buildInterface);

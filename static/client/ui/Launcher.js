@@ -58,6 +58,12 @@ Ext.define('App.ui.Launcher', {
 		}
 		return null;
 	},
+	renewAll : function() {
+		// _.each(this._openTabs,function(tab,trigger) {
+			// if(tab.renew)
+				// tab.renew();
+		// })
+	},
 	/**
 	 * Launches the passed {@link #trigger trigger} attached to the passed {@link App.ui.Document}. Generally results in
 	 * opening a new {@link App.ui.Application application} in a tab within the main {@link #tabPanel tab panel}

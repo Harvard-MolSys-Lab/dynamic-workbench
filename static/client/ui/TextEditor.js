@@ -3,6 +3,7 @@ Ext.define('App.ui.TextEditor', {
 	mixins: {
 		app: 'App.ui.Application'
 	},
+	requires: ['App.ui.SaveButton'],
 	mode:'',
 	layout: 'fit',
 	editorType: '',

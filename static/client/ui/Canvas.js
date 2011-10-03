@@ -28,8 +28,8 @@ Ext.define('App.ui.Canvas', {
 		});
 
 		Ext.apply(this, {
-			items: [Ext.create('App.ui.Ribbon',{
-
+			items: [{
+				xtype: 'ribbon',
 				// North region: Ribbon interface
 				region: 'north',
 				height: 100,
@@ -38,7 +38,7 @@ Ext.define('App.ui.Canvas', {
 				canvas: this,
 				items: this.ribbonItems || null,
 				margins: '0 0 5 0',
-			}),{
+			},{
 
 				// Center region: workspace canvas
 				region: 'center',

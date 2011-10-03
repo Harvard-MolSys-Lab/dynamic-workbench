@@ -22,6 +22,7 @@ Ext.define('App.ui.NupackResults', {
 	'<div class="nupack-concentration-summary"></div>',
 	bodyPadding: 5,
 	autoScroll: true,
+	requires: [''],
 	constructor: function(config) {
 		this.callParent(arguments);
 		this.mixins.app.constructor.apply(this,arguments);
@@ -127,7 +128,7 @@ Ext.define('App.ui.NupackResults', {
 			// render each complex block
 			var items = _.map(sorted, Ext.bind( function(complexData) {
 				//return {
-				return Ext.create('App.ui.NupackResults.Panel', {
+				return Ext.create('App.ui.nupack.Panel', {
 					xtype: 'resultspanel',
 					complexData: complexData,
 					maxConcentration: maxConcentration, 

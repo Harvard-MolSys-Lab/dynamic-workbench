@@ -20,10 +20,10 @@ Ext.define('App.Document', {
 	}, {
 		name : 'size',
 		type : 'int'
-	},{
+	}, {
 		name : 'preventRename',
 		type : 'bool',
-		defaultValue: false,
+		defaultValue : false,
 	}],
 	/**
 	 * Returns the file path to this document
@@ -37,14 +37,14 @@ Ext.define('App.Document', {
 	getBasename : function() {
 		return App.Path.basename(this.getPath());
 	},
-	getExt: function() {
+	getExt : function() {
 		return App.Path.extname(this.getPath());
 	},
 	/**
 	 * If this record represents a folder, returns this; otherwise returns this record's parent node.
 	 * This is the moral equivalent of {@link App.path#pop}
 	 */
-	getFolder: function() {
+	getFolder : function() {
 		return (this.isLeaf() && !this.isRoot()) ? this.parentNode : this;
 	},
 	/**
@@ -151,26 +151,39 @@ Ext.define('App.Document', {
 	 */
 	checkout : function(app) {
 		this.app = app;
-		this.fireEvent('checkout',this,app);
+		this.fireEvent('checkout', this, app);
 	},
 });
 
-/**
- * Manages loading documents for the currently logged-in {@link App.User}
- * @singleton
- */
-App.DocumentStore = Ext.create('Ext.data.TreeStore', {
+Ext.define('App.DocumentTreeStore', {
+	constructor : function() {
+		Ext.apply(this, {
+			proxy : {
+				type : 'ajax',
+				// TODO: Make these configurable
+				api : {
+					read : '/tree',
+					create : '/new',
+					update : '/rename',
+					destroy : '/delete'
+				},
+				reader : {
+					type : 'json'
+				},
+				writer : {
+					type : 'json',
+					nameProperty : 'name',
+				}
+			},
+		});
+		this.callParent(arguments);
+	},
+	extend : 'Ext.data.TreeStore',
 	model : 'App.Document',
 	folderSort : true,
 	autoSync : true,
 	batchActions : false,
-	root : {
-		text : App.User.home,
-		id : App.User.home,
-		expanded : true,
-		iconCls : 'folder',
-		node : App.User.home,
-	},
+
 	proxy : {
 		type : 'ajax',
 		// TODO: Make these configurable

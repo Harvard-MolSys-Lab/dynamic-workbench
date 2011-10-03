@@ -6,6 +6,7 @@ Ext.define('App.ui.SequenceEditor', {
 	},
 	iconCls : 'sequence',
 	editorType : 'Sequence',
+	requires: ['App.ui.SequenceStats','App.ui.CompareMenu','App.ui.StatMenu','App.ui.SaveButton'],
 	initComponent: function() {
 		Ext.applyIf(this, {
 			tbar: [{

@@ -1,11 +1,11 @@
-Ext.define('App.ui.FilesTree.DragDropManager', {
+Ext.define('App.ui.files.DragDropManager', {
 	constructor : function() {
 		this.callParent(arguments);
 		if(this.filesTree && this.filesTree.getEl()) {
 			this.element = this.filesTree.getEl();
 		}
 	},
-	requires: ['App.ui.FilesTree.FileUploader'],
+	requires: ['App.ui.files.FileUploader'],
 	extend : 'App.ui.DragDropManager',
 	fileHandler : function(files, e) {
 		var el = Ext.get(e.target).up('.x-grid-row'), rec;
@@ -15,7 +15,7 @@ Ext.define('App.ui.FilesTree.DragDropManager', {
 				rec = rec.getFolder();
 				uh = this.getUploadHandler();
 				Ext.each(files, function(file) {
-					var id = uh.add(file), uploader = Ext.create('App.ui.FilesTree.FileUploader', {
+					var id = uh.add(file), uploader = Ext.create('App.ui.files.FileUploader', {
 						filesTree : this.filesTree,
 						record : rec,
 						manager : this,
@@ -32,4 +32,4 @@ Ext.define('App.ui.FilesTree.DragDropManager', {
 			}
 		}
 	}
-});
+},function() {});

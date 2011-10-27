@@ -48,6 +48,7 @@ Ext.define('Workspace.objects.Path', {
 			shape : this.shape,
 			strokeWidth : this.strokeWidth + App.Stylesheet.Highlight.strokeWidth,
 			workspace : this.workspace,
+			//forceBack : true,
 		}, App.Stylesheet.Highlight));
 	},
 	updateHighlightProxy : function() {

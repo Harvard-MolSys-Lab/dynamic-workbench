@@ -48,7 +48,6 @@ Ext.define('Workspace.tools.SelectorBand', {
 		this.rect.attr(attr);
 	},
 	/**
-	 * getRegion
 	 * Generates an {@link Ext.util.Region} to describe the rectangular area of the region
 	 */
 	getRegion: function() {

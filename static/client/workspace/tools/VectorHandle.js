@@ -7,6 +7,7 @@
  * @param {Object} config
  */
 Ext.define('Workspace.tools.VectorHandle', {
+	forceFront : true,
 	constructor: function(workspace, config) {
 		Workspace.tools.VectorHandle.superclass.constructor.call(this, workspace, config);
 

@@ -7,6 +7,7 @@
  * @param {Object} config
  */
 Ext.define('Workspace.tools.LineTool', {
+	requires: ['Workspace.objects.Path','Workspace.objects.secondary.Domain'],
 	constructor: function(workspace, config) {
 		this.workspace = workspace;
 		Ext.apply(this, config, {
@@ -22,6 +23,10 @@ Ext.define('Workspace.tools.LineTool', {
 		this.y1 = 0;
 	},
 	extend:'Workspace.tools.BaseTool',
+	targetWType: 'Workspace.objects.Path',
+	//targetWType: 'Workspace.objects.Path',
+	targetWType: 'Workspace.objects.secondary.Domain',
+	
 	click: function(e, item) {
 
 		e.stopEvent();
@@ -47,10 +52,11 @@ Ext.define('Workspace.tools.LineTool', {
 			this.x2 = pos.x;
 			this.y2 = pos.y;
 
-			var o = this.workspace.createObject(Workspace.objects.Path, {
-				path: [['M', this.x1, this.y1], ['L', this.x2, this.y2]]
+			var o = this.workspace.createObject({
+				wtype: this.targetWType,
+				//path: [['M', this.x1, this.y1], ['L', this.x2, this.y2]]
+				points: [[this.x1, this.y1], [this.x2, this.y2]]
 			})
-
 			this.proto.remove();
 			this.workspace.setSelection([o]);
 		}

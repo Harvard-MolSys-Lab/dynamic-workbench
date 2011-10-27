@@ -7,6 +7,7 @@
  * @param {Object} config
  */
 Ext.define('Workspace.tools.Handle', {
+	forceFront : false,
 	constructor: function(workspace, config) {
 
 		// Call Observable Constructor
@@ -26,9 +27,10 @@ Ext.define('Workspace.tools.Handle', {
 			y1: 0,
 			shape: 'rect',
 			width: 10,
-			stroke: '#11f',
+			stroke: '#ccc', //'#11f',
 			strokeWidth: 1,
-			fill: '#fff'
+			fill: '#fff',
+			r: 2,
 		});
 		Ext.apply(this, config);
 
@@ -57,6 +59,10 @@ Ext.define('Workspace.tools.Handle', {
 		} else {
 			this.handleShape.toFront();
 		}
+		if(this.forceFront) {
+			this.toFront();
+		}
+		
 
 		var handle = this;
 		Ext.get(this.handleShape.node).on('mousedown', this.dragStartHandler, this);
@@ -106,6 +112,9 @@ Ext.define('Workspace.tools.Handle', {
 	accept: function() {
 		return false;
 	},
+	toFront: function() {
+		this.handleShape.toFront();
+	},
 	dragStartHandler: function(e) {
 		this.dragging = true;
 		var pos = this.getAdjustedXY(e);
@@ -114,6 +123,7 @@ Ext.define('Workspace.tools.Handle', {
 		this.x1 = pos.x;
 		this.y1 = pos.y;
 		this.fireEvent('dragstart');
+		this.toFront();
 
 		// watch for mouseover/out events so we can highlight, etc.
 		this.workspace.on('mouseover',this.mouseover,this);

@@ -41,6 +41,7 @@ Ext.define('Workspace.tools.VectorTool', {
 					handles.push(Ext.create('Workspace.tools.VectorHandle',this.workspace,{
 						item:item,
 						index: i,
+						forceFront: true,
 					}));
 				},this);
 				this.handles.add(item.getId(),handles);

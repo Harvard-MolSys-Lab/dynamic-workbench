@@ -431,8 +431,9 @@ Ext.define('Workspace.tools.PointerTool', {
 	destroyInspectors: function(id) {
 
 	},
-	deleteSelection: function() {
+	deleteSelection: function(e) {
 		this.workspace.deleteObjects(this.workspace.getSelection());
+		e.stop();
 	},
 	activate: function() {
 		Workspace.tools.PointerTool.superclass.activate.call(this);

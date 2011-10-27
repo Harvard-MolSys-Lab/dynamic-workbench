@@ -11,6 +11,11 @@ Ext.define('Workspace.Proxy', {
 	},
 	extend : 'Ext.util.Observable',
 	/**
+	 * @cfg {Boolean}
+	 * Force the proxy to push itself to the back whenever shown (useful for highlight proxies)
+	 */
+	forceBack: false,
+	/**
 	 * @cfg {String} shape
 	 * Name of a Raphael member function to use to create a vector element
 	 */
@@ -71,6 +76,9 @@ Ext.define('Workspace.Proxy', {
 			this.vectorElement = this.workspace.paper[this.shape](this.x, this.y, this.width, this.height);
 			if(behind) {
 				this.vectorElement.insertBefore(behind)
+			}
+			if(this.forceBack) {
+				this.vectorElement.toBack();
 			}
 			this.vectorElement.attr(this.attributes());
 			this.rendered = true;
@@ -332,8 +340,12 @@ Ext.define('Workspace.Proxy', {
 		}
 	},
 	show : function() {
-		if(this.vectorElement)
+		if(this.vectorElement) {
 			this.vectorElement.show();
+			if(this.forceBack) {				
+				this.vectorElement.toBack();
+			}
+		}
 	},
 	hide : function() {
 		if(this.vectorElement)

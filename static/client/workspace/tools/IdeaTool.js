@@ -93,18 +93,18 @@ Ext.define('Workspace.tools.IdeaTool', {
 			}
 		}
 	},
-	mouseover: function(e, item) {
-		if (item.element) {
-			Ext.fly(item.element).addClass('hover');
-		}
-		e.stopEvent();
-	},
-	mouseout: function(e, item) {
-		if (item.element) {
-			Ext.fly(item.element).removeClass('hover');
-		}
-		e.stopEvent();
-	},
+	// mouseover: function(e, item) {
+		// if (item.element) {
+			// Ext.fly(item.element).addClass('hover');
+		// }
+		// e.stopEvent();
+	// },
+	// mouseout: function(e, item) {
+		// if (item.element) {
+			// Ext.fly(item.element).removeClass('hover');
+		// }
+		// e.stopEvent();
+	// },
 	selectHandler: function(item) {
 		this.addSelectionBand(item);
 	},

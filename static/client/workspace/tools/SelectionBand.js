@@ -37,11 +37,14 @@ Ext.define('Workspace.tools.SelectionBand', {
 			'fill-opacity': this.fillOpacity,
 			'stroke-width': this.strokeWidth,
 			'opacity': this.opacity,
+			'r':this.r,
 		});
 		if (this.item.vectorElement) {
 			this.rect.insertBefore(this.item.vectorElement);
-		}
-
+		} 
+		// else {
+			// this.rect.toBack();
+		// }
 		this.item.on('move', this.adjustBand, this);
 		this.item.on('resize', this.adjustBand, this);
 

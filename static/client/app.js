@@ -20,7 +20,7 @@ Ext.apply(App, {
 
 	name : 'DyNAMiC Workbench',
 	nameFormatted : '<b>DyNAMiC</b> Workbench',
-	version : '0.3.0a',
+	version : '0.3.2a',
 	isPreRelease : true,
 	getFullTitle : function() {
 		return App.name + ' (' + App.version + ')'
@@ -199,7 +199,7 @@ App.Path = App.path = {
 	 * @param {String} ext
 	 */
 	repostfix : function(oldPath, ext) {
-		if(App.path.basename(oldPath).contains('.')) {
+		if(App.path.basename(oldPath).indexOf('.')!=-1) {
 			oldPath = oldPath.split('.');
 			oldPath.pop();
 			return oldPath.concat([ext]).join('.');

@@ -1,0 +1,33 @@
+% NUPACK 2.1
+% Program: design
+% Start time: Sat Nov 13 12:44:53 2010
+% Command: /home/wolfe/mrc/nupack_core-hg//bin/design -material dna hairpin %
+% Structure: ((((((((((..........))))))))))..........
+% v(pi): 1
+% Parameters: DNA, 1998
+% Dangles setting: 1
+% Temperature (C): 37.0
+% Sodium concentration: 1.0000 M
+% Magnesium concentration: 0.0000 M
+% Init mode: RANDOM
+% M_UNFAVORABLE: 4.000000
+% M_REOPT: 10
+% M_LEAFOPT: 3
+% f_STOP: 0.010000
+% Minimum split helix: 6
+% Minimum leaf size: 20
+% Design mode: N
+%
+% Elapsed time: 0.373634
+% Root evaluation time: 0.007369
+%
+% CG fraction: 0.600000
+% Pattern violations: 0
+% Target free energy: -12.530000
+% Ensemble free energy: -12.649558
+%
+% Leaf sum: 0.390134
+% MFE defect: 0.000000
+% Probability: 0.823669
+% Ensemble defect: 0.390134
+CGGCAGTTGCCCCAGTCTAAGCAACTGCCGATGCAACTCG

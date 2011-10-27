@@ -106,7 +106,7 @@ exports.configure = function(app, express) {
 
 	app.get(/\/files\/([\s\S]*)/, restrict('json'), function(req, res) {
 		var node = req.param('node') || req.params[0], fullPath = utils.userFilePath(node), basename = path.basename(fullPath), ext = path.extname(fullPath), transform;
-		if(!allowedPath(node) || !allowedPath(fullPath)) {
+		if(!allowedPath(fullPath)) {
 			forbidden(res);
 			winston.log("warn", "Can't enter path. ", {
 				fullPath : fullPath
@@ -156,7 +156,7 @@ exports.configure = function(app, express) {
 	app.get('/tree', restrict('json'), function(req, res) {
 		var node = req.param('node'), fullPath = utils.userFilePath(node);
 
-		if(!allowedPath(node) || !allowedPath(fullPath)) {
+		if(!allowedPath(fullPath,req)) {
 			forbidden(res);
 			winston.log("warn", "Can't enter path. ", {
 				fullPath : fullPath
@@ -178,11 +178,11 @@ exports.configure = function(app, express) {
 			}
 			fs.readdir(fullPath, function(err, files) {
 				if(err) {
+					sendError(res, 'Internal Server Error', 500);
 					winston.log("error", "/tree: Couldn't read directory contents: ", {
 						err : err,
 						fullPath : fullPath
 					});
-					sendError(res, 'Internal Server Error', 500);
 				}
 				async.map(files, function(file, cb) {
 					if(file != '.DS_Store') {
@@ -296,7 +296,7 @@ exports.configure = function(app, express) {
 	});
 	app.post('/delete', restrict('json'), function(req, res) {
 		var node = req.param('id'), fullPath = utils.userFilePath(node);
-		if(!allowedPath(fullPath)) {
+		if(!allowedPath(fullPath,req)) {
 			forbidden(res);
 			winston.log("warn", "Can't enter path; access denied. ", {
 				fullPath : fullPath

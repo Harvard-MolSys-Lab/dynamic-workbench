@@ -16,6 +16,12 @@ function sendError(res,msg,status) {
 	res.statusCode = status;
 	res.end(body);
 }
+exports.logException = function logException(err) {
+	return {
+		code: err.code,
+		message: err.message,
+	}
+}
 exports.sendError = sendError;
 exports.forbidden = function(res,msg) {
 	msg || (msg = '');
@@ -27,9 +33,17 @@ exports.allowedPath = function(testPath,req) {
 	if(req) {
 		user = auth.getUserData(req);
 		if(user) {
-			home = fs.realpathSync(path.join(filesPath,user.home));
-			testPath = fs.realpathSync(testPath);
-			authAllowed = testPath.indexOf(home)==0;
+			try {
+				home = fs.realpathSync(path.join(filesPath,user.home));
+				testPath = fs.realpathSync(testPath);
+				authAllowed = testPath.indexOf(home)==0;
+			} catch(err) {
+				if(err.code == 'ERRNO' || err.code == 'ENOENT') {
+					return false;
+				} else {
+					winston.log('allowedPath: uncaught exception',logException(err));
+				} 
+			}
 		} else {
 			// not logged in
 			return false;

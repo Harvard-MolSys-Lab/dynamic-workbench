@@ -134,7 +134,7 @@ Ext.define('Workspace.objects.VectorObject', {
 		}
 	},
 	buildEvents : function() {
-		_.each(Workspace.objects.VectorObject.attrArrayCamel, function(camel, dash) {
+		_.each(Workspace.objects.VectorObject.attrArrayCamel, function(dash,camel) {
 			this.on('change:' + camel, _.bind(this.updateAttr, this, dash))
 		}, this);
 	},
@@ -161,6 +161,14 @@ Ext.define('Workspace.objects.VectorObject', {
 	},
 	toBack : function() {
 		this.vectorElement.toBack();
+	},
+	insertBefore: function(obj) {
+		if(obj && obj.vectorElement)
+			this.vectorElement.insertBefore(obj.vectorElement);
+	},
+	insertAfter: function(obj) {
+		if(obj && obj.vectorElement)
+			this.vectorElement.insertAfter(obj.vectorElement);
 	},
 	/**
 	 * updateObject

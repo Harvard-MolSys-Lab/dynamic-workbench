@@ -3,7 +3,7 @@
  */
 Ext.define('App.ui.FilesTree', {
 	extend: 'Ext.tree.Panel',
-	requires: ['App.ui.CreateMenu','App.ui.Launcher','App.ui.FilesTree.FileUploader','App.ui.FilesTree.DragDropManager'],
+	requires: ['App.ui.files.DragDropManager','App.ui.files.FileUploader','App.ui.CreateMenu','App.ui.Launcher',],
 	title: 'Files',
 	newFileNumber: 0,
 	loaders: 0,
@@ -156,7 +156,7 @@ Ext.define('App.ui.FilesTree', {
 		}
 	},
 	afterrender: function() {
-		this.ddManager = Ext.create('App.ui.FilesTree.DragDropManager',{
+		this.ddManager = Ext.create('App.ui.files.DragDropManager',{
 			filesTree: this
 		});
 		this.ddManager.render();
@@ -195,6 +195,7 @@ Ext.define('App.ui.FilesTree', {
 			// single: true
 			// })
 			this.getView().refreshNode(rec.index);
+			_.delay(_.bind(App.ui.Launcher.renewAll,App.ui.Launcher),1000);
 		}
 	},
 	/**

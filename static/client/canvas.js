@@ -17,6 +17,9 @@ Ext.Loader.setPath('App', 'client');
 Ext.require(['App.ui.Launcher', 'App.ui.Application', // hack to make sure App.ui.FilesTree.DragDropManager is require'd before App.ui.FilesTree. For some reason Sencha Builder has trouble with that one
  'App.ui.FilesTree', 'App.ui.TabPanel', 'App.ui.NupackMenu', 'App.ui.console.ScriptsPanel', 'App.ui.console.LogPanel']);
 
+// Ext.Loader sucks
+Ext.require(['App.ui.nupack.Panel']);
+
 // Bootstrap user interface
 App.ui.buildInterface = function() {
 

@@ -168,7 +168,7 @@ Ext.define('App.ui.Application', {
 	/**
 	 * Internal callback from {@link #save} to inform the user of failed save
 	 */
-	doSaveFail : function() {
+	doSaveFail : function(e) {
 		if(this.autoHideSavingMask)
 			this.savingMask.hide();
 		Ext.log('File save failed.', {

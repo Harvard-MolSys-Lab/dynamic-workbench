@@ -6,6 +6,7 @@
  */
 Ext.define('App.ui.NupackResults', {
 	extend: 'Ext.panel.Panel',
+	requires: ['App.ui.nupack.Panel'],
 	template: '<div class="app-nupack-complex-wrap">'+
 	'<div>'+
 	'<span class="app-nupack-complex">Complex: {complex}</span>'+
@@ -148,4 +149,7 @@ Ext.define('App.ui.NupackResults', {
 			// this.doLayout();
 		}
 	},
+},function() {
+	// Ext.Loader sucks
+	
 });

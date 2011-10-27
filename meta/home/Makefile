@@ -4,23 +4,23 @@
 .PHONY : meta-backup
 .PHONY : meta
 
-deploy : build
+deploy : build out
 	rm -rf ~/src
 
-src:
+src :
 	rsync -avz ~/share/infomachine2/ ~/src/ --exclude '.git' --exclude 'old' --exclude '*.zip' --exclude '*.dmg' --exclude '*.ova'
 	rm ~/app
 	ln -s ~/src ~/app
 	rm ~/logs
 	ln -s ~/app/logs ~/logs
 
-src-share:
+src-share :
 	rm ~/app
 	ln -s ~/share/infomachine2 ~/app
 	rm ~/logs
 	ln -s ~/app/logs ~/logs
 	
-build:
+build : jake
 	mkdir -p ~/out/static/client
 	cp -R ~/share/infomachine2/static/client/login.js ~/out/static/client/login.js
 	cp -R ~/share/infomachine2/static/client/bootstrap.js ~/out/static/client/bootstrap.js
@@ -28,12 +28,16 @@ build:
 	rsync -avz ~/share/infomachine2/ ~/out/ --exclude 'static/client/*' --exclude '.git' --exclude 'old' --exclude '*.zip' --exclude '*.dmg' --exclude '*.ova'
 	rm ~/out/static/client/lib
 	ln -s ~/out/static/lib ~/out/static/client/lib 
-	
+
+out :	
 	rm ~/app
 	ln -s ~/out ~/app
 	rm ~/logs
 	ln -s ~/out/logs ~/logs
 	
+jake :
+	cd ~/app; jake
+
 meta-backup:
 	cp -f -r /etc/init/workbench.conf ~/app/meta/etc/init/workbench.conf
 	cp -f -r ~/Makefile ~/app/meta/home/Makefile

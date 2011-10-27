@@ -68,6 +68,17 @@ Ext.define('Workspace.objects.Object2d', {
 		// subscribe to property change events to fire resize event
 		this.on('change:width', this.updateWidth, this);
 		this.on('change:height', this.updateHeight, this);
+		
+		
+		if(this.showTitle) {			
+			this.shimConfig = this.shimConfig || {};
+			Ext.applyIf(this.shimConfig, {
+				property: 'name'
+			});
+	
+			// set up the label editor
+			this.addShim(Ext.create('Workspace.Label',this.shimConfig));
+		}
 	},
 	extend : 'Workspace.objects.Object',
 	alias : 'Workspace.Object2d',

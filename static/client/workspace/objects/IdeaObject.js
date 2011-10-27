@@ -11,13 +11,7 @@ Ext.define('Workspace.objects.IdeaObject', {
 			// automatically set the fill to a nice random pastel color
 			this.set('fill', Workspace.Utils.ideaColor());
 		}
-		this.shimConfig = this.shimConfig || {};
-		Ext.applyIf(this.shimConfig, {
-			property: 'name'
-		});
-
-		// set up the label editor
-		this.addShim(Ext.create('Workspace.Label',this.shimConfig));
+		
 
 		this.initLayout(this.layout); //new Workspace.idea.FreeLayout({idea: this});
 

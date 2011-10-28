@@ -4,21 +4,23 @@ export CODEPATH=$HOME/app  #$HOME/share/infomachine2  # use ~/app for forwards-c
 echo ${CODEPATH}
 cd ${CODEPATH}
 echo "-------------------------------------"
-echo "### DyNAMiC Workbench ###"
-echo "### Working directory:"
+echo "| DyNAMiC Workbench                 |"
+echo "-------------------------------------"
+echo "`date` - Starting server..."
+echo "`date` - Working directory:"
 pwd
 
 export MONGOPATH=/usr/bin/mongod
 export NODEPATH=$HOME/local/node/bin/node
 
-echo "### Starting MongoDB (${MONGOPATH})"
+echo "`date` - Starting MongoDB (${MONGOPATH})..."
 ${MONGOPATH} --logappend --logpath ${CODEPATH}/logs/mongod.log & 
 
-echo "### Starting nodejs (${NODEPATH})"
+echo "`date` - Starting nodejs (${NODEPATH})"
 ${NODEPATH} --debug app.js
 
-trap '{echo !!! Workbench error; exit}' ERR #; killall -2 background; exit}' ERR
-trap '{echo "### Killing Mongod"; killall -2 background; echo "### Exiting Workbench"; exit}' SIGINT SIGTERM EXIT
+trap '{echo "`date` - !!! Workbench error"; exit}' ERR #; killall -2 background; exit}' ERR
+trap '{echo "`date` - Killing Mongod"; killall -2 background; echo "`date` - Exiting Workbench"; exit}' SIGINT SIGTERM EXIT
 #trap 'killall -2 background' SIGTERM
 #trap 'killall -2 background' EXIT
 

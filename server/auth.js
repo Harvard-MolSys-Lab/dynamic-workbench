@@ -1,12 +1,13 @@
+var config = require('config');
 var crypto = require('crypto'), mongoose = require('mongoose'), fs = require('fs'), path = require('path'), _ = require('underscore'), validate = require('validator'), winston = require('winston');
 var check = validate.check, sanitize = validate.sanitize;
-var filesPath = '/media/sf_fileshare/files';
+var filesPath = config.files.path;
 // path.resolve(__dirname,'../../sf_fileshare/files');// '/mount/sf_fileshare/files'; //'~/file-share/files';//
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Database setup
 
-mongoose.connect('mongodb://localhost/test');
+mongoose.connect(config.mongo.host);
 var Schema = mongoose.Schema, ObjectId = Schema.ObjectId;
 var UserSchema = new Schema({
 	userId : ObjectId,

@@ -1,9 +1,10 @@
 var path = require('path'),
+	config = require('config'),
 	auth = require('./auth'),
 	fs = require('fs');
 
 
-var filesPath = auth.filesPath,
+var filesPath = config.filesPath,
 	getUserData = auth.getUserData;
 
 exports.userFilePath = function(node) {

@@ -1,4 +1,4 @@
-var config = require('config');
+var config = require('./config');
 var crypto = require('crypto'), mongoose = require('mongoose'), fs = require('fs'), path = require('path'), _ = require('underscore'), validate = require('validator'), winston = require('winston');
 var check = validate.check, sanitize = validate.sanitize;
 var filesPath = config.files.path;

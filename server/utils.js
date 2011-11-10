@@ -1,5 +1,5 @@
 var path = require('path'),
-	config = require('config'),
+	config = require('./config'),
 	auth = require('./auth'),
 	fs = require('fs');
 

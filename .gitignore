@@ -7,9 +7,6 @@
 ./test.js
 ./old.zip
 old
-*.eot
-*.ttf
-*.woff
 test.js
 test.html
 logs

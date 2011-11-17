@@ -218,7 +218,7 @@ exports.configure = function(app, express) {
 		if(app.set('invite') && app.set('invite') == invite) {
 			user.save(function(err) {
 				if(err) {
-					winston.log("error", "Account creation error: couldn't make home directory.", {
+					winston.log("error", "Account creation error: couldn't save user to database.", {
 						err : err
 					});
 					res.send({

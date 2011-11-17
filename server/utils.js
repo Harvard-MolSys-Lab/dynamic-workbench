@@ -4,7 +4,7 @@ var path = require('path'),
 	fs = require('fs');
 
 
-var filesPath = config.filesPath,
+var filesPath = config.files.path,
 	getUserData = auth.getUserData;
 
 exports.userFilePath = function(node) {

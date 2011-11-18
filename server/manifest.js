@@ -86,9 +86,11 @@ function getResources(staticOnly,env) {
 
 function getDynamicResources() {
 	var js = [];
-			js.push("/user")
-		js.push("/toolslist")
-		js.push("/typeslist")
+		js.push("/config");
+		js.push("/user");
+		js.push("/toolslist");
+		js.push("/typeslist");
+
 	return js;	
 }
 

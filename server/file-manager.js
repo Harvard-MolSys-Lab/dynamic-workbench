@@ -5,10 +5,12 @@
  * PRE-RELEASE CODE. DISTRIBUTION IS PROHIBITED.
  */
 
-var form = require('connect-form'), auth = require('./auth'), fs = require('fs'), path = require('path'), _ = require('underscore');
+var auth = require('./auth'), config = require('./config');
+var form = require('connect-form'), fs = require('fs'), path = require('path'), _ = require('underscore');
 var utils = require('./utils'), async = require('async'), rm = require("./rm-rf"), fileTypes = require('./file-types'), winston = require('winston');
 var md = require('markdown').markdown, validate = require('validator');
 var check = validate.check, sanitize = validate.sanitize;
+
 
 var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath;
 var restrict = auth.restrict;
@@ -47,7 +49,12 @@ exports.configure = function(app, express) {
 	var baseRoute = app.set('baseRoute');
 
 	app.get('/typeslist', restrict('json'), function(req, res) {
-		res.send("App.triggers = " + JSON.stringify(fileTypes.triggers) + ";App.icons=" + JSON.stringify(fileTypes.icons) + ";");
+		res.render('typeslist.ejs', {layout: false,triggers:fileTypes.triggers,icons:fileTypes.icons });
+		//res.send("App.triggers = " + JSON.stringify(fileTypes.triggers) + ";App.icons=" + JSON.stringify(fileTypes.icons) + ";");
+	});
+
+	app.get('/config', restrict('json'), function(req, res) {
+		res.render('config.ejs', {layout: false, client: config.client});
 	});
 
 	app.get('/help/:page', restrict('html'), function(req, res) {

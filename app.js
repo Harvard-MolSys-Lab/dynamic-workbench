@@ -5,7 +5,10 @@
  * PRE-RELEASE CODE. DISTRIBUTION IS PROHIBITED.
  */
 
-var express = require('express'), app = express.createServer(), winston = require('winston'), fm = require('./server/file-manager'), tools = require('./server/server-tools'), auth = require('./server/auth');
+var express = require('express'), 
+app = express.createServer(), 
+winston = require('winston'), 
+fm = require('./server/file-manager'), tools = require('./server/server-tools'), auth = require('./server/auth');
 
 // var Schema = mongoose.Schema,
 // UserSchema = new Schema({});
@@ -42,7 +45,7 @@ app.configure(function() {
 		filename : 'logs/full.log'
 	});
 
-	// static file server1
+	// static file server
 	app.use(express['static'](__dirname + '/static'));
 
 	// auth
@@ -65,6 +68,7 @@ app.configure(function() {
 			layout : false
 		});
 	});
+
 	
 	// configure file manager
 	fm.configure(app, express);

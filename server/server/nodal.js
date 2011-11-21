@@ -21,7 +21,7 @@ function quote(str) {
 var commands = {
 	nodal : {
 		command : 'python',
-		arguments : ['tools/nodal/compiler2.py'],
+		arguments : ['tools/nodal/compiler2b.py'],//['tools/nodal/compiler2.py'],
 	},
 }
 
@@ -52,7 +52,11 @@ exports.start = function(req, res, params) {
 						stdout: stdout,
 					});
 				}
-				res.send(stdout+"\n Build completed.");
+				if(stderr) {
+					res.send("Build completed with errors. \n\n"+stderr);
+				} else {
+					res.send(stdout+"\n Build completed.");
+				}
 			})
 		}
 	});

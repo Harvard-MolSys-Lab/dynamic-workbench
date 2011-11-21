@@ -224,8 +224,9 @@ Workspace.tools.nodal.serializeForCompiler = function(workspace) {
 	});
 	out.push(nodes.length.toString());
 
+	var untitledCount = 0;
 	Ext.each(nodes, function(obj) {
-		var row = [obj.get('motif')], complementaryPort, complementaryNode;
+		var row = [obj.get('name').replace(/\s/g,'_') || ("Untitled_"+ (++untitledCount)), obj.get('motif')], complementaryPort, complementaryNode;
 		obj.children.each( function(port) {
 			if(port.isWType('Workspace.objects.dna.OutputPort') || port.isWType('Workspace.objects.dna.BridgePort')) {
 				if(port.get('complementarity')) {

@@ -11,9 +11,13 @@ var utils = require('./utils'), async = require('async'), rm = require("./rm-rf"
 var md = require('markdown').markdown, validate = require('validator');
 var check = validate.check, sanitize = validate.sanitize;
 
-
 var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath;
 var restrict = auth.restrict;
+
+
+var folderPermission = 770;
+
+function logError() {} 
 
 function fileRecord(file, node, stat, cb) {
 	var ext = path.extname(file), type, id = path.join(node, file), trigger, out, transform;
@@ -49,12 +53,19 @@ exports.configure = function(app, express) {
 	var baseRoute = app.set('baseRoute');
 
 	app.get('/typeslist', restrict('json'), function(req, res) {
-		res.render('typeslist.ejs', {layout: false,triggers:fileTypes.triggers,icons:fileTypes.icons });
+		res.render('typeslist.ejs', {
+			layout : false,
+			triggers : fileTypes.triggers,
+			icons : fileTypes.icons
+		});
 		//res.send("App.triggers = " + JSON.stringify(fileTypes.triggers) + ";App.icons=" + JSON.stringify(fileTypes.icons) + ";");
 	});
 
 	app.get('/config', restrict('json'), function(req, res) {
-		res.render('config.ejs', {layout: false, client: config.client});
+		res.render('config.ejs', {
+			layout : false,
+			client : config.client
+		});
 	});
 
 	app.get('/help/:page', restrict('html'), function(req, res) {
@@ -89,7 +100,7 @@ exports.configure = function(app, express) {
 				sendError(res, 'Internal Server Error', 500);
 				return;
 			}
-			fs.mkdir(outPath, 777, function() {
+			fs.mkdir(outPath, folderPermission, function() {
 				async.serial('files', function(file, cb) {
 					writeFile = path.join(outPath, path.basename(file) + '.html');
 					fs.writeFile(writeFile, '', function(err) {
@@ -163,7 +174,7 @@ exports.configure = function(app, express) {
 	app.get('/tree', restrict('json'), function(req, res) {
 		var node = req.param('node'), fullPath = utils.userFilePath(node);
 
-		if(!allowedPath(fullPath,req)) {
+		if(!allowedPath(fullPath, req)) {
 			forbidden(res);
 			winston.log("warn", "Can't enter path. ", {
 				fullPath : fullPath
@@ -222,7 +233,8 @@ exports.configure = function(app, express) {
 			newPath = path.join(path.dirname(fullPath), newName);
 		}
 
-		if(!allowedPath(node) || !allowedPath(fullPath) || !allowedPath(newPath)) {
+		if(!allowedPath(newPath, req) || !allowedPath(fullPath, req)) {
+			//if(!allowedPath(node) || !allowedPath(fullPath) || !allowedPath(newPath)) {
 			forbidden(res);
 			winston.log("warn", "Can't enter path. ", {
 				fullPath : fullPath,
@@ -256,14 +268,14 @@ exports.configure = function(app, express) {
 	});
 	app.post('/new', restrict('json'), function(req, res) {
 		var node = req.param('node'), fullPath = utils.userFilePath(node);
-		if(!allowedPath(node)) {
+		if(!allowedPath(node, req)) {
 			forbidden(res);
 			return;
 		}
 		path.exists(fullPath, function(exists) {
 			if(!exists) {
 				if(path.extname(node) == '') {
-					fs.mkdir(fullPath, 777, function(err) {
+					fs.mkdir(fullPath, folderPermission, function(err) {
 						if(err) {
 							winston.log("error", "/new: Couldn't make directory", {
 								err : err
@@ -303,7 +315,7 @@ exports.configure = function(app, express) {
 	});
 	app.post('/delete', restrict('json'), function(req, res) {
 		var node = req.param('id'), fullPath = utils.userFilePath(node);
-		if(!allowedPath(fullPath,req)) {
+		if(!allowedPath(fullPath, req)) {
 			forbidden(res);
 			winston.log("warn", "Can't enter path; access denied. ", {
 				fullPath : fullPath
@@ -430,8 +442,9 @@ exports.configure = function(app, express) {
 							} else {
 								if(!!download) {
 									res.attachment(fullPath);
+								} else {
+									res.send(data);									
 								}
-								res.send(data);
 							}
 						});
 					}
@@ -443,23 +456,34 @@ exports.configure = function(app, express) {
 	})
 	app.post('/save', restrict('json'), function(req, res) {
 		var node = req.param('node'), fullPath = utils.userFilePath(node), data = req.param('data');
-		fs.writeFile(fullPath, data, function(err) {
-			if(err) {
-				winston.log("error", "/save: Couldn't save file. ", {
-					node : node,
-					data : data,
-					err : err
-				});
-				sendError(res, 'Internal Server Error', 500);
-			} else {
-				res.send('');
-			}
-		});
+		if(allowedPath(fullPath, req)) {
+			fs.writeFile(fullPath, data, function(err) {
+				if(err) {
+					winston.log("error", "/save: Couldn't save file. ", {
+						node : node,
+						data : data,
+						err : err
+					});
+					sendError(res, 'Internal Server Error', 500);
+				} else {
+					res.send('');
+				}
+			});
+		} else {
+			forbidden(res, "Not authorized.");
+		}
 	});
 	app.post('/image', restrict('json'), function(req, res) {
 		var node = req.param('node'), fullPath = utils.userFilePath(node), img = req.param('img');
 		var data = img.replace(/^data:image\/\w+;base64,/, "");
 		var buf = new Buffer(data, 'base64');
+		if(!allowedPath(fullPath,req)) {
+			forbidden(res, "Not authorized.");
+			winston.log("warn", "/image: Couldn\'t save upload; access denied.", {
+				fullPath : fullPath
+			})
+			return;
+		} 
 		fs.writeFile(fullPath, buf, function(err) {
 			if(err) {
 				winston.log('error', '/image: failed to save image', {
@@ -476,7 +500,8 @@ exports.configure = function(app, express) {
 			//fileType = req.header('x-file-type');
 			var node = req.param('node') || req.param('userfile'), fullPath = utils.userFilePath(node);
 
-			if(!allowedPath(node) || !allowedPath(fullPath)) {
+			if(!allowedPath(fullPath,req)) {
+			//if(!allowedPath(node) || !allowedPath(fullPath)) {
 				forbidden(res);
 				winston.log("warn", "/upload: Couldn\'t save upload; access denied.", {
 					fullPath : fullPath

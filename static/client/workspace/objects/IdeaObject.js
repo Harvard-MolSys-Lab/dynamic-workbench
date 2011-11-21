@@ -25,6 +25,7 @@ Ext.define('Workspace.objects.IdeaObject', {
 	extend: 'Workspace.objects.Rectangle',
 	wtype: 'Workspace.objects.IdeaObject',
 	layout: 'Workspace.idea.FreeLayout',
+	showTitle: true,
 	name: 'New Idea',
 	iconCls: 'idea',
 	r: 5,

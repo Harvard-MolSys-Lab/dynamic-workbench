@@ -14,7 +14,7 @@ Ext.define('Workspace.Proxy', {
 	 * @cfg {Boolean}
 	 * Force the proxy to push itself to the back whenever shown (useful for highlight proxies)
 	 */
-	forceBack: false,
+	forceBack : false,
 	/**
 	 * @cfg {String} shape
 	 * Name of a Raphael member function to use to create a vector element
@@ -56,6 +56,8 @@ Ext.define('Workspace.Proxy', {
 	 * @cfg {Number} y
 	 */
 	y : 0,
+	rx: 0,
+	ry: 0,
 	/**
 	 * @cfg {Number} width
 	 */
@@ -162,8 +164,8 @@ Ext.define('Workspace.Proxy', {
 	 */
 	getDelta : function(x2, y2) {
 		return {
-			dx : ( x2 -    this.getX()),
-			dy : ( y2 -    this.getY())
+			dx : (x2 - this.getX()),
+			dy : (y2 - this.getY())
 		};
 	},
 	getScaleFactor : function(w2, h2) {
@@ -183,7 +185,18 @@ Ext.define('Workspace.Proxy', {
 		this.x += dx;
 		this.y += dy;
 		if(dx != 0 || dy != 0) {
-			this.vectorElement.translate(dx, dy);
+			if(this.shape == 'path') {
+				var path = Raphael.pathToRelative(this.vectorObject.attr('path'));
+				path[0][1] += +dx;
+				path[0][2] += +dy;
+				this.updatePath(this.path);
+			} else {
+				this.vectorElement.attr({
+					x : this.x,
+					y : this.y,
+				});
+			}
+			//this.vectorElement.translate(dx, dy);
 		}
 		this.fireEvent('move', this.x, this.y);
 	},
@@ -248,7 +261,7 @@ Ext.define('Workspace.Proxy', {
 	setBox : function(x1, y1, x2, y2) {
 		if(arguments.length == 4) {
 			this.setPosition(x1, y1);
-			this.setDimensions( x2 - x1, y2 - y1);
+			this.setDimensions(x2 - x1, y2 - y1);
 		} else {
 			var box = arguments[0];
 			this.setDimensions(box.tr.x - box.tl.x, box.bl.y - box.tl.y);
@@ -296,7 +309,7 @@ Ext.define('Workspace.Proxy', {
 		this.setDimensions(w, h);
 	},
 	updateTransform : function(source) {
-		this.vectorElement.attr('rotation', source.get('rotation'));
+		this.vectorElement.attr('transform', "R" + (+source.get('rotation')));
 		// this.vectorElement.attr('scale',source.get('scale'));
 	},
 	/**
@@ -342,7 +355,7 @@ Ext.define('Workspace.Proxy', {
 	show : function() {
 		if(this.vectorElement) {
 			this.vectorElement.show();
-			if(this.forceBack) {				
+			if(this.forceBack) {
 				this.vectorElement.toBack();
 			}
 		}

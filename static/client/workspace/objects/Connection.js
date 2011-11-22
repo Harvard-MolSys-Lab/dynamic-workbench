@@ -136,6 +136,7 @@ Ext.define('Workspace.objects.Connection', {
 		this.arguments = [this.path];
 		Workspace.objects.Connection.superclass.render.apply(this, arguments);
 		this.updateDimensions();
+		//this.vectorElement.attr({"arrow-end":"classic-wide-long",});
 	},
 	getHighlightProxy : function() {
 		return new Workspace.Proxy(Ext.applyIf({

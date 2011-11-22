@@ -8,7 +8,9 @@
 Ext.define('Workspace.objects.VectorObject', {
 	alias : 'Workspace.VectorObject',
 	statics : {
-		attrArray : ['clip-rect', 'fill', 'fill-opacity', 'font', 'font-family', 'font-size', 'font-weight', 'height', 'opacity', 'path', 'r', 'rotation', 'rx', 'ry',    /*'scale',*/ 'src', 'stroke', 'stroke-dasharray', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke-width', 'translation', 'width', 'x', 'y'],
+		attrArray : ['arrow-end','arrow-start','clip-rect', 'fill', 'fill-opacity', 'font', 'font-family', 'font-size', 'font-weight', 'height', 'opacity', 'path', 'r', 
+'rotation', 
+		'rx', 'ry',    /*'scale',*/ 'src', 'stroke', 'stroke-dasharray', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke-width', 'translation', 'width', 'x', 'y'],
 	},
 	constructor : function(workspace, config) {
 		Workspace.objects.VectorObject.superclass.constructor.call(this, workspace, config);
@@ -39,6 +41,8 @@ Ext.define('Workspace.objects.VectorObject', {
 		this.expose('shape', true, true, true, false);
 		//,'shape','string');
 		this.expose('rotation', true, true, true, false);
+		this.expose('arrowEnd',true,true,true,false);
+		this.expose('arrowStart',true,true,true,false);
 
 	},
 	requires: ['Workspace.Proxy'],
@@ -88,7 +92,8 @@ Ext.define('Workspace.objects.VectorObject', {
 	 * Number from 0-1 indicating opacity of the stroke
 	 */
 	strokeOpacity : 1,
-
+	rotation: 0,
+	
 	render : function() {
 		this.buildObject();
 		// this.on('change', this.updateObject, this);
@@ -142,6 +147,10 @@ Ext.define('Workspace.objects.VectorObject', {
 		// hack to prevent anti-aliasing for rectangular things
 		if(attrName=='x' || attrName=='y') {
 			value = Math.round(value)+0.5;
+		} else if (attrName=="rotation") {
+			// this.vectorElement.transform("");
+			// this.vectorElement.rotate(value);
+			//this.vectorElement.transform("r"+ (+value || 0));
 		}
 		this.vectorElement.attr(attrName, value);
 	},

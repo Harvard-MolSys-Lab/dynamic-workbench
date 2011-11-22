@@ -116,26 +116,30 @@ Ext.define('Workspace.objects.Path', {
 			}
 			this.set('points',points);
 		} else {
-			var point;
-			for( i = 0, l = this.path.length; i < l; i++) {
-				point = this.path[i];
-				switch (point[0]) {
-					case 'C':
-						point[5] = point[5] + dx;
-						point[6] = point[6] + dy;
-					case 'S':
-						point[3] = point[3] + dx;
-						point[4] = point[4] + dy;
-					case 'M':
-					case 'L':
-					case 'T':
-						point[1] = point[1] + dx;
-						point[2] = point[2] + dy;
-						break;
-					default:
-						break;
-				}
-			}
+			// var point;
+			// for( i = 0, l = this.path.length; i < l; i++) {
+				// point = this.path[i];
+				// switch (point[0]) {
+					// case 'C':
+						// point[5] = point[5] + dx;
+						// point[6] = point[6] + dy;
+					// case 'S':
+						// point[3] = point[3] + dx;
+						// point[4] = point[4] + dy;
+					// case 'M':
+					// case 'L':
+					// case 'T':
+						// point[1] = point[1] + dx;
+						// point[2] = point[2] + dy;
+						// break;
+					// default:
+						// break;
+				// }
+			// }
+			this.path = Raphael.pathToRelative(this.path);
+	            this.path[0][1] = this.path[0][1]+dx;
+	            this.path[0][2] = this.path[0][2]+dy;
+			//this.set('path',this.path);
 			this.updatePath(this.path);
 		}
 		/*

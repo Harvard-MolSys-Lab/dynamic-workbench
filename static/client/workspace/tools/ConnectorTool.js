@@ -15,12 +15,13 @@ Ext.define('Workspace.tools.ConnectorTool', {
 	 */
 	constructor: function(workspace, config) {
 		this.workspace = workspace;
-		Ext.apply(this, config, {
-			parameters: {}
-		});
+		Ext.applyIf(this, config);
 		Workspace.tools.ConnectorTool.superclass.constructor.call(this, workspace, config);
 
-		Ext.apply(this.parameters, App.Stylesheet.Draw);
+		if(!this.parameters) {
+			this.parameters = {};
+		}
+		Ext.applyIf(this.parameters, App.Stylesheet.Draw);
 
 		this.dragging = false;
 		this.proto = false;
@@ -97,6 +98,7 @@ Ext.define('Workspace.tools.ConnectorTool', {
 	        this.dragging = true;
 	        if (this.proto){
 	            this.proto.remove();
+	            delete this.proto;
 	        }
 			
 	        this.createProto(e, item);
@@ -137,6 +139,7 @@ Ext.define('Workspace.tools.ConnectorTool', {
 	            delete this.rightObject;
 	            
 	            this.proto.remove();
+	            delete this.proto;
 	        }
 	        e.stopEvent();
         }

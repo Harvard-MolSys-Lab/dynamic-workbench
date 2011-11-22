@@ -3,6 +3,12 @@
 Ext.define('Workspace.tools.nodal.ComplementarityTool', {
 	extend:'Workspace.tools.ConnectorTool',
 	require: ['Workspace.objects.dna.Complementarity',],
+	parameters: {
+		"arrow-end": 'classic-wide-long',
+		"stroke-dasharray": '.',
+		"stroke":"#aaa",
+		"stroke-width":1.5,
+	},
 	acceptLeft: function() {
 		return Workspace.objects.dna.Complementarity.prototype.acceptLeft.apply(this,arguments);
 	},

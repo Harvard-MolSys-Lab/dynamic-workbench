@@ -10,10 +10,10 @@ Ext.define('Workspace.objects.SegmentedPath', {
 	strokeOpacity : 0.5,
 	strokeLinecap : 'round',
 	strokeLinejoin : 'round',
-
+	childWType: 'Workspace.objects.Path',
 	constructor : function() {
 		this.callParent(arguments);
-		this.indexedChildren = Ext.create('Ext.util.MixedCollection');
+		this.indexedChildren = [];
 	},
 	addChild : function(child) {
 		this.callParent(arguments);
@@ -43,7 +43,7 @@ Ext.define('Workspace.objects.SegmentedPath', {
 			// first time
 			for(var i = 0, l = points.length - 1; i < l; i++) { p1 = points[i], p2 = points[i + 1];
 				this.makeChild({
-					points : [p1, p2],
+					points : [p1, p2]
 				});
 			}
 		}
@@ -74,16 +74,20 @@ Ext.define('Workspace.objects.SegmentedPath', {
 	},
 	makeChild : function(config) {
 		child = this.workspace.createObject(Ext.apply(config || {}, {
-			wtype : 'Workspace.objects.Path',
+			wtype : this.childWType,
 			strokeWidth : 4,
 			stroke : '#aaa',
-			index : i,
+			index : this.getNextIndex(),
 			showTitle : true,
+			editable: false,
 		}));
 		this.addChild(child);
 		if(this.is('rendered')) {
 			child.insertAfter(this);
 		}
+	},
+	getNextIndex: function() {
+		return this.indexedChildren.length;
 	},
 	childCanMove : function() {
 		return false;

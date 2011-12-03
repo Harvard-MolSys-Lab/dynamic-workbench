@@ -90,6 +90,7 @@ Ext.define('Workspace.objects.Object', {
 		this.on('change:x', this.updateX, this);
 		this.on('change:y', this.updateY, this);
 	},
+	editable: true,
 	extend : 'Machine.core.Serializable',
 	/**
 	 * @cfg {String} wtype

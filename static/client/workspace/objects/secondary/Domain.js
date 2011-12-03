@@ -1,11 +1,25 @@
 Ext.define('Workspace.objects.secondary.Domain',{
 	extend: 'Workspace.objects.Path',
+	identity: '',
+	polarity: 0,
+	shimConfig: {
+		property: 'identity',
+	},
 	constructor: function() {
 		this.callParent(arguments);
 		this.on('move',this.testProximity,this);
 		this.oldMatches = [];
+		this.expose('identity',true,true,true,false);
+		this.expose('polarity',true,true,true,false);
+	},
+	initialize: function() {
+		this.workspace.complementarityManager.checkoutIdentity(this,this.get('identity'));
+		this.callParent(arguments);
 	},
 	testProximity: function() {
+		
+		return false;
+		
 		function dist(p1, p2) {
 			return Math.sqrt(Math.pow(p1[0]-p2[0],2)+Math.pow(p1[1]-p2[1],2));
 		}

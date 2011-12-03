@@ -14,10 +14,10 @@ var check = validate.check, sanitize = validate.sanitize;
 var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath;
 var restrict = auth.restrict;
 
-
 var folderPermission = 770;
 
-function logError() {} 
+function logError() {
+}
 
 function fileRecord(file, node, stat, cb) {
 	var ext = path.extname(file), type, id = path.join(node, file), trigger, out, transform;
@@ -268,7 +268,17 @@ exports.configure = function(app, express) {
 	});
 	app.post('/new', restrict('json'), function(req, res) {
 		var node = req.param('node'), fullPath = utils.userFilePath(node);
-		if(!allowedPath(node, req)) {
+		if(!allowedPath(path.dirname(fullPath), req)) {
+			// var user = auth.getUserData(req),
+			// home = fs.realpathSync(path.join(auth.filesPath,user.home)),
+			// testPath = fs.realpathSync(fullPath);
+			winston.log("warn", "/new: Couldn't make file/directory; access denied.", {
+				fullPath : fullPath,
+				node : node,
+				user : user,
+				home : home,
+				path : testPath
+			});
 			forbidden(res);
 			return;
 		}
@@ -443,7 +453,7 @@ exports.configure = function(app, express) {
 								if(!!download) {
 									res.attachment(fullPath);
 								} else {
-									res.send(data);									
+									res.send(data);
 								}
 							}
 						});
@@ -477,13 +487,13 @@ exports.configure = function(app, express) {
 		var node = req.param('node'), fullPath = utils.userFilePath(node), img = req.param('img');
 		var data = img.replace(/^data:image\/\w+;base64,/, "");
 		var buf = new Buffer(data, 'base64');
-		if(!allowedPath(fullPath,req)) {
+		if(!allowedPath(fullPath, req)) {
 			forbidden(res, "Not authorized.");
 			winston.log("warn", "/image: Couldn\'t save upload; access denied.", {
 				fullPath : fullPath
 			})
 			return;
-		} 
+		}
 		fs.writeFile(fullPath, buf, function(err) {
 			if(err) {
 				winston.log('error', '/image: failed to save image', {
@@ -500,8 +510,8 @@ exports.configure = function(app, express) {
 			//fileType = req.header('x-file-type');
 			var node = req.param('node') || req.param('userfile'), fullPath = utils.userFilePath(node);
 
-			if(!allowedPath(fullPath,req)) {
-			//if(!allowedPath(node) || !allowedPath(fullPath)) {
+			if(!allowedPath(fullPath, req)) {
+				//if(!allowedPath(node) || !allowedPath(fullPath)) {
 				forbidden(res);
 				winston.log("warn", "/upload: Couldn\'t save upload; access denied.", {
 					fullPath : fullPath

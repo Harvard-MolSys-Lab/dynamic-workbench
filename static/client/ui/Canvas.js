@@ -12,7 +12,6 @@ Ext.define('App.ui.Canvas', {
 	iconCls: 'whiteboard',
 	requires: ['App.ui.Ribbon','App.ui.ObjectTree','App.ui.MotifPalette','App.ui.ObjectProperties',],
 	border: false,
-	palettes: [],
 	mixins: {
 		app: 'App.ui.Application'
 	},
@@ -24,7 +23,9 @@ Ext.define('App.ui.Canvas', {
 
 		// set defaults
 		Ext.applyIf(this, {
-			workspaceData: {}
+			workspaceData: {},
+			palettes: [],
+			inspectors: [],
 		});
 
 		Ext.apply(this, {
@@ -122,9 +123,11 @@ Ext.define('App.ui.Canvas', {
 				titleCollapse: true,
 				border: true,
 				frame: false,
-				region: 'east'
+				region: 'east',
+				items:this.inspectors,
 			}), ]
 		});
+		
 		this.callParent(arguments);
 		_.each(['ribbon', 'bodyPanel','zoomField','objectTree','palatte','objectProperties'], function(item) {
 			this[item] = this.down('*[ref='+item+']');
@@ -200,6 +203,8 @@ Ext.define('App.ui.Canvas', {
 		// build workspace, using loaded data bootstrapped from App.loadData
 		this.workspace = new Workspace(this.bodyPanel.body, this.workspaceData);
 		this.workspace.on('afterload', function() {
+			this.setupWorkspace();
+
 			this.loadingMask.hide();
 			// deprecated
 			this.bodyPanel.on('bodyresize', function(c, w, h) {
@@ -223,6 +228,12 @@ Ext.define('App.ui.Canvas', {
 		}, this, {
 			single: true
 		});
+	},
+	/**
+	 * Called after workspace is created and loaded
+	 */
+	setupWorkspace: function() {
+		
 	},
 	/**
 	 * Serializes, encodes, and saves the workspace to the server (proxies {@link #saveFile}).

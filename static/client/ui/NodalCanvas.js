@@ -3,7 +3,8 @@ Ext.define('App.ui.NodalCanvas',{
 	editorType: 'Nodal',
 	iconCls: 'nodal',
 	requires: ['App.ui.nodal.HomeTab','App.ui.nodal.BuildTab','Workspace.objects.dna.Node','Workspace.objects.dna.Complementarity',
-	'Workspace.tools.nodal.NodeTool','Workspace.tools.nodal.PortTool','Workspace.tools.nodal.ComplementarityTool',],
+	'Workspace.tools.nodal.NodeTool','Workspace.tools.nodal.PortTool','Workspace.tools.nodal.ComplementarityTool',
+	'App.ui.nodal.NodeInspector',],
 	border : false,
 
 	constructor: function() {
@@ -22,6 +23,7 @@ Ext.define('App.ui.NodalCanvas',{
 				ref: 'palatte',
 				title: 'Motifs',
 		})];
+		this.inspectors = [Ext.create('App.ui.nodal.NodeInspector')];
 		this.callParent(arguments);
 	} 
 });

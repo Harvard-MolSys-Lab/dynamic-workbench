@@ -365,13 +365,19 @@ Ext.define('Workspace', {
 	/**
 	 * Begin editing an item by setting the active tool to the object's {@link Workspace.objects.Object#editor} and attaching the tool to that object
 	 * @param {Workspace.objects.Object} item
+	 * @return {Boolean} success Returns true if editing successfully began on the element, else false
 	 */
 	edit: function(item) {
 		this.editingItem = item;
 		item.setState('editing', true);
 		if (item.editor && this.hasTool(item.editor)) {
 			this.changeTool(item.editor);
-			this.getActiveTool().attach(item);
+			if(!this.getActiveTool().attach(item)) {
+				this.editingItem = false;
+				item.setState('editing', false);
+				return false;
+			}
+			return true;	
 		}
 	},
 	/**
@@ -885,6 +891,10 @@ Workspace.Components = (function() {
 				var o = new objectClass(config);
 				objects.add(o.getId(), o);
 				return o;
+			} else {
+				if(config.wtype) {
+					Ext.create(config.wtype,config);		
+				}
 			}
 			return false;
 		},

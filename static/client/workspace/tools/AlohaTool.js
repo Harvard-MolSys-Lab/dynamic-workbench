@@ -52,7 +52,9 @@ Ext.define('Workspace.tools.AlohaTool', {
 			this.editable.enable();
 			this.editable.activate();
 			// this.editable.focus();
+			return true;
 		}
+		return false;
 	},
 	/**
 	 * detach

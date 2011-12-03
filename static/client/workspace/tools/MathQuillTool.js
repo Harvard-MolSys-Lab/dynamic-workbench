@@ -29,11 +29,13 @@ Ext.define('Workspace.tools.MathQuillTool', {
 
 	},
 	attach: function(item) {
-		if (item.element) {
+		if (item && item.element) {
 			// save reference to the attached item and the Aloha.Editable object
 			this.item = item;
 			this.item.activate();
+			return true;
 		}
+		return false;
 	},
 	detach: function() {
 		if (this.item) {

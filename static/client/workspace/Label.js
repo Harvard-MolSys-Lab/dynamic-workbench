@@ -77,7 +77,8 @@ Ext.define('Workspace.Label', {
 	 * @private
 	 */
 	updateSize : function(val) {
-		this.getEl().setHeight(this.metrics.getHeight(val) + this.padding);
+		if(this.getEl())
+			this.getEl().setHeight(this.metrics.getHeight(val) + this.padding);
 	},
 	onMove : function() {
 		this.updateSize(this.object.get(this.property));
@@ -91,14 +92,17 @@ Ext.define('Workspace.Label', {
 	 */
 	onChange : function(prop, val) {
 		if(prop == this.property && !this.ignoreNext) {
-			this.getEl().update(val);
-			this.updateSize(val);
+			if(this.getEl()) {
+				this.getEl().update(val);
+				this.updateSize(val);
+			}
 		}
 	},
 	destroy : function() {
 		this.object.un('change', this.onChange, this);
 		this.object.un('resize', this.onMove, this);
-		if(this.editor) { this.editor.destroy();
+		if(this.editor) {
+			this.editor.destroy();
 		}
 		Workspace.Label.superclass.destroy.apply(this, arguments);
 	}

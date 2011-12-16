@@ -5,52 +5,83 @@
  */
 
 Ext.define('App.ui.ObjectProperties', {
-	extend:'App.ui.BoundObjectPanel',
-	constructor: function() {
+	extend : 'App.ui.BoundObjectPanel',
+	enableBoundFields : false,
+	constructor : function() {
 		App.ui.ObjectProperties.superclass.constructor.apply(this, arguments);
 	},
-	initComponent: function() {
+	initComponent : function() {
 		this.grid = Ext.create('Ext.grid.property.Grid', {
-			border: false,
-			bodyBorder: false,
-			source: {},
-			title: 'All Properites'
+			border : false,
+			bodyBorder : false,
+			source : {},
+			title : 'All Properites'
 		});
+
+		this.items = this.items || [];
+		this.items.push(this.grid);
+
 		Ext.apply(this, {
-			title: 'Selected Object',
-			layout: 'accordion',
-			items: [this.grid]
+			title : 'Selected Object',
+			layout : 'accordion',
 		});
-		App.ui.ObjectProperties.superclass.initComponent.apply(this,arguments);
-		this.grid.on('propertychange',this.onPropertyChange,this);
+		this.callParent(arguments);
+		// App.ui.ObjectProperties.superclass.initComponent.apply(this,arguments);
+		this.grid.on('propertychange', this.onPropertyChange, this);
+		this.boundObjectPanels = Ext.create('Ext.util.MixedCollection');
+		this.boundObjectPanels.addAll(this.query('component[bind]'));
+		this.boundObjectPanels.each(function(item) {
+			this.mon(item, 'action', this.doAction, this);
+
+			if(item.init) {
+				item.init();
+			}
+		}, this);
 	},
-	bind: function(obj) {
+	/**
+	 * doAction
+	 * Invokes the passed {@link Workspace.actions.Action} on the {@link #workspace}
+	 * @param {Workspace.actions.Action} action
+	 */
+	doAction : function(action) {
+		var undoAction = action.getUndo();
+		this.workspace.doAction(action);
+	},
+	bind : function(obj) {
 		this.unbind();
 		this.boundObject = obj;
-		this.boundObject.on('change',this.onObjectChange,this);
+		this.boundObject.on('change', this.onObjectChange, this);
 		this.grid.setSource(obj.getReadableHash());
+		this.callParent(arguments);
+		this.boundObjectPanels.each(function(panel) {
+			panel.bind(obj);
+		});
 	},
-	unbind: function(obj) {
+	unbind : function(obj) {
 		if(this.boundObject) {
 			if((obj == this.boundObject) || (!obj)) {
-				this.boundObject.un('change',this.onObjectChange,this);
+				this.boundObject.un('change', this.onObjectChange, this);
 				this.grid.setSource({});
 				this.boundObject = false
 			}
 		}
+		this.callParent(arguments);
+		this.boundObjectPanels.each(function(panel) {
+			panel.unbind(obj);
+		});
 	},
-	onObjectChange: function(prop, val) {
+	onObjectChange : function(prop, val) {
 		if(!this.ignore)
-			this.grid.setProperty(prop,val,true);
+			this.grid.setProperty(prop, val, true);
 	},
-	onPropertyChange: function(src,prop,value) {
+	onPropertyChange : function(src, prop, value) {
 		if(this.boundObject) {
 			this.ignore = true;
-			this.boundObject.set(prop,value);
+			this.boundObject.set(prop, value);
 			this.ignore = true;
 		}
 	},
-	attachTo: function(workspace) {
+	attachTo : function(workspace) {
 		this.workspace = workspace;
 
 		// bind ribbon to objects when selected in workspace

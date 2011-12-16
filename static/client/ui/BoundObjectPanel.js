@@ -5,12 +5,17 @@
  * changes to those components triggering the change event (or another event specified in {@link #objectBindingEvent}) will cause {@link WorkspaceAction}s
  * to be generated and applied to the attached workspace.
  * @extends Ext.Panel
+ *
  */
 Ext.define('App.ui.BoundObjectPanel', {
-	extend:'Ext.panel.Panel',
-	initComponent: function() {
-		App.ui.BoundObjectPanel.superclass.initComponent.apply(this, arguments);
-
+	extend : 'Ext.panel.Panel',
+	enableBoundFields : true,
+	initComponent : function() {
+		//App.ui.BoundObjectPanel.superclass.initComponent.apply(this, arguments);
+		this.callParent(arguments);
+		this.initialize();
+	},
+	initialize : function() {
 		this.addEvents('action');
 
 		/**
@@ -32,33 +37,33 @@ Ext.define('App.ui.BoundObjectPanel', {
 		this.dynamicFields = new Ext.util.MixedCollection();
 
 		// collect all fields with object bindings specified
-		
+
 		/**
 		 * @property {String} objectBinding
-		 * To be applied to child items: 
+		 * To be applied to child items:
 		 * Name of an exposed field in a {@link Machine.core.Serializable} object bound to this panel. When the value
 		 * of the {@link Ext.form.field.Field} with the <var>objectBinding</var> property set changes, the {@link #boundObjects}
 		 * are updated with {@link Machine.core.Serializable#set}.
 		 */
-		var boundFields = this.query('component[objectBinding]'), //[objectBinding!=""]');
-		dynamicFields = this.query('component[enableIf]','component[showIf]');
+		if(this.enableBoundFields) {
+			// index fields and add event handlers
+			Ext.each(this.query('component[objectBinding]'), function(field) {
+				/**
+				 * @property {String} objectBindingEvent
+				 * Event to watch for changes to the {@link #boundObjects}
+				 */
+				var eventName = field.objectBindingEvent || 'change';
+				field.addListener(eventName, this.updateObjects, this);
+				this.boundFields.add(field.objectBinding, field);
+			}, this);
+		}
 
-		// index fields and add event handlers
-		Ext.each(boundFields, function(field) {
-			/**
-			 * @property {String} objectBindingEvent
-			 * Event to watch for changes to the {@link #boundObjects}
-			 */
-			var eventName = field.objectBindingEvent || 'change';
-			field.addListener(eventName, this.updateObjects, this);
-			this.boundFields.add(field.objectBinding, field);
-		},this);
-		this.dynamicFields.addAll(dynamicFields);
+		this.dynamicFields.addAll(this.query('component[enableIf], component[showIf]'));
 
 		this.on('afterrender', this.buildTips, this);
 		this.on('afterrender', this.updateDynamicFields, this);
 	},
-	buildTips: function() {
+	buildTips : function() {
 		/*
 		 // collect all fields with tooltip configs specified
 		 var tips = this.findBy( function(cmp) {
@@ -94,17 +99,16 @@ Ext.define('App.ui.BoundObjectPanel', {
 	 * @param {Object} newValue
 	 * @param {Object} oldValue
 	 */
-	updateObjects: function(field, newValue, oldValue) {
-		if (!this.ignoreNext) {
-			if (field.objectBinding) {
-				var values = {},
-				action;
+	updateObjects : function(field, newValue, oldValue) {
+		if(!this.ignoreNext) {
+			if(field.objectBinding) {
+				var values = {}, action;
 				values[field.objectBinding] = newValue;
 
 				// Build WorkspaceAction
 				action = new Workspace.actions.ChangePropertyAction({
-					values: values,
-					subjects: this.boundObjects.getRange()
+					values : values,
+					subjects : this.boundObjects.getRange()
 				});
 
 				this.fireEvent('action', action);
@@ -116,55 +120,71 @@ Ext.define('App.ui.BoundObjectPanel', {
 	 * Updates the fields in this ribbon to match the values in this object
 	 * @param {Workspace.Object} item
 	 */
-	updateFields: function(item) {
-		this.boundFields.each( function(field) {
-			if (item.has(field.objectBinding)) {
+	updateFields : function(item) {
+		this.boundFields.each(function(field) {
+			if(item.has(field.objectBinding)) {
 				field.setValue(item.get(field.objectBinding));
 			}
-		},
-		this);
+		}, this);
 	},
 	/**
-	 * updateFieldsHandler
 	 * Called when bound objects change
 	 * @param {Object} prop
 	 * @param {Object} val
 	 * @param {Object} item
 	 */
-	updateFieldsHandler: function(prop, val, item) {
-		if (this.boundFields.containsKey(prop)) {
+	updateFieldsHandler : function(prop, val, item) {
+		if(this.boundFields.containsKey(prop)) {
 			var f = this.boundFields.get(prop);
 			this.ignoreNext = true;
 			f.setValue(val);
 			this.ignoreNext = false;
 		}
 	},
-	updateDynamicFields: function() {
+	updateDynamicFields : function() {
 		var common = this.boundObjects.getCommonWType();
-		this.dynamicFields.each( function(f) {
+		this.dynamicFields.each(function(f) {
+			/**
+			 * @method showIf
+			 * Override on child components to determine whether they should be shown for a particular selection
+			 * @param {String} common The most specific common WType among the bound objects
+			 * @param {Ext.util.MixedCollection} boundObjects A list of all bound objects
+			 * @param {App.ui.BoundObjectPanel} this
+			 * @return {Boolean} show
+			 */
 			if(Ext.isFunction(f.showIf)) {
-				if(f.showIf(common,this.boundObjects,this))
+
+				if(f.showIf(common, this.boundObjects, this))
 					f.show();
 				else
+
 					f.hide();
 			}
+			/**
+			 * @method enableIf
+			 * Override on child components to determine whether they should be enabled for a particular selection
+			 * @param {String} common The most specific common WType among the bound objects
+			 * @param {Ext.util.MixedCollection} boundObjects A list of all bound objects
+			 * @param {App.ui.BoundObjectPanel} this
+			 * @return {Boolean} show
+			 */
 			if(Ext.isFunction(f.enableIf)) {
-				if(f.enableIf(common,this.boundObjects,this))
+				if(f.enableIf(common, this.boundObjects, this))
 					f.enable();
 				else
 					f.disable();
 			}
-		},this);
+		}, this);
 	},
 	/**
 	 * bind
 	 * Attaches the given object to this panel, so that changes in the panel will be reflected in the object
 	 * @param {Workspace.Object} item
 	 */
-	bind: function(item) {
-		if (!this.boundObjects.containsKey(item.getId())) {
+	bind : function(item) {
+		if(!this.boundObjects.containsKey(item.getId())) {
 			this.boundObjects.add(item.getId(), item);
-			if (this.boundObjects.length == 1) {
+			if(this.boundObjects.length == 1) {
 				this.updateFields(item);
 			}
 			this.mon(item, 'change', this.updateFieldsHandler, this);
@@ -176,9 +196,9 @@ Ext.define('App.ui.BoundObjectPanel', {
 	 * Detaches the given object from this panel
 	 * @param {Workspace.Object} item
 	 */
-	unbind: function(item) {
-		if (item) {
-			if (this.boundObjects.containsKey(item.getId())) {
+	unbind : function(item) {
+		if(item) {
+			if(this.boundObjects.containsKey(item.getId())) {
 				this.boundObjects.removeAtKey(item.getId());
 				this.mun(item, 'change', this.updateFieldsHandler, this);
 			}
@@ -190,7 +210,7 @@ Ext.define('App.ui.BoundObjectPanel', {
 	/**
 	 * destroy
 	 */
-	destroy: function() {
+	destroy : function() {
 		Ext.each(this.tips, function(tip) {
 			tip.destroy();
 		});

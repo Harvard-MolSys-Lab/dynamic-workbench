@@ -37,6 +37,11 @@ Ext.define('App.ui.dd.RulesWindow', {
 					name: 'rule_ming',
 					inputValue: 1,
 				},{
+					boxLabel: 'Reward domains with higher Shannon entropy',
+					xtype: 'checkboxfield',
+					name: 'rule_shannon',
+					inputValue: 1,
+				},{
 					boxLabel: 'Target worst domain for mutations',
 					xtype: 'checkboxfield',
 					name: 'rule_targetworst',

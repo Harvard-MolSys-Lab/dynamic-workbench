@@ -802,10 +802,13 @@ var DD = function() {
 	function loadFile(fileContents, newDomains) {
 		var f = _.compact(fileContents.split('\n'));
 
-		f.unshift();
+		// remove leading number added by old versions of DD
+		if(f[0].trim().match(/^\d+$/g) ) {
+			f.unshift();			
+		}
 		// ditch parameter for number of domains
 		num_domain = f.length;
-		num_new_domain = newDomains;
+		num_new_domain = (newDomains || 0);
 
 		if(( domain = new Array((num_domain + num_new_domain)  /* int* */
 		)) == null) {

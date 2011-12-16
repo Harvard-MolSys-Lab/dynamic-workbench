@@ -103,6 +103,9 @@ Ext.define('App.ui.DD', {
 				xtype : 'gridpanel',
 				ref : 'grid',
 				region : 'center',
+				selModel: {
+					mode:'multi',
+				},
 				// title : 'Domains',
 				columns : [Ext.create('Ext.grid.RowNumberer', {
 					width : 30,
@@ -133,8 +136,23 @@ Ext.define('App.ui.DD', {
 					},
 					editor : {
 						allowBlank : false,
+						tooltip: {
+							title: "Edit sequence of domain",
+							text: 'Manually set the sequence of this domain by entering a sequence of bases. '+
+							'Capitalized bases will be "locked", so the designer will not mutate them. ',
+							anchor: 'top',
+							anchorOffset: 10, 
+						},
+						listeners: {
+							afterrender: {
+								scope:this,
+								fn: function(field) {
+									this.mixins.tip.buildTip(field); 
+								}
+							}
+						}
 					},
-					flex : 1
+					flex : 1,
 				}, {
 					header : 'Importance',
 					dataIndex : 'importance',
@@ -142,6 +160,22 @@ Ext.define('App.ui.DD', {
 					editor : {
 						xtype : 'numberfield',
 						allowBlank : false,
+						tooltip: {
+							title: "Domain importance",
+							text: 'Importance is a multiplicative factor which causes the designer to weigh defects '+
+							'involving this domain more heavily. This allows you to (for instance) ensure that toehold '+
+							'domains have minimal interactions with other domains.',
+							anchor: 'top',
+							anchorOffset: 10, 
+						},
+						listeners: {
+							afterrender: {
+								scope:this,
+								fn: function(field) {
+									this.mixins.tip.buildTip(field); 
+								}
+							}
+						},
 					}
 				}, {
 					header : 'Composition',
@@ -165,7 +199,22 @@ Ext.define('App.ui.DD', {
 		                selectOnTab: true,
 		                store: [[15,"GATC"],[7,"ATC"],[11,"GTC"],[14,"GAT"],[13,"GAC"],[12,"GA"],[6,"AT"],[9,"GC"],[10,"GT"],[5,"AC"],[3,"TC"],[8,"G"],[4,"A"],[3,"T"],[1,"C"]],
 		                lazyRender: true,
-		                listClass: 'x-combo-list-small'
+		                listClass: 'x-combo-list-small',
+		                tooltip: {
+							title: "Domain base composition",
+							text: 'Specify which bases (ATCG) may be included in this domain; the designer will '+
+							'only accept mutations which contain only the specified bases.',
+							anchor: 'top',
+							anchorOffset: 10, 
+						},
+						listeners: {
+							afterrender: {
+								scope:this,
+								fn: function(field) {
+									this.mixins.tip.buildTip(field); 
+								}
+							}
+						},
 					},
 					// editor: {
 					// xtype: 'combobox',
@@ -270,7 +319,13 @@ Ext.define('App.ui.DD', {
 							text : 'Add specific domains...',
 							handler : this.addManyDomains,
 							scope : this,
-							tooltip: 'Open a window to add domains with specific sequences to the design.'
+							tooltip: 'Open a window to add domains with specific sequences to the design.'	
+						},{
+							text : 'Add domains from DD file...',
+							handler : this.loadFromDDFile,
+							scope : this,
+							tooltip: 'Open a window to add domains using a file created by a legacy version of DD. '+
+							'This also allows you to specify the importance and composition of each of the added domains.'
 							
 						}]
 					}, {
@@ -282,7 +337,10 @@ Ext.define('App.ui.DD', {
 						iconCls : 'edit',
 						xtype : 'splitbutton',
 						handler : function() {
-							this.cellEditor.startEdit(this.grid.getSelectionModel().getLastSelected(), this.grid.headerCt.getHeaderAtIndex(0));
+							var rec = this.grid.getSelectionModel().getLastSelected()
+							if(rec) {
+								this.cellEditor.startEdit(rec, this.grid.headerCt.getHeaderAtIndex(0));
+							}
 						},
 						scope : this,
 						tooltip: 'Click the button to edit the sequence of the selected domain. Click the arrow to see options to reseed existing domains.',
@@ -301,7 +359,7 @@ Ext.define('App.ui.DD', {
 						 */
 						text : 'Delete',
 						ref : 'delDomainButton',
-						handler : this.doDeleteDomain,
+						handler : this.doDeleteDomains,
 						scope : this,
 						iconCls : 'cross',
 						tooltip: 'Delete the selected domain',
@@ -441,7 +499,8 @@ Ext.define('App.ui.DD', {
 		}
 	},
 	reseedAll : function() {
-
+		this.designer.reseed();
+		this.updateInterface()
 	},
 	updateDomain : function(rec) {
 		this.designer.updateDomain(this.store.indexOf(rec), rec.get('sequence'), rec.get('importance'), rec.get('composition'));
@@ -494,13 +553,15 @@ Ext.define('App.ui.DD', {
 		this.scoreField.setText(this.scoreField.baseText + score);
 	},
 	/**
-	 * Deletes the selected domain
+	 * Deletes the selected domain(s)
 	 */
-	doDeleteDomain : function() {
-		var rec = this.grid.getSelectionModel().getLastSelected();
-		if(rec) {
-			this.designer.removeDomain(this.store.indexOf(rec));
-			this.store.remove(rec);
+	doDeleteDomains : function() {
+		var recs = this.grid.getSelectionModel().getSelection();
+		if(recs) {
+			_.each(recs,function(rec) {
+				this.designer.removeDomain(this.store.indexOf(rec));
+				this.store.remove(rec);				
+			},this);
 		}
 	},
 	syncDomains : function(domains, clobber) {
@@ -534,6 +595,21 @@ Ext.define('App.ui.DD', {
 			});
 		}
 		this.addDomainsWindow.show();
+	},
+	loadFromDDFile : function(data) {
+		if(!this.loadDDFileWindow) {
+			this.loadDDFileWindow = Ext.create('App.ui.dd.SequenceWindow', {
+				designer : this,
+				value: data || '',
+				handler: function(data) {
+					this.designer.loadFile(data);
+					this.addDomains(this.designer.printfSequences(),[],this.designer.getCompositions(),this.designer.getImportances());
+				},
+				scope: this,
+			});
+		}
+		this.loadDDFileWindow.show();
+		
 	},
 	/**
 	 * Adds the passed domains to the designer

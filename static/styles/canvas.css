@@ -2,7 +2,7 @@
 	font-family: ColaborateThinRegular;
 	font-size: 9pt;
 }
-.app-title b  {
+.app-title b {
 	font-family: ColaborateMediumRegular;
 	font-weight: normal;
 }
@@ -13,8 +13,8 @@
 	color: red;
 }
 .dashboard {
-	font-size: small;	
-	font-family: ColaborateLightRegular,Helvetica Neue, Helvetica;
+	font-size: small;
+	font-family: ColaborateLightRegular, Helvetica Neue, Helvetica;
 	background-color: rgba(255,255,255,0.7);
 	height: 100%;
 }
@@ -42,23 +42,21 @@
 	background-repeat: no-repeat;
 	background-position: bottom right;
 }
-
 h1 {
 	font-size: 24pt !important;
 	font-weight: normal;
 	border-bottom: solid 1px silver;
 	margin-bottom: 12pt;
-	color:#222;	
+	color: #222;
 	font-family: ColaborateLightRegular;
 }
-h1 span {	
+h1 span {
 	font-family: ColaborateThinRegular;
 }
-
 .aa-fix {
 	font-family: sans;
 	font-size: 12px;
-	display: block; 
+	display: block;
 	float: right;
 }
 ul.dashboard-actions li {
@@ -88,262 +86,203 @@ ul.dashboard-actions li a:hover {
 	margin: 10px 0px;
 	padding: 10px;
 	border-radius: 10px;
-	-moz-border-radius:10px;	
+	-moz-border-radius: 10px;
 }
 .warning-box {
 	border-color: red;
-	background-color: #f88;	
+	background-color: #f88;
 }
-
 .green-box {
 	border-color: green;
-	background-color: #8f8;	
+	background-color: #8f8;
 }
-
 .warning-box strong, .green-box strong {
 	font-weight: bold;
 }
-
-
-
-
 /* Tool icon Classes */
 .cursor-icon, .pointer {
-	background-image: url(/images/icons/fugue/cursor.png) !important;	
+	background-image: url(/images/icons/fugue/cursor.png) !important;
 }
-
 .idea {
-  background-image: url(/images/icons/fugue/light-bulb.png) !important; 
+	background-image: url(/images/icons/fugue/light-bulb.png) !important;
 }
-
 .idea-remove {
-  background-image: url(/images/icons/fugue/light-bulb--minus.png) !important; 
+	background-image: url(/images/icons/fugue/light-bulb--minus.png) !important;
 }
 .idea-add {
-  background-image: url(/images/icons/fugue/light-bulb--plus.png) !important; 
+	background-image: url(/images/icons/fugue/light-bulb--plus.png) !important;
 }
-
 .pencil {
-	background-image: url(/images/icons/fugue/pencil.png) !important;	
+	background-image: url(/images/icons/fugue/pencil.png) !important;
 }
-
 .paintbrush {
-	background-image: url(/images/icons/famfamfam/paintbrush.png) !important;	
+	background-image: url(/images/icons/famfamfam/paintbrush.png) !important;
 }
-
 .vector {
-	background-image: url(/images/icons/famfamfam/vector.png) !important;	
+	background-image: url(/images/icons/famfamfam/vector.png) !important;
 }
-
 /* Object icon classes */
 .text-icon {
-	background-image: url(/images/icons/fugue/selection-select-input.png) !important;	
+	background-image: url(/images/icons/fugue/selection-select-input.png) !important;
 }
-
 .connector {
-  background-image: url(/images/icons/etc/connector.png) !important;  
+	background-image: url(/images/icons/etc/connector.png) !important;
 }
-
 .polygon {
-	background-image: url(/images/icons/fugue/layer-shape-polygon.png) !important;	
+	background-image: url(/images/icons/fugue/layer-shape-polygon.png) !important;
 }
-
 .ellipse {
-	background-image: url(/images/icons/fugue/layer-shape-ellipse.png) !important;	
+	background-image: url(/images/icons/fugue/layer-shape-ellipse.png) !important;
 }
-
 .rect {
-	background-image: url(/images/icons/fugue/layer-shape.png) !important;	
+	background-image: url(/images/icons/fugue/layer-shape.png) !important;
 }
-
 .line, .primary {
-	background-image: url(/images/icons/fugue/layer-shape-line.png) !important;	
+	background-image: url(/images/icons/fugue/layer-shape-line.png) !important;
 }
-
 .path, .polyline, .secondary {
-	background-image: url(/images/icons/fugue/layer-shape-polyline.png) !important;	
+	background-image: url(/images/icons/fugue/layer-shape-polyline.png) !important;
 }
-
 .curve {
-	background-image: url(/images/icons/fugue/layer-shape-curve.png) !important;	
+	background-image: url(/images/icons/fugue/layer-shape-curve.png) !important;
 }
-
-
 /* Etc icon classes */
 .user {
-  background-image: url(/images/icons/fugue/user-silhouette.png) !important;  
+	background-image: url(/images/icons/fugue/user-silhouette.png) !important;
 }
 .key {
-  background-image: url(/images/icons/fugue/key.png) !important;  
+	background-image: url(/images/icons/fugue/key.png) !important;
 }
-
 /* Action icon classes */
 .flip-horiz {
-	background-image: url(/images/icons/fugue/layer-flip.png) !important;	
+	background-image: url(/images/icons/fugue/layer-flip.png) !important;
 }
-
 .flip-vert {
-	background-image: url(/images/icons/fugue/layer-flip-vertical.png) !important;	
+	background-image: url(/images/icons/fugue/layer-flip-vertical.png) !important;
 }
-
 .rotate-right {
-	background-image: url(/images/icons/fugue/layer-rotate.png) !important;	
+	background-image: url(/images/icons/fugue/layer-rotate.png) !important;
 }
-
 .rotate-left {
-	background-image: url(/images/icons/fugue/layer-rotate-left.png) !important;	
+	background-image: url(/images/icons/fugue/layer-rotate-left.png) !important;
 }
-
 .arrange-forward {
-	background-image: url(/images/icons/fugue/layers-arrange.png) !important;	
+	background-image: url(/images/icons/fugue/layers-arrange.png) !important;
 }
-
 .arrange-backwards {
-	background-image: url(/images/icons/fugue/layers-arrange-back.png) !important;	
+	background-image: url(/images/icons/fugue/layers-arrange-back.png) !important;
 }
-
 .arrange-front {
-	background-image: url(/images/icons/fugue/layers-stack-arrange.png) !important;	
+	background-image: url(/images/icons/fugue/layers-stack-arrange.png) !important;
 }
-
 .arrange-back {
-	background-image: url(/images/icons/fugue/layers-stack-arrange-back.png) !important;	
+	background-image: url(/images/icons/fugue/layers-stack-arrange-back.png) !important;
 }
-
 .desktop, .whiteboard {
-  background-image: url(/images/icons/fugue/desktop.png) !important;  
+	background-image: url(/images/icons/fugue/desktop.png) !important;
 }
-
 .pdf {
-  background-image: url(/images/icons/fugue/document-pdf.png) !important;  
+	background-image: url(/images/icons/fugue/document-pdf.png) !important;
 }
-
 .image-icon {
-  background-image: url(/images/icons/fugue/image.png) !important;  
+	background-image: url(/images/icons/fugue/image.png) !important;
 }
-
 .iframe-icon {
-  background-image: url(/images/icons/fugue/ui-scroll-pane.png) !important;  
+	background-image: url(/images/icons/fugue/ui-scroll-pane.png) !important;
 }
-
 .math-icon {
-  background-image: url(/images/icons/fugue/edit-mathematics.png) !important;  
+	background-image: url(/images/icons/fugue/edit-mathematics.png) !important;
 }
-
 .chem {
-  background-image: url(/images/icons/fugue/flask.png) !important;  
+	background-image: url(/images/icons/fugue/flask.png) !important;
 }
-
 .node-add {
-  background-image: url(/images/icons/etc/node-add.png) !important;  
+	background-image: url(/images/icons/etc/node-add.png) !important;
 }
 .port-add {
-  background-image: url(/images/icons/etc/port-add.png) !important;  
+	background-image: url(/images/icons/etc/port-add.png) !important;
 }
-
 .compile {
-background-image: url(/images/icons/fugue/compile.png) !important;
+	background-image: url(/images/icons/fugue/compile.png) !important;
 }
-
 .sequence, .seq, .dd {
-background-image: url(/images/icons/fugue/edit-diff.png) !important;
+	background-image: url(/images/icons/fugue/edit-diff.png) !important;
 }
-
 .enumerate {
-background-image: url(/images/icons/fugue/arrow-split.png) !important;
+	background-image: url(/images/icons/fugue/arrow-split.png) !important;
 }
-
 .simulate, .calculator, .calculate {
-background-image: url(/images/icons/fugue/calculator.png) !important;
+	background-image: url(/images/icons/fugue/calculator.png) !important;
 }
-
 .save {
-  background-image: url(/images/icons/fugue/disk-black.png) !important;  
+	background-image: url(/images/icons/fugue/disk-black.png) !important;
 }
-
 .expand {
-  background-image: url(/images/icons/fugue/document-resize.png) !important;  
+	background-image: url(/images/icons/fugue/document-resize.png) !important;
 }
-
 .pause {
-	background-image: url(/images/icons/fugue/control-pause.png) !important;  
+	background-image: url(/images/icons/fugue/control-pause.png) !important;
 }
 .play {
-	background-image: url(/images/icons/fugue/control.png) !important;  
+	background-image: url(/images/icons/fugue/control.png) !important;
 }
-
 .terminal {
-  background-image: url(/images/icons/fugue/terminal.png) !important;  
+	background-image: url(/images/icons/fugue/terminal.png) !important;
 }
-
 .rocket-launch, .rocket-fly {
-	background-image: url(/images/icons/fugue/rocket-fly.png) !important;  
+	background-image: url(/images/icons/fugue/rocket-fly.png) !important;
 }
 .terminal-24 {
-  background-image: url(/images/icons/icons-24/terminal.png) !important;  
+	background-image: url(/images/icons/icons-24/terminal.png) !important;
 }
-
 .arrow-24 {
-background-image: url(/images/icons/etc/arrow-24.png) !important;  
+	background-image: url(/images/icons/etc/arrow-24.png) !important;
 }
-
 .simulate-24 {
-background-image: url(/images/icons/fugue/calculator.png) !important;
+	background-image: url(/images/icons/fugue/calculator.png) !important;
 }
-
 .save-24 {
-  background-image: url(/images/icons/icons-24/disk-black.png) !important;  
+	background-image: url(/images/icons/icons-24/disk-black.png) !important;
 }
-
 .delete-24 {
-  background-image: url(/images/icons/icons-24/cross.png) !important;  
+	background-image: url(/images/icons/icons-24/cross.png) !important;
 }
-
 .user-24 {
-  background-image: url(/images/icons/icons-24/user.png) !important;  
+	background-image: url(/images/icons/icons-24/user.png) !important;
 }
-
 .document-24 {
-  background-image: url(/images/icons/icons-24/document.png) !important;  
+	background-image: url(/images/icons/icons-24/document.png) !important;
 }
-
 .duplicate-24 {
-  background-image: url(/images/icons/icons-24/stamp.png) !important;  
+	background-image: url(/images/icons/icons-24/stamp.png) !important;
 }
-
 .idea-form-24 {
-  background-image: url(/images/icons/etc/form-idea.png) !important;  
+	background-image: url(/images/icons/etc/form-idea.png) !important;
 }
-
 .undo-24 {
-  background-image: url(/images/icons/icons-24/arrow-180.png) !important;  
+	background-image: url(/images/icons/icons-24/arrow-180.png) !important;
 }
 .redo-24 {
-  background-image: url(/images/icons/icons-24/arrow.png) !important;  
+	background-image: url(/images/icons/icons-24/arrow.png) !important;
 }
-
 .export-24 {
 	background-image: url(/images/icons/icons-24/document-export.png) !important;
 }
-
 .build-24 {
-	background-image: url(/images/icons/icons-24/wand.png) !important;	
+	background-image: url(/images/icons/icons-24/wand.png) !important;
 }
-
 .folder-open {
 	background-image: url(/images/icons/fugue/folder-open.png) !important;
 }
-
 .notecard {
-  background-image: url(/images/icons/card_bg.jpeg);
-  background-repeat: repeat;
-  background-color: white;
+	background-image: url(/images/icons/card_bg.jpeg);
+	background-repeat: repeat;
+	background-color: white;
 }
-
 /* Other classes */
 .textbox {
-	position: absolute !important;	
-	font-family: "Helvetica Neue",helvetica,arial,sans-serif;
+	position: absolute !important;
+	font-family: "Helvetica Neue", helvetica, arial, sans-serif;
 	font-size: 10pt;
 	padding: 5px;
 	border: solid 1px #aaaaff;
@@ -351,7 +290,6 @@ background-image: url(/images/icons/fugue/calculator.png) !important;
 	border-radius: 2px;
 	overflow: auto;
 }
-
 .textbox h1 {
 	font-size: x-large;
 }
@@ -361,172 +299,144 @@ background-image: url(/images/icons/fugue/calculator.png) !important;
 .textbox h3 {
 	font-size: medium;
 }
-
 .textbox h4 {
-  font-weight: bold;
+	font-weight: bold;
 }
 .textbox h5 {
-  font-weight: bold;
-  font-style: italic;
+	font-weight: bold;
+	font-style: italic;
 }
 .textbox h6 {
-  font-style: italic;
+	font-style: italic;
 }
-
 .textbox ul li {
-  list-style-type: disc;
-  margin-left: 10px;
-  list-style-position: inside;
+	list-style-type: disc;
+	margin-left: 10px;
+	list-style-position: inside;
 }
-
 .textbox ol li {
-  list-style-type: decimal;
-  margin-left: 10px;
-  list-style-position: inside;
+	list-style-type: decimal;
+	margin-left: 10px;
+	list-style-position: inside;
 }
-
 .embed {
-  
-}
 
+}
 .textbox, .math {
-  /**
-   *   
-   background: #f1f3a2;
-    background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgba(247,247,210,1)), to(rgba(240,242,155,1)));
-    background: -moz-linear-gradient(top, rgba(247,247,210,1), rgba(240,242,155,1));
-  */
-    -webkit-box-shadow: 0 2px 4px rgba(0,0,0,.5);
-    -moz-box-shadow: 0 2px 4px (rgba(0,0,0.5));
-    box-shadow: 0 1px 2px #000;
+	/**
+	 *
+	 background: #f1f3a2;
+	 background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgba(247,247,210,1)), to(rgba(240,242,155,1)));
+	 background: -moz-linear-gradient(top, rgba(247,247,210,1), rgba(240,242,155,1));
+	 */
+	-webkit-box-shadow: 0 2px 4px rgba(0,0,0,.5);
+	-moz-box-shadow: 0 2px 4px (rgba(0,0,0.5));
+	box-shadow: 0 1px 2px #000;
 }
-
 .math {
-  position: absolute !important;  
-  padding: 5px;
-  border: solid 1px #aaffaa;
-  background-color: white;
-  border-radius: 3px;
-  overflow: auto;
+	position: absolute !important;
+	padding: 5px;
+	border: solid 1px #aaffaa;
+	background-color: white;
+	border-radius: 3px;
+	overflow: auto;
 }
-
 .workspace-label-plain {
 	background-color: transparent !important;
 	border: none !important;
 }
-
 .workspace-label, .workspace-label-center, .workspace-label-callout {
-  border: solid 1px rgb(174,174,174);
-  background-color: #eee;
-  background-image: -webkit-gradient(
-    linear,
-    left top,
-    left bottom,
-    color-stop(0, rgb(255,255,255)),
-    color-stop(0.4, rgb(240,240,240)),
-    color-stop(0.41, rgb(232,232,232))
-);
-background-image: -moz-linear-gradient(
-    center top,
-    rgb(255,255,255) 0%,
-    rgb(240,240,240) 40%,
-    rgb(232,232,232) 41%
-);
-  margin-left: 10px;
-  padding: 4px 6px 4px 6px;
-  font: normal 11px tahoma,arial,helvetica;
-  color:#333;
-  
+	border: solid 1px rgb(174,174,174);
+	background-color: #eee;
+	background-image: -webkit-gradient(
+	linear,
+	left top,
+	left bottom,
+	color-stop(0, rgb(255,255,255)),
+	color-stop(0.4, rgb(240,240,240)),
+	color-stop(0.41, rgb(232,232,232))
+	);
+	background-image: -moz-linear-gradient(
+	center top,
+	rgb(255,255,255) 0%,
+	rgb(240,240,240) 40%,
+	rgb(232,232,232) 41%
+	);
+	margin-left: 10px;
+	padding: 3px 6px 4px 6px;
+	font: normal 11px tahoma, arial, helvetica;
+	color: #333;
 }
-
 .workspace-label-center {
-  border-radius: 3px 3px 3px 3px;
+	border-radius: 4px 4px 4px 4px;
 }
-
 .workspace-label {
-  border-radius: 3px 3px 0px 0px;
+	border-radius: 4px 4px 0px 0px;
 }
-
 .workspace-label-callout {
-	border-radius: 3px 3px 3px 0px;
+	border-radius: 4px 4px 4px 0px;
 }
-
-
 .motif-template {
-float: left;
-margin: 5px;
-padding: 5px;
-height: 44px;
-width: 44px;
+	float: left;
+	margin: 5px;
+	padding: 5px;
+	height: 44px;
+	width: 44px;
 }
-
 .x-view-over {
-background-color: #ddd;
-border: solid 1px #ccc;
-padding: 4px;
+	background-color: #ddd;
+	border: solid 1px #ccc;
+	padding: 4px;
 }
-
 .iframe iframe {
-  border: solid 1px silver;
+	border: solid 1px silver;
 }
-
 .scroller {
-  background-color: yellow;
-  opacity: 0.5;
+	background-color: yellow;
+	opacity: 0.5;
 }
-
 .workspace {
-  -webkit-transform-origin: 0% 0%;
-  -moz-transform-origin: 0% 0%;
+	-webkit-transform-origin: 0% 0%;
+	-moz-transform-origin: 0% 0%;
 }
-
 .table-cell-padded, .table-cell-padded-right {
-  padding: 1px 2px;
+	padding: 1px 2px;
 }
-
 .table-cell-padded-right {
-  border-left: solid 1px silver;
+	border-left: solid 1px silver;
 }
-
 .combo-icon {
-  width: 16px;
-  height: 16px;
+	width: 16px;
+	height: 16px;
 }
-
 .console-message {
-font-family: 'Mensch',courier,mono,sans-serif;
-font-size: 9pt;
-padding:3px 3px 3px 20px !important;border-bottom:1px solid #ccc;
-background-repeat: no-repeat;
-background-position: 2px 2px;
+	font-family: 'Mensch', courier, mono, sans-serif;
+	font-size: 9pt;
+	padding: 3px 3px 3px 20px !important;
+	border-bottom: 1px solid #ccc;
+	background-repeat: no-repeat;
+	background-position: 2px 2px;
 }
-
 .no-bottom-border, .noborder-bottom {
 	border-bottom: none !important;
 }
-
 .noborder-top {
 	border-top: none !important;
 }
-
 .noborder-left {
 	border-left: none !important;
 }
-
 .noborder-right {
 	border-right: none !important;
 }
-
 .simple-header .x-panel-header {
 	background: none !important;
 	font-weight: normal !important;
 }
-
 .nupack-complex-strands {
 	min-width: 40px;
 	float: left;
 }
-
 .nupack-concentration-bar {
 	display: inline-block;
 	float: right;
@@ -536,17 +446,14 @@ background-position: 2px 2px;
 	display: inline-block;
 	float: right;
 }
-
 .nupack-complex-panel {
 	margin-bottom: 20px;
 	margin-right: 10px;
 	width: 98%;
 }
-
-
 /*.nupack-complex-panel > .x-panel-body {
-	border-color: transparent !important;
-}*/
+ border-color: transparent !important;
+ }*/
 .CodeMirror-scroll {
 	height: 100% !important;
 	overflow: auto;
@@ -554,17 +461,25 @@ background-position: 2px 2px;
 .searched {
 	background-color: yellow;
 }
-
 .cm-pepper-dotParen, .cm-nupack-huplus {
 	color: #E66E00;
 }
-
-.cm-nupack-keyword {color: #90b;}
-.cm-nupack-param {color: #291;}
-.cm-nupack-sequence {color: #a22;}
-.cm-nupack-structure {color: #22b;}
-.cm-nupack-error { color: red; text-decoration:underline; }
-
+.cm-nupack-keyword {
+	color: #90b;
+}
+.cm-nupack-param {
+	color: #291;
+}
+.cm-nupack-sequence {
+	color: #a22;
+}
+.cm-nupack-structure {
+	color: #22b;
+}
+.cm-nupack-error {
+	color: red;
+	text-decoration: underline;
+}
 .cm-sequence-comment, .cm-nupack-comment {
 	color: #a70;
 }
@@ -582,62 +497,58 @@ background-position: 2px 2px;
 }
 .cm-sequence-c {
 	color: blue;
-} 
+}
 .cm-sequence-g {
 	color: black;
 }
 .cm-sequence-n {
 	color: orange;
 }
-
 .x-tab-inner {
 	height: 16px !important;
 }
-
 .file-upload-throbber {
-  width: 100px;
-  height: 100px;
-  text-align:center;
-  vertical-align:middle;
-  border: solid 1px silver;
-  content: 'Uploading...';
+	width: 100px;
+	height: 100px;
+	text-align: center;
+	vertical-align: middle;
+	border: solid 1px silver;
+	content: 'Uploading...';
 }
-
 /* http://dev.sencha.com/deploy/dev/docs/resources/docs.css */
 
-#loading-mask{
-  position:absolute;
-  left:0;
-  top:0;
-    width:100%;
-    height:100%;
-    z-index:20000;
-    background-color: white;
+#loading-mask {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 20000;
+	background-color: white;
 }
-#loading{
-  position:absolute;
-  left:45%;
-  top:40%;
-  padding:8px;
-  z-index:20001;
-    height:auto;
-  color:#444;
-  font-size: 13px;
-  font-family: "ColaborateRegular",helvetica,arial,tahoma,sans-serif;
-  font-weight: normal;
-  border: solid 1px silver;
-  	border-radius: 5px;
-	-moz-border-radius:5px;
+#loading {
+	position: absolute;
+	left: 45%;
+	top: 40%;
+	padding: 8px;
+	z-index: 20001;
+	height: auto;
+	color: #444;
+	font-size: 13px;
+	font-family: "ColaborateRegular", helvetica, arial, tahoma, sans-serif;
+	font-weight: normal;
+	border: solid 1px silver;
+	border-radius: 5px;
+	-moz-border-radius: 5px;
 }
 #loading span {
 	vertical-align: middle;
 }
 #loading img {
-    margin-right: 2px;
-    margin-top: -1px;
-    vertical-align: middle;
+	margin-right: 2px;
+	margin-top: -1px;
+	vertical-align: middle;
 }
-
 /*!
  * Ext JS
  * Copyright(c) 2006-2011 Sencha Inc.
@@ -645,32 +556,32 @@ background-position: 2px 2px;
  * http://www.sencha.com/license
  */
 .msg .x-box-mc {
-    font-size:14px;
+	font-size: 14px;
 }
 #msg-div {
-    position:absolute;
-    left:35%;
-    top:10px;
-    width:300px;
-    z-index:20000;
-    font-family:ColaborateLightRegular,Tahoma;
+	position: absolute;
+	left: 35%;
+	top: 10px;
+	width: 300px;
+	z-index: 20000;
+	font-family: ColaborateLightRegular, Tahoma;
 }
 #msg-div .msg {
-    border-radius: 8px;
-    -moz-border-radius: 8px;
-    background: #F6F6F6;
-    border: 2px solid #ccc;
-    margin-top: 2px;
-    padding: 10px 15px;
-    color: #555;
+	border-radius: 8px;
+	-moz-border-radius: 8px;
+	background: #F6F6F6;
+	border: 2px solid #ccc;
+	margin-top: 2px;
+	padding: 10px 15px;
+	color: #555;
 }
 #msg-div .msg h3 {
-    margin: 0 0 8px;
-    font-weight: normal;
-    font-size: 15px;
-    font-family:ColaborateMediumRegular
+	margin: 0 0 8px;
+	font-weight: normal;
+	font-size: 15px;
+	font-family: ColaborateMediumRegular
 }
 #msg-div .msg p {
-    margin: 0;
+	margin: 0;
 }
 

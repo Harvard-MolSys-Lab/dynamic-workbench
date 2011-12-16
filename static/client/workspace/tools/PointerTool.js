@@ -193,7 +193,8 @@ Ext.define('Workspace.tools.PointerTool', {
 
 					for (var i = 0, l = selection.length; i < l; i++) {
 						if (Ext.isFunction(selection[i].translate)) {
-							selection[i].getProxy().translate(dx, dy);
+							//selection[i].getProxy().translate(dx, dy);
+							selection[i].translate(dx, dy);
 						}
 					}
 
@@ -230,6 +231,7 @@ Ext.define('Workspace.tools.PointerTool', {
 	 * replaces objects in the selection with {@link Workspace.Proxy}s
 	 */
 	proxify: function() {
+		return;
 		var selection = this.workspace.getSelection();
 		Ext.each(selection, function(selected) {
 			if(selected.get('movable')) {
@@ -243,6 +245,7 @@ Ext.define('Workspace.tools.PointerTool', {
 	 * restores objects in the selection from {@link Workspace.Proxy}s
 	 */
 	deproxify: function() {
+		return;
 		var selection = this.workspace.getSelection();
 		Ext.each(selection, function(selected) {
 			if (selected.proxified)

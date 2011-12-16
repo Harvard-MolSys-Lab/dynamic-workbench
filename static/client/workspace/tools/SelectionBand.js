@@ -15,7 +15,8 @@ Ext.define('Workspace.tools.SelectionBand', {
 			// stroke: '#ddd',
 			// fill: '#99BBE8',
 			// fillOpacity: 0.5,
-			padding: 10
+			padding: 10,
+			r: 5,
 		});
 		Ext.apply(this,App.Stylesheet.Proxy);
 		Ext.apply(this, config);

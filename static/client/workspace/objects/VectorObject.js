@@ -143,14 +143,25 @@ Ext.define('Workspace.objects.VectorObject', {
 			this.on('change:' + camel, _.bind(this.updateAttr, this, dash))
 		}, this);
 	},
+	getTransform: function() {
+		return "r" + ((+this.get('rotation') || 0));
+	},
 	updateAttr : function(attrName, value) {
-		// hack to prevent anti-aliasing for rectangular things
-		if(attrName=='x' || attrName=='y') {
-			value = Math.round(value)+0.5;
+		// positioning attributes get treated differently
+		if(attrName=='x' || attrName=='y' ||attrName=='width' || attrName=='height') {
+			
+			// hack to prevent anti-aliasing for rectangular things
+			if(attrName=='x' || attrName=='y') {
+				value = Math.round(value)+0.5;
+			}
+			this.vectorElement.transform("");
+			this.vectorElement.attr(attrName, value);
+			this.vectorElement.transform(this.getTransform());
+			return;
 		} else if (attrName=="rotation") {
-			// this.vectorElement.transform("");
-			// this.vectorElement.rotate(value);
-			//this.vectorElement.transform("r"+ (+value || 0));
+			this.vectorElement.transform("");
+			//this.vectorElement.rotate(value);
+			this.vectorElement.transform("r"+ (+value || 0));
 		}
 		this.vectorElement.attr(attrName, value);
 	},

@@ -6,7 +6,7 @@ Ext.define('Workspace.objects.dna.NodeLayout', {
 		if(!this.ignore) {
 			var count = this.getObjects().getCount(),
 			theta = this.idea.get('theta'),
-			dtheta = 2*Math.PI / count,
+			dtheta = 360 / count,
 			cx = this.idea.getCenterX(),
 			cy = this.idea.getCenterY(),
 			rx = this.idea.getRadiusX(),
@@ -17,11 +17,11 @@ Ext.define('Workspace.objects.dna.NodeLayout', {
 				// TODO: Make sure doLayout isn't applied before children are rendered
 				if(child.is('rendered')) {
 					child.setPosition(
-					parseInt(cx + Math.cos(theta) * rx - child.getWidth()) + this.paddingTop, // HACK
-					parseInt(cy + Math.sin(theta) * ry - child.getHeight()) + this.paddingLeft
+					parseInt(cx + Math.cos(Raphael.rad(theta)) * rx - child.getWidth()) + this.paddingTop, // HACK
+					parseInt(cy + Math.sin(Raphael.rad(theta)) * ry - child.getHeight()) + this.paddingLeft
 					);
-					child.set('rotation',Raphael.deg(theta)+(child.dtheta ? child.dtheta : 0 ));
-					theta = (theta + dtheta) % (2 * Math.PI);
+					child.set('rotation',theta+(child.dtheta ? child.dtheta : 0 ));
+					theta = (theta + dtheta) % (360);
 				}
 			},this);
 			this.ignore = false;

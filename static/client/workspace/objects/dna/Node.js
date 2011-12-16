@@ -97,7 +97,7 @@ Ext.define('Workspace.objects.dna.Node', {
 	autoFill: false,
 	fill: '#ffffff',
 	stroke: '#000000',
-	theta: Math.PI,
+	theta: 180,
 	destroyChildren: true,
 	isResizable: false,
 

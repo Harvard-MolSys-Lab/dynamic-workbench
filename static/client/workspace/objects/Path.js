@@ -91,7 +91,7 @@ Ext.define('Workspace.objects.Path', {
 	 * @private
 	 */
 	updateDimensions : function() {
-		var box = this.vectorElement.getBBox();
+		var box = this.vectorElement.getBBox(true);
 		this.set('x', box.x);
 		this.set('y', box.y);
 		this.set('height', box.height);

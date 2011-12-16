@@ -117,7 +117,7 @@ Ext.define('Workspace.Proxy', {
 	 * @private
 	 */
 	updateDimensionProps : function() {
-		var box = this.vectorElement.getBBox();
+		var box = this.vectorElement.getBBox(true);
 		this.x = (box.x);
 		this.y = (box.y);
 		this.height = (box.height);

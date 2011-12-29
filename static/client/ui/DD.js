@@ -5,9 +5,9 @@ Ext.define('App.ui.DD', {
 	extend : 'Ext.panel.Panel',
 	mixins : {
 		app : 'App.ui.Application',
-		tip: 'App.ui.TipHelper',
+		tip : 'App.ui.TipHelper',
 	},
-	requires: ['App.ui.SequenceEditor','App.ui.dd.RulesWindow','App.ui.dd.OptionsWindow'],
+	requires : ['App.ui.SequenceEditor', 'App.ui.dd.RulesWindow', 'App.ui.dd.ScoreParametersWindow'],
 	constructor : function() {
 		this.mixins.app.constructor.apply(this, arguments);
 		this.callParent(arguments);
@@ -21,6 +21,7 @@ Ext.define('App.ui.DD', {
 	 * Reports whether the designer is currently mutating
 	 */
 	mutating : false,
+	scoreFormat : '0.00',
 	initComponent : function() {
 		/**
 		 * @property {DD} designer
@@ -103,8 +104,8 @@ Ext.define('App.ui.DD', {
 				xtype : 'gridpanel',
 				ref : 'grid',
 				region : 'center',
-				selModel: {
-					mode:'multi',
+				selModel : {
+					mode : 'multi',
 				},
 				// title : 'Domains',
 				columns : [Ext.create('Ext.grid.RowNumberer', {
@@ -136,18 +137,17 @@ Ext.define('App.ui.DD', {
 					},
 					editor : {
 						allowBlank : false,
-						tooltip: {
-							title: "Edit sequence of domain",
-							text: 'Manually set the sequence of this domain by entering a sequence of bases. '+
-							'Capitalized bases will be "locked", so the designer will not mutate them. ',
-							anchor: 'top',
-							anchorOffset: 10, 
+						tooltip : {
+							title : "Edit sequence of domain",
+							text : 'Manually set the sequence of this domain by entering a sequence of bases. ' + 'Capitalized bases will be "locked", so the designer will not mutate them. ',
+							anchor : 'top',
+							anchorOffset : 10,
 						},
-						listeners: {
-							afterrender: {
-								scope:this,
-								fn: function(field) {
-									this.mixins.tip.buildTip(field); 
+						listeners : {
+							afterrender : {
+								scope : this,
+								fn : function(field) {
+									this.mixins.tip.buildTip(field);
 								}
 							}
 						}
@@ -160,19 +160,17 @@ Ext.define('App.ui.DD', {
 					editor : {
 						xtype : 'numberfield',
 						allowBlank : false,
-						tooltip: {
-							title: "Domain importance",
-							text: 'Importance is a multiplicative factor which causes the designer to weigh defects '+
-							'involving this domain more heavily. This allows you to (for instance) ensure that toehold '+
-							'domains have minimal interactions with other domains.',
-							anchor: 'top',
-							anchorOffset: 10, 
+						tooltip : {
+							title : "Domain importance",
+							text : 'Importance is a multiplicative factor which causes the designer to weigh defects ' + 'involving this domain more heavily. This allows you to (for instance) ensure that toehold ' + 'domains have minimal interactions with other domains.',
+							anchor : 'top',
+							anchorOffset : 10,
 						},
-						listeners: {
-							afterrender: {
-								scope:this,
-								fn: function(field) {
-									this.mixins.tip.buildTip(field); 
+						listeners : {
+							afterrender : {
+								scope : this,
+								fn : function(field) {
+									this.mixins.tip.buildTip(field);
 								}
 							}
 						},
@@ -192,79 +190,40 @@ Ext.define('App.ui.DD', {
 					width : 100,
 					editor : {
 						//xtype: 'numberfield'
-						xtype: 'combobox',
-		                typeAhead: true,
-		                triggerAction: 'all',
-		                forceSelection: true,
-		                selectOnTab: true,
-		                store: [[15,"GATC"],[7,"ATC"],[11,"GTC"],[14,"GAT"],[13,"GAC"],[12,"GA"],[6,"AT"],[9,"GC"],[10,"GT"],[5,"AC"],[3,"TC"],[8,"G"],[4,"A"],[3,"T"],[1,"C"]],
-		                lazyRender: true,
-		                listClass: 'x-combo-list-small',
-		                tooltip: {
-							title: "Domain base composition",
-							text: 'Specify which bases (ATCG) may be included in this domain; the designer will '+
-							'only accept mutations which contain only the specified bases.',
-							anchor: 'top',
-							anchorOffset: 10, 
+						xtype : 'combobox',
+						typeAhead : true,
+						triggerAction : 'all',
+						forceSelection : true,
+						selectOnTab : true,
+						store : [[15, "GATC"], [7, "ATC"], [11, "GTC"], [14, "GAT"], [13, "GAC"], [12, "GA"], [6, "AT"], [9, "GC"], [10, "GT"], [5, "AC"], [3, "TC"], [8, "G"], [4, "A"], [3, "T"], [1, "C"]],
+						lazyRender : true,
+						listClass : 'x-combo-list-small',
+						tooltip : {
+							title : "Domain base composition",
+							text : 'Specify which bases (ATCG) may be included in this domain; the designer will ' + 'only accept mutations which contain only the specified bases.',
+							anchor : 'top',
+							anchorOffset : 10,
 						},
-						listeners: {
-							afterrender: {
-								scope:this,
-								fn: function(field) {
-									this.mixins.tip.buildTip(field); 
+						listeners : {
+							afterrender : {
+								scope : this,
+								fn : function(field) {
+									this.mixins.tip.buildTip(field);
 								}
 							}
 						},
 					},
-					// editor: {
-					// xtype: 'combobox',
-					// store: Ext.create('Ext.data.Store',{
-					// fields: ['base','value'],
-					// data: [{base: 'G', value: 8},{base: 'A',value: 4},{base: 'T', value: 2},{base: 'C', value: 1}]
-					// }),
-					// queryMode: 'local',
-					// multiSelect: true,
-					// allowBlank: false,
-					// displayField: 'base',
-					// valueField: 'value',
-					// setValue: function(v,doSelect) {
-					// v = _.compact([v & 8 >> 3, v & 4 >> 2, v & 2 >> 1, v & 1]);
-					// this.callParent([v,doSelect]);
-					// },
-					// getValue: function() {
-					// var x = this.callParent(arguments);
-					// console.log(x);
-					// },
-					// }
 				}, {
 					header : 'Score',
 					dataIndex : 'score',
+					xtype : 'numbercolumn',
+					format : this.scoreFormat,
 					width : 100,
 					editable : false,
 				}, this.targetColumn],
 				store : this.store,
 				plugins : [this.cellEditor],
-				// {
-				// /**
-				// * @property {Ext.grid.Panel} design
-				// * Contains a preview of the threaded design
-				// */
-				// region : 'south',
-				// ref : 'design',
-				// xtype : 'gridpanel',
-				// collapsible: true,
-				// collapsed: true,
-				// title: 'Design Preview',
-				// viewConfig : {
-				// plugins : [{
-				// ptype : 'preview',
-				// bodyField : 'sequence',
-				// expanded : true,
-				// pluginId : 'preview'
-				// }]
-				// },
-				// store: this.designStore,
-				// }
+
 				tbar : {
 					// cls: 'noborder-top noborder-left noborder-right',
 					items : [{
@@ -277,8 +236,8 @@ Ext.define('App.ui.DD', {
 						ref : 'mutateButton',
 						handler : this.toggleMutation,
 						scope : this,
-						tooltip: 'Click to start/pause mutations.',
-						
+						tooltip : 'Click to start/pause mutations.',
+
 					}, '-', {
 						/**
 						 * @property {Ext.button.Button} addDomainButton
@@ -290,8 +249,7 @@ Ext.define('App.ui.DD', {
 						scope : this,
 						iconCls : 'plus',
 						xtype : 'splitbutton',
-						tooltip: 'Click the button to add a new domain of the default length. Click the arrow to choose the default length, '+
-						'or add domains with specific sequences to the design. ',
+						tooltip : 'Click the button to add a new domain of the default length. Click the arrow to choose the default length, ' + 'or add domains with specific sequences to the design. ',
 						menu : [{
 							text : 'New domain length: ',
 							canActivate : false,
@@ -319,14 +277,13 @@ Ext.define('App.ui.DD', {
 							text : 'Add specific domains...',
 							handler : this.addManyDomains,
 							scope : this,
-							tooltip: 'Open a window to add domains with specific sequences to the design.'	
-						},{
+							tooltip : 'Open a window to add domains with specific sequences to the design.'
+						}, {
 							text : 'Add domains from DD file...',
 							handler : this.loadFromDDFile,
 							scope : this,
-							tooltip: 'Open a window to add domains using a file created by a legacy version of DD. '+
-							'This also allows you to specify the importance and composition of each of the added domains.'
-							
+							tooltip : 'Open a window to add domains using a file created by a legacy version of DD. ' + 'This also allows you to specify the importance and composition of each of the added domains.'
+
 						}]
 					}, {
 						/**
@@ -343,7 +300,7 @@ Ext.define('App.ui.DD', {
 							}
 						},
 						scope : this,
-						tooltip: 'Click the button to edit the sequence of the selected domain. Click the arrow to see options to reseed existing domains.',
+						tooltip : 'Click the button to edit the sequence of the selected domain. Click the arrow to see options to reseed existing domains.',
 						menu : [{
 							text : 'Reseed Domain',
 							handler : this.reseed,
@@ -362,7 +319,7 @@ Ext.define('App.ui.DD', {
 						handler : this.doDeleteDomains,
 						scope : this,
 						iconCls : 'cross',
-						tooltip: 'Delete the selected domain',
+						tooltip : 'Delete the selected domain',
 					}, '-', {
 						text : 'Advanced',
 						iconCls : 'tools',
@@ -371,24 +328,21 @@ Ext.define('App.ui.DD', {
 							iconCls : 'wrench',
 							handler : this.designOptions,
 							scope : this,
-							tooltip: 'Change options about how DD picks sequences, such as which bases are permitted and particular motifs to penalize. ',
+							tooltip : 'Change options about how DD picks sequences, such as which bases are permitted and particular motifs to penalize. ',
 						}, {
 							text : 'Tweak score parameters',
 							iconCls : 'ui-slider',
 							handler : this.scoreParams,
 							scope : this,
-							tooltip: 'Change DD\'s objective (scoring) function.'
+							tooltip : 'Change DD\'s objective (scoring) function.'
 						}]
-					}, 
-					// '->', Ext.create('App.ui.SaveButton',{
-						// text : 'Save',
-						// iconCls : 'save',
-						// app : this,
-					// })
-					]
+					}, '->', Ext.create('App.ui.SaveButton', {
+						text : 'Save',
+						iconCls : 'save',
+						app : this,
+					})]
 				},
 				bbar : new Ext.ux.statusbar.StatusBar({
-					//cls : 'noborder-left',
 					/**
 					 * @property {Ext.ux.statusbar.Statusbar}
 					 */
@@ -407,11 +361,9 @@ Ext.define('App.ui.DD', {
 						ref : 'mutCount',
 					}]
 				}),
-				margin : 0,  //'2 0 0 2',
+				margin : 0, //'2 0 0 2',
 				bodyBorder : false,
-				//cls : 'noborder-left',
-				//bodyCls : 'noborder-left',
-				border : true,    //'0 1 1 0',
+				border : true, //'0 1 1 0',
 				split : true,
 			}, Ext.create('App.ui.NupackEditor', {
 				region : 'east',
@@ -421,8 +373,8 @@ Ext.define('App.ui.DD', {
 				collapsible : true,
 				width : 200,
 				split : true,
-				margin : 0,  //'2 2 0 0',
-				border : true,    //'0 0 1 1',
+				margin : 0, //'2 2 0 0',
+				border : true, //'0 0 1 1',
 				bodyBorder : true,
 				mode : 'nupack',
 				showNupackButton : false,
@@ -447,7 +399,7 @@ Ext.define('App.ui.DD', {
 				collapsible : true,
 				height : 200,
 				split : true,
-				border : true,    //'1 0 0 0',
+				border : true, //'1 0 0 0',
 				bodyBorder : true,
 				margin : 0, //'0 2 2 2',
 			})]
@@ -456,7 +408,7 @@ Ext.define('App.ui.DD', {
 
 		this.on('afterrender', this.loadFile, this);
 		this.callParent(arguments);
-		this.mixins.tips.init.apply(this,arguments);
+		this.mixins.tips.init.apply(this, arguments);
 		_.each(this.query('*[ref]'), function(cmp) {
 			this[cmp.ref] = cmp;
 		}, this);
@@ -469,8 +421,21 @@ Ext.define('App.ui.DD', {
 	setStrands : function(strands) {
 		this.strands = strands;
 	},
-	getSaveData: function() {
-		return this.designer.saveFile(); //this.designer.printfDomains().join('\n');
+	getSaveData : function(ext) {
+		ext || ( ext = this.document.getExt());
+		if(ext == 'ddjs') {
+			return {
+				structure : this.structPane.getValue() || '',
+				state : this.designer.saveState(),
+			};
+		} else if(ext == 'nupack' || ext == 'domains') {
+			return this.structPane.getValue();
+		} else if(ext == 'seq') {
+			this.designer.printDomains().join('\n');
+		} else if(ext == 'dd') {
+			return this.designer.saveFile();
+			//this.designer.printfDomains().join('\n');
+		}
 	},
 	/**
 	 * Loads the given design from a *.nupack or *.domains file
@@ -478,19 +443,27 @@ Ext.define('App.ui.DD', {
 	onLoad : function() {
 		if(!!this.data) {
 			var ext = this.document.getExt();
-			if(ext=='nupack' || ext=='domains') {		
+			if(ext == 'ddjs') {
+				this.structPane.setValue(this.data.structure || '');
+				this.updateDomainsFromSpec();
+				this.designer.loadState(this.data.state || {});
+				this.addDomains(this.designer.printfSequences(), [], this.designer.getCompositions(), this.designer.getImportances());
+			} else if(ext == 'nupack' || ext == 'domains') {
 				this.structPane.setValue(this.data);
 				this.updateDomainsFromSpec();
 				this.structPane.bindDocument(this.document);
 				this.bindDocument(null);
-			} else if(ext=='seq') {
+			} else if(ext == 'seq') {
 				this.addManyDomains(this.data);
-			} else if(ext=='dd') {
+			} else if(ext == 'dd') {
 				this.designer.loadFile(this.data);
-				this.addDomains(this.designer.printfSequences(),[],this.designer.getCompositions(),this.designer.getImportances());
+				this.addDomains(this.designer.printfSequences(), [], this.designer.getCompositions(), this.designer.getImportances());
 			}
 		}
 	},
+	/**
+	 * Reseeds the last-selected domain
+	 */
 	reseed : function() {
 		var rec = this.grid.getSelectionModel().getLastSelected(), dom = this.store.indexOf(rec);
 		if(rec) {
@@ -498,18 +471,25 @@ Ext.define('App.ui.DD', {
 			rec.set('sequence', this.designer.printfDomainById(dom));
 		}
 	},
+	/**
+	 * Reseeds all domains
+	 */
 	reseedAll : function() {
 		this.designer.reseed();
 		this.updateInterface()
 	},
+	/**
+	 * Syncs UI for a particular domain with the {@link #designer}
+	 * @param {Ext.data.Model} domain Record for a particular domain to sync
+	 */
 	updateDomain : function(rec) {
 		this.designer.updateDomain(this.store.indexOf(rec), rec.get('sequence'), rec.get('importance'), rec.get('composition'));
 	},
 	/**
-	 * Updates the design options in the designer
+	 * Updates the score parameters in the designer
 	 */
-	updateOptions : function(v) {
-		this.designer.updateOptions(v);
+	updateParams : function(v) {
+		this.designer.updateParams(v);
 	},
 	/**
 	 * Updates the design rules in the designer
@@ -535,12 +515,12 @@ Ext.define('App.ui.DD', {
 	 */
 	scoreParams : function() {
 		if(!this.scoreParamsWindow) {
-			this.scoreParamsWindow = Ext.create('App.ui.dd.OptionsWindow', {
+			this.scoreParamsWindow = Ext.create('App.ui.dd.ScoreParametersWindow', {
 				designer : this.designer,
 				closeAction : 'hide'
 			});
 		}
-		this.scoreParamsWindow.setValues(this.designer.getOptions());
+		this.scoreParamsWindow.setValues(this.designer.getParams());
 		this.scoreParamsWindow.show();
 	},
 	/**
@@ -550,7 +530,7 @@ Ext.define('App.ui.DD', {
 		var attempts = this.designer.getMutationAttempts(), muts = this.designer.getMutationCount(), score = this.designer.getWorstScore();
 		this.attemptCount.setText(this.attemptCount.baseText + attempts);
 		this.mutCount.setText(this.mutCount.baseText + muts);
-		this.scoreField.setText(this.scoreField.baseText + score);
+		this.scoreField.setText(this.scoreField.baseText + Ext.util.Format.number(score, this.scoreFormat));
 	},
 	/**
 	 * Deletes the selected domain(s)
@@ -558,10 +538,10 @@ Ext.define('App.ui.DD', {
 	doDeleteDomains : function() {
 		var recs = this.grid.getSelectionModel().getSelection();
 		if(recs) {
-			_.each(recs,function(rec) {
+			_.each(recs, function(rec) {
 				this.designer.removeDomain(this.store.indexOf(rec));
-				this.store.remove(rec);				
-			},this);
+				this.store.remove(rec);
+			}, this);
 		}
 	},
 	syncDomains : function(domains, clobber) {
@@ -591,7 +571,7 @@ Ext.define('App.ui.DD', {
 		if(!this.addDomainsWindow) {
 			this.addDomainsWindow = Ext.create('App.ui.dd.SequenceWindow', {
 				designer : this,
-				value: data || '',
+				value : data || '',
 			});
 		}
 		this.addDomainsWindow.show();
@@ -600,27 +580,27 @@ Ext.define('App.ui.DD', {
 		if(!this.loadDDFileWindow) {
 			this.loadDDFileWindow = Ext.create('App.ui.dd.SequenceWindow', {
 				designer : this,
-				value: data || '',
-				handler: function(data) {
+				value : data || '',
+				handler : function(data) {
 					this.designer.loadFile(data);
-					this.addDomains(this.designer.printfSequences(),[],this.designer.getCompositions(),this.designer.getImportances());
+					this.addDomains(this.designer.printfSequences(), [], this.designer.getCompositions(), this.designer.getImportances());
 				},
-				scope: this,
+				scope : this,
 			});
 		}
 		this.loadDDFileWindow.show();
-		
+
 	},
 	/**
 	 * Adds the passed domains to the designer
 	 * @param {String[]} seqs Array of sequences to add
 	 */
 	addDomains : function(seqs, names, imp, comp, dummy) {
-		imp || (imp = 1);
-		comp || (comp = 15);
+		imp || ( imp = 1);
+		comp || ( comp = 15);
 		dummy = dummy || false;
 		//, start = this.designer.getDomainCount(), end;
-		
+
 		if(!dummy) {
 			this.designer.addDomains(seqs, imp, comp);
 		}
@@ -629,7 +609,7 @@ Ext.define('App.ui.DD', {
 		// for(var i = start; i < end; i++) {
 		// newSeqs.push(this.designer.printfDomainById(i));
 		// }
-		this.store.add(_.map(seqs /*newSeqs*/, function(seq, i) {
+		this.store.add(_.map(seqs/*newSeqs*/, function(seq, i) {
 			return {
 				sequence : seq,
 				importance : _.isArray(imp) ? imp[i] : imp,
@@ -725,8 +705,8 @@ Ext.define('App.ui.DD', {
 				memo[ name ? name : i] = this.designer.printDomainById(i);
 				return memo;
 			}, {}, this);
-			this.strandsPane.setValue(_.map(this.strands,function(spec,name) {
-			return name+' : '+DNA.threadSegments(segments,spec);
+			this.strandsPane.setValue(_.map(this.strands, function(spec, name) {
+				return name + ' : ' + DNA.threadSegments(segments, spec);
 			}).join('\n'));
 		}
 	},
@@ -741,13 +721,12 @@ Ext.define('App.ui.DD', {
 			this.designer.evaluateAllScores();
 			this.scoresDirty = false;
 		}
-		
+
 		// update all sequences in grid (since some might have been Ns, and DD will have picked new sequences by now)
 		var doms = this.designer.printfDomains();
-		_.each(doms,function(seq,dom) {
-			this.store.getAt(dom).set('sequence',seq);
-		},this);
-		
+		_.each(doms, function(seq, dom) {
+			this.store.getAt(dom).set('sequence', seq);
+		}, this);
 		if(!this.mutationTask) {
 			this.mutationTask = Ext.TaskManager.start({
 				run : this.mutationLoop,

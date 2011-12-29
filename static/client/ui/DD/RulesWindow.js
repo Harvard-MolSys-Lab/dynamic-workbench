@@ -1,3 +1,6 @@
+/**
+ * Displays a window, allowing the user to change the design options (rules) in {@link App.ui.DD DD}.
+ */
 Ext.define('App.ui.dd.RulesWindow', {
 	extend: 'Ext.window.Window',
 	requires: ['App.ui.BasePicker'],

@@ -1,22 +1,7 @@
-// var options = {
-// MAX_MUTATIONS: 10, // maximum number of simultaneous mutations
-// GCstr:2,
-// ATstr:1,
-// GTstr:0,
-// MBstr:-3, // mismatch, bulge
-// LLstr:-0.5, // large loop
-// DHstr:3, // score for domain ending in a base pair
-// LHbases:4,
-// LHstart:2,
-// LHpower:2,
-// MAX_IMPORTANCE:100,
-// INTRA_SCORE:5, // score bonus for intrastrand/dimerization interactions
-// CROSSTALK_SCORE:-5, // score bonus for crosstalk (as compared to interaction)
-// CROSSTALK_DIV:2, // crosstalk score is divided by this much (and then score is subtracted)
-// GGGG_PENALTY:50,
-// ATATAT_PENALTY:20,
-// };
-Ext.define('App.ui.dd.OptionsWindow', {
+/**
+ * Window allowing DD users to edit score parameters
+ */
+Ext.define('App.ui.dd.ScoreParametersWindow', {
     extend: 'Ext.window.Window',
     title: 'Score Parameters',
     layout: 'fit',
@@ -37,6 +22,7 @@ Ext.define('App.ui.dd.OptionsWindow', {
                     fieldLabel: 'Maximum simultaneous mutations',
                     xtype: 'numberfield',
                     name: 'MAX_MUTATIONS',
+                    labelWidth: 175,
                 }, {
                     xtype: 'fieldset',
                     title: 'Base composition',
@@ -168,13 +154,39 @@ Ext.define('App.ui.dd.OptionsWindow', {
         this.callParent(arguments);
         this.form = this.down('form');
     },
+    /**
+     * Saves values and updates them in the {@link App.ui.DD designer UI}.
+     */
     save: function () {
-        this.designer.updateOptions(this.getValues());
+        this.designer.updateParams(this.getValues());
         this.hide();
     },
+    /**
+     * Returns parameter values in a hash. Parameter values and defaults:
+     * 
+     * `MAX_MUTATIONS` -  10, maximum number of simultaneous mutations
+     * `GCstr` - 2,
+     * `ATstr` - 1,
+     * `GTstr` - 0,
+     * `MBstr` - -3, mismatch, bulge
+     * `LLstr` - -0.5, large loop
+     * `DHstr` - 3, score for domain ending in a base pair
+     * `LHbases` - 4,
+     * `LHstart` - 2,
+     * `LHpower` - 2,
+     * `MAX_IMPORTANCE` - 100,
+     * `INTRA_SCORE` - 5, score bonus for intrastrand/dimerization interactions
+     * `CROSSTALK_SCORE` - -5, score bonus for crosstalk (as compared to interaction)
+     * `CROSSTALK_DIV` - 2, crosstalk score is divided by this much (and then score is subtracted)
+     * `GGGG_PENALTY` - 50,
+     * `ATATAT_PENALTY` - 20,
+     */
     getValues: function () {
         return this.form.getValues();
     },
+    /**
+     * Accepts parameter values as a hash and updates form values.
+     */
     setValues: function (v) {
         return this.form.getForm().setValues(v);
     },

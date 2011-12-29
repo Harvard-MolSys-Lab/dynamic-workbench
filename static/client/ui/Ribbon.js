@@ -47,6 +47,9 @@ Ext.define('App.ui.Ribbon', {
 				bodyBorder : false,
 			})
 		});
+		
+		this.selection = [];
+		
 		App.ui.Ribbon.superclass.initComponent.apply(this, arguments);
 
 		_.each(['toolsTab', 'insertTab', 'fillStroke', 'geometry', 'metaTab'], function(item) {
@@ -87,8 +90,12 @@ Ext.define('App.ui.Ribbon', {
 		this.workspace = workspace;
 
 		// bind ribbon to objects when selected in workspace
-		this.mon(this.workspace, 'select', this.bind, this);
-		this.mon(this.workspace, 'unselect', this.unbind, this);
+		this.mon(this.workspace, 'select', this.onSelectionChange, this, {
+			buffer: 500,
+		});
+		this.mon(this.workspace, 'unselect', this.onSelectionChange, this, {
+			buffer: 500,
+		});
 
 	},
 	/**
@@ -107,26 +114,56 @@ Ext.define('App.ui.Ribbon', {
 		var undoAction = action.getUndo();
 		this.workspace.doAction(action);
 	},
+	onSelectionChange : function() {
+		var toBind = _.difference(this.workspace.getSelection(),this.selection),
+			toUnbind = _.difference(this.selection,this.workspace.getSelection());
+		
+		this.bind(toBind);
+		this.unbind(toUnbind);
+		
+		// copy new items into this.selection
+		this.selection = this.workspace.getSelection();
+	},
+	
 	/**
 	 * bind
 	 * Binds the ribbon to the passed items
 	 * @param {Workspace.objects.Object} item
 	 */
-	bind : function(item) {
+	bind : function(items) {
+		if(!_.isArray(items)) {			
+			items = [items];
+		}
+		
+		// for each ribbon tab
 		this.items.each(function(tab) {
-			if(tab.bind && Ext.isFunction(tab.bind))
-				tab.bind(item);
+			if(tab.bind && Ext.isFunction(tab.bind)) {
+				
+				// for each newly selected item
+				_.each(items,function(item) {
+					tab.bind(item);	
+				});
+			}
 		});
+
 	},
 	/**
 	 * unbind
 	 * Unbinds the ribbon from the passed items
 	 * @param {Workspace.objects.Object} item
 	 */
-	unbind : function(item) {
+	unbind : function(items) {
+		if(!_.isArray(items)) {			
+			items = [items];
+		}
+		
 		this.items.each(function(tab) {
-			if(tab.unbind && Ext.isFunction(tab.unbind))
-				tab.unbind(item);
+			if(tab.unbind && Ext.isFunction(tab.unbind)) {
+				// for each newly unselected item
+				_.each(items,function(item) {				
+					tab.unbind(item);
+				});
+			}
 		});
 	},
 	saveWorkspace : function() {

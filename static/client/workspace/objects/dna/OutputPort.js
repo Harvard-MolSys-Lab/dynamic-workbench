@@ -12,6 +12,7 @@ Ext.define('Workspace.objects.dna.OutputPort', {
 	name: 'Output Port',
 	width: 8,
 	height: 8,
+	polarity: 1,
 	isResizable: false,
 	constructor: function() {
 		this.callParent(arguments);

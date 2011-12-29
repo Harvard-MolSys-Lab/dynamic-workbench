@@ -8,6 +8,7 @@ Ext.define('Workspace.objects.dna.BridgePort', {
 	wtype: 'Workspace.objects.dna.BridgePort',
 	width: 8,
 	height: 8,
+	polarity: 1,
 	shape: 'square',
 	stroke: 'purple',
 	strokeWidth: 2,

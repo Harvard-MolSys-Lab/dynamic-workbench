@@ -8,6 +8,7 @@ Ext.define('Workspace.objects.dna.InputPort', {
 	wtype: 'Workspace.objects.dna.InputPort',
 	width: 12,
 	height: 12,
+	polarity: 1,
 	shape: 'triangle',
 	stroke: 'orange',
 	strokeWidth: 2,

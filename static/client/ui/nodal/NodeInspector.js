@@ -1,9 +1,11 @@
 Ext.define('App.ui.nodal.NodeInspector', {
+	requires : ['App.ui.nodal.StrandPreview'],
 	extend : 'Ext.form.Panel',
 	title : 'Node',
 	bodyPadding : 5,
 	enableBoundFields : true,
 	initComponent : function() {
+
 		Ext.apply(this, {
 			defaults : {
 				xtype : 'textfield',
@@ -20,17 +22,47 @@ Ext.define('App.ui.nodal.NodeInspector', {
 				minValue : 0,
 				maxValue : 360,
 				width : 100,
-				increment: 15,
+				increment : 15,
 				anchor : '95%',
 				objectBinding : 'theta',
 				tipText : function(thumb) {
 					return String(thumb.value) + '°';
 				}
 			}, {
+				xtype: 'checkbox',
+				fieldLabel: 'Polarity',
+				objectBinding : 'polarity',
+			},{
+				xtype : 'combo',
+				store : Workspace.objects.dna.motifStore,
+				queryMode : 'local',
+				displayField : 'number',
+				valueField : 'number',
+				forceSelection : true,
+				listConfig : {
+					getInnerTpl : function() {
+						return '<div class="search-item"><img src="images/motifs/m{number}.gif" /></div>';
+					}
+				},
 				fieldLabel : 'Motif',
 				objectBinding : 'motif',
 				anchor : '95%',
-			}],
+			}, Ext.create('App.ui.nodal.StrandPreview', {
+				objectBinding : 'motif',
+				items : [],
+				height: 150,
+				anchor : '95%',
+			})
+			// {
+			// xtype : 'panel',
+			// layout : 'fit',
+			// border: '1 1 1 1',
+			// objectBinding: 'motif',
+			// height: 300,
+			// anchor : '95%',
+			// items : [],
+			// }
+			],
 			showIf : function(wtype) {
 				return (wtype == 'Workspace.objects.dna.Node');
 			},

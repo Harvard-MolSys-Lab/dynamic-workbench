@@ -54,7 +54,14 @@ Ext.define('App.ui.BoundObjectPanel', {
 				 */
 				var eventName = field.objectBindingEvent || 'change';
 				field.addListener(eventName, this.updateObjects, this);
-				this.boundFields.add(field.objectBinding, field);
+				if(!this.boundFields.containsKey(field.objectBinding)) {
+					this.boundFields.add(field.objectBinding, [field]);
+				} else {
+					var list = this.boundFields.getByKey(field.objectBinding);
+					list.push(field);
+					this.boundFields.add(field.objectBinding, list);
+				}
+
 			}, this);
 		}
 
@@ -103,7 +110,7 @@ Ext.define('App.ui.BoundObjectPanel', {
 		if(!this.ignoreNext) {
 			if(field.objectBinding) {
 				var values = {}, action;
-				values[field.objectBinding] = newValue;
+				values[field.objectBinding] = field.getValue(); //	newValue;
 
 				// Build WorkspaceAction
 				action = new Workspace.actions.ChangePropertyAction({
@@ -121,10 +128,12 @@ Ext.define('App.ui.BoundObjectPanel', {
 	 * @param {Workspace.Object} item
 	 */
 	updateFields : function(item) {
-		this.boundFields.each(function(field) {
-			if(item.has(field.objectBinding)) {
-				field.setValue(item.get(field.objectBinding));
-			}
+		this.boundFields.each(function(list) {
+			_.each(list, function(field) {
+				if(item.has(field.objectBinding)) {
+					field.setValue(item.get(field.objectBinding));
+				}
+			});
 		}, this);
 	},
 	/**
@@ -135,9 +144,11 @@ Ext.define('App.ui.BoundObjectPanel', {
 	 */
 	updateFieldsHandler : function(prop, val, item) {
 		if(this.boundFields.containsKey(prop)) {
-			var f = this.boundFields.get(prop);
+			var list = this.boundFields.get(prop);
 			this.ignoreNext = true;
-			f.setValue(val);
+			_.each(list, function(f) {
+				f.setValue(val);
+			});
 			this.ignoreNext = false;
 		}
 	},

@@ -23,7 +23,7 @@ Ext.define('App.ui.NodalCanvas',{
 				ref: 'palatte',
 				title: 'Motifs',
 		})];
-		this.inspectors = [Ext.create('App.ui.nodal.NodeInspector')];
+		this.inspectors = [Ext.create('App.ui.nodal.NodeInspector'),Ext.create('App.ui.nodal.PortInspector')];
 		this.callParent(arguments);
 	} 
 });

@@ -18,7 +18,8 @@ Workspace.objects.dna.Motifs = {
 
 Workspace.objects.dna.Ports = {
 	'input': {
-		wtype: 'Workspace.objects.dna.InputPort'
+		wtype: 'Workspace.objects.dna.InputPort',
+		stroke: 'orange',
 	},
 	'init': {
 		wtype: 'Workspace.objects.dna.OutputPort',
@@ -46,7 +47,7 @@ Workspace.objects.dna.motifStore = (function() {
 	var data = [], i=0;
 	for(var m in Workspace.objects.dna.Motifs) {
 		data[i] = {
-			number: m,
+			number: m, //parseInt(m),
 			spec: Workspace.objects.dna.Motifs[m]
 		};
 		i++;
@@ -55,7 +56,7 @@ Workspace.objects.dna.motifStore = (function() {
 		extend: 'Ext.data.Model',
 		fields: [{
 			name: 'number',
-			type:'int'
+			type: 'string'
 		},{
 			name: 'spec',
 			type: 'auto'

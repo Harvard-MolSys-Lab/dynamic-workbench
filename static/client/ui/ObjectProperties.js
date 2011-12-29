@@ -17,6 +17,8 @@ Ext.define('App.ui.ObjectProperties', {
 			source : {},
 			title : 'All Properites'
 		});
+		
+		this.selection = [];
 
 		this.items = this.items || [];
 		this.items.push(this.grid);
@@ -47,6 +49,21 @@ Ext.define('App.ui.ObjectProperties', {
 		var undoAction = action.getUndo();
 		this.workspace.doAction(action);
 	},
+	onSelectionChange : function() {
+		var toBind = _.difference(this.workspace.getSelection(),this.selection),
+			toUnbind = _.difference(this.selection,this.workspace.getSelection());
+		
+		_.each(toBind,function(item) {
+			this.bind(item);
+		});
+		_.each(toUnbind,function(item) {
+			this.unbind(item);
+		});
+				
+		// copy new items into this.selection
+		this.selection = this.workspace.getSelection();
+	},
+	
 	bind : function(obj) {
 		this.unbind();
 		this.boundObject = obj;
@@ -85,8 +102,12 @@ Ext.define('App.ui.ObjectProperties', {
 		this.workspace = workspace;
 
 		// bind ribbon to objects when selected in workspace
-		this.mon(this.workspace, 'select', this.bind, this);
-		this.mon(this.workspace, 'unselect', this.unbind, this);
+		this.mon(this.workspace, 'select', this.bind, this, {
+			buffer: 200,
+		});
+		this.mon(this.workspace, 'unselect', this.unbind, this, {
+			buffer: 200,
+		});
 
 	},
 })

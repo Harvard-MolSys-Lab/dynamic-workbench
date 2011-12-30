@@ -1,5 +1,4 @@
 /**
- * App.ui.NupackResults
  * Application to show results of a NUPACK complexes and concentrations calculation.
  * Note: see the server-side nupackAnalysis section for details on the input format to this application
  * @consumes *.nupack-results

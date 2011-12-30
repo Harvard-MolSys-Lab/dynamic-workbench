@@ -21,12 +21,11 @@ Ext.define('App.ui.CodeMirror', {
 
 		this.addEvents(
 		/**
-		 * @event 
+		 * @event
 		 * Fires when the cursor changes position
 		 * @param {App.ui.CodeMirror} panel This class
 		 * @param {CodeMirror} editor The codemirror instance
-		 */
-		 'cursorchange');
+		 */'cursorchange');
 	},
 	/**
 	 * Builds the CodeMirror instance
@@ -61,6 +60,9 @@ Ext.define('App.ui.CodeMirror', {
 			this.value = v;
 		}
 	},
+	/**
+	 * Unmarks all regions in the editor.
+	 */
 	unmark : function() {
 		for(var i = 0; i < this.marked.length; ++i)this.marked[i]();
 		this.marked.length = 0;
@@ -74,7 +76,8 @@ Ext.define('App.ui.CodeMirror', {
 		this.unmark();
 		if(!text)
 			return;
-		for(var cursor = editor.getSearchCursor(text); cursor.findNext(); )this.marked.push(editor.markText(cursor.from(), cursor.to(), "searched"));
+		for(var cursor = editor.getSearchCursor(text); cursor.findNext(); )
+		this.marked.push(editor.markText(cursor.from(), cursor.to(), "searched"));
 
 		if(this.lastQuery != text)
 			this.lastPos = null;
@@ -98,7 +101,8 @@ Ext.define('App.ui.CodeMirror', {
 		this.unmark();
 		if(!text)
 			return;
-		for(var cursor = editor.getSearchCursor(text); cursor.findNext(); )editor.replaceRange(replace, cursor.from(), cursor.to());
-	}
+		for(var cursor = editor.getSearchCursor(text); cursor.findNext(); )
+		editor.replaceRange(replace, cursor.from(), cursor.to());
+	},
 }, function() {
 });

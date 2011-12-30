@@ -1,3 +1,6 @@
+/**
+ * Allows selection of a subset of DNA bases (A, T, C, G). Used in {@link App.ui.DD DD}.
+ */
 Ext.define('App.ui.BasePicker',{
 	alias: 'widget.basepicker',
 	extend: 'Ext.ux.form.field.BoxSelect',
@@ -19,11 +22,20 @@ Ext.define('App.ui.BasePicker',{
         ]});
 		this.callParent(arguments);
 	},
+	/**
+	 * Returns a DD base bitmask
+	 */
 	getAggregate: function() {
 		var v = this.getValue();
 		//v = v.split(this.delimiter);
 		return _.reduce(v, function(memo, num){ return memo + parseInt(num); }, 0);
 	},
+	/**
+	 * Allows population with a DD base bitmask, as follows:
+	 * 
+	 *     8 4 2 1
+	 *     G A T C
+	 */
 	setAggregate: function(v) {
 		v = parseInt(v);
 		var x = [

@@ -8,7 +8,14 @@
  */
 Ext.define('App.ui.TipHelper', {
 	/**
-	 * @config {Object} tooltip
+	 * @cfg {Object} tooltip
+	 * Configuration object for an {@link Ext.tip.ToolTip}. This property should be specified on child components.
+	 * The tooltip will be automatically created and bound to the element for the child component. Any valid configuration
+	 * options for {@link Ext.tip.ToolTip} are allowed.
+	 */
+	/**
+	 * @property {Ext.tip.ToolTip} tip Each child component with a configured {@link #tooltip} will have a reference to
+	 * the generated {@link Ext.tip.ToolTip tooltip} attached to this property.
 	 */
 	
 	/**
@@ -48,6 +55,9 @@ Ext.define('App.ui.TipHelper', {
 		this.tips.push(tip);
 		field.tip = tip;
 	},
+	/**
+	 * Destroys all tooltips for this components' children.
+	 */
 	destroyTips : function() {
 		_.each(this.tips,function(tip) {
 			if (tip && tip.destroy) {

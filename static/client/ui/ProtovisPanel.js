@@ -1,26 +1,31 @@
 /**
- * @class App.ui.ProtovisPanel
- * Allows ProtoVis visualizations to be automatically sized and displayed within an {@link Ext.panel.Panel}
+ * Allows ProtoVis visualizations to be automatically sized and displayed 
+ * within a {@link Ext.panel.Panel panel}
  */
 Ext.define('App.ui.ProtovisPanel', {
 	alias: 'widget.pvpanel',
 	extend: 'Ext.panel.Panel',
 	/**
-	 * @cfg pan {Boolean} true to automatically allow panning of the display (defaults to true)
+	 * @cfg pan {Boolean} 
+	 * true to automatically allow panning of the display (defaults to true)
 	 */
 	pan: true,
 	/**
-	 * @cfg zoom {Number} if >0, mousewheel events on the visualization will zoom with this speed; false to disable zooming (defaults to 1)
+	 * @cfg zoom {Number} if >0, mousewheel events on the visualization will 
+	 * zoom with this speed; false to disable zooming (defaults to 1)
 	 */
 	zoom: 1,
 	bpadding: 20,
 	/**
-	 * @cfg autoRender {Boolean} true to automatically render the visualization after the component renders; false to render manually using
-	 * {@link #afterrender} (defaults to false)
+	 * @cfg autoRender {Boolean} 
+	 * true to automatically render the visualization after the component 
+	 * renders; false to render manually using {@link #afterrender} (defaults 
+	 * to false)
 	 */
 	autoRender: false,
 	/**
-	 * @cfg autoSize {Boolean} true to automatically scale the visualization to the size of the panel's body element (defaults to true)
+	 * @cfg autoSize {Boolean} true to automatically scale the visualization to
+	 * the size of the panel's body element (defaults to true)
 	 */
 	autoSize: true,
 	initComponent: function() {
@@ -33,8 +38,8 @@ Ext.define('App.ui.ProtovisPanel', {
 		}
 	},
 	/**
-	 * afterrender
-	 * Renders the visualization. Called automatically if {@link #autoRender} is true
+	 * Renders the visualization. Called automatically if {@link #autoRender} 
+	 * is true
 	 */
 	afterrender: function() {
 		if(!this.built) {
@@ -49,22 +54,20 @@ Ext.define('App.ui.ProtovisPanel', {
 		}
 	},
 	/**
-	 * getBodyWidth
 	 * @return {Number} width of the body element in pixels
 	 */
 	getBodyWidth: function() {
 		return this.body.getWidth();
 	},
 	/**
-	 * getBodyHeight
 	 * @return {Number} height of the body element in pixels
 	 */
 	getBodyHeight: function() {
 		return this.body.getHeight();
 	},
 	/**
-	 * resizeVis
-	 * Updates the size (if {@link #autoSize} is true) of the visualization on panel resize. Calls user-defined {@link #updateVis}
+	 * Updates the size (if {@link #autoSize} is true) of the visualization on 
+	 * panel resize. Calls user-defined {@link #updateVis}
 	 */
 	resizeVis: function(p,w,h) {
 		if(this.autoSize) {
@@ -74,8 +77,8 @@ Ext.define('App.ui.ProtovisPanel', {
 		this.vis.render();
 	},
 	/**
-	 * renderVis
-	 * Renders the visualization. Do not override this method; override {@link #buildVis} to specify your visualization.
+	 * Renders the visualization. Do not override this method; override 
+	 * {@link #buildVis} to specify your visualization.
 	 */
 	renderVis: function() {
 		if(this.vis) {
@@ -84,13 +87,12 @@ Ext.define('App.ui.ProtovisPanel', {
 		}
 	},
 	/**
-	 * updateVis
-	 * Override this method to provide custom logic upon panel resize (such as updating visualization parameters other than width and height)
+	 * Override this method to provide custom logic upon panel resize (such as 
+	 * updating visualization parameters other than width and height)
 	 */
 	updateVis: function() {
 	},
 	/**
-	 * hideVis
 	 * Hides the visualization.
 	 */
 	hideVis: function() {
@@ -100,21 +102,21 @@ Ext.define('App.ui.ProtovisPanel', {
 		}
 	},
 	/**
-	 * buildVis
 	 * Override this method to provide your custom visualization logic
 	 */
 	buildVis: function() {
 		return this.getCanvas();
 	},
 	/**
-	 * getCanvas
-	 * Builds the visualization panel, sizes, and sets pan and zoom events if specified.
+	 * Builds the visualization panel, sizes, and sets pan and zoom events if 
+	 * specified.
 	 * @returns {pv.Panel} panel the visualization panel
 	 */
 	getCanvas: function() {
 		/**
-		 * @property {pv.Panel} vis The visualization panel to which you can write. Ensure it is built by calling
-		 * {@link #getCanvas}.
+		 * @property {pv.Panel} vis 
+		 * The visualization panel to which you can write. Ensure it is built 
+		 * by calling {@link #getCanvas}.
 		 */
 		if(!this.vis) {
 			this.vis = new pv.Panel()

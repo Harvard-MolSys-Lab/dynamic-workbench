@@ -1,3 +1,6 @@
+/**
+ * Allows editing and execution of Javascript code within the interface.
+ */
 Ext.define('App.ui.JavascriptEditor', {
 	extend : 'App.ui.TextEditor',
 	iconCls : 'js',
@@ -11,6 +14,12 @@ Ext.define('App.ui.JavascriptEditor', {
 			tbar : [{
 				text : 'Run',
 				iconCls: 'run',
+				/**
+				 * @property {Ext.button.Button}
+				 * Button wo which the {@link #buildAppMenu app menu} is 
+				 * attached; can be used to run the script in the context of an
+				 * App.ui.Application
+				 */
 				ref : 'runButton',
 				xtype : 'splitbutton',
 				menu: this.buildAppMenu(),
@@ -36,11 +45,19 @@ Ext.define('App.ui.JavascriptEditor', {
 			btn.menu = this.buildAppMenu();
 		},this);
 	},
+	/**
+	 * Builds a menu containing a list of {@link App.ui.Application apps} 
+	 * registered with App.ui.Launcher. 
+	 * 
+	 */
 	buildAppMenu : function() {
 		return App.ui.Launcher.getAppMenu(Ext.bind(function(app) {
 				this.executeInContext(app);
 			}, this));
 	},
+	/**
+	 * Executes code in this editor in the context of the passed {@link App.ui.Application app}
+	 */
 	executeInContext : function(app) {
 		App.ui.Launcher.console.executeInContext(this.getValue(), app, true);
 	}

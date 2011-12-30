@@ -1,3 +1,6 @@
+/**
+ * Allows editing of Pepper scripts.
+ */
 Ext.define('App.ui.Pepper', {
 	extend: 'App.ui.TextEditor',
 	initComponent: function() {

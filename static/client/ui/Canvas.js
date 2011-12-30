@@ -1,8 +1,6 @@
 /**
- * @class App.ui.Canvas
  * The application interface. Responsible for constructing a {@link Workspace} object, managing user interface controls which appear
  * outside the Workspace area itself (such as the Object tree and Ribbon UI)
- * @extends Ext.Panel
  */
 Ext.define('App.ui.Canvas', {
 	extend: 'Ext.panel.Panel',
@@ -30,13 +28,22 @@ Ext.define('App.ui.Canvas', {
 
 		Ext.apply(this, {
 			items: [{
-				xtype: 'ribbon',
 				// North region: Ribbon interface
+				xtype: 'ribbon',
 				region: 'north',
 				height: 100,
+				/**
+				 * @property {App.ui.Ribbon} ribbon
+				 * Strip containing various tabs related to objects in the workspace. The ribbon should provide actions
+				 * relevant to the selection.
+				 */
 				ref: 'ribbon',
 				collapseMode: 'mini',
 				canvas: this,
+				/**
+				 * @cfg {Ext.panel.Panel[]/App.ui.BoundObjectPanel[]} ribbonItems
+				 * Array containing components or config objects to be added to this canvas' #ribbon.
+				 */
 				items: this.ribbonItems || null,
 				margins: '0 0 5 0',
 			},{
@@ -44,10 +51,17 @@ Ext.define('App.ui.Canvas', {
 				// Center region: workspace canvas
 				region: 'center',
 				xtype: 'panel',
+				/**
+				 * @property {Ext.panel.Panel} bodyPanel
+				 * Panel into which the #workspace is rendered.
+				 */
 				ref: 'bodyPanel',
 				autoScroll: true,
 				bbar: {
 					items: ['->','Zoom:&nbsp;',{
+						/**
+						 * @property {Ext.slider.Single} zoomField
+						 */
 						ref: 'zoomField', //ref: '../../zoomField',
 						xtype: 'slider',
 						value: 1,
@@ -67,15 +81,9 @@ Ext.define('App.ui.Canvas', {
 						}
 					}]
 				}
-				/*
-				bbar: new Ext.ux.StatusBar({
-				ref: '../statusBar'
-				})
-				*/
-				// West region: Tree of objects
 			},{
+				// West region: Tree of objects
 				region: 'west',
-				// margins: '0 0 0 5',
 				split: true,
 				collapseMode: 'mini',
 				collapsible: true,
@@ -103,6 +111,11 @@ Ext.define('App.ui.Canvas', {
 					preventHeader: true,
 					plain: true,
 					title: 'Palettes',
+					/**
+					 * @property {Ext.tab.Panel} palettes
+					 * Tabbed panel containing a set of palettes containing objects which can be dragged 
+					 * and dropped onto the workspace canvas. Palettes can be configured with {@link #cfg-palettes}
+					 */
 					ref: 'palettes',
 					region: 'south',
 					height: 300,
@@ -111,10 +124,20 @@ Ext.define('App.ui.Canvas', {
 					titleCollapse: true,
 					border: true,
 					frame: false,
+					/**
+					 * @cfg {App.ui.Palette[]} palettes
+					 * Array of components or config objects for palettes containing objects which can be 
+					 * dragged and dropped onto the workspace canvas. Palettes will be rendered into 
+					 * {@link #property-palettes}
+					 */
 					items: this.palettes,
 					collapsed: (this.palettes.length > 0),
 				}]
 			}, Ext.create('App.ui.ObjectProperties',{
+				/**
+				 * @property {App.ui.ObjectProperties} objectProperties
+				 * Contains the {@link #inspectors}.
+				 */
 				ref: 'objectProperties',
 				width: 250,
 				split: true,
@@ -124,6 +147,11 @@ Ext.define('App.ui.Canvas', {
 				border: true,
 				frame: false,
 				region: 'east',
+				/**
+				 * @cfg {App.ui.BoundObjectPanel[]} inspectors
+				 * Array of components of config objects for inspectors which are used to view and edit
+				 * properties of selected objects.
+				 */
 				items:this.inspectors,
 			}), ]
 		});
@@ -132,16 +160,11 @@ Ext.define('App.ui.Canvas', {
 		_.each(['ribbon', 'bodyPanel','zoomField','objectTree','palatte','objectProperties'], function(item) {
 			this[item] = this.down('*[ref='+item+']');
 		},this);
+		
 		// build interface on render
 		this.bodyPanel.on('render', function() {
 
-			// // mask workspace while deserializing
-			// var mask = new Ext.LoadMask(this.bodyPanel.body, {
-			// msg: 'Loading Workspace...'
-			// });
-
 			this.loadWorkspace();
-
 			this.zoomField.on('change',this.zoomWorkspace,this);
 
 		},
@@ -153,45 +176,12 @@ Ext.define('App.ui.Canvas', {
 	 */
 	loadWorkspace: function() {
 		this.loadFile();
-		// this.loadingMask = new Ext.LoadMask(this.bodyPanel.body, {
-		// msg: 'Loading Workspace...'
-		// });
-		// if(this.doc) {
-		// this.loadingMask.show();
-		// this.doc.loadBody({
-		// success: this.onLoad,
-		// failure: this.onLoadFail,
-		// scope: this
-		// });
-		// } else {
-		// this.workspaceData = {};
-		// this.doLoad();
-		// }
-		// if(this.path) {
-		// this.loadingMask.show();
-		// if(App.User.isLoggedIn()) {
-		// Ext.Ajax.request({
-		// url: App.getEndpoint('load'),//'/canvas/index.php/workspaces/save',
-		// method: 'GET',
-		// params: {
-		// node: this.path,
-		// },
-		// success: this.onLoad,
-		// failure: this.onLoadFail,
-		// scope: this
-		// });
-		// } else {
-		// Ext.log('Not logged in; could not load saved workspace from server. Opening blank workspace.');
-		// }
-		// } else {
-		// this.workspaceData = {};
-		// this.doLoad();
-		// }
+		
 	},
-	// onLoad: function(text) {
-	// this.workspaceData = Ext.isEmpty(text) ? {} : Ext.decode(text);
-	// this.doLoad();
-	// },
+	/**
+	 * @cfg
+	 * True to automatically hide the loading mask
+	 */
 	autoHideLoadingMask: false,
 	/**
 	 * Builds the {@link Workspace} with the data loaded from the {@link App.Document} body
@@ -200,12 +190,18 @@ Ext.define('App.ui.Canvas', {
 		this.workspaceData = Ext.isEmpty(this.data) ? {} : Ext.decode(this.data);
 		this.workspaceData.path = this.getPath();
 
+		/**
+		 * @property {Workspace} workspace
+		 * Reference to the {@link Workspace} object which manages objects on the canvas.
+		 */
+
 		// build workspace, using loaded data bootstrapped from App.loadData
 		this.workspace = new Workspace(this.bodyPanel.body, this.workspaceData);
 		this.workspace.on('afterload', function() {
 			this.setupWorkspace();
 
 			this.loadingMask.hide();
+			
 			// deprecated
 			this.bodyPanel.on('bodyresize', function(c, w, h) {
 				this.workspace.bodyResize(c,w,h);
@@ -213,6 +209,7 @@ Ext.define('App.ui.Canvas', {
 			this.bodyPanel.on('resize', function(c,w,h) {
 				this.workspace.bodyResize(c,this.bodyPanel.body.getWidth(),this.bodyPanel.body.getHeight());
 			},this);
+			
 			// deprecated
 			App.defaultWorkspace = this.workspace;
 
@@ -230,25 +227,27 @@ Ext.define('App.ui.Canvas', {
 		});
 	},
 	/**
-	 * Called after workspace is created and loaded
+	 * Called after the #workspace is created and loaded. Override to provide custom logic on workspace creation.
 	 */
 	setupWorkspace: function() {
 		
 	},
 	/**
-	 * Serializes, encodes, and saves the workspace to the server (proxies {@link #saveFile}).
+	 * Serializes, encodes, and saves the #workspace to the server (proxies {@link #saveFile}).
 	 */
 	saveWorkspace: function() {
 		this.saveFile();
 	},
 	/**
-	 * Serializes the workspace to save
+	 * Serializes the #workspace to save
 	 */
 	getSaveData: function() {
 		return this.workspace.serialize();
 	},
 	/**
-	 * Zooms the workspace to the given zoom value
+	 * Zooms the #workspace to the given zoom value
+	 * @param {Ext.slider.Single} slider Reference to the #zoomSlider
+	 * @param {Number} value Zoom value (1 = 100%, 2 = 100%, etc.)
 	 */
 	zoomWorkspace: function(s,v) {
 		this.workspace.zoomTo(v);

@@ -1,3 +1,6 @@
+/**
+ * Simple menu allowing the user to open a tab containing the Caltech [NUPACK web server](http://www.nupack.org/)
+ */
 Ext.define('App.ui.NupackMenu', {
 	extend: 'Ext.menu.Menu',
 	initComponent: function() {

@@ -3,7 +3,7 @@ Ext.define('App.ui.TextEditor', {
 	mixins: {
 		app: 'App.ui.Application'
 	},
-	requires: ['App.ui.SaveButton'],
+	requires: ['App.ui.SaveButton','App.ui.CodeMirror'],
 	mode:'',
 	layout: 'fit',
 	editorType: '',
@@ -48,5 +48,11 @@ Ext.define('App.ui.TextEditor', {
 	},
 	getValue: function() {
 		return this.editor.getValue.apply(this.editor,arguments);
-	}
+	},
+	/**
+	 * Returns the current selection.
+	 */
+	getSelection: function() {
+		return this.editor.codemirror.getSelection();
+	},
 });

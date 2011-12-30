@@ -1,3 +1,6 @@
+/**
+ * 
+ */
 Ext.define('App.ui.Help',{
 	extend: 'App.ui.Browser',
 	title: 'Help',

@@ -4,16 +4,23 @@
 Ext.define('App.ui.CreateMenu', {
 	extend: 'Ext.menu.Menu',
 	/**
+	 * @cfg
 	 * Text to show ahead of the file name field
 	 */
 	labelText: 'File Name:',
 	/**
+	 * @cfg
 	 * Text to show in the item which will show the menu of file types
 	 */
 	createText: 'Create',
+	/**
+	 * @cfg
+	 * Icon class for the #createButton
+	 */
 	createIconCls: 'tick',
 	/**
-	 * True to automatically build the file type menu by calling {@link #getCreateMenu}
+	 * @cofg
+	 * True to automatically build the file type menu by calling #getCreateMenu
 	 */
 	autoCreateMenu: true,
 	initComponent: function() {
@@ -70,6 +77,9 @@ Ext.define('App.ui.CreateMenu', {
 			},this);
 		}
 	},
+	/**
+	 * Override to provide custom logic upon clicking the #createButton
+	 */
 	onCreateButton: function() {
 		
 	},

@@ -1,6 +1,6 @@
 /**
- * @class App.ui.ObjectTree
- * Displays a tree of objects in the workspace, grouped heirarchically
+ * Displays a tree of objects in the workspace, grouped hierarchically based on
+ * {@link Workspace.objects.Objects.Object#parent parent/child relationships}
  */
 Ext.define('App.ui.ObjectTree', {
 	extend: 'Ext.tree.TreePanel',
@@ -14,7 +14,6 @@ Ext.define('App.ui.ObjectTree', {
 		//this.editor.on('complete', this.onEditName, this);
 	},
 	/**
-	 * attachTo
 	 * Links this tree to the passed {@link Workspace}
 	 * @param {Workspace} workspace
 	 */
@@ -30,7 +29,7 @@ Ext.define('App.ui.ObjectTree', {
 	},
 	/**
 	 * Finds a node in the tree for the passed object
-	 * @param {Workspace.Object} item
+	 * @param {Workspace.objects.Object} item
 	 * @return {Ext.tree.Node} node
 	 */
 	findNodeForObject: function(item) {
@@ -57,7 +56,6 @@ Ext.define('App.ui.ObjectTree', {
 		return this.workspace.getObjectById(node.id);
 	},
 	/**
-	 * onEditName
 	 * callback invoked by tree editor after a node's text has been edited; sets the name of the requisite object
 	 * @param {Ext.tree.TreeEditor} editor
 	 * @param {Object} value
@@ -67,7 +65,6 @@ Ext.define('App.ui.ObjectTree', {
 		o.set('name', value);
 	},
 	/**
-	 * onSelect
 	 * callback invoked by the selection model after the selection has been changed; updates the workspace selection to match
 	 * @param {Object} sm
 	 * @param {Object} nodes
@@ -85,9 +82,8 @@ Ext.define('App.ui.ObjectTree', {
 		}
 	},
 	/**
-	 * onWorkspaceSelect
 	 * listener invoked by the workspace when its selection changes; updates the tree's selection to match
-	 * @param {Workspace.Object} item
+	 * @param {Workspace.objects.Object} item
 	 */
 	onWorkspaceSelect: function(item) {
 		if (!this.ignoreSelectionChange) {
@@ -100,9 +96,8 @@ Ext.define('App.ui.ObjectTree', {
 		}
 	},
 	/**
-	 * onWorkspaceUnselect
 	 * listener invoked by the workspace when its selection changes; updates the tree's selection to match
-	 * @param {Workspace.Object} item
+	 * @param {Workspace.objects.Object} item
 	 */
 	onWorkspaceUnselect: function(item) {
 		if (!this.ignoreSelectionChange) {
@@ -115,9 +110,8 @@ Ext.define('App.ui.ObjectTree', {
 		}
 	},
 	/**
-	 * onCreate
 	 * listener invoked by the workspace when an object is constructed; builds a node for it in the tree
-	 * @param {Workspace.Object} obj
+	 * @param {Workspace.objects.Object} obj
 	 */
 	onCreate: function(obj) {
 		var parentNode;
@@ -139,6 +133,10 @@ Ext.define('App.ui.ObjectTree', {
 		}
 		obj.on('change', this.onChange, this);
 	},
+	/**
+	 * Moves the node for a particular object such that it resides beneath its parent node.
+	 * @param {Workspace.objects.Objects.Object} obj
+	 */
 	bindParent: function(obj) {
 		var node = this.findNodeForObject(obj),
 		parentNode = this.findNodeForObject(obj.getParent());
@@ -148,9 +146,8 @@ Ext.define('App.ui.ObjectTree', {
 		}
 	},
 	/**
-	 * onObjectDestroy
 	 * listener invoked by the workspace when an object is constructed; builds a node for it in the tree
-	 * @param {Workspace.Object} obj
+	 * @param {Workspace.objects.Objects.Object} obj
 	 */
 	onObjectDestroy: function(obj) {
 		var node = this.findNodeForObject(obj);
@@ -161,11 +158,10 @@ Ext.define('App.ui.ObjectTree', {
 		obj.un('change', this.onChange, this);
 	},
 	/**
-	 * onChange
 	 * listener invoked by an object when one of its properties is changed; updates the tree to match
 	 * @param {String} prop
 	 * @param {Mixed} value
-	 * @param {Workspace.Object} obj
+	 * @param {Workspace.objects.Object} obj
 	 */
 	onChange: function(prop, value, old, obj) {
 		if (!this.ignoreChange && obj && obj.getId) {

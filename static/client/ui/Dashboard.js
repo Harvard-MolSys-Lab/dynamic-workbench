@@ -21,6 +21,9 @@ Ext.define('App.ui.Dashboard', {
 		});
 		this.callParent();
 	},
+	/**
+	 * Perform custom personization actions upon initialization of the dashboard. 
+	 */
 	initDashboard: function() {
 		if(App.User.isLoggedIn()) {
 			Ext.get('fp-user-name').update(App.User.name+' ('+App.User.email+')');

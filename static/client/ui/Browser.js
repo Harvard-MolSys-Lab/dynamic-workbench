@@ -1,5 +1,5 @@
 /**
- * Opens an {@link App.ui.Application} tab containing an iframe with the configured {@link #url}
+ * Opens an {@link App.ui.Application application} tab containing an iframe with the configured #url
  */
 Ext.define('App.ui.Browser', {
 	extend: 'Ext.panel.Panel',

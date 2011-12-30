@@ -6,6 +6,9 @@
 
 Ext.define('App.ui.ObjectProperties', {
 	extend : 'App.ui.BoundObjectPanel',
+	/**
+	 * @inheritdoc
+	 */
 	enableBoundFields : false,
 	constructor : function() {
 		App.ui.ObjectProperties.superclass.constructor.apply(this, arguments);
@@ -41,7 +44,6 @@ Ext.define('App.ui.ObjectProperties', {
 		}, this);
 	},
 	/**
-	 * doAction
 	 * Invokes the passed {@link Workspace.actions.Action} on the {@link #workspace}
 	 * @param {Workspace.actions.Action} action
 	 */
@@ -49,6 +51,9 @@ Ext.define('App.ui.ObjectProperties', {
 		var undoAction = action.getUndo();
 		this.workspace.doAction(action);
 	},
+	/**
+	 * Called when the {@link Workspace#selection selection} of the {@link #workspace attached workspace} changes.
+	 */
 	onSelectionChange : function() {
 		var toBind = _.difference(this.workspace.getSelection(),this.selection),
 			toUnbind = _.difference(this.selection,this.workspace.getSelection());
@@ -98,6 +103,10 @@ Ext.define('App.ui.ObjectProperties', {
 			this.ignore = true;
 		}
 	},
+	/**
+	 * Attaches to a particular {@link Workspace}.
+	 * @param {Workspace} workspace
+	 */
 	attachTo : function(workspace) {
 		this.workspace = workspace;
 

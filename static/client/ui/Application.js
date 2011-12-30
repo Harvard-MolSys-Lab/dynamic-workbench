@@ -14,7 +14,15 @@ Ext.define('App.ui.Application', {
 	 * in order to provide custom logic to show or hide the saving mask
 	 */
 	autoHideSavingMask : true,
+	/**
+	 * @cfg
+	 * Message to display when the application pane is masked while loading a file
+	 */
 	loadingMsg : 'Loading File...',
+	/**
+	 * @cfg
+	 * Message to display when the application pane is masked while loading a file
+	 */
 	savingMsg : 'Saving File...',
 	/**
 	 * @constructor
@@ -22,6 +30,9 @@ Ext.define('App.ui.Application', {
 	constructor : function(config) {
 		this.bindDocument( config ? (config.document ? config.document : null) : null);
 	},
+	/**
+	 * Re-fetches the {@link App.Document document} from App.DocumentStore
+	 */
 	renew : function() {
 		if(this.doc) {
 			var oldId = this.doc.id;

@@ -1,5 +1,4 @@
 /**
- * @class App.ui.MotifPalette
  * Allows motifs to be added to workspace by drag and drop
  */
 Ext.define('App.ui.MotifPalette', {
@@ -21,10 +20,16 @@ Ext.define('App.ui.MotifPalette', {
 			}]
 		});
 		this.callParent(arguments);
-		//App.ui.MotifPalette.superclass.initComponent.apply(this,arguments);
+		
+		/**
+		 * @property {Ext.view.View}
+		 */
 		this.view = this.getComponent('view');
 
 		this.view.on('render', function(v) {
+			/**
+			 * @property {Ext.dd.DragZone}
+			 */
 			this.dragZone = new Ext.dd.DragZone(v.getEl(), {
 
 				// On receipt of a mousedown event, see if it is within a DataView node.

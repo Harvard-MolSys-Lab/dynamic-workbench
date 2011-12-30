@@ -1,3 +1,6 @@
+/**
+ * Allows graphical editing of Nodal systems.
+ */
 Ext.define('App.ui.NodalCanvas',{
 	extend: 'App.ui.Canvas',
 	editorType: 'Nodal',
@@ -19,11 +22,25 @@ Ext.define('App.ui.NodalCanvas',{
 				border : false,
 			}],
 		});
+		/**
+		 * @property {App.ui.MotifPalette} palette
+		 */
 		this.palettes = [Ext.create('App.ui.MotifPalette',{
 				ref: 'palatte',
 				title: 'Motifs',
 		})];
-		this.inspectors = [Ext.create('App.ui.nodal.NodeInspector'),Ext.create('App.ui.nodal.PortInspector')];
+		/**
+		 * @property {App.ui.nodal.NodeInspector} nodeInspector
+		 */
+		this.inspectors = [Ext.create('App.ui.nodal.NodeInspector',{
+			ref :'nodeInspector',
+		}),
+		/**
+		 * @property {App.ui.nodal.PortInspector} portInspector
+		 */
+		Ext.create('App.ui.nodal.PortInspector',{
+			ref :'portInspector',
+		})];
 		this.callParent(arguments);
 	} 
 });

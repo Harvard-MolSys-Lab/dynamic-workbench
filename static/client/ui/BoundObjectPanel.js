@@ -1,14 +1,15 @@
 /**
- * @class App.ui.BoundObjectPanel
  * Allows ribbon tabs to be bound to {@link Workspace.objects. Object}s and fields within the panel to be bound to object properties.
  * Components within this panel which contain an {@link #objectBinding} property will be set to the value of that property when objects are bound, and
  * changes to those components triggering the change event (or another event specified in {@link #objectBindingEvent}) will cause {@link WorkspaceAction}s
  * to be generated and applied to the attached workspace.
- * @extends Ext.Panel
- *
  */
 Ext.define('App.ui.BoundObjectPanel', {
 	extend : 'Ext.panel.Panel',
+	/**
+	 * @cfg {Boolean} Allows the binding of {@link Machine.core.serializable#expose object properties} to fields
+	 * within this component to be categorically disabled.  
+	 */
 	enableBoundFields : true,
 	initComponent : function() {
 		//App.ui.BoundObjectPanel.superclass.initComponent.apply(this, arguments);
@@ -20,7 +21,7 @@ Ext.define('App.ui.BoundObjectPanel', {
 
 		/**
 		 * @property {Workspace.objects.ObjectCollection}
-		 * Objects which have been bound to this panel with {#bind}
+		 * Objects which have been bound to this panel with #bind
 		 */
 		this.boundObjects = Ext.create('Workspace.objects.ObjectCollection', {});
 
@@ -71,33 +72,7 @@ Ext.define('App.ui.BoundObjectPanel', {
 		this.on('afterrender', this.updateDynamicFields, this);
 	},
 	buildTips : function() {
-		/*
-		 // collect all fields with tooltip configs specified
-		 var tips = this.findBy( function(cmp) {
-		 return (Ext.isDefined(cmp.tooltip) && cmp.tooltip != '' && !cmp.isXType('button', true));
-		 },
-		 this);
 
-		 // oh, yeah and look in the toolbar too since that's where they're ALL going to be
-		 if (this.topToolbar) {
-		 tips = tips.concat(this.topToolbar.findBy( function(cmp) {
-		 return (Ext.isDefined(cmp.tooltip) && cmp.tooltip != '' && !cmp.isXType('button', true));
-		 },
-		 this));
-		 }
-		 this.tips = [];
-		 Ext.each(tips, function(field) {
-		 if (field.tooltip) {
-		 var t = field.tooltip;
-		 if (t.text && !t.html) {
-		 t.html = t.text;
-		 }
-		 t.target = field.getEl();
-		 this.tips.push(new Ext.ToolTip(t));
-		 }
-		 },
-		 this)
-		 */
 	},
 	/**
 	 * listener invoked by bound field on change (or other {@link #objectBinding} event); generates a {@link Workspace.actions.Action} to update
@@ -152,6 +127,9 @@ Ext.define('App.ui.BoundObjectPanel', {
 			this.ignoreNext = false;
 		}
 	},
+	/**
+	 * Updates child elements with #showIf and/or #enableIf methods. Called upon item binding/unbinding.
+	 */
 	updateDynamicFields : function() {
 		var common = this.boundObjects.getCommonWType();
 		this.dynamicFields.each(function(f) {
@@ -188,7 +166,6 @@ Ext.define('App.ui.BoundObjectPanel', {
 		}, this);
 	},
 	/**
-	 * bind
 	 * Attaches the given object to this panel, so that changes in the panel will be reflected in the object
 	 * @param {Workspace.Object} item
 	 */
@@ -203,7 +180,6 @@ Ext.define('App.ui.BoundObjectPanel', {
 		}
 	},
 	/**
-	 * unbind
 	 * Detaches the given object from this panel
 	 * @param {Workspace.Object} item
 	 */

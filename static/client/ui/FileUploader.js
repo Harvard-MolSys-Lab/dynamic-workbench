@@ -1,3 +1,6 @@
+/**
+ * Manages file uploading
+ */
 Ext.define('App.ui.FileUploader', {
 	extend: 'Ext.util.Observable',
 	constructor: function(cfg) {

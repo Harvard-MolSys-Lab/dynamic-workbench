@@ -1,3 +1,6 @@
+/**
+ * Allows DNA base sequences to be easily viewed and edited.
+ */
 Ext.define('App.ui.SequenceEditor', {
 	extend: 'App.ui.TextEditor',
 	mode: 'sequence',

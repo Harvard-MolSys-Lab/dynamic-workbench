@@ -1,0 +1,116 @@
+{"categories":[
+      {
+      	"name": "Applications",
+      	"groups": [
+  			{
+      			"name": "Text Editors",
+      			"classes": [
+      				"App.ui.JavascriptEditor",
+      				"App.ui.NupackEditor",
+      				"App.ui.Pepper",
+      				"App.ui.SequenceEditor"
+      			]
+      		},{
+      			"name": "Canvases",
+      			"classes": [
+      				"App.ui.Canvas",
+      				"App.ui.NodalCanvas",
+      				"App.ui.SecondaryCanvas"
+      			]
+      		},{
+      			"name": "Other",
+      			"classes": [
+      				"App.ui.Browser",
+      				"App.ui.Dashboard",
+      				"App.ui.DD",
+      				"App.ui.Help",
+      				"App.ui.NupackResults",
+      				"App.ui.Viewer"
+      			]
+      		}
+      	]
+      }, {
+      	"name": "Canvas",
+      	"groups": [
+	      	{
+	      		"name": "Interface",
+	      		"classes":[
+	      			"App.ui.BoundObjectPanel",
+	      			"App.ui.FillStrokeTab",
+	      			"App.ui.GeometryTab",
+	      			"App.ui.InsertTab",
+	      			"App.ui.MetaTab",
+	      			"App.ui.MotifPalette",
+	      			"App.ui.ObjectProperties",
+	      			"App.ui.ObjectTree",
+	      			"App.ui.Ribbon",
+	      			"App.ui.ToolsTab"
+	      		]
+	      	},{
+	      		"name": "Objects",
+	      		"classes": [
+	      			"Workspace.objects.*"
+	      		]
+	      	},{
+	      		"name": "Tools",
+	      		"classes": [
+	      			"Workspace.tools.*"
+	      		]
+	      	},{
+	      		"name": "Layout",
+	      		"classes": [
+	      			"Workspace.idea.*"
+	      		]
+	      	},{
+	      		"name": "Misc",
+	      		"classes": [
+	      			"Workspace.ConnectionLabel",
+	      			"Workspace.DDManager",
+	      			"Workspace.FileUploader",
+	      			"Workspace.Label",
+	      			"Workspace.Proxy",
+	      			"Workspace.Shim"
+	      		]
+	      	}
+      	]
+      }, {
+          "name": "General",
+          "groups": [
+              {
+                  "name": "Application Management",
+                  "classes": [
+                      "App.ui.Application",
+                      "App.ui.Launcher",
+                      "App.ui.TabPanel"
+                  ]
+              }, {
+                  "name": "Files",
+                  "classes": [
+                      "App.ui.DragDropManager",
+                      "App.ui.FilesTree",
+                      "App.ui.FileUploader"
+                  ]
+              }, {
+              	"name": "Widgets",
+              	"classes":[
+              		"App.ui.BasePicker",
+              		"App.ui.CodeMirror",
+              		"App.ui.CompareMenu",
+              		"App.ui.CreateMenu",
+              		"App.ui.NupackMenu",
+              		"App.ui.ProtovisPanel",
+              		"App.ui.SaveButton",
+              		"App.ui.SequenceStats",
+              		"App.ui.SequenceThreader",
+              		"App.ui.StatMenu"
+              	]
+              },{
+              	"name":"Helpers",
+              	"classes":[
+              		"App.ui.RefHelper",
+              		"App.ui.TipHelper"
+              	]
+              }
+          ]
+      }
+  ]}

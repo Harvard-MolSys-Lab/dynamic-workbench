@@ -477,6 +477,10 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 .warning {
 	background-image: url(/images/icons/fugue/exclamation.png) !important;		
 }
+.clean {
+	background-image: url(/images/icons/fugue/broom.png) !important;
+}
+
 
 /* File types */
 .nodal {
@@ -497,6 +501,7 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 .js {
 	background-image: url(/images/icons/fugue/script.png) !important;
 }
+
 
 .spurious-c, .spurious {
 	background-image: url(/images/icons/fugue/document-attribute-c.png) !important;

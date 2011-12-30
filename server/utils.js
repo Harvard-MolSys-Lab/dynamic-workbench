@@ -1,7 +1,8 @@
 var path = require('path'),
 	config = require('./config'),
 	auth = require('./auth'),
-	fs = require('fs');
+	fs = require('fs'),
+	winston = require('winston');
 
 
 var filesPath = config.files.path,
@@ -51,6 +52,16 @@ exports.allowedPath = function(testPath,req) {
 		}
 	}
 	return (req ? authAllowed : true) && (testPath ? (testPath.indexOf('..')==-1) : false);
+}
+
+exports.log = function(options) {
+	var level = options.level || 'error',
+		err = options.err || false,
+		source = options.source || "",
+		message = options.message || options.msg || "";
+	
+	options.stack = err.stack;
+	winston.log(level, (source ? source + ":" : "") + message, options);
 }
 
 function getCommand(spec,args) {

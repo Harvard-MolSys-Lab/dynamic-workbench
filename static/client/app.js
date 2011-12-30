@@ -1,14 +1,12 @@
-/***********************************************************************************************
+/* ***************************************************************************
  * InfoMachine
  *
- *
  * Copyright (c) 2010-2011 Casey Grun
- *
- ***********************************************************************************************
+ * ***************************************************************************
  * ~/client/app.js
  *
  * Defines App namespace, various utility functions
- ***********************************************************************************************/
+ * ***************************************************************************/
 
 /**
  * @class App
@@ -17,19 +15,45 @@
  */
 App = new Ext.util.Observable();
 Ext.apply(App, {
-
+	
+	/**
+	 * @property
+	 */
 	name : 'DyNAMiC Workbench',
+	
+	/**
+	 * @property
+	 * HTML-formatted version of the name
+	 */
 	nameFormatted : '<b>DyNAMiC</b> Workbench',
+	
+	/**
+	 * @property
+	 * Semver-formatted version number
+	 */
 	version : '0.3.2a',
+	
+	/**
+	 * @property
+	 * Identifies the app as release- or pre-release.
+	 */
 	isPreRelease : true,
+	
+	/**
+	 * Returns the full title of the application
+	 */
 	getFullTitle : function() {
 		return App.name + ' (' + App.version + ')'
 	},
+	
+	/**
+	 * Returns a formatted HTML version of the full title of the application
+	 */
 	getFullTitleFormatted : function() {
 		return '<span class="app-title"><span>' + App.nameFormatted + '</span> (' + App.version + ')</span>'
 	},
+	
 	/**
-	 * nextId
 	 * Generates a random UUID
 	 */
 	nextId : function() {
@@ -45,32 +69,38 @@ Ext.apply(App, {
 });
 
 /**
- * loadData
+ * @method loadData
  * Used for bootstrapping loading of saved workspace data. This method is invoked automatically by
  * controller code; do not call directly.
+ * @deprecated
  */
 App.loadData = function(data) {
 	App._data = data;
 }
 /**
- * getLoadedData
+ * @method getLoadedData
  * Retrieves loaded workspace data
+ * @deprecated
  */
 App.getLoadedData = function() {
 	return App._data;
 }
+/**
+ * @method getDefaultWorkspace
+ * @deprecated
+ */
 App.getDefaultWorkspace = function() {
 	return App.defaultWorkspace;
 }
 /**
- * @class App.endpoints
+ * @class App.Endpoints
  * Allows configuration of AJAX callback URLs. Code making AJAX requests should call {@link #getEndpoint} with the
  * appropriate endpoint name to discover the URL.
  * PHP code in the view will automatically configure relevant endpoints by calling {@link #setEndpoint} immediately
  * after this file is loaded
  * @singleton
  */
-App.endpoints = function() {
+App.Endpoints = App.endpoints = function() {
 	var endpoints = {};
 	return {
 		/**
@@ -91,20 +121,23 @@ App.endpoints = function() {
 	}
 }();
 /**
+ * @inheritdocs App.endpoints#getEndpoint
  * @member App
  */
 App.getEndpoint = App.endpoints.getEndpoint;
 /**
+ * @inheritdocs App.endpoints#setEndpoint
  * @member App
  */
  App.setEndpoint = App.endpoints.setEndpoint;
 
 /**
- * @class App.ribbon
+ * @class App.Ribbon
  * Allows configuration of ribbon toolbar
  * @singleton
+ * @deprecated
  */
-App.ribbon = function() {
+App.Ribbon = App.ribbon = function() {
 	var ribbon = false;
 	return {
 		getRibbonItems : function() {
@@ -117,10 +150,12 @@ App.ribbon = function() {
 }();
 /**
  * @member App
+ * @deprecated
  */
 App.getRibbonItems = App.ribbon.getRibbonItems;
 /**
  * @member App
+ * @deprecated
  */
 App.setRibbonItems = App.ribbon.setRibbonItems;
 
@@ -497,8 +532,10 @@ App.Stylesheet = {
 }
 
 /**
+ * @method gluer
  * @param {Object} o1: {source, eventName, handler}
  * @param {Object} o2: {source, eventName, handler}
+ * @member App
  */
 App.gluer = function(o1, o2) {
 	this.id = App.getId();
@@ -535,11 +572,15 @@ Ext.extend(App.gluer, {
 });
 
 /**
- * App.glue({
- *   source: toolButton,
- *   eventName: 'toggle',
- *   handler: function(toggleState) {  }
- * })
+ * @method glue
+ * 
+ *     App.glue({
+ *       source: toolButton,
+ *       eventName: 'toggle',
+ *       handler: function(toggleState) {  }
+ *     })
+ * 
+ *	@member App
  */
 App.glue = function() {
 	var gluers = {};
@@ -556,18 +597,22 @@ App.glue = function() {
 	};
 }();
 /**
- * App.mixin
+ * @method mixin
  * @param {Function} target Class to which properties will be copied
  * @param {Function} source Class from which properties will be copied
+ * @member App
  */
 App.mixin = function(target, source) {
 	Ext.override(target, source.prototype);
 }
+
+
+
 /**
- * @class App.registry
+ * @class App.Registry
  * Allows creation of named type registries (e.g. classes can be registered)
  */
-App.registry = function(tname) {
+App.Registry = function(tname) {
 	this.tname = tname;
 	var types = {};
 	Ext.apply(this, {

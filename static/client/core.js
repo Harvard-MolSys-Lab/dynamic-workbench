@@ -1,9 +1,3 @@
-/********************************************
- * InfoMachine
- *
- * Copyright (c) 2010 Casey Grun
- *********************************************/
-
 /**
  * @class Machine.core.Serializable
  * @alias SerializableObject
@@ -36,7 +30,7 @@ Ext.define('Machine.core.Serializable', {
 		
 		this.addEvents(
 		/**
-		 * @event change
+		 * @event
 		 * Fired when one of this object's properties is {@link #set}
 		 * @param {String} property The name of the property
 		 * @param {Mixed} value The new value of the property
@@ -56,7 +50,6 @@ Ext.define('Machine.core.Serializable', {
 		'meta'
 		/**
 		 * @event change:*
-		 * @event change:(prop)
 		 * Fires when <var>x</var> is {@link #set}
 		 * @param {Mixed} newValue
 		 * @param {Mixed} oldValue
@@ -327,6 +320,7 @@ Ext.define('Machine.core.Serializable', {
 Ext.override(Ext.util.MixedCollection, {
 	/**
 	 * See {@link Machine.core.Serializable#serialize}
+	 * @member Ext.util.MixedCollection
 	 */
 	serialize: function(isChild) {
 		isChild = isChild || false;

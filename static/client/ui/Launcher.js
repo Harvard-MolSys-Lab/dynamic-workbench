@@ -175,6 +175,11 @@ Ext.define('App.ui.Launcher', {
 		editorType : 'Nodal',
 		iconCls : 'nodal',
 	});
+	
+	App.ui.Launcher.register('secondary', 'App.ui.SecondaryCanvas', {
+		title : 'Secondary Structure',
+	});
+	
 	App.ui.Launcher.register('primary', 'App.ui.Canvas', {
 		title : 'Primary Structure',
 		editorType : 'Primary',

@@ -9,7 +9,8 @@ Ext.Loader.setPath('Workspace','client/workspace');
 ////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * @class Workspace
- * Manages the Workspace area, {@link Workspace.tools.BaseTool}s, saving and loading {@link Workspace.objects.Object}s
+ * Manages the Workspace area, {@link Workspace.tools.BaseTool tools}, saving 
+ * and loading {@link Workspace.objects.Object objects}.
  * @constructor
  * @param {Ext.Element} element The HTML element to which to render this Workspace
  * @param {Object} config Configuration properties
@@ -775,14 +776,29 @@ Ext.define('Workspace', {
 			action.handler.apply(action.scope);
 		}
 	},
+	/**
+	 * Destroys the workspace
+	 */
 	destroy: function() {
 		// destroy scrollers
 		Ext.each(this.scrollers, function(s) {
 			s.render();
 		});
+		
+		
 		// destroy vector
+		this.paper.remove();
+		
 		// unset element listeners
+		this.element.un('click', this.click, this, false);
+		this.element.un('dblclick', this.dblclick, this, false);
+		this.element.un('mousedown', this.mousedown, this, false);
+		this.element.un('mouseup', this.mouseup, this, false);
+		this.element.un('mousemove', this.mousemove, this, false);
 	},
+	/**
+	 * 
+	 */
 	zoomTo: function(factor) {
 		this.lens.setZoom(factor);
 		var el = $(this.getEl().dom);
@@ -843,7 +859,6 @@ Workspace.Components = (function() {
 			typeStore.add(rec);
 		},
 		/**
-		 * getType
 		 * Returns the class corresponding to the passed wtype
 		 * @param {String} wtype The mneumonic name of the type to lookup
 		 */
@@ -851,7 +866,6 @@ Workspace.Components = (function() {
 			return types[wtype];
 		},
 		/**
-		 * get
 		 * Gets an object by its id. Unlike {@link Workspace#getObjectById}, this method locates an object within the entire application
 		 * @param {String} id
 		 */
@@ -860,7 +874,6 @@ Workspace.Components = (function() {
 			// TODO: fix this
 		},
 		/**
-		 * has
 		 * Determines whether an object in the application has the given id.
 		 * @param {String} id
 		 */
@@ -868,7 +881,6 @@ Workspace.Components = (function() {
 			return objects.containsKey(id);
 		},
 		/**
-		 * create
 		 * Instantiates an object of the passed class or configured wtype.
 		 * @param {Function} objectClass Constructor to which <var>config</var> should be passed. May be omitted if <var>config</var> contains a registered wtype.
 		 * @param {Object} config Object containing configuration parameters
@@ -899,7 +911,6 @@ Workspace.Components = (function() {
 			return false;
 		},
 		/**
-		 * realize
 		 * Realizes a complex object (any object with an id and a wtype) by either instantiating the object or resolving the reference.
 		 * That is, if an object with the given wtype and id already exists in the application, it is returned. Otherwise, an object
 		 * with the given wtype is instantiated using parameters in config. If the value passed to config has already been instantiated,
@@ -919,7 +930,6 @@ Workspace.Components = (function() {
 			}
 		},
 		/**
-		 * serialize
 		 * Traverses properties/elements of the passed item and serializes them. If o is an array, returns an array
 		 * containing the results of applying this function to every element. If o is an object, returns a hash containing
 		 * the results of applying this function to each value in the object. If o has its own <var>serialize</var> function,
@@ -958,7 +968,6 @@ Workspace.Components = (function() {
 			return o;
 		},
 		/**
-		 * deserialize
 		 * Deserializes an object hash serialized by {@link #serialize}.
 		 * Note: to deserialize complex objects, each object must contain a registered wtype.
 		 * Note 2: this method still accepts Javascript objects; it does not decode JSON strings. That function
@@ -1036,10 +1045,12 @@ Workspace.Components = (function() {
 		},
 	};
 })();
+
 /**
- * reg
+ * @method reg
  * Alias for {@link Workspace.Components.register}
  * @static
+ * @member Workspace
  */
 Workspace.reg = Workspace.Components.register;
 
@@ -1253,7 +1264,7 @@ Workspace.Tools = Workspace.tools.ToolManager = (function() {
 })();
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-Workspace.Layouts = new App.registry('ltype');
+Workspace.Layouts = new App.Registry('ltype');
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 

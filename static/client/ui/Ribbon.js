@@ -12,6 +12,7 @@ Ext.define('App.ui.Ribbon', {
 	bodyBorder : true,
 	tabPosition : 'bottom',
 	initComponent : function() {
+		
 		Ext.applyIf(this, {
 			activeTab : 0,
 			defaults : {
@@ -106,7 +107,6 @@ Ext.define('App.ui.Ribbon', {
 		this.workspace.setActiveTool(tool);
 	},
 	/**
-	 * doAction
 	 * Invokes the passed {@link Workspace.actions.Action} on the {@link #workspace}
 	 * @param {Workspace.actions.Action} action
 	 */
@@ -114,6 +114,9 @@ Ext.define('App.ui.Ribbon', {
 		var undoAction = action.getUndo();
 		this.workspace.doAction(action);
 	},
+	/**
+	 * Handler which responds to a changed {@link #workspace workspace} {@link Workspace#selection}.
+	 */
 	onSelectionChange : function() {
 		var toBind = _.difference(this.workspace.getSelection(),this.selection),
 			toUnbind = _.difference(this.selection,this.workspace.getSelection());
@@ -126,7 +129,6 @@ Ext.define('App.ui.Ribbon', {
 	},
 	
 	/**
-	 * bind
 	 * Binds the ribbon to the passed items
 	 * @param {Workspace.objects.Object} item
 	 */
@@ -148,7 +150,6 @@ Ext.define('App.ui.Ribbon', {
 
 	},
 	/**
-	 * unbind
 	 * Unbinds the ribbon from the passed items
 	 * @param {Workspace.objects.Object} item
 	 */

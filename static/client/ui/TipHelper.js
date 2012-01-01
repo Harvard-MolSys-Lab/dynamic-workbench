@@ -4,7 +4,7 @@
  * tooltips. This class will search the component heirarchy and build tooltips for 
  * and children which require them.
  * 
- * Child components requiring tooltips should have a {#tooltip} configuration option.
+ * Child components requiring tooltips should have a #tooltip configuration option.
  */
 Ext.define('App.ui.TipHelper', {
 	/**

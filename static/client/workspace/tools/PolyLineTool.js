@@ -51,8 +51,6 @@ Ext.define('Workspace.tools.PolyLineTool', {
 		this.drawing = false;
 		this.dragging = false;
 		this.currentPoints.pop();
-		this.currentPoints.pop();
-		this.currentPath.pop();
 		this.currentPath.pop();
 		this.points.pop();
 		var o = this.workspace.createObject(this.buildObject());
@@ -90,6 +88,12 @@ Ext.define('Workspace.tools.PolyLineTool', {
 			});
 		}
 		e.stopEvent();
+	},
+	deactivate: function() {
+		if(this.currentShape) {
+			this.currentShape.remove();
+		}
+		this.callParent(arguments);
 	}
 }, function() {
 	Workspace.Tools.register('polyline', Workspace.tools.PolyLineTool);

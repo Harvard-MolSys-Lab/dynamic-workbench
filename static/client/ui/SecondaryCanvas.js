@@ -2,7 +2,8 @@ Ext.define('App.ui.SecondaryCanvas',{
 	extend: 'App.ui.Canvas',
 	editorType: 'Secondary',
 	iconCls: 'nodal',
-	requires: ['App.ui.secondary.HomeTab','Workspace.objects.secondary.ComplementarityManager','Workspace.tools.secondary.StrandTool'],
+	requires: ['App.ui.secondary.HomeTab','Workspace.objects.secondary.ComplementarityManager',
+		'Workspace.tools.secondary.ComplementarityTool','Workspace.tools.secondary.StrandTool',],
 	border : false,
 
 	constructor: function() {

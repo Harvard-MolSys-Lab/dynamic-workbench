@@ -1,8 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Ext.define('Workspace.tools.nodal.ComplementarityTool', {
+Ext.define('Workspace.tools.secondary.ComplementarityTool', {
 	extend:'Workspace.tools.ConnectorTool',
-	require: ['Workspace.objects.dna.Complementarity',],
+	requires: ['Workspace.objects.secondary.Complementarity',],
 	parameters: {
 		"arrow-end": 'classic-wide-long',
 		"stroke-dasharray": '.',
@@ -10,22 +10,21 @@ Ext.define('Workspace.tools.nodal.ComplementarityTool', {
 		"stroke-width":1.5,
 	},
 	acceptLeft: function() {
-		return Workspace.objects.dna.Complementarity.prototype.acceptLeft.apply(this,arguments);
+		return Workspace.objects.secondary.Complementarity.prototype.acceptLeft.apply(this,arguments);
 	},
 	acceptRight: function() {
-		return Workspace.objects.dna.Complementarity.prototype.acceptRight.apply(this,arguments);
+		return Workspace.objects.secondary.Complementarity.prototype.acceptRight.apply(this,arguments);
 	},
 	canConnect: function() {
-		return Workspace.objects.dna.Complementarity.prototype.canConnect.apply(this,arguments);
+		return Workspace.objects.secondary.Complementarity.prototype.canConnect.apply(this,arguments);
 	},
 	onConnect: function(conn,left,right) {
-		if(left.isWType('Workspace.objects.dna.BridgePort') && right.isWType('Workspace.objects.dna.BridgePort')) {
-			conn.setBoth = true;
-			conn.updateProperty();
-		}
+		if(conn.onConnect) { 
+			conn.onConnect(left,right);
+		} 
 	},
-	targetWType: 'Workspace.objects.dna.Complementarity'
+	targetWType: 'Workspace.objects.secondary.Complementarity'
 }, function() {
-	Workspace.Tools.register('complementarity',Workspace.tools.nodal.ComplementarityTool);
+	Workspace.Tools.register('domain_complement',Workspace.tools.secondary.ComplementarityTool);
 });
 

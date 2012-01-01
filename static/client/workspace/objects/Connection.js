@@ -8,7 +8,7 @@ Ext.define('Workspace.objects.Connection', {
 	statics : {
 		/**
 		 * getPoint
-		 * Gets an imitation {@link Workspace.object.Object} suitable *only* to be passed to a 
+		 * Gets an imitation {@link Workspace.object.Object} suitable *only* to be passed to a
 		 * {@link Workspace.objects.Connection} as one of its anchors.
 		 * @static
 		 * @param {Object} x
@@ -61,7 +61,7 @@ Ext.define('Workspace.objects.Connection', {
 		}
 	},
 	extend : 'Workspace.objects.VectorObject',
-	requires: ['Workspace.objects.Path'],
+	requires : ['Workspace.objects.Path'],
 	shape : 'path',
 	isMovable : false,
 	name : 'New Connection',
@@ -129,8 +129,8 @@ Ext.define('Workspace.objects.Connection', {
 		this.bindObject(o2);
 
 		// watch for left and right object to be changed so we can re-attach those events
-		this.on('change_leftObject', this.reBindObject, this);
-		this.on('change_rightObject', this.reBindObject, this);
+		this.on('change:leftObject', this.reBindObject, this);
+		this.on('change:rightObject', this.reBindObject, this);
 
 		this.path = this.buildPath(o1, o2);
 		this.arguments = [this.path];
@@ -229,8 +229,8 @@ Ext.define('Workspace.objects.Connection', {
 			res = d[Math.min.apply(Math, dis)];
 		}
 		var x1 = p[res[0]].x, y1 = p[res[0]].y, x4 = p[res[1]].x, y4 = p[res[1]].y;
-		dx = Math.max(Math.abs( x1 - x4) / 2, 10);
-		dy = Math.max(Math.abs( y1 - y4) / 2, 10);
+		dx = Math.max(Math.abs(x1 - x4) / 2, 10);
+		dy = Math.max(Math.abs(y1 - y4) / 2, 10);
 		var x2 = [x1, x1, x1 - dx, x1 + dx][res[0]].toFixed(3), y2 = [y1 - dy, y1 + dy, y1, y1][res[0]].toFixed(3), x3 = [0, 0, 0, 0, x4, x4, x4 - dx, x4 + dx][res[1]].toFixed(3), y3 = [0, 0, 0, 0, y1 + dy, y1 - dy, y4, y4][res[1]].toFixed(3);
 		var path = ["M", x1.toFixed(3), y1.toFixed(3), "C", x2, y2, x3, y3, x4.toFixed(3), y4.toFixed(3)];
 		//.join(",");
@@ -248,15 +248,18 @@ Ext.define('Workspace.objects.Connection', {
 		this.workspace.deleteObjects([this]);
 	},
 	destroy : function() {
-		if(this.property) {
-			this.get('leftObject').set(this.property, false);
-			if(this.setBoth) {
-				this.get('rightObject').set(this.property, false);
+		if(!this.is('destroyed')) {
+
+			if(this.property) {
+				this.get('leftObject').set(this.property, false);
+				if(this.setBoth) {
+					this.get('rightObject').set(this.property, false);
+				}
 			}
+			this.unBindObject(this.get('leftObject'));
+			this.unBindObject(this.get('rightObject'));
+			this.callParent(arguments);
 		}
-		this.unBindObject(this.get('leftObject'));
-		this.unBindObject(this.get('rightObject'));
-		Workspace.objects.Connection.superclass.destroy.apply(this, arguments);
 	}
 }, function() {
 	Workspace.objects.Connection.borrow(Workspace.objects.Path, ['updatePath', 'updateDimensions'])

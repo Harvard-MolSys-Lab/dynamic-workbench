@@ -1,5 +1,6 @@
 Ext.define('App.ui.secondary.HomeTab', {
 	extend: 'App.ui.ToolsTab',
+	require: ['Workspace.tools.secondary.ComplementarityTool',],
 	alias: 'widget.secondary-hometab',
 	generateConfig: function() {
 		return {
@@ -62,7 +63,7 @@ Ext.define('App.ui.secondary.HomeTab', {
 					items: [{
 						enableToggle: true,
 						toggleGroup: 'toolbox',
-						toolName: 'complementarity',
+						toolName: 'domain_complement',
 						rowspan: 2,
 						scale: 'medium',
 						iconCls: 'arrow-24',

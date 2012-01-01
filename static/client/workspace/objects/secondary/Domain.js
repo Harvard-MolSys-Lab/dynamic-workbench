@@ -3,14 +3,34 @@ Ext.define('Workspace.objects.secondary.Domain',{
 	identity: '',
 	polarity: 0,
 	shimConfig: {
-		property: 'identity',
+		property: 'identifier',
 	},
 	constructor: function() {
 		this.callParent(arguments);
 		this.on('move',this.testProximity,this);
 		this.oldMatches = [];
-		this.expose('identity',true,true,true,false);
+		this.expose('identifier',function() {
+			return this.workspace.complementarityManager.getIdentifier(this);
+		},false,false,false);
+		this.expose('identity',function() {
+			return this.workspace.complementarityManager.getIdentity(this);
+		},function(value) {
+			this.identity = this.workspace.complementarityManager.checkoutIdentity(this,value);
+		},true,false);
 		this.expose('polarity',true,true,true,false);
+		this.expose('complementarities',function() {
+			return this.workspace.complementarityManager.getComplementary(this.get('identifier'));
+		},false,false,false);
+		
+		this.on('change:identity',function(newValue,oldValue) {
+			this.change('identifier',this.get('identifier'),this.workspace.complementarityManager.makeIdentifier(oldValue,this.get('polarity')));
+		},this);
+		this.on('change:polarity',function(newValue,oldValue) {
+			this.change('identifier',this.get('identifier'),this.workspace.complementarityManager.makeIdentifier(this.get('identity'),oldValue));
+		},this);
+	},
+	changeIdentifier: function() {
+		
 	},
 	initialize: function() {
 		this.workspace.complementarityManager.checkoutIdentity(this,this.get('identity'));

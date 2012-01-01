@@ -25,6 +25,8 @@ Ext.define('App.Document', {
 		type : 'bool',
 		defaultValue : false,
 	}],
+	isLeaf: true,
+	iconCls: 'document-error',
 	/**
 	 * Returns the file path to this document
 	 */
@@ -173,7 +175,15 @@ Ext.define('App.DocumentTreeStore', {
 				writer : {
 					type : 'json',
 					nameProperty : 'name',
-				}
+				},
+				listeners: {
+					'exception': function(proxy,response,operation) {
+						_.each(operation.getRecords(),function(rec) {
+							rec.set('iconCls','document-error');
+							rec.set('isLeaf','false');
+						});
+					}
+				},
 			},
 		});
 		this.callParent(arguments);
@@ -184,23 +194,23 @@ Ext.define('App.DocumentTreeStore', {
 	autoSync : true,
 	batchActions : false,
 
-	proxy : {
-		type : 'ajax',
-		// TODO: Make these configurable
-		api : {
-			read : '/tree',
-			create : '/new',
-			update : '/rename',
-			destroy : '/delete'
-		},
-		reader : {
-			type : 'json'
-		},
-		writer : {
-			type : 'json',
-			nameProperty : 'name',
-		}
-	},
+	// proxy : {
+		// type : 'ajax',
+		// // TODO: Make these configurable
+		// api : {
+			// read : '/tree',
+			// create : '/new',
+			// update : '/rename',
+			// destroy : '/delete'
+		// },
+		// reader : {
+			// type : 'json'
+		// },
+		// writer : {
+			// type : 'json',
+			// nameProperty : 'name',
+		// }
+	// },
 	/**
 	 * checkout
 	 * associates the passed document with the given application

@@ -1,6 +1,9 @@
 Ext.define('App.ui.nodal.BuildTab', {
 	extend: 'App.ui.ToolsTab',
 	alias: 'widget.nodal-buildtab',
+	mixins: {
+		tips: 'App.ui.TipHelper',
+	},
 	generateConfig: function() {
 		return {
 			dockedItems: [{
@@ -9,6 +12,7 @@ Ext.define('App.ui.nodal.BuildTab', {
 					// 'Implementation' group
 					xtype: 'buttongroup',
 					title: 'Implementation',
+					ref: 'implementationGroup',
 					columns: 2,
 					defaults: {
 						// cellCls: 'table-cell-padded',
@@ -34,6 +38,7 @@ Ext.define('App.ui.nodal.BuildTab', {
 							'files will be added to this directory, including a graphical representation of the included hairpins, ' +
 							'a NUPACK multi-objective script for thermodynamic sequence design, and a Domain Design specification for '+
 							'interactive sequence design using Web DD. ',
+							anchor: 'top',
 							//'Serializes the workspace to the "TerseML" format accepted by the current version of the compiler; outputs to input.txt in this directory.'
 						},
 						menu: [{
@@ -139,6 +144,7 @@ Ext.define('App.ui.nodal.BuildTab', {
 		_.each(this.query('*[ref]'), function(cmp) {
 			this[cmp.ref] = cmp;
 		}, this);
+		this.mixins.tips.init.apply(this,arguments);
 		this.sequenceMenu.on('click',this.doUpdateMenus,this);
 		this.serializeMenu.on('click',this.doUpdateMenus,this);
 	},
@@ -197,7 +203,29 @@ Ext.define('App.ui.nodal.BuildTab', {
 		},_.bind(function() {
 			//this.enableMenus();
 			Ext.msg('Nodal Build','Build of system <strong>{0}</strong> completed.',this.getDoc().getBasename());
+			this.highlightOutput();
 		},this));
+	},
+	highlightOutput: function() {
+		if(!this.outputTip) {
+			this.outputTip = Ext.create('Ext.tip.ToolTip',{
+				target: this.implementationGroup.getEl(),
+				anchor: 'left',
+				title: 'View compilation results',
+				html: 'Use these buttons to quickly view the compiled system. '+
+				'Use the "Serialize" button to view visual and textual '+
+				'representations of the system. Use the Sequence button to '+
+				'see options for sequence design. ',
+				closable: true,
+				autoHide: false,
+				dismissDelay: 10000,
+				showDelay: 1500,
+			});
+		}
+		if(this.serializeButton.tip) {
+			this.serializeButton.tip.hide();
+		}
+		this.outputTip.show();
 	},
 	spuriousDesign: function() {
 		var doc = this.ribbon.canvas.doc.getSiblingByName('spurious-out');

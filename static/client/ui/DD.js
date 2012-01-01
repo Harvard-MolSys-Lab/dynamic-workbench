@@ -83,6 +83,7 @@ Ext.define('App.ui.DD', {
 			width : 60,
 			xtype : 'checkcolumn'
 		});
+
 		this.targetColumn.on('checkchange', function(col, i, checked) {
 			var rec = this.store.getAt(i);
 			if(rec.get('target')) {
@@ -119,6 +120,11 @@ Ext.define('App.ui.DD', {
 					width : 50,
 					editor : {
 						allowBlank : true,
+						tooltip : {
+							title : "Name domain",
+							text : "You can manually specify a name for each domain, to be used in the Structure panel. " + "Leave this blank to automatically number the domains. Domain names/numbers are preserved when " + "the columns of this grid are sorted by clicking the headers.",
+							anchor : "top",
+						},
 					},
 					renderer : function(v, metaData, record, rowIdx, colIdx, store) {
 						metaData.tdCls = Ext.baseCSSPrefix + 'grid-cell-special';
@@ -235,8 +241,9 @@ Ext.define('App.ui.DD', {
 						iconCls : 'play',
 						ref : 'mutateButton',
 						handler : this.toggleMutation,
+						disabled : true,
 						scope : this,
-						tooltip : 'Click to start/pause mutations.',
+						tooltip : 'Click to start/pause mutations. Must add domains first.',
 
 					}, '-', {
 						/**
@@ -337,7 +344,7 @@ Ext.define('App.ui.DD', {
 							tooltip : 'Change DD\'s objective (scoring) function.'
 						}]
 					}, '->', Ext.create('App.ui.SaveButton', {
-						text : 'Save',
+						text : 'Save Domains',
 						iconCls : 'save',
 						app : this,
 					})]
@@ -369,6 +376,7 @@ Ext.define('App.ui.DD', {
 				region : 'east',
 				title : 'Structure',
 				editorType : 'Structure',
+				saveButtonText: 'Save Strands',
 				ref : 'structPane',
 				collapsible : true,
 				width : 200,
@@ -395,6 +403,7 @@ Ext.define('App.ui.DD', {
 				region : 'south',
 				title : 'Strands',
 				editorType : 'Strands',
+				saveButtonText: 'Save Sequences',
 				ref : 'strandsPane',
 				collapsible : true,
 				height : 200,
@@ -407,6 +416,16 @@ Ext.define('App.ui.DD', {
 		});
 
 		this.on('afterrender', this.loadFile, this);
+		this.on('afterrender', function() {
+			this.targetColumnTip = Ext.create('Ext.tip.ToolTip', {
+				target : this.grid.getEl(),
+				delegate : ".x-grid-cell", //'.x-grid-checkheader',
+				title : 'Target Domain',
+				html : "Select one or more domains to specifically target them for mutations. " + "If you check multiple domains, the worst among them will be selected for mutation " + "If you don\'t target any specific domains, the worst domain among the entire ensemble " + "will be targeted by default.",
+				anchor : "top",
+				renderTo : Ext.getBody(),
+			});
+		}, this);
 		this.callParent(arguments);
 		this.mixins.tips.init.apply(this, arguments);
 		_.each(this.query('*[ref]'), function(cmp) {
@@ -444,10 +463,11 @@ Ext.define('App.ui.DD', {
 		if(!!this.data) {
 			var ext = this.document.getExt();
 			if(ext == 'ddjs') {
+				this.data = Ext.decode(this.data);
 				this.structPane.setValue(this.data.structure || '');
-				this.updateDomainsFromSpec();
 				this.designer.loadState(this.data.state || {});
-				this.addDomains(this.designer.printfSequences(), [], this.designer.getCompositions(), this.designer.getImportances());
+				this.addDomains(this.designer.printfDomains(), [], this.designer.getImportances(), this.designer.getCompositions(), true);
+				this.updateDomainsFromSpec();
 			} else if(ext == 'nupack' || ext == 'domains') {
 				this.structPane.setValue(this.data);
 				this.updateDomainsFromSpec();
@@ -457,7 +477,7 @@ Ext.define('App.ui.DD', {
 				this.addManyDomains(this.data);
 			} else if(ext == 'dd') {
 				this.designer.loadFile(this.data);
-				this.addDomains(this.designer.printfSequences(), [], this.designer.getCompositions(), this.designer.getImportances());
+				this.addDomains(this.designer.printfDomains(), [], this.designer.getImportances(), this.designer.getCompositions(), true);
 			}
 		}
 	},
@@ -544,12 +564,22 @@ Ext.define('App.ui.DD', {
 			}, this);
 		}
 	},
+	/**
+	 * Synchronizes domains in the view and the designer with domains in the
+	 * {@link #strands strand threading spec}
+	 *
+	 * @param {Object} domains Hash mapping names (or numbers) of domains
+	 * described in the spec to domain sequences (which could be Ns).
+	 * @param {Boolean} [clobber=false] True to set existing domains with the
+	 * given names/indicies to the sequences given, false to leave existing
+	 * domains as they are.
+	 */
 	syncDomains : function(domains, clobber) {
 		clobber = clobber || false;
 		_.each(domains, function(spec, name) {
 			var rec = this.store.findRecord('name', name);
-			if(!rec && _.isNumber(name)) {
-				rec = this.store.getAt(name);
+			if(!rec) {// && _.isNumber(name)) {
+				rec = this.store.getAt(parseInt(name) - 1);
 			}
 			if(!rec) {
 				this.addDomains([spec], [name]);
@@ -567,6 +597,8 @@ Ext.define('App.ui.DD', {
 	addManyDomains : function(data) {
 		/**
 		 * @property {App.ui.dd.SequenceWindow} addDomainsWindow
+		 * Sequence-editing window which allows the user to add many domains by
+		 * typing or copying and pasting.
 		 */
 		if(!this.addDomainsWindow) {
 			this.addDomainsWindow = Ext.create('App.ui.dd.SequenceWindow', {
@@ -576,8 +608,18 @@ Ext.define('App.ui.DD', {
 		}
 		this.addDomainsWindow.show();
 	},
+	/**
+	 * Shows the #loadDDFileWindow
+	 * @param {String} [data] If provided, seeds the
+	 */
 	loadFromDDFile : function(data) {
 		if(!this.loadDDFileWindow) {
+			/**
+			 * @property {App.ui.dd.SequenceWindow} loadDDFileWindow
+			 * Allows the user to add domains by pasting from an old DD text 
+			 * format file. Also the best way to add many domains with 
+			 * different importances/compositions.
+			 */
 			this.loadDDFileWindow = Ext.create('App.ui.dd.SequenceWindow', {
 				designer : this,
 				value : data || '',
@@ -609,7 +651,15 @@ Ext.define('App.ui.DD', {
 		// for(var i = start; i < end; i++) {
 		// newSeqs.push(this.designer.printfDomainById(i));
 		// }
-		this.store.add(_.map(seqs/*newSeqs*/, function(seq, i) {
+
+		this.addDomainsToStore(seqs, names, imp, comp);
+
+		this.scoresDirty = true;
+		this.designer.evaluateIntrinsicScores();
+		this.mutateButton.enable();
+	},
+	addDomainsToStore : function(seqs, names, imp, comp) {
+		this.store.add(_.map(seqs, function(seq, i) {
 			return {
 				sequence : seq,
 				importance : _.isArray(imp) ? imp[i] : imp,
@@ -617,8 +667,6 @@ Ext.define('App.ui.DD', {
 				name : (names && names[i]) ? names[i] : '',
 			};
 		}, this));
-		this.scoresDirty = true;
-		this.designer.evaluateIntrinsicScores();
 	},
 	/**
 	 * Add a domain from the {@link #addDomainButton}
@@ -632,6 +680,7 @@ Ext.define('App.ui.DD', {
 	 * Adds a domain to the {@link #designer}
 	 */
 	addDomain : function(seq, imp, comp, name) {
+
 		// false to not clobber
 		name || ( name = '');
 		this.designer.addDomains([seq], imp, comp, false);
@@ -644,6 +693,7 @@ Ext.define('App.ui.DD', {
 		});
 		this.designer.evaluateIntrinsicScores();
 		this.scoresDirty = true;
+		this.mutateButton.enable();
 	},
 	/**
 	 * Starts or stops mutations

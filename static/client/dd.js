@@ -29,72 +29,6 @@ var DD = function() {
 	var NB_ENABLE = 1
 	var NB_DISABLE = 0
 
-	var options = {
-		// maximum number of simultaneous mutations
-		MAX_MUTATIONS : 10,
-		GCstr : 2,
-		ATstr : 1,
-		GTstr : 0,
-		// mismatch, bulge
-		MBstr : -3,
-		// large loop
-		LLstr : -0.5,
-		// score for domain ending in a base pair
-		DHstr : 3,
-		MAX_IMPORTANCE : 100,
-		LHbases : 4,
-		LHstart : 2,
-		LHpower : 2,
-		// score bonus for intrastrand/dimerization interactions
-		INTRA_SCORE : 5,
-		// score bonus for crosstalk (as compared to interaction)
-		CROSSTALK_SCORE : -5,
-		// crosstalk score is divided by this much (and then score is subtracted)
-		CROSSTALK_DIV : 2,
-		GGGG_PENALTY : 50,
-		ATATAT_PENALTY : 20,
-		// the adjusted shannon entropy is multiplied by this ammount and subtracted from the score
-		SHANNON_BONUS : 3,
-		// values with less than SHANNON_ADJUST * (maximum expected entropy given alphabet size k)
-		SHANNON_ADJUST : 0.7,
-	};
-
-	var GCstr, ATstr, GTstr, MBstr, LLstr, DHstr, MAX_IMPORTANCE, LHbases, LHstart, LHpower, INTRA_SCORE, CROSSTALK_SCORE, CROSSTALK_DIV, GGGG_PENALTY, ATATAT_PENALTY, MAX_MUTATIONS, SHANNON_BONUS, SHANNON_ADJUST;
-
-	/**
-	 * Copies values of {@link options} hash to local variables
-	 * @private
-	 */
-	function copyOptions() {
-		MAX_MUTATIONS = options.MAX_MUTATIONS;
-		// maximum number of simultaneous mutations
-		GCstr = options.GCstr;
-		ATstr = options.ATstr;
-		GTstr = options.GTstr;
-		MBstr = options.MBstr;
-		// mismatch, bulge
-		LLstr = options.LLstr;
-		// large loop
-		DHstr = options.DHstr;
-		// score for domain ending in a base pair
-		MAX_IMPORTANCE = options.MAX_IMPORTANCE;
-		LHbases = options.LHbases;
-		LHstart = options.LHstart;
-		LHpower = options.LHpower;
-		INTRA_SCORE = options.INTRA_SCORE;
-		// score bonus for intrastrand/dimerization interactions
-		CROSSTALK_SCORE = options.CROSSTALK_SCORE;
-		// score bonus for crosstalk (as compared to interaction)
-		CROSSTALK_DIV = options.CROSSTALK_DIV;
-		// crosstalk score is divided by this much (and then score is subtracted)
-		GGGG_PENALTY = options.GGGG_PENALTY;
-		ATATAT_PENALTY = options.ATATAT_PENALTY;
-		SHANNON_BONUS = options.SHANNON_BONUS;
-		SHANNON_ADJUST = options.SHANNON_ADJUST;
-	}
-
-	copyOptions();
-
 	function log2(x) {
 		return Math.log(x) / Math.LN2
 	}
@@ -107,7 +41,7 @@ var DD = function() {
 		// var temp2;
 		// temp = from + rand() / (RAND_MAX / (to - from + 1));
 		// temp2 = temp;
-		var temp = from + Math.random() * ( to - from);
+		var temp = from + Math.random() * (to - from);
 		return Math.round(temp);
 	}
 
@@ -216,11 +150,11 @@ var DD = function() {
 		// Seed complementarity matrix
 		for( i = 0; i < len1; i++) {
 			for( j = 0; j < len2; j++) {
-				if(((seq1[i] + seq2[ len2 - 1 - j]) % 10 == 5) && ((seq1[i] * seq2[ len2 - 1 - j]) % 10 == 4)) // G/C Match
+				if(((seq1[i] + seq2[len2 - 1 - j]) % 10 == 5) && ((seq1[i] * seq2[len2 - 1 - j]) % 10 == 4))// G/C Match
 					Cmatrix[i][j] = GCstr;
-				else if(((seq1[i] + seq2[ len2 - 1 - j]) % 10 == 5) && ((seq1[i] * seq2[ len2 - 1 - j]) % 10 == 6)) // A/T Match
+				else if(((seq1[i] + seq2[len2 - 1 - j]) % 10 == 5) && ((seq1[i] * seq2[len2 - 1 - j]) % 10 == 6))// A/T Match
 					Cmatrix[i][j] = ATstr;
-				else if(((seq1[i] + seq2[ len2 - 1 - j]) % 10 == 4) && ((seq1[i] * seq2[ len2 - 1 - j]) % 10 == 3)) // G/T Wobble
+				else if(((seq1[i] + seq2[len2 - 1 - j]) % 10 == 4) && ((seq1[i] * seq2[len2 - 1 - j]) % 10 == 3))// G/T Wobble
 					Cmatrix[i][j] = GTstr;
 				else
 					Cmatrix[i][j] = MBstr;
@@ -270,19 +204,19 @@ var DD = function() {
 
 			for( j = 1; j < len2; j++) {
 
-				if(Cmatrix[i][j] < 0) { // destabilizing base
+				if(Cmatrix[i][j] < 0) {// destabilizing base
 					SDmatrix[i][j] = 0;
 					Smatrix[i][j] = 0;
 
-					if((SDmatrix[i-1][ j - 1] > 0) && (Smatrix[i-1][ j - 1] + MBstr > 0)) // starting a mismatch loop
-						Smatrix[i][j] = Smatrix[i-1][ j - 1] + MBstr;
-					if((SDmatrix[i-1][ j - 1] == 0) && (Smatrix[i-1][ j - 1] + LLstr > 0)) // expanding a mismatch loop
-						Smatrix[i][j] = Smatrix[i-1][ j - 1] + LLstr;
+					if((SDmatrix[i-1][j - 1] > 0) && (Smatrix[i-1][j - 1] + MBstr > 0))// starting a mismatch loop
+						Smatrix[i][j] = Smatrix[i-1][j - 1] + MBstr;
+					if((SDmatrix[i-1][j - 1] == 0) && (Smatrix[i-1][j - 1] + LLstr > 0))// expanding a mismatch loop
+						Smatrix[i][j] = Smatrix[i-1][j - 1] + LLstr;
 
-					if((SDmatrix[i][ j - 1] > 0) && (Smatrix[i][ j - 1] + MBstr > 0) && (Smatrix[i][ j - 1] + MBstr > Smatrix[i][j]))
-						Smatrix[i][j] = Smatrix[i][ j - 1] + MBstr;
-					if((SDmatrix[i][ j - 1] == 0) && (Smatrix[i][ j - 1] + LLstr > 0) && (Smatrix[i][ j - 1] + LLstr > Smatrix[i][j]))
-						Smatrix[i][j] = Smatrix[i][ j - 1] + LLstr;
+					if((SDmatrix[i][j - 1] > 0) && (Smatrix[i][j - 1] + MBstr > 0) && (Smatrix[i][j - 1] + MBstr > Smatrix[i][j]))
+						Smatrix[i][j] = Smatrix[i][j - 1] + MBstr;
+					if((SDmatrix[i][j - 1] == 0) && (Smatrix[i][j - 1] + LLstr > 0) && (Smatrix[i][j - 1] + LLstr > Smatrix[i][j]))
+						Smatrix[i][j] = Smatrix[i][j - 1] + LLstr;
 
 					if((SDmatrix[i-1][j] > 0) && (Smatrix[i-1][j] + MBstr > 0) && (Smatrix[i-1][j] + MBstr > Smatrix[i][j]))
 						Smatrix[i][j] = Smatrix[i-1][j] + MBstr;
@@ -292,24 +226,24 @@ var DD = function() {
 					if(Smatrix[i][j] < 0)
 						Smatrix[i][j] = 0;
 
-				} else { // stabilizing base
+				} else {// stabilizing base
 					Smatrix[i][j] = Cmatrix[i][j];
 					SDmatrix[i][j] = 1;
 
-					if((SDmatrix[i-1][ j - 1] > 0) && (Smatrix[i-1][ j - 1] > 0)) { // continuing a helix
-						Smatrix[i][j] = Smatrix[i-1][ j - 1] + Cmatrix[i][j];
-						SDmatrix[i][j] = SDmatrix[i-1][ j - 1] + 1;
-					} else if((SDmatrix[i-1][ j - 1] == 0) && (Smatrix[i-1][ j - 1] > 0)) { // starting a new helix
-						Smatrix[i][j] = Smatrix[i-1][ j - 1] + Cmatrix[i][j];
+					if((SDmatrix[i-1][j - 1] > 0) && (Smatrix[i-1][j - 1] > 0)) {// continuing a helix
+						Smatrix[i][j] = Smatrix[i-1][j - 1] + Cmatrix[i][j];
+						SDmatrix[i][j] = SDmatrix[i-1][j - 1] + 1;
+					} else if((SDmatrix[i-1][j - 1] == 0) && (Smatrix[i-1][j - 1] > 0)) {// starting a new helix
+						Smatrix[i][j] = Smatrix[i-1][j - 1] + Cmatrix[i][j];
 						SDmatrix[i][j] = 1;
 					}
 
-					if((SDmatrix[i][ j - 1] > 0) && (Smatrix[i][ j - 1] > 0) && (Smatrix[i][ j - 1] + Cmatrix[i][j] - Cmatrix[i][ j - 1] + MBstr > Smatrix[i][j])) {
-						Smatrix[i][j] = Smatrix[i][ j - 1] + Cmatrix[i][j] - Cmatrix[i][ j - 1] + MBstr;
+					if((SDmatrix[i][j - 1] > 0) && (Smatrix[i][j - 1] > 0) && (Smatrix[i][j - 1] + Cmatrix[i][j] - Cmatrix[i][j - 1] + MBstr > Smatrix[i][j])) {
+						Smatrix[i][j] = Smatrix[i][j - 1] + Cmatrix[i][j] - Cmatrix[i][j - 1] + MBstr;
 						// introducing a 1-bulge, destroying previous bond
 						SDmatrix[i][j] = 1;
-					} else if((SDmatrix[i][ j - 1] == 0) && (Smatrix[i][ j - 1] > 0) && (Smatrix[i][ j - 1] + Cmatrix[i][j] > Smatrix[i][j])) {
-						Smatrix[i][j] = Smatrix[i][ j - 1] + Cmatrix[i][j];
+					} else if((SDmatrix[i][j - 1] == 0) && (Smatrix[i][j - 1] > 0) && (Smatrix[i][j - 1] + Cmatrix[i][j] > Smatrix[i][j])) {
+						Smatrix[i][j] = Smatrix[i][j - 1] + Cmatrix[i][j];
 						// closing a bulge
 						SDmatrix[i][j] = 1;
 					}
@@ -331,7 +265,7 @@ var DD = function() {
 					}
 				}
 
-				if((SDmatrix[i][j] > 0) && ((i == ( len1 - 1)) || (j == ( len2 - 1))))
+				if((SDmatrix[i][j] > 0) && ((i == (len1 - 1)) || (j == (len2 - 1))))
 					Smatrix[i][j] = Smatrix[i][j] + DHstr;
 
 				if(Smatrix[i][j] > score)
@@ -409,11 +343,11 @@ var DD = function() {
 		// Seed complementarity matrix
 		for( i = 0; i < len1; i++) {
 			for( j = 0; j < len1; j++) {
-				if(((seq1[i] + (15 - seq1[ len1 - 1 - j])) % 10 == 5) && ((seq1[i] * (15 - seq1[ len1 - 1 - j])) % 10 == 4)) // G/C Match
+				if(((seq1[i] + (15 - seq1[len1 - 1 - j])) % 10 == 5) && ((seq1[i] * (15 - seq1[len1 - 1 - j])) % 10 == 4))// G/C Match
 					Cmatrix[i][j] = GCstr;
-				else if(((seq1[i] + (15 - seq1[ len1 - 1 - j])) % 10 == 5) && ((seq1[i] * (15 - seq1[ len1 - 1 - j])) % 10 == 6)) // A/T Match
+				else if(((seq1[i] + (15 - seq1[len1 - 1 - j])) % 10 == 5) && ((seq1[i] * (15 - seq1[len1 - 1 - j])) % 10 == 6))// A/T Match
 					Cmatrix[i][j] = ATstr;
-				else if(((seq1[i] + (15 - seq1[ len1 - 1 - j])) % 10 == 4) && ((seq1[i] * (15 - seq1[ len1 - 1 - j])) % 10 == 3)) // G/T Wobble
+				else if(((seq1[i] + (15 - seq1[len1 - 1 - j])) % 10 == 4) && ((seq1[i] * (15 - seq1[len1 - 1 - j])) % 10 == 3))// G/T Wobble
 					Cmatrix[i][j] = GTstr;
 				else
 					Cmatrix[i][j] = MBstr;
@@ -457,19 +391,19 @@ var DD = function() {
 					// "Main line" match, do not score
 					SDmatrix[i][j] = 0;
 					Smatrix[i][j] = 0;
-				} else if(Cmatrix[i][j] < 0) { // destabilizing base
+				} else if(Cmatrix[i][j] < 0) {// destabilizing base
 					SDmatrix[i][j] = 0;
 					Smatrix[i][j] = 0;
 
-					if((SDmatrix[i-1][ j - 1] > 0) && (Smatrix[i-1][ j - 1] + MBstr > 0)) // starting a mismatch loop
-						Smatrix[i][j] = Smatrix[i-1][ j - 1] + MBstr;
-					if((SDmatrix[i-1][ j - 1] == 0) && (Smatrix[i-1][ j - 1] + LLstr > 0)) // expanding a mismatch loop
-						Smatrix[i][j] = Smatrix[i-1][ j - 1] + LLstr;
+					if((SDmatrix[i-1][j - 1] > 0) && (Smatrix[i-1][j - 1] + MBstr > 0))// starting a mismatch loop
+						Smatrix[i][j] = Smatrix[i-1][j - 1] + MBstr;
+					if((SDmatrix[i-1][j - 1] == 0) && (Smatrix[i-1][j - 1] + LLstr > 0))// expanding a mismatch loop
+						Smatrix[i][j] = Smatrix[i-1][j - 1] + LLstr;
 
-					if((SDmatrix[i][ j - 1] > 0) && (Smatrix[i][ j - 1] + MBstr > 0) && (Smatrix[i][ j - 1] + MBstr > Smatrix[i][j]))
-						Smatrix[i][j] = Smatrix[i][ j - 1] + MBstr;
-					if((SDmatrix[i][ j - 1] == 0) && (Smatrix[i][ j - 1] + LLstr > 0) && (Smatrix[i][ j - 1] + LLstr > Smatrix[i][j]))
-						Smatrix[i][j] = Smatrix[i][ j - 1] + LLstr;
+					if((SDmatrix[i][j - 1] > 0) && (Smatrix[i][j - 1] + MBstr > 0) && (Smatrix[i][j - 1] + MBstr > Smatrix[i][j]))
+						Smatrix[i][j] = Smatrix[i][j - 1] + MBstr;
+					if((SDmatrix[i][j - 1] == 0) && (Smatrix[i][j - 1] + LLstr > 0) && (Smatrix[i][j - 1] + LLstr > Smatrix[i][j]))
+						Smatrix[i][j] = Smatrix[i][j - 1] + LLstr;
 
 					if((SDmatrix[i-1][j] > 0) && (Smatrix[i-1][j] + MBstr > 0) && (Smatrix[i-1][j] + MBstr > Smatrix[i][j]))
 						Smatrix[i][j] = Smatrix[i-1][j] + MBstr;
@@ -479,24 +413,24 @@ var DD = function() {
 					if(Smatrix[i][j] < 0)
 						Smatrix[i][j] = 0;
 
-				} else { // stabilizing base
+				} else {// stabilizing base
 					Smatrix[i][j] = Cmatrix[i][j];
 					SDmatrix[i][j] = 1;
 
-					if((SDmatrix[i-1][ j - 1] > 0) && (Smatrix[i-1][ j - 1] > 0)) { // continuing a helix
-						Smatrix[i][j] = Smatrix[i-1][ j - 1] + Cmatrix[i][j];
-						SDmatrix[i][j] = SDmatrix[i-1][ j - 1] + 1;
-					} else if((SDmatrix[i-1][ j - 1] == 0) && (Smatrix[i-1][ j - 1] > 0)) { // starting a new helix
-						Smatrix[i][j] = Smatrix[i-1][ j - 1] + Cmatrix[i][j];
+					if((SDmatrix[i-1][j - 1] > 0) && (Smatrix[i-1][j - 1] > 0)) {// continuing a helix
+						Smatrix[i][j] = Smatrix[i-1][j - 1] + Cmatrix[i][j];
+						SDmatrix[i][j] = SDmatrix[i-1][j - 1] + 1;
+					} else if((SDmatrix[i-1][j - 1] == 0) && (Smatrix[i-1][j - 1] > 0)) {// starting a new helix
+						Smatrix[i][j] = Smatrix[i-1][j - 1] + Cmatrix[i][j];
 						SDmatrix[i][j] = 1;
 					}
 
-					if((SDmatrix[i][ j - 1] > 0) && (Smatrix[i][ j - 1] > 0) && (Smatrix[i][ j - 1] + Cmatrix[i][j] - Cmatrix[i][ j - 1] + MBstr > Smatrix[i][j])) {
-						Smatrix[i][j] = Smatrix[i][ j - 1] + Cmatrix[i][j] - Cmatrix[i][ j - 1] + MBstr;
+					if((SDmatrix[i][j - 1] > 0) && (Smatrix[i][j - 1] > 0) && (Smatrix[i][j - 1] + Cmatrix[i][j] - Cmatrix[i][j - 1] + MBstr > Smatrix[i][j])) {
+						Smatrix[i][j] = Smatrix[i][j - 1] + Cmatrix[i][j] - Cmatrix[i][j - 1] + MBstr;
 						// introducing a 1-bulge, destroying previous bond
 						SDmatrix[i][j] = 1;
-					} else if((SDmatrix[i][ j - 1] == 0) && (Smatrix[i][ j - 1] > 0) && (Smatrix[i][ j - 1] + Cmatrix[i][j] > Smatrix[i][j])) {
-						Smatrix[i][j] = Smatrix[i][ j - 1] + Cmatrix[i][j];
+					} else if((SDmatrix[i][j - 1] == 0) && (Smatrix[i][j - 1] > 0) && (Smatrix[i][j - 1] + Cmatrix[i][j] > Smatrix[i][j])) {
+						Smatrix[i][j] = Smatrix[i][j - 1] + Cmatrix[i][j];
 						// closing a bulge
 						SDmatrix[i][j] = 1;
 					}
@@ -518,7 +452,7 @@ var DD = function() {
 					}
 				}
 
-				if((SDmatrix[i][j] > 0) && ((i == ( len1 - 1)) || (j == ( len1 - 1))))
+				if((SDmatrix[i][j] > 0) && ((i == (len1 - 1)) || (j == (len1 - 1))))
 					Smatrix[i][j] = Smatrix[i][j] + DHstr;
 
 				if(Smatrix[i][j] > score)
@@ -594,15 +528,15 @@ var DD = function() {
 
 	// Set default parameters
 	var rules = {
-		rule_4g : 1,              // cannot have 4 G's or 4 C's in a row
-		rule_6at : 1,              // cannot have 6 A/T or G/C bases in a row
-		rule_ccend : 1,              // domains MUST start and end with C
-		rule_ming : 1,              // design tries to minimize usage of G
-		rule_init : 7,              // 15 = polyN, 7 = poly-H, 3 = poly-Y, 2 = poly-T
-		rule_targetworst : 1,              // target worst domain
-		rule_gatc_avail : 15,              // all bases available
-		rule_lockold : 0,          // lock all old bases (NO)
-		rule_targetdomain : [],   // array of domain indicies to target
+		rule_4g : 1, // cannot have 4 G's or 4 C's in a row
+		rule_6at : 1, // cannot have 6 A/T or G/C bases in a row
+		rule_ccend : 1, // domains MUST start and end with C
+		rule_ming : 1, // design tries to minimize usage of G
+		rule_init : 7, // 15 = polyN, 7 = poly-H, 3 = poly-Y, 2 = poly-T
+		rule_targetworst : 1, // target worst domain
+		rule_gatc_avail : 15, // all bases available
+		rule_lockold : 0, // lock all old bases (NO)
+		rule_targetdomain : [], // array of domain indicies to target
 		rule_shannon : 1,		// true to reward domains with a low shannon entropy
 	}
 
@@ -613,14 +547,77 @@ var DD = function() {
 
 	copyRules();
 
-	/*
-	// struct timeb* curtime;
-	//
-	// // Randomize seed
-	// curtime = new Array(sizeof(struct timeb));
-	// ftime(curtime);
-	// srand(curtime->millitm);
-	*/
+	var params = {
+		// maximum number of simultaneous mutations
+		MAX_MUTATIONS : 10,
+		GCstr : 2,
+		ATstr : 1,
+		GTstr : 0,
+		// mismatch, bulge
+		MBstr : -3,
+		// large loop
+		LLstr : -0.5,
+		// score for domain ending in a base pair
+		DHstr : 3,
+		MAX_IMPORTANCE : 100,
+		LHbases : 4,
+		LHstart : 2,
+		LHpower : 2,
+		// score bonus for intrastrand/dimerization interactions
+		INTRA_SCORE : 5,
+		// score bonus for crosstalk (as compared to interaction)
+		CROSSTALK_SCORE : -5,
+		// crosstalk score is divided by this much (and then score is subtracted)
+		CROSSTALK_DIV : 2,
+		GGGG_PENALTY : 50,
+		ATATAT_PENALTY : 20,
+		// the adjusted shannon entropy is multiplied by this ammount and subtracted from the score
+		SHANNON_BONUS : 3,
+		// values with less than SHANNON_ADJUST * (maximum expected entropy given alphabet size k)
+		SHANNON_ADJUST : 0.7,
+	};
+
+	var GCstr, ATstr, GTstr, MBstr, LLstr, DHstr, MAX_IMPORTANCE, LHbases, LHstart, LHpower, INTRA_SCORE, CROSSTALK_SCORE, CROSSTALK_DIV, GGGG_PENALTY, ATATAT_PENALTY, MAX_MUTATIONS, SHANNON_BONUS, SHANNON_ADJUST;
+
+	/**
+	 * Copies values of {@link params} hash to local variables
+	 * @private
+	 */
+	function copyParams() {
+		// maximum number of simultaneous mutations
+		MAX_MUTATIONS = params.MAX_MUTATIONS;
+		GCstr = params.GCstr;
+		ATstr = params.ATstr;
+		GTstr = params.GTstr;
+
+		// mismatch, bulge
+		MBstr = params.MBstr;
+
+		// large loop
+		LLstr = params.LLstr;
+
+		// score for domain ending in a base pair
+		DHstr = params.DHstr;
+		MAX_IMPORTANCE = params.MAX_IMPORTANCE;
+		LHbases = params.LHbases;
+		LHstart = params.LHstart;
+		LHpower = params.LHpower;
+
+		// score bonus for intrastrand/dimerization interactions
+		INTRA_SCORE = params.INTRA_SCORE;
+
+		// score bonus for crosstalk (as compared to interaction)
+		CROSSTALK_SCORE = params.CROSSTALK_SCORE;
+
+		// crosstalk score is divided by this much (and then score is subtracted)
+		CROSSTALK_DIV = params.CROSSTALK_DIV;
+		GGGG_PENALTY = params.GGGG_PENALTY;
+		ATATAT_PENALTY = params.ATATAT_PENALTY;
+		SHANNON_BONUS = params.SHANNON_BONUS;
+		SHANNON_ADJUST = params.SHANNON_ADJUST;
+	}
+
+	copyParams();
 
 	// Set up memory for mutation computations
 	if(( mut_base = new Array(MAX_MUTATIONS  /* int */
@@ -687,35 +684,13 @@ var DD = function() {
 		num_domain = nd;
 
 		for( j = start; j < num_domain; j++) {
-			buffer = domains[j-start].trim();
-			i = domains[j-start].length;
+			buffer = domains[j - start].trim();
+			i = domains[j - start].length;
 			domain_length[j] = i;
 			domain[j] = parseDomain(buffer);
-			// new Array(i  /* int */
-			// );
-			/*
-			 for( i = 0; i < domain_length[j]; i++) {
-			 if(buffer[i] == 'g')
-			 domain[j][i] = 1;
-			 if(buffer[i] == 'a')
-			 domain[j][i] = 2;
-			 if(buffer[i] == 't')
-			 domain[j][i] = 3;
-			 if(buffer[i] == 'c')
-			 domain[j][i] = 4;
-			 if(buffer[i] == 'G')
-			 domain[j][i] = 11;
-			 if(buffer[i] == 'A')
-			 domain[j][i] = 12;
-			 if(buffer[i] == 'T')
-			 domain[j][i] = 13;
-			 if(buffer[i] == 'C')
-			 domain[j][i] = 14;
-			 }
-			 */
 
-			domain_importance[j] = _.isArray(importance) ? importance[ j - start] : (_.isNumber(importance) ? importance : 1 );
-			domain_gatc_avail[j] = _.isArray(composition) ? composition[ j - start] : (_.isNumber(composition) ? composition : 15 );
+			domain_importance[j] = _.isArray(importance) ? importance[j - start] : (_.isNumber(importance) ? importance : 1 );
+			domain_gatc_avail[j] = _.isArray(composition) ? composition[j - start] : (_.isNumber(composition) ? composition : 15 );
 
 		}
 
@@ -803,8 +778,8 @@ var DD = function() {
 		var f = _.compact(fileContents.split('\n'));
 
 		// remove leading number added by old versions of DD
-		if(f[0].trim().match(/^\d+$/g) ) {
-			f.unshift();			
+		if(f[0].trim().match(/^\d+$/g)) {
+			f.unshift();
 		}
 		// ditch parameter for number of domains
 		num_domain = f.length;
@@ -974,7 +949,6 @@ var DD = function() {
 	}
 
 	/**
-	 * setupScoreMatricies
 	 * Builds domain_score, domain_intrinsic, crosstalk, and interaction Arrays
 	 * TODO: Only mutate existing arrays when adding domains
 	 */
@@ -1118,13 +1092,13 @@ var DD = function() {
 					out[i][0] = 12;
 
 				if(rule_gatc_avail % 2 == 1)
-					out[i][ len - 1] = 14;
+					out[i][len - 1] = 14;
 				else if(Math.floor(rule_gatc_avail / 8) == 1)
-					out[i][ len - 1] = 11;
+					out[i][len - 1] = 11;
 				else if(Math.floor(rule_gatc_avail / 4) % 2 == 1)
-					out[i][ len - 1] = 12;
+					out[i][len - 1] = 12;
 				else
-					out[i][ len - 1] = 13;
+					out[i][len - 1] = 13;
 			}
 		}
 		return out;
@@ -1209,8 +1183,8 @@ var DD = function() {
 			}
 			printf("Modify which base? ");
 			j = myintinput();
-			if((j < 1) || (j > domain_length[ i - 1])) {
-				printf("Please select a base index on domain %d between 1 and %d.\n", i, domain_length[ i - 1]);
+			if((j < 1) || (j > domain_length[i - 1])) {
+				printf("Please select a base index on domain %d between 1 and %d.\n", i, domain_length[i - 1]);
 				movexy(0, -2);
 				printf("Modify which base?          \n");
 				movexy(1, -1);
@@ -1441,9 +1415,9 @@ var DD = function() {
 	}
 
 	function saveFile() {
-		
+
 		var out = ''
-		out += num_domain+'\n';
+		out += num_domain + '\n';
 
 		for( i = 0; i < num_domain; i++) {
 			for( j = 0; j < domain_length[i]; j++) {
@@ -1464,7 +1438,7 @@ var DD = function() {
 				if(domain[i][j] == 14)
 					out += "C";
 			}
-			out += " "+domain_importance[i]+" "+domain_gatc_avail[i]+"\n";
+			out += " " + domain_importance[i] + " " + domain_gatc_avail[i] + "\n";
 		}
 		return out;
 	}
@@ -1688,7 +1662,7 @@ var DD = function() {
 			available = domain_gatc_avail[i];
 			available = (available & 1) + ((available & 2) >> 1) + ((available & 4) >> 2) + ((available & 8) >> 3);
 
-			domain_intrinsic[i] -= ( shannon - SHANNON_ADJUST * log2(available)) * SHANNON_BONUS;
+			domain_intrinsic[i] -= (shannon - SHANNON_ADJUST * log2(available)) * SHANNON_BONUS;
 			//(shannon-domain_length[i]*SHANNON_ADJUST)*SHANNON_BONUS;
 		}
 	}
@@ -1703,6 +1677,8 @@ var DD = function() {
 	 * 	* Otherwise, <var>mut_domain</var> is chosen randomly from among all domains in the ensemble.
 	 */
 	function mutate() {
+		if(domain.length==0) return;
+		
 		num_mut_attempts++;
 
 		// gotoxy(1, 11+num_domain);
@@ -1884,7 +1860,9 @@ var DD = function() {
 
 	}
 
+
 	_.extend(this, {
+		version : "0.3.1",
 		loadFile : loadFile,
 		saveFile : saveFile,
 		newDesign : newDesign,
@@ -1899,6 +1877,63 @@ var DD = function() {
 		evaluateIntrinsicScores : evaluateIntrinsicScores,
 		popDomain : popDomain,
 
+		saveState : function() {
+			state = {};
+			state.domain_length = domain_length;
+			state.domain_importance = domain_importance;
+			state.domain_gatc_avail = domain_gatc_avail;
+			state.domain = domain;
+			state.num_domain = num_domain;
+			// 1 = G, 2 = A, 3 = T, 4 = C; 11 = G (locked), etc
+
+			state.num_mut_attempts = num_mut_attempts, total_mutations = total_mutations;
+			state.score = score;
+			// Score of system
+			state.domain_score = domain_score;
+			// domain score
+			state.worst_domain = worst_domain;
+			// domain that causes the worst score
+			state.num_mut = num_mut;
+			//state.mut_domain = mut_domain;
+
+			
+			state.rules = _.clone(rules);
+			state.params = _.clone(params);
+			state.verson = this.version;
+			
+			return state;
+		},
+		loadState : function(state) {
+			domain_length = state.domain_length || domain_length;
+			domain_importance = state.domain_importance || domain_importance;
+			domain_gatc_avail = state.domain_gatc_avail || domain_gatc_avail;
+			domain = state.domain || domain; 
+			
+			
+			num_mut_attempts = (state.num_mut_attempts && _.isNumber(state.num_mut_attempts)) ? state.num_mut_attempts : 0;
+			total_mutations = (state.total_mutations && _.isNumber(state.total_mutations)) ? state.total_mutations : 0;
+			num_domain = (state.num_domain && _.isNumber(state.num_domain)) ? state.num_domain : domain.length;
+			// Score of system
+			score = state.score || score;
+			// domain score
+			domain_score = state.domain_score || domain_score;
+			// domain that causes the worst score
+			worst_domain = state.worst_domain || worst_domain;
+			num_mut = state.num_mut || num_mut;
+			// Domain, base, old, and new values
+			//mut_domain = state.mut_domain || mut_domain;
+			
+			_.extend(rules,state.rules);
+			_.extend(params,state.params);
+			
+			setupScoreMatricies();
+		},
+		serialize : function() {
+			this.saveState.apply(this, arguments);
+		},
+		deserialize : function() {
+			this.loadState.apply(this, arguments);
+		},
 		/**
 		 * Returns a hash containing all design rules
 		 */
@@ -1913,17 +1948,20 @@ var DD = function() {
 			copyRules();
 		},
 		/**
-		 * Returns a hash containing all design options (parameters)
+		 * Returns a hash containing all score parameters
 		 */
-		getOptions : function() {
-			return _.clone(options);
+		getParams : function() {
+			return _.clone(params);
 		},
 		/**
-		 * Accepts a hash describing a new set of design options (parameters), and updates them within the designer
+		 * Accepts a hash describing a new set of score parameters, and updates them within the designer
 		 */
-		updateOptions : function(newOptions) {
-			_.extend(options, newOptions);
-			copyOptions();
+		updateParams : function(newParams) {
+			_.extend(params, _.reduce(newParams, function(m, x, key) {
+				m[key] = +x;
+				return m;
+			}, {}));
+			copyParams();
 		},
 		/**
 		 * Updates parameters for a given domain
@@ -2020,13 +2058,13 @@ var DD = function() {
 			var dom = domain[id];
 			return this.printfDomain(dom);
 		},
-		getImportance: function() {
+		getImportance : function() {
 			return domain_gatc_avail;
 		},
-		getCompositions: function() {
+		getCompositions : function() {
 			return domain_gatc_avail;
 		},
-		getImportances: function() {
+		getImportances : function() {
 			return domain_importance;
 		},
 		printComposition : function(comp) {

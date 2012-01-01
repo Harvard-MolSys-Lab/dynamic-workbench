@@ -9,6 +9,11 @@ Ext.define('App.ui.SequenceEditor', {
 	},
 	iconCls : 'sequence',
 	editorType : 'Sequence',
+	/**
+	 * @cfg
+	 * Text to display in the #saveButton
+	 */
+	saveButtonText : 'Save',
 	requires: ['App.ui.SequenceStats','App.ui.CompareMenu','App.ui.StatMenu','App.ui.SaveButton'],
 	initComponent: function() {
 		Ext.applyIf(this, {
@@ -401,7 +406,7 @@ Ext.define('App.ui.SequenceEditor', {
 					}]
 				}
 			},'->',Ext.create('App.ui.SaveButton',{
-				text: 'Save',
+				text: this.saveButtonText,
 				iconCls: 'save',
 				app: this,
 			})],

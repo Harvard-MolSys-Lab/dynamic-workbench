@@ -186,7 +186,7 @@ Ext.define('Workspace.Proxy', {
 		this.y += dy;
 		if(dx != 0 || dy != 0) {
 			if(this.shape == 'path') {
-				var path = Raphael.pathToRelative(this.vectorObject.attr('path'));
+				var path = Raphael.pathToRelative(this.vectorElement.attr('path'));
 				path[0][1] += +dx;
 				path[0][2] += +dy;
 				this.updatePath(this.path);

@@ -502,6 +502,9 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 	background-image: url(/images/icons/fugue/script.png) !important;
 }
 
+.document-error {
+	background-image: url(/images/icons/fugue/document--exclamation.png) !important;
+}
 
 .spurious-c, .spurious {
 	background-image: url(/images/icons/fugue/document-attribute-c.png) !important;

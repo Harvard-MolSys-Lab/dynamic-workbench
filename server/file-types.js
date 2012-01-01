@@ -82,9 +82,14 @@ var types = [{
 	"name" : "Sequence"
 }, {
 	"type" : "dd",
-	"trigger" : "sequence",
+	"trigger" : "dd",
 	"iconCls" : "dd",
 	"name" : "Domain Design"
+}, {
+	"type" : "ddjs",
+	"trigger" : "dd",
+	"iconCls" : "dd",
+	"name" : "Advanced Domain Design"
 }, {
 	"type" : "domains",
 	"trigger" : "dd",

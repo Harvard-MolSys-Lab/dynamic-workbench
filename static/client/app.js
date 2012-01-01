@@ -607,7 +607,6 @@ App.mixin = function(target, source) {
 }
 
 
-
 /**
  * @class App.Registry
  * Allows creation of named type registries (e.g. classes can be registered)

@@ -4,6 +4,9 @@
 Ext.define('App.ui.FilesTree', {
 	extend: 'Ext.tree.Panel',
 	requires: ['App.ui.files.DragDropManager','App.ui.files.FileUploader','App.ui.CreateMenu','App.ui.Launcher',],
+	/**
+	 * @cfg
+	 */
 	title: 'Files',
 	newFileNumber: 0,
 	loaders: 0,
@@ -15,7 +18,6 @@ Ext.define('App.ui.FilesTree', {
 	 */
 	createContextMenu: true,
 	allowDrop : true,
-	//displayRoot: false,
 	initComponent: function() {
 		Ext.apply(this, {
 			/*
@@ -61,6 +63,9 @@ Ext.define('App.ui.FilesTree', {
 		
 		// Builds the context menu (TODO: move to separate class)
 		if(this.createContextMenu) {
+			/**
+			 * @property {Ext.menu.Menu}
+			 */
 			this.contextMenu = Ext.create('Ext.menu.Menu', {
 				floating: true,
 				shadow: 'sides',
@@ -122,6 +127,9 @@ Ext.define('App.ui.FilesTree', {
 					xtype: 'textfield',
 					allowBlank: false,
 					itemId: 'filename',
+					/**
+					 * @property {Ext.form.field.Text} fileNameField
+					 */
 					ref: 'fileNameField',
 					indent: true,
 					enableIf: function(rec) {
@@ -155,12 +163,22 @@ Ext.define('App.ui.FilesTree', {
 			this.on('afterrender',this.afterrender,this)
 		}
 	},
+	/**
+	 * Initializes the #ddManager
+	 */
 	afterrender: function() {
+		/**
+		 * @property {App.ui.files.DragDropManager} ddManager
+		 * Manages uploading of files dropped into the browser
+		 */
 		this.ddManager = Ext.create('App.ui.files.DragDropManager',{
 			filesTree: this
 		});
 		this.ddManager.render();
 	},
+	/**
+	 * Shows the context menu attached to a particular record.
+	 */
 	showContextMenu: function(tree,rec,dom,i,e) {
 		this.currentRecord = rec;
 		var ctx = this.contextMenu;

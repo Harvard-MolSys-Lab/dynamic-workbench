@@ -57,6 +57,11 @@
 	      			"Workspace.tools.*"
 	      		]
 	      	},{
+	      		"name": "Actions",
+	      		"classes": [
+	      			"Workspace.actions.*"
+	      		]
+	      	},{
 	      		"name": "Layout",
 	      		"classes": [
 	      			"Workspace.idea.*"

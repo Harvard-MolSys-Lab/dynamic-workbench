@@ -71,7 +71,7 @@ Ext.define('App.ui.Canvas', {
 						animate: true,
 						plugins: Ext.create('Ext.slider.Tip',{
 							getText: function(thumb) {
-								return String.format('{0}%', thumb.value * 100);
+								return Ext.String.format('{0}%', thumb.value * 100);
 							}
 						}),
 						width: 100,
@@ -131,7 +131,7 @@ Ext.define('App.ui.Canvas', {
 					 * {@link #property-palettes}
 					 */
 					items: this.palettes,
-					collapsed: (this.palettes.length > 0),
+					collapsed: (this.palettes.length == 0),
 				}]
 			}, Ext.create('App.ui.ObjectProperties',{
 				/**

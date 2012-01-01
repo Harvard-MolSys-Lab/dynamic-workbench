@@ -8,9 +8,7 @@
 Ext.define('Workspace.objects.VectorObject', {
 	alias : 'Workspace.VectorObject',
 	statics : {
-		attrArray : ['arrow-end','arrow-start','clip-rect', 'fill', 'fill-opacity', 'font', 'font-family', 'font-size', 'font-weight', 'height', 'opacity', 'path', 'r', 
-'rotation', 
-		'rx', 'ry',    /*'scale',*/ 'src', 'stroke', 'stroke-dasharray', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke-width', 'translation', 'width', 'x', 'y'],
+		attrArray : ['arrow-end', 'arrow-start', 'clip-rect', 'fill', 'fill-opacity', 'font', 'font-family', 'font-size', 'font-weight', 'height', 'opacity', 'path', 'r', 'rotation', 'rx', 'ry', /*'scale',*/'src', 'stroke', 'stroke-dasharray', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke-width', 'translation', 'width', 'x', 'y'],
 	},
 	constructor : function(workspace, config) {
 		Workspace.objects.VectorObject.superclass.constructor.call(this, workspace, config);
@@ -41,11 +39,11 @@ Ext.define('Workspace.objects.VectorObject', {
 		this.expose('shape', true, true, true, false);
 		//,'shape','string');
 		this.expose('rotation', true, true, true, false);
-		this.expose('arrowEnd',true,true,true,false);
-		this.expose('arrowStart',true,true,true,false);
+		this.expose('arrowEnd', true, true, true, false);
+		this.expose('arrowStart', true, true, true, false);
 
 	},
-	requires: ['Workspace.Proxy'],
+	requires : ['Workspace.Proxy'],
 	extend : 'Workspace.objects.Object2d',
 	wtype : 'Workspace.objects.VectorObject',
 	iconCls : 'vector',
@@ -92,8 +90,8 @@ Ext.define('Workspace.objects.VectorObject', {
 	 * Number from 0-1 indicating opacity of the stroke
 	 */
 	strokeOpacity : 1,
-	rotation: 0,
-	
+	rotation : 0,
+
 	render : function() {
 		this.buildObject();
 		// this.on('change', this.updateObject, this);
@@ -139,29 +137,29 @@ Ext.define('Workspace.objects.VectorObject', {
 		}
 	},
 	buildEvents : function() {
-		_.each(Workspace.objects.VectorObject.attrArrayCamel, function(dash,camel) {
+		_.each(Workspace.objects.VectorObject.attrArrayCamel, function(dash, camel) {
 			this.on('change:' + camel, _.bind(this.updateAttr, this, dash))
 		}, this);
 	},
-	getTransform: function() {
+	getTransform : function() {
 		return "r" + ((+this.get('rotation') || 0));
 	},
 	updateAttr : function(attrName, value) {
 		// positioning attributes get treated differently
-		if(attrName=='x' || attrName=='y' ||attrName=='width' || attrName=='height') {
-			
+		if(attrName == 'x' || attrName == 'y' || attrName == 'width' || attrName == 'height') {
+
 			// hack to prevent anti-aliasing for rectangular things
-			if(attrName=='x' || attrName=='y') {
-				value = Math.round(value)+0.5;
+			if(attrName == 'x' || attrName == 'y') {
+				value = Math.round(value) + 0.5;
 			}
 			this.vectorElement.transform("");
 			this.vectorElement.attr(attrName, value);
 			this.vectorElement.transform(this.getTransform());
 			return;
-		} else if (attrName=="rotation") {
+		} else if(attrName == "rotation") {
 			this.vectorElement.transform("");
 			//this.vectorElement.rotate(value);
-			this.vectorElement.transform("r"+ (+value || 0));
+			this.vectorElement.transform("r" + (+value || 0));
 		}
 		this.vectorElement.attr(attrName, value);
 	},
@@ -172,7 +170,7 @@ Ext.define('Workspace.objects.VectorObject', {
 	 * @return {Workspace.Proxy} proxy
 	 */
 	getHighlightProxy : function() {
-		return Ext.create('Workspace.Proxy',Ext.applyIf({
+		return Ext.create('Workspace.Proxy', Ext.applyIf({
 			shape : this.shape,
 			strokeWidth : this.strokeWidth + App.Stylesheet.Highlight.strokeWidth,
 			workspace : this.workspace,
@@ -182,11 +180,11 @@ Ext.define('Workspace.objects.VectorObject', {
 	toBack : function() {
 		this.vectorElement.toBack();
 	},
-	insertBefore: function(obj) {
+	insertBefore : function(obj) {
 		if(obj && obj.vectorElement)
 			this.vectorElement.insertBefore(obj.vectorElement);
 	},
-	insertAfter: function(obj) {
+	insertAfter : function(obj) {
 		if(obj && obj.vectorElement)
 			this.vectorElement.insertAfter(obj.vectorElement);
 	},
@@ -203,7 +201,7 @@ Ext.define('Workspace.objects.VectorObject', {
 		Workspace.objects.VectorObject.superclass.updateX.apply(this, arguments);
 		// Anti-aliasing
 		this.vectorElement.attr({
-			x : Math.round(x)+0.5
+			x : Math.round(x) + 0.5
 		});
 		//this.x});
 	},
@@ -211,7 +209,7 @@ Ext.define('Workspace.objects.VectorObject', {
 		Workspace.objects.VectorObject.superclass.updateY.apply(this, arguments);
 		// Anti-aliasing
 		this.vectorElement.attr({
-			y : Math.round(y)+0.5
+			y : Math.round(y) + 0.5
 		});
 		//this.y});
 	},
@@ -276,8 +274,10 @@ Ext.define('Workspace.objects.VectorObject', {
 		return this.vectorElement;
 	},
 	destroy : function() {
-		this.vectorElement.remove();
-		Workspace.objects.VectorObject.superclass.destroy.apply(this, arguments);
+		if(!this.is('destroyed')) {
+			this.vectorElement.remove();
+			this.callParent(arguments);
+		}
 	}
 }, function() {
 	Workspace.reg('Workspace.objects.VectorObject', Workspace.objects.VectorObject);

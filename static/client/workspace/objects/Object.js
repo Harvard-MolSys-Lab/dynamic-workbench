@@ -1,5 +1,3 @@
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * @class Workspace.objects.Object
@@ -25,14 +23,13 @@ Ext.define('Workspace.objects.Object', {
 		});
 
 		this.exposeAll(config);
-				
+
 		this._children = this.children;
 		/**
 		 * @property {Ext.util.MixedCollection} children
 		 */
 		this.children = Ext.create('Ext.util.MixedCollection');
 
-				
 		/**
 		 * @property {Object} state
 		 */
@@ -40,7 +37,8 @@ Ext.define('Workspace.objects.Object', {
 			selected : false,
 			dragging : false,
 			editing : false,
-			rendered : false
+			rendered : false,
+			destroyed : false,
 		};
 
 		this.addEvents(
@@ -69,7 +67,7 @@ Ext.define('Workspace.objects.Object', {
 		 * @param {Workspace.objects.Object} this
 		 */
 		'destroy');
-		
+
 		this.expose('children', true, false, true, false);
 		this.expose('x', true, true, true, false);
 		//'getX','updateX');
@@ -90,7 +88,7 @@ Ext.define('Workspace.objects.Object', {
 		this.on('change:x', this.updateX, this);
 		this.on('change:y', this.updateY, this);
 	},
-	editable: true,
+	editable : true,
 	extend : 'Machine.core.Serializable',
 	/**
 	 * @cfg {String} wtype
@@ -135,7 +133,7 @@ Ext.define('Workspace.objects.Object', {
 	moveChildren : true,
 	/**
 	 * @cfg {String}
-	 */	
+	 */
 	name : 'New Object',
 
 	/**
@@ -184,16 +182,15 @@ Ext.define('Workspace.objects.Object', {
 	 * Realizes child objects passed to constructor. Automatically invoked by initialize
 	 * @private
 	 */
-	buildChildren: function() {
+	buildChildren : function() {
 		var children = this._children;
-		if (Ext.isArray(children)) {
+		if(Ext.isArray(children)) {
 			Ext.each(children, function(child) {
 				this.addChild(Workspace.Components.realize(child));
-			},
-			this)
-		} else if (Ext.isObject(children)) {
+			}, this)
+		} else if(Ext.isObject(children)) {
 			var child;
-			for (var id in children) {
+			for(var id in children) {
 				child = children[id];
 				this.addChild(Workspace.Components.realize(child))
 			}
@@ -203,27 +200,27 @@ Ext.define('Workspace.objects.Object', {
 	 * Adds a child to this object
 	 * @param {Workspace.Object} child
 	 */
-	addChild: function(child) {
+	addChild : function(child) {
 		this.children.add(child);
 		child.setParent(this);
 	},
 	/**
 	 * Alias for {@link #addChild}
 	 */
-	adopt: function() {
+	adopt : function() {
 		this.addChild.apply(this, arguments);
 	},
 	/**
 	 * Removes a child from this idea
 	 * @param {Workspace.Object} child
 	 */
-	removeChild: function(child) {
-		this.children.remove(child);//.getId());
+	removeChild : function(child) {
+		this.children.remove(child);
+		//.getId());
 	},
-	childCanMove: function(child) {
+	childCanMove : function(child) {
 		return true;
 	},
-	
 	/**
 	 * select
 	 * invokes {@link Workspace#select} for this object
@@ -292,7 +289,7 @@ Ext.define('Workspace.objects.Object', {
 		if(!rel) {
 			return this.get('x');
 		} else {
-			return    this.get('x') -    rel.getX();
+			return this.get('x') - rel.getX();
 		}
 	},
 	/**
@@ -304,7 +301,7 @@ Ext.define('Workspace.objects.Object', {
 		if(!rel) {
 			return this.get('y');
 		} else {
-			return    this.get('y') -    rel.getY();
+			return this.get('y') - rel.getY();
 		}
 	},
 	/**
@@ -431,8 +428,8 @@ Ext.define('Workspace.objects.Object', {
 	 */
 	getDelta : function(x2, y2) {
 		return {
-			dx : ( x2 -    this.getX()),
-			dy : ( y2 -    this.getY())
+			dx : (x2 - this.getX()),
+			dy : (y2 - this.getY())
 		};
 	},
 	/**
@@ -475,16 +472,18 @@ Ext.define('Workspace.objects.Object', {
 	 * Destroys the component and all children;
 	 */
 	destroy : function() {
-		if(this.children && this.children.getCount() > 0) {
-			this.children.each(function(child) {
-				child.orphan();
-			});
+		if(!this.is('destroyed')) {
+			if(this.children && this.children.getCount() > 0) {
+				this.children.each(function(child) {
+					child.orphan();
+				});
+			}
+			if(this.parent) {
+				this.orphan();
+			}
+			this.fireEvent('destroy', this);
+			this.setState('destroyed', true);
 		}
-		if(this.parent) {
-			this.orphan();
-		}
-		this.fireEvent('destroy', this);
-		this.setState('destroyed', true);
 	}
 }, function() {
 	Workspace.reg('Workspace.objects.Object', Workspace.objects.Object);

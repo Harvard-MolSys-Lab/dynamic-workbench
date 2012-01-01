@@ -1,3 +1,5 @@
 
 ./icons
 #images
+lib/mathquill/font
+lib/mathquill/font/*

@@ -319,7 +319,7 @@ exports.configure = function(app, express) {
 					});
 				}
 			} else {
-				res.send('');
+				sendError(res, "Couldn\'t make duplicate file.", 500);
 			}
 		});
 	});

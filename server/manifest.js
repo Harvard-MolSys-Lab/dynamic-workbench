@@ -12,7 +12,7 @@ var raphaelVersion = '2.0.1';//'1.5.2';
 
 var styles = [extStyles, 'styles/canvas', 'styles/icons', 'styles/infomachine', 'styles/colaborate/stylesheet', libPath + '/color-field-1.0.0/color-field', codeMirrorPath + '/lib/codemirror', codeMirrorPath + '/theme/default', libPath + '/valums-file-uploader/client/fileuploader', libPath + '/ux/css/CheckHeader',
 libPath + '/extjs-boxselect/src/BoxSelect'];
-var libs = ['jquery-1.5.1.min', 'underscore', 'string', 'color-field-1.0.0/color-field', 'raphael-'+raphaelVersion+'/raphael-min', 'raphael-'+raphaelVersion+'//plugins/raphael.primitives', 'CodeMirror-'+codeMirrorVersion+'/lib/codemirror', 'CodeMirror-'+codeMirrorVersion+'/lib/runmode', 'valums-file-uploader/client/fileuploader', 'dna-utils', 'Ext.ux.StatusBar', 'protovis-3.2/protovis-d3.2','/extjs-boxselect/src/BoxSelect'];
+var libs = ['jquery-1.5.1.min', 'underscore', 'string', 'color-field-1.0.0/color-field', 'raphael-'+raphaelVersion+'/raphael-min', 'raphael-'+raphaelVersion+'//plugins/raphael.primitives', 'CodeMirror-'+codeMirrorVersion+'/lib/codemirror', 'CodeMirror-'+codeMirrorVersion+'/lib/runmode', 'valums-file-uploader/client/fileuploader', 'dna-utils', 'jquery-animate-css-rotate-scale/jquery-css-transform', 'jquery-animate-css-rotate-scale/jquery-animate-css-rotate-scale', 'Ext.ux.StatusBar', 'protovis-3.2/protovis-d3.2','/extjs-boxselect/src/BoxSelect'];
 var uxs = ['RowExpander', 'CheckColumn'];
 var modes = ['javascript', 'stex', 'xml', 'diff', 'htmlmixed', 'css', 'clike','python','ruby','coffeescript',];
 

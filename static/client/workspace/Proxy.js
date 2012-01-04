@@ -86,15 +86,27 @@ Ext.define('Workspace.Proxy', {
 			this.rendered = true;
 		}
 	},
+	/**
+	 * @return {Number} x
+	 */
 	getX : function() {
 		return this.x;
 	},
+	/**
+	 * @return {Number} t
+	 */
 	getY : function() {
 		return this.y;
 	},
+	/**
+	 * @return {Number} width
+	 */
 	getWidth : function() {
 		return this.width;
 	},
+	/**
+	 * @return {Number} height
+	 */
 	getHeight : function() {
 		return this.height;
 	},
@@ -156,7 +168,6 @@ Ext.define('Workspace.Proxy', {
 		}
 	},
 	/**
-	 * getDelta
 	 * Calculates difference between position of object and the provided coordinates.
 	 * @param {Object} x2
 	 * @param {Object} y2
@@ -176,7 +187,6 @@ Ext.define('Workspace.Proxy', {
 		}
 	},
 	/**
-	 * translate
 	 * @param {Number} dx
 	 * @param {Number} dy
 	 */
@@ -207,7 +217,7 @@ Ext.define('Workspace.Proxy', {
 		this.fireEvent('resize', this.width, this.height);
 	},
 	/**
-	 * setDimensions
+	 * Sets the dimensions of this Proxy
 	 * @param {Number} width
 	 * @param {Number} height
 	 */
@@ -228,10 +238,20 @@ Ext.define('Workspace.Proxy', {
 		this.fireEvent('resize', w, h);
 	},
 	/**
-	 * getBox
 	 * Gets a four-cornered bounding box for this proxy
-	 * @return {Object} box An object with <var>tl</var>, <var>tr</var>, <var>bl</var>, and <var>br</var>
-	 * properties, corresponding to each corner of the box. Each key contains an object with <var>x</var> and <var>y</var> properties.
+	 * @return {Object} box An object with properties corresponding to each corner of the box. 
+	 * @return {Object} box.tl Top-left corner
+	 * @return {Object} box.tl.x
+	 * @return {Object} box.tl.y
+	 * @return {Object} box.tl Top-right corner
+	 * @return {Object} box.tr.x
+	 * @return {Object} box.tr.y
+	 * @return {Object} box.bl Bottom-left corner
+	 * @return {Object} box.bl.x
+	 * @return {Object} box.bl.y
+	 * @return {Object} box.br Bottom-right corner
+	 * @return {Object} box.br.x
+	 * @return {Object} box.br.y
 	 */
 	getBox : function() {
 		return {
@@ -295,14 +315,12 @@ Ext.define('Workspace.Proxy', {
 		}
 	},
 	/**
-	 * updatePosition
 	 * Helper method to recieve 'move' events from attached object
 	 */
 	updatePosition : function(x, y) {
 		this.setPosition(x, y);
 	},
 	/**
-	 * updateDimensions
 	 * Helper method to recieve 'resize' events from attached object
 	 */
 	updateDimensions : function(w, h) {
@@ -313,7 +331,6 @@ Ext.define('Workspace.Proxy', {
 		// this.vectorElement.attr('scale',source.get('scale'));
 	},
 	/**
-	 * attachTo
 	 * Binds this proxy to a given object, responding to its move, resize, and destroy events
 	 */
 	attachTo : function(obj) {
@@ -329,6 +346,11 @@ Ext.define('Workspace.Proxy', {
 				return;
 			}
 		}
+		/**
+		 * @property {Workspace.objects.Object} attached
+		 * The {@link Workspace.objects.Object object} to which this proxy is 
+		 * attached and is following.
+		 */
 		this.attached = obj;
 		obj.on('move', this.updateBox, this);
 		obj.on('resize', this.updateBox, this);
@@ -341,8 +363,7 @@ Ext.define('Workspace.Proxy', {
 		this.updateTransform(obj);
 	},
 	/**
-	 * detach
-	 * Unbinds event listeners on this proxy's {@link #attached} object
+	 * Unbinds event listeners on this proxy's #attached object
 	 */
 	detach : function() {
 		if(this.attached) {

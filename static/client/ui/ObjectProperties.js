@@ -1,5 +1,4 @@
 /**
- * @class App.ui.ObjectProperties
  * Allows creation and editing object properties
  * @extends App.ui.BoundObjectPanel
  */
@@ -22,7 +21,15 @@ Ext.define('App.ui.ObjectProperties', {
 		});
 		
 		this.selection = [];
-
+		
+		/**
+		 * @property {Workspace} workspace
+		 * The attached {@link Workspace}.
+		 */
+		
+		/**
+		 * @property {Workspace.objects.Object[]}
+		 */
 		this.items = this.items || [];
 		this.items.push(this.grid);
 

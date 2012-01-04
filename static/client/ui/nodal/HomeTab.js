@@ -5,7 +5,10 @@ Ext.define('App.ui.nodal.HomeTab', {
 	generateConfig: function() {
 		return {
 			dockedItems: [{
-				xtype:'toolbar',
+				'xtype': 'toolbar',
+				// setHeight: function(h) {
+					// return this.callParent([h+1]);
+				// },
 				//border: false,
 				items:[{
 					// 'Tools' group

@@ -1,9 +1,17 @@
+/**
+ * Allows editing of text {@link App.Document documents} with 
+ * {@link App.ui.CodeMirror CodeMirror}.
+ */
 Ext.define('App.ui.TextEditor', {
 	extend: 'Ext.panel.Panel',
 	mixins: {
 		app: 'App.ui.Application'
 	},
 	requires: ['App.ui.SaveButton','App.ui.CodeMirror'],
+	/**
+	 * @cfg {String}
+	 * The name of the CodeMirror mode to use for syntax highlighting
+	 */
 	mode:'',
 	layout: 'fit',
 	editorType: '',
@@ -37,15 +45,27 @@ Ext.define('App.ui.TextEditor', {
 	getSaveData: function() {
 		return this.editor.getValue();
 	},
+	/**
+	 * @inheritdoc App.ui.CodeMirror#search
+	 */
 	search: function(text) {
 		this.editor.search(text);
 	},
+	/**
+	 * @inheritdoc App.ui.CodeMirror#replace
+	 */
 	replace: function(text,replace) {
 		this.editor.replace(text,replace);
 	},
+	/**
+	 * @inheritdoc App.ui.CodeMirror#setValue
+	 */
 	setValue: function() {
 		return this.editor.setValue.apply(this.editor,arguments);
 	},
+	/**
+	 * @inheritdoc App.ui.CodeMirror#getValue
+	 */
 	getValue: function() {
 		return this.editor.getValue.apply(this.editor,arguments);
 	},

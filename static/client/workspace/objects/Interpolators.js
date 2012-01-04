@@ -1,17 +1,64 @@
+/**
+ * Provides several functions which can interpolate an array of points to 
+ * generate an SVG path string.
+ * @static
+ */
 Ext.define('Workspace.objects.Interpolators', {
 	statics : function() {
 		// The various interpolators supported by the `line` class.
 		var d3_svg_lineInterpolators = {
+			/**
+			 * @method linear
+			 * Linear interpolation; generates "L" commands.
+			 */
 			"linear" : d3_svg_lineLinear,
+			/**
+			 * @method step-before
+			 * Step interpolation; generates "H" and "V" commands.
+			 */
 			"step-before" : d3_svg_lineStepBefore,
+			/**
+			 * @method step-after
+			 * Step interpolation; generates "H" and "V" commands.
+			 */
 			"step-after" : d3_svg_lineStepAfter,
+			/**
+			 * @method basis
+			 * B-spline interpolation; generates "C" commands.
+			 */
 			"basis" : d3_svg_lineBasis,
+			/**
+			 * @method basis-open
+			 * Open B-spline interpolation; generates "C" commands.
+			 */
 			"basis-open" : d3_svg_lineBasisOpen,
+			/**
+			 * @method basis
+			 * Closed B-spline interpolation; generates "C" commands.
+			 */
 			"basis-closed" : d3_svg_lineBasisClosed,
+			/**
+			 * @method bundle
+			 */
 			"bundle" : d3_svg_lineBundle,
+			/**
+			 * @method cardinal
+			 * Cardinal spline interpolation; generates "C" commands.
+			 */
 			"cardinal" : d3_svg_lineCardinal,
+			/**
+			 * @method cardinal-open
+			 * Open cardinal spline interpolation; generates "C" commands.
+			 */
 			"cardinal-open" : d3_svg_lineCardinalOpen,
+			/**
+			 * @method cardinal-closed
+			 * Closed cardinal spline interpolation; generates "C" commands.
+			 */
 			"cardinal-closed" : d3_svg_lineCardinalClosed,
+			/**
+			 * @method monotone
+			 */
 			"monotone" : d3_svg_lineMonotone
 		};
 

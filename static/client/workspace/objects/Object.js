@@ -1,11 +1,9 @@
-////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * @class Workspace.objects.Object
  * Represents an object in the workspace
  * @extends Machine.core.Machine.core.Serializable
  * @abstract
  */
-// Workspace.objects.Object = {};
 Ext.define('Workspace.objects.Object', {
 	constructor : function(config) {
 		Workspace.objects.Object.superclass.constructor.apply(this, arguments);

@@ -70,6 +70,12 @@ Ext.define('Machine.core.Serializable', {
 		}
 	},
 	/**
+	 * Alias for #isWType
+	 */
+	hasWType : function() {
+		this.isWType.apply(this,arguments);
+	},
+	/**
 	 * Determines whether the class implements the passed wtype
 	 * @param {String/Ext.Class} wtype Type name or object to check
 	 * @param {Boolean} shallow True to check only if this object implements the passed wtype (not subclasses; defaults to false)

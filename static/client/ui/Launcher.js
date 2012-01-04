@@ -45,8 +45,8 @@ Ext.define('App.ui.Launcher', {
 		}
 	},
 	/**
-	 * Attempts to {@link #launch launch} the passed {@link App.ui.Document document} by
-	 * {@link App.ui.Document#checkout attached app} or {@link App.ui.Document#trigger}, if configured.
+	 * Attempts to {@link #launch launch} the passed {@link App.Document document} by
+	 * {@link App.Document#checkout attached app} or {@link App.Document#trigger}, if configured.
 	 */
 	launchDocument : function(rec) {
 		if(rec.app) {
@@ -65,7 +65,7 @@ Ext.define('App.ui.Launcher', {
 		// })
 	},
 	/**
-	 * Launches the passed {@link #trigger trigger} attached to the passed {@link App.ui.Document}. Generally results in
+	 * Launches the passed {@link #trigger trigger} attached to the passed {@link App.Document}. Generally results in
 	 * opening a new {@link App.ui.Application application} in a tab within the main {@link #tabPanel tab panel}
 	 *
 	 */

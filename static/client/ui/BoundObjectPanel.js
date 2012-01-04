@@ -7,7 +7,7 @@
 Ext.define('App.ui.BoundObjectPanel', {
 	extend : 'Ext.panel.Panel',
 	/**
-	 * @cfg {Boolean} Allows the binding of {@link Machine.core.serializable#expose object properties} to fields
+	 * @cfg {Boolean} Allows the binding of {@link Machine.core.Serializable#expose object properties} to fields
 	 * within this component to be categorically disabled.  
 	 */
 	enableBoundFields : true,

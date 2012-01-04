@@ -1,29 +1,62 @@
-////////////////////////////////////////////////////////////////////////////////////////////////
-/*
- * @class Workspace.objects.Path
- * Represents a workspace object rendered by an SVG/VML path
+/**
+ * Represents a workspace object rendered by an SVG/VML `path` element.
+ * 
+ * # Updating paths
+ * Path data may be updated in two ways: the #points property can be #set,
+ * triggering {@link #interpolate interpolation} of the points into an SVG path 
+ * string; or, the #path property can be updated directly, providing an SVG 
+ * path string or Raphael array.
+ * 
+ * When #points or #interpolator are {@link #event-change changed}, #buildPath is 
+ * called automatically. #buildPath calls #interpolate, which in turn invokes
+ * the configured #interpolator with the value of #points. This generates an 
+ * SVG path string or Raphael path array. The value of the #path property is 
+ * then {@link #set} to the result returned by #interpolate. 
+ * 
+ * When #path is #set, either manually or by #buildPath, #updatePath is called,
+ * which updates the #vectorElement with the appropriate SVG path string. #updatePath 
+ * also recalculates the object's dimensions.
+ * 
  * @extends Workspace.objects.VectorObject
  */
 Ext.define('Workspace.objects.Path', {
+	extend : 'Workspace.objects.VectorObject',
 	constructor : function(config) {
 		this.callParent(arguments);
 		this.expose('path', true, true, true, false);
 		this.expose('points', true, true, true, false);
 		this.expose('interpolator', true, true, true, false);
-		//Workspace.objects.Path.superclass.constructor.apply(this, arguments);
 	},
 	requires : ['Workspace.objects.Interpolators'],
 	alias : 'Workspace.VectorPathObject',
-	extend : 'Workspace.objects.VectorObject',
 	wtype : 'Workspace.objects.Path',
 	editor : 'vector',
 	name : 'New Path',
 	iconCls : 'path',
 	shape : 'path',
+	/**
+	 * @cfg {String} interpolator
+	 * Name of a {@link Workspace.objects.Interpolators interpolator} which can 
+	 * generate an SVG path string from an array of #points.
+	 */
 	interpolator : 'linear',
 	isResizable : false,
+	/**
+	 * @property {Array[]}
+	 * Array of SVG path commands which form an SVG path string. 
+	 */
 	path : [],
+	/**
+	 * @property {Array[]}
+	 * Array of points which define the path. Each point is an array containing 
+	 * at least two numbers (x and y coordinates). Different 
+	 * {@link #interpolator interpolators} may handle points with more than two 
+	 * coordinates.
+	 */
 	points : [],
+	/**
+	 * @inheritdoc
+	 */
 	fillOpacity : 0,
 	render : function() {
 		if(!this.path || (this.points && this.points.length > 0)) {
@@ -37,18 +70,18 @@ Ext.define('Workspace.objects.Path', {
 		this.updateDimensions();
 	},
 	/**
-	 * getHighlightProxy
-	 * Constructs a highlight {@link Workspace.Proxy} configured to follow this object. Automatically invoked by {@link #highlight}; should not be called directly.
+	 * Constructs a highlight {@link Workspace.Proxy} configured to follow this 
+	 * object. Automatically invoked by {@link #highlight}; should not be 
+	 * called directly.
 	 * @private
 	 * @return {Workspace.Proxy} proxy
 	 */
 	getHighlightProxy : function() {
-		return new Workspace.Proxy(Ext.applyIf({
+		return Ext.create('Workspace.Proxy',Ext.applyIf({
 			path : this.path,
 			shape : this.shape,
 			strokeWidth : this.strokeWidth + App.Stylesheet.Highlight.strokeWidth,
 			workspace : this.workspace,
-			//forceBack : true,
 		}, App.Stylesheet.Highlight));
 	},
 	updateHighlightProxy : function() {
@@ -72,7 +105,6 @@ Ext.define('Workspace.objects.Path', {
 		}
 	},
 	/**
-	 * updatePath
 	 * Sets this object's path to the passed path specification and recalculates its dimensions
 	 * @param {Array} path Raphael path specification (e.g. [['M',x,y],['L',x,y]...])
 	 */
@@ -85,8 +117,7 @@ Ext.define('Workspace.objects.Path', {
 		this.updateHighlightProxy();
 	},
 	/**
-	 * updateDimensions
-	 * Sets this object's x, y, width, and height properties to match that of the bounding box of the object's path.
+=	 * Sets this object's x, y, width, and height properties to match that of the bounding box of the object's path.
 	 * Automatically invoked by updatePath and render()
 	 * @private
 	 */
@@ -116,30 +147,9 @@ Ext.define('Workspace.objects.Path', {
 			}
 			this.set('points',points);
 		} else {
-			// var point;
-			// for( i = 0, l = this.path.length; i < l; i++) {
-				// point = this.path[i];
-				// switch (point[0]) {
-					// case 'C':
-						// point[5] = point[5] + dx;
-						// point[6] = point[6] + dy;
-					// case 'S':
-						// point[3] = point[3] + dx;
-						// point[4] = point[4] + dy;
-					// case 'M':
-					// case 'L':
-					// case 'T':
-						// point[1] = point[1] + dx;
-						// point[2] = point[2] + dy;
-						// break;
-					// default:
-						// break;
-				// }
-			// }
 			this.path = Raphael.pathToRelative(this.path);
 	            this.path[0][1] = this.path[0][1]+dx;
 	            this.path[0][2] = this.path[0][2]+dy;
-			//this.set('path',this.path);
 			this.updatePath(this.path);
 		}
 		/*
@@ -149,7 +159,6 @@ Ext.define('Workspace.objects.Path', {
 		this.fireEvent('move', this.getX(), this.getY());
 	},
 	/**
-	 * setPosition
 	 * sets the position of this path by calculating the delta and translating the path
 	 * @param {Object} x
 	 * @param {Object} y
@@ -158,7 +167,6 @@ Ext.define('Workspace.objects.Path', {
 		var delta = this.getDelta(x, y);
 		this.translate(delta.dx, delta.dy);
 	},
-	// not implemented
 	setDimensions : function(w, h) {
 
 	}

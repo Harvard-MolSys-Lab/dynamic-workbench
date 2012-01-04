@@ -18,7 +18,7 @@ Ext.define('App.ui.FillStrokeTab', {
 				},
 				items: [new Ext.ux.ColorField({
 					ref: '../../fillColorField',
-					fieldLabel: 'Fill Color',
+					//fieldLabel: 'Fill Color',
 					objectBinding: 'fill',
 					anchor: 'left',
 					width: 100,

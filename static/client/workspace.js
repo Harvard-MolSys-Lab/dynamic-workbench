@@ -77,15 +77,13 @@ Ext.define('Workspace', {
 		this._objects = this.objects || {};
 
 		/**
+		 * @property {Workspace.objects.ObjectCollection} objects
 		 * Objects in the workspace
-		 * @type Workspace.ObjectCollection
-		 * @property objects
 		 */
 		this.objects = Ext.create('Workspace.objects.ObjectCollection');
 		/**
+		 * @property {Workspace.objects.ObjectCollection} selection
 		 * Currently selected objects in the workspace
-		 * @type Workspace.ObjectCollection
-		 * @property selection
 		 */
 		this.selection = Ext.create('Workspace.objects.ObjectCollection');
 
@@ -242,7 +240,7 @@ Ext.define('Workspace', {
 	 * @private
 	 * @param {Function} objectClass Constructor to which <var>config</var> should be passed. May be omitted if <var>config</var> contains a registered wtype.
 	 * @param {Object} config Object containing configuration parameters
-	 * @return {SerializableObject} object
+	 * @return {Machine.core.Serializable} object
 	 */
 	buildObject: function() {
 		var objectClass,
@@ -272,7 +270,7 @@ Ext.define('Workspace', {
 	 * createObjects
 	 * Instantiates, initializes, and renders the given objects. This method and {@link #createObject} are the preferred ways to add objects to the workspace
 	 * @param {Object[]/Object} configs An array or hash of configuration objects. Each element in <var>configs</var> must have a registered wtype!
-	 * @return {Workspace.Object[]} objects
+	 * @return {Workspace.objects.Object[]} objects
 	 */
 	createObjects: function(objects) {
 		var newObjects = [],
@@ -325,7 +323,7 @@ Ext.define('Workspace', {
 	 * Instantiates, initializes, and renders the given objects. This method and {@link #createObjects} are the preferred ways to add objects to the workspace
 	 * @param {Function} objectClass Constructor to which <var>config</var> should be passed. May be omitted if <var>config</var> contains a registered wtype.
 	 * @param {Object} config Object containing configuration parameters
-	 * @return {SerializableObject} object
+	 * @return {Machine.core.Serializable} object
 	 */
 	createObject: function(objectClass, config) {
 		// instantiate object
@@ -884,7 +882,7 @@ Workspace.Components = (function() {
 		 * Instantiates an object of the passed class or configured wtype.
 		 * @param {Function} objectClass Constructor to which <var>config</var> should be passed. May be omitted if <var>config</var> contains a registered wtype.
 		 * @param {Object} config Object containing configuration parameters
-		 * @return {SerializableObject} object
+		 * @return {Machine.core.Serializable} object
 		 */
 		create: function() {
 			var config,
@@ -916,7 +914,7 @@ Workspace.Components = (function() {
 		 * with the given wtype is instantiated using parameters in config. If the value passed to config has already been instantiated,
 		 * it is returned unmodified.
 		 * @param {Object} config Object containing configuration parameters. Must include a registered <var>wtype</var>!
-		 * @return {SerializableObject} object
+		 * @return {Machine.core.Serializable} object
 		 */
 		realize: function(o) {
 			if (o.wtype) {
@@ -1021,7 +1019,7 @@ Workspace.Components = (function() {
 		getTypeStore: function() {
 			return typeStore;
 		},
-		defaultType: 'SerializableObject',
+		defaultType: 'Machine.core.Serializable',
 
 		isWType: function(o,wtype) {
 			if(Ext.isString(o)) {
@@ -1070,11 +1068,32 @@ Workspace.Utils = {
 	 * @return {String} color
 	 */
 	ideaColor: (function() {
-		var colors = ['#FFCC99', '#FFFF99', '#CCFFCC', '#CCFFFF', '#99CCFF', '#CC99FF'],
-		colorPointer = -1;
-		return function() {
-			colorPointer = (colorPointer + 1) % colors.length;
-			return colors[colorPointer];
+		var pointers = {};
+		var colors = pv.Colors.category20().range();
+		// _.map(['#FFCC99', '#FFFF99', '#CCFFCC', '#CCFFFF', '#99CCFF', '#CC99FF'],function(color) {
+			// return pv.color(color);
+		// });
+		var defaultPointer = -1;
+		return function(id) {
+			if(id) {
+				if(pointers[id] == undefined) {
+					pointers[id] = -1;
+				}
+				colorPointer = pointers[id];
+			} else {				
+				colorPointer = defaultPointer;
+			}
+			var colorPointer = (colorPointer + 1);
+			var color = colorPointer % colors.length;
+			var darkness = Math.floor(colorPointer / colors.length);
+			
+			if(id) {
+				pointers[id] = colorPointer;
+			} else {
+				defaultPointer = colorPointer;
+			}
+			
+			return colors[color].darker(darkness).color;
 		};
 	})(),
 	/**
@@ -1268,6 +1287,10 @@ Workspace.Layouts = new App.Registry('ltype');
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * Applies scaling, rotation, and offset to the canvas {@link Workspace} and 
+ * does the related math for other classes.
+ */
 Ext.define('Workspace.Lens', {
 	constructor: function(config) {
 		Workspace.Lens.superclass.constructor.apply(this);
@@ -1293,9 +1316,12 @@ Ext.define('Workspace.Lens', {
 		this.zoom = v;
 	},
 	/**
+	 * Adjusts frame x/y coordinates to workspace coordinates
 	 * @param {Number} x The frame x coordinate
 	 * @param {Number} y The frame y coordinate
-	 * @retrun {Object} coords The space x,y coordinates
+	 * @return {Object} coords The space x,y coordinates
+	 * @return {Object} coords.x
+	 * @return {Object} coords.y
 	 */
 	getAdjustedXYcoords: function(x,y) {
 		return {

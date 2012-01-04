@@ -1,6 +1,4 @@
-////////////////////////////////////////////////////////////////////////////////////////////////
 /**
- * @class Workspace.objects.VectorObject
  * Represents a workspace object rendered by an SVG/VML (Raphael) element
  * @extends Workspace.objects.Object2d
  */
@@ -82,14 +80,26 @@ Ext.define('Workspace.objects.VectorObject', {
 	 * String composed of permutations of '.' '-' and ' ' indicating dash pattern
 	 */
 	strokeDasharray : '',
+	/**
+	 * @cfg
+	 */
 	strokeLinecap : 'square',
+	/**
+	 * @cfg
+	 */
 	strokeLinejoin : '',
+	/**
+	 * @cfg
+	 */
 	strokeMiterlimit : 1,
 	/**
 	 * @cfg {Number} strokeOpacity
 	 * Number from 0-1 indicating opacity of the stroke
 	 */
 	strokeOpacity : 1,
+	/**
+	 * @cfg
+	 */
 	rotation : 0,
 
 	render : function() {
@@ -99,13 +109,18 @@ Ext.define('Workspace.objects.VectorObject', {
 		Workspace.objects.VectorObject.superclass.render.apply(this, arguments);
 	},
 	/**
-	 * buildObject
-	 * Invokes the Raphael constructor specified in {@link #shape}, with the arguments specified in {@link #arguments}
+	 * Invokes the Raphael constructor specified in #shape, with the 
+	 * arguments specified in #arguments. Constructs the #vectorElement.
 	 * @private
 	 */
 	buildObject : function() {
 		if(Ext.isFunction(this.workspace.paper[this.shape])) {
+			
 			// build the element
+			/**
+			 * @property {Raphael.Element} vectorElement
+			 * A Raphael vector element representing the object.
+			 */
 			this.vectorElement = this.workspace.paper[this.shape].apply(this.workspace.paper, this.arguments);
 
 			// apply attributes specified in config
@@ -244,7 +259,6 @@ Ext.define('Workspace.objects.VectorObject', {
 		//{width: box.width, height: box.height};
 	},
 	/**
-	 * attributes
 	 * Searches this object for the provided attributes and returns a hash containing containing them.
 	 * Used to quicky apply properties saved in this object to its vector representation. Automatically converts
 	 * dashed property names to camelized property names stored in the object.
@@ -268,7 +282,7 @@ Ext.define('Workspace.objects.VectorObject', {
 	},
 	/**
 	 * getEl
-	 * @return {Raphael} this object's Raphael object
+	 * @return {Raphael} this object's Raphael object (#vectorElement)
 	 */
 	getEl : function() {
 		return this.vectorElement;

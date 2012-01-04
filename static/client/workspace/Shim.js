@@ -1,11 +1,9 @@
-////////////////////////////////////////////////////////////////////////////////////////////////
 /*
  * @class Workspace.Shim
  * Renders an object (such as an idea label) which follows the movement of a Workspace.objects.Object
  * @extends Ext.util.Observable
- * @see Workspace.Label
  */
-Workspace.Shim = {};
+//Workspace.Shim = {};
 Ext.define('Workspace.Shim', {
 	constructor : function(config) {
 		Workspace.Shim.superclass.constructor.apply(this, arguments);
@@ -26,7 +24,6 @@ Ext.define('Workspace.Shim', {
 	animate : false,
 	passThroughEvents : true,
 	/**
-	 * applyTo
 	 * Links this shim to a {@link Workspace.objects.Object}
 	 * @param {Workspace.objects.Object} object
 	 */
@@ -47,7 +44,6 @@ Ext.define('Workspace.Shim', {
 		}
 	},
 	/**
-	 * onMove
 	 * Invoked when the element moves; repositions the shim
 	 * @private
 	 */
@@ -63,7 +59,6 @@ Ext.define('Workspace.Shim', {
 		}
 	},
 	/**
-	 * render
 	 * Creates an element for the shim in the DOM. Automatically applied or scheduled by {@link #applyTo}
 	 * @private
 	 */

@@ -42,8 +42,8 @@ Ext.define('Workspace.Label', {
 			this.editor.attachTo(this.getEl(), this.object.workspace.getEl());
 			this.editor.on('complete', this.onSave, this);
 		} else {
-			this.element.unselectable();
 		}
+		this.element.unselectable();
 		// pre-build metrics object to perform sizing in #updateSize
 		this.metrics = new Ext.util.TextMetrics(this.getEl());
 

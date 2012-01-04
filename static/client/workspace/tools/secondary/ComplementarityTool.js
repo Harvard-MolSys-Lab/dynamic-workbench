@@ -18,10 +18,11 @@ Ext.define('Workspace.tools.secondary.ComplementarityTool', {
 	canConnect: function() {
 		return Workspace.objects.secondary.Complementarity.prototype.canConnect.apply(this,arguments);
 	},
+	buildObject : function() {
+		return;
+	},
 	onConnect: function(conn,left,right) {
-		if(conn.onConnect) { 
-			conn.onConnect(left,right);
-		} 
+		this.workspace.complementarityManager.makeComplementary(left,right);
 	},
 	targetWType: 'Workspace.objects.secondary.Complementarity'
 }, function() {

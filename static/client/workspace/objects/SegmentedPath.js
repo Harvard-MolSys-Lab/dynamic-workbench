@@ -1,8 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 /*
- * @class Workspace.objects.SegmentedPath
- * Represents a {@link Workspace.objects.Path path} whose segments are treated as separate objects
- */
+* @class Workspace.objects.SegmentedPath
+* Represents a {@link Workspace.objects.Path path} whose segments are treated as separate objects
+*/
 Ext.define('Workspace.objects.SegmentedPath', {
 	extend : 'Workspace.objects.Path',
 	strokeWidth : 10,
@@ -10,7 +10,7 @@ Ext.define('Workspace.objects.SegmentedPath', {
 	strokeOpacity : 0.5,
 	strokeLinecap : 'round',
 	strokeLinejoin : 'round',
-	childWType: 'Workspace.objects.Path',
+	childWType : 'Workspace.objects.Path',
 	constructor : function() {
 		this.callParent(arguments);
 		this.indexedChildren = [];
@@ -18,11 +18,33 @@ Ext.define('Workspace.objects.SegmentedPath', {
 	addChild : function(child) {
 		this.callParent(arguments);
 		child.expose('index', true, true, true, false);
+		child.on('change:points', this.childChangePoints, this);
 		this.indexedChildren[child.get('index')] = child;
+	},
+	removeChild : function(child) {
+		this.callParent(arguments)
+		child.un('change:points', this.childChangePoints, this);
+		var index = child.get('index');
+		var points = this.get('points');
+
+		points.splice(index, 1);
+		this.indexedChildren.splice(index, 1);
+		for(var i = index; i < this.indexedChildren.length; i++) {
+			this.indexedChildren[i].set('index', i);
+		}
+		this.set('points', points);
 	},
 	render : function() {
 		this.callParent(arguments);
 		this.toBack();
+	},
+	childChangePoints : function(points, oldPoints, child) {
+		if(!this.ignoreChangeChildPoints) {
+			var myPoints = this.get('points');
+			myPoints[child.index] = points[0];
+			myPoints[child.index + 1] = points[1];
+			this.set('points', myPoints);
+		}
 	},
 	/**
 	 * Called when {@link #points} changes; builds the SVG path string.
@@ -36,7 +58,9 @@ Ext.define('Workspace.objects.SegmentedPath', {
 			if(this.children.getCount() == points.length - 1) {
 				for(var i = 0, l = points.length - 1; i < l; i++) { p1 = points[i], p2 = points[i + 1];
 					child = this.indexedChildren[i];
+					this.ignoreChangeChildPoints = true;
 					child.set('points', [p1, p2]);
+					this.ignoreChangeChildPoints = false;
 				}
 			}
 		} else {
@@ -73,20 +97,23 @@ Ext.define('Workspace.objects.SegmentedPath', {
 
 	},
 	makeChild : function(config) {
-		child = this.workspace.createObject(Ext.apply(config || {}, {
+		var child = this.workspace.createObject(Ext.apply(config || {}, {
 			wtype : this.childWType,
 			strokeWidth : 4,
 			stroke : '#aaa',
 			index : this.getNextIndex(),
 			showTitle : true,
-			editable: false,
+			//editable: false,
 		}));
 		this.addChild(child);
 		if(this.is('rendered')) {
 			child.insertAfter(this);
 		}
 	},
-	getNextIndex: function() {
+	getSegment : function(index) {
+		return this.indexedChildren(index);
+	},
+	getNextIndex : function() {
 		return this.indexedChildren.length;
 	},
 	childCanMove : function() {

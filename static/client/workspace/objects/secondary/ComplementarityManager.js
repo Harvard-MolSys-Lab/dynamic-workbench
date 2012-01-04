@@ -1,5 +1,5 @@
 /**
- * Allows centralized management of {@link Workspace.object.Object objects}, 
+ * Allows centralized management of {@link Workspace.objects.Object objects}, 
  * many of which may have complementarity or equality relationships between
  * their abstract identities. For instance, this could be used to manage the 
  * names (identities) of segments or domains in a secondary structure system,
@@ -9,9 +9,16 @@ Ext.define("Workspace.objects.secondary.ComplementarityManager", {
 	extend : 'Workspace.objects.Object',
 	nameIndex: -1,
 	defaultPolaritySpecifier: "*",
+	/**
+	 * @cfg
+	 * Color-related property which should be managed by this class. 
+	 * See #getColor and #setColor
+	 */
+	colorProperty : "stroke",
 	constructor : function() {
 		this.callParent(arguments);
 		this.identities = {};
+		this.colors = {};
 		this.objectIdentitiesCache = {};
 		this.expose('identities',true,true,true,false);
 		this.expose('nameIndex',true,true,true,false);
@@ -45,6 +52,19 @@ Ext.define("Workspace.objects.secondary.ComplementarityManager", {
 		polarity || (polarity = 1);
 		if(object && object.getId) return this.makeIdentifier(this.getIdentity(object),object.get('polarity')*polarity);
 	},
+	getColor : function(identifier) {
+		return this.colors[identifier];
+	},
+	setColor : function(identifier,value) {
+		var old = this.colors[identifier]; 
+		this.colors[identifier] = value;
+		_.each(this.getWithIdentity(identifier),function(obj) {
+			obj.change(this.colorProperty,value,old);
+		},this)
+	},
+	nextColor : function() {
+		return Workspace.Utils.ideaColor(this.getId());
+	},
 	nextName : function() {
 		var s = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 		this.nameIndex++;
@@ -63,6 +83,7 @@ Ext.define("Workspace.objects.secondary.ComplementarityManager", {
 		id = this.normalizeIdentity(id);
 		if(!this.identities[id]) {
 			this.identities[id] = [];
+			this.colors[id] = this.nextColor();
 		}
 		this.cacheObjectId(object,id);
 		this.identities[id].push(object);
@@ -81,7 +102,7 @@ Ext.define("Workspace.objects.secondary.ComplementarityManager", {
 	},
 	/**
 	 * Gets objects which have the given identity (of either polarity)
-	 * @return {Workspace.object.Object[]} objects
+	 * @return {Workspace.objects.Object[]} objects
 	 */
 	getWithIdentity: function(identifier) {
 		identifier = this.normalizeIdentity(identifier);
@@ -100,7 +121,7 @@ Ext.define("Workspace.objects.secondary.ComplementarityManager", {
 	 * Returns all objects with a given identity and polarity
 	 * @param {String} identifier
 	 * @param {Number} polarity 1 for 5' -> 3', -1 for 3' -> 5'
-	 * @return {Workspace.object.Object[]} objects
+	 * @return {Workspace.objects.Object[]} objects
 	 */
 	getEqual: function(identifier,polarity) {
 		if(polarity == 0) {
@@ -116,7 +137,7 @@ Ext.define("Workspace.objects.secondary.ComplementarityManager", {
 	 * to that given.
 	 * @param {String} identifier
 	 * @param {Number} polarity 1 for 5' -> 3', -1 for 3' -> 5'
-	 * @return {Workspace.object.Object[]} objects
+	 * @return {Workspace.objects.Object[]} objects
 	 */
 	getComplementary: function(identifier,polarity) {
 		if(polarity==0) polarity = this.getPolarity(identifier);
@@ -124,7 +145,7 @@ Ext.define("Workspace.objects.secondary.ComplementarityManager", {
 	},
 	/**
 	 * Updates a cache which maintains the identity associated with each object 
-	 * by {@link Machine.core.serializable#id InfoMachine object ID}. This 
+	 * by {@link Machine.core.Serializable#id InfoMachine object ID}. This 
 	 * allows fast lookup of object identity within #getIdentity.
 	 * @private
 	 */

@@ -1,7 +1,5 @@
-////////////////////////////////////////////////////////////////////////////////////////////////
-/*
- * @class Workspace.objects.SegmentedPath
- * Represents a {@link Workspace.objects.Path path} whose segments are treated as separate objects
+/**
+ * Represents a strand in the secondary structure designer.
  */
 Ext.define('Workspace.objects.secondary.Strand', {
 	extend : 'Workspace.objects.SegmentedPath',

@@ -38,16 +38,39 @@ Ext.define('Workspace.tools.VectorTool', {
 			this.item = false;
 		}
 	},
+	createHandle : function(item, index, points) {
+		var spec = {
+			item : item,
+			index : index,
+			forceFront : true,
+		};
+		if(item.constrain) {
+			spec.constrain = _.bind(item.constrain,item);
+		}
+		// if(item.isWType('Workspace.objects.SegmentedPath')) {
+			// var segment;
+			// if(index > points.length) {
+				// segment = item.getSegment(index)
+				// spec.rel = 'left'; // position of handle in relation to child/segment;
+			// } else {
+				// segment = item.getSegment(index - 1);
+				// spec.rel = 'right';
+			// }
+			// if(segment) {
+				// spec.segment = segment;
+				// if(segment.constrain) {
+					// spec.constrain = _.bind(segment.constrain,segment);
+				// }
+			// }
+		// }
+		return Ext.create('Workspace.tools.VectorHandle', this.workspace, spec)
+	},
 	addHandles : function(item) {
 		if(!this.handles.containsKey(item.getId())) {
 			var handles = [], points = item.get('points');
 			if(points) {
 				_.each(points, function(point, i) {
-					handles.push(Ext.create('Workspace.tools.VectorHandle', this.workspace, {
-						item : item,
-						index : i,
-						forceFront : true,
-					}));
+					handles.push(this.createHandle(item, i, points));
 				}, this);
 				this.handles.add(item.getId(), handles);
 			}
@@ -62,9 +85,9 @@ Ext.define('Workspace.tools.VectorTool', {
 			if(Ext.isString(itemId)) {
 				if(this.handles.containsKey(itemId)) {
 					handles = this.handles.get(itemId);
-					for(position in handles) {
-						handles[position].destroy();
-					}
+					_.each(handles,function(handle) {
+						if(handle) handle.destroy();
+					});
 					this.handles.removeAtKey(itemId);
 				}
 			}

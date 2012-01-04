@@ -130,7 +130,7 @@ Ext.define('Workspace.tools.Handle', {
 			/* calculate mouse delta to avoid strange snapping when user doesn't click on the
 			 * center of the handle
 			 */
-			pos = this.getAdjustedXY(e);
+			pos = this.snap(this.getAdjustedXY(e),e);
 			var dx = pos.x - this.x1, dy = pos.y - this.y1;
 
 			// set new initial position, check configured handle movement bounds
@@ -145,6 +145,11 @@ Ext.define('Workspace.tools.Handle', {
 			if(Ext.isFunction(this.drag)) {
 				this.drag(e, pos.x, pos.y);
 			}
+		}
+	},
+	snap : function(pos,e) {
+		if(e.hasModifier()) {
+			
 		}
 	},
 	dragEndHandler : function(e) {

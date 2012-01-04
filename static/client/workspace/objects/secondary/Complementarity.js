@@ -25,9 +25,6 @@ Ext.define('Workspace.objects.secondary.Complementarity', {
 	canConnect : function(left, right) {
 		return true;
 	},
-	onConnect: function(left, right) {
-		this.workspace.complementarityManager.makeComplementary(left,right);
-	},
 }, function() {
 	Workspace.reg('Workspace.objects.secondary.Complementarity', Workspace.objects.secondary.Complementarity);
 });

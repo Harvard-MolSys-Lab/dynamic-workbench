@@ -1,5 +1,4 @@
 
-////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * @class Workspace.tools.VectorHandle
  * @extends Workspace.tools.Handle
@@ -8,8 +7,10 @@
  */
 Ext.define('Workspace.tools.VectorHandle', {
 	forceFront : true,
+	r : 2,
 	constructor: function(workspace, config) {
-		Workspace.tools.VectorHandle.superclass.constructor.call(this, workspace, config);
+		//Workspace.tools.VectorHandle.superclass.constructor.call(this, workspace, config);
+		this.callParent(arguments);
 
 		Ext.applyIf(this, {
 			location: 'tl'
@@ -38,7 +39,7 @@ Ext.define('Workspace.tools.VectorHandle', {
 	},
 	dragEndHandler: function() {
 		if (this.dragging) {
-			var points = this.item.get('points'), pos = this.getPosition();
+			var points = this.item.get('points'), pos = this.snap(this.getPosition());
 			points[this.index] = [pos.x,pos.y];
 			this.item.set('points',points);
 		}
@@ -55,8 +56,14 @@ Ext.define('Workspace.tools.VectorHandle', {
 	move: function(point) {
 		this.setPosition(point[0],point[1]);
 	},
+	snap : function(pos) {
+		if(this.constrain) {
+			pos = this.constrain(pos,this);
+		}
+		return pos;
+	},
 	destroy: function() {
-		Workspace.tools.VectorHandle.superclass.destroy.call(this);
+		this.callParent(arguments);
 		this.item.un('move', this.onItemMove, this);
 		this.item.un('resize', this.onItemMove, this);
 		this.item.un('change:points',this.onItemMove,this);

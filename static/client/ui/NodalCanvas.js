@@ -7,7 +7,7 @@ Ext.define('App.ui.NodalCanvas',{
 	iconCls: 'nodal',
 	requires: ['App.ui.nodal.HomeTab','App.ui.nodal.BuildTab','Workspace.objects.dna.Node','Workspace.objects.dna.Complementarity',
 	'Workspace.tools.nodal.NodeTool','Workspace.tools.nodal.PortTool','Workspace.tools.nodal.ComplementarityTool',
-	'App.ui.nodal.NodeInspector',],
+	'App.ui.nodal.NodeInspector','App.ui.nodal.PortInspector','App.ui.MotifPalette'],
 	border : false,
 
 	constructor: function() {

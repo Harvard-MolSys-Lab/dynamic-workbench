@@ -8,7 +8,7 @@ html(lang="en")
     - each sheet in resources.links
       link(rel="stylesheet",href=sheet)
     
-    //- env = 'production';
+    - env = 'production';
     if env == 'production'
       script(type="text/javascript", src="all.js")
     else

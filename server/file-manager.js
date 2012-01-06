@@ -14,7 +14,7 @@ var check = validate.check, sanitize = validate.sanitize;
 var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath;
 var restrict = auth.restrict;
 
-var folderPermission = 770;
+var folderPermission = 0770;
 
 function logError() {
 }

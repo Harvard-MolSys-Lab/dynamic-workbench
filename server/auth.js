@@ -227,7 +227,7 @@ exports.configure = function(app, express) {
 					});
 				} else {
 					// make home directory
-					fs.mkdir(path.join(filesPath, user.email), 770, function(err) {
+					fs.mkdir(path.join(filesPath, user.email), 0770, function(err) {
 						if(err) {
 							winston.log("error", "Account creation error: couldn't make home directory.", {
 								err : err

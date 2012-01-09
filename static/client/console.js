@@ -5,7 +5,7 @@
  * http://www.sencha.com/license
  */
 Ext.oldLog = Ext.log;
-Ext.apply(Ext, {
+Ext.apply(App, {
 	/**
 	 * @member Ext
 	 * See {@link Ext.debug.LogPanel#log}.
@@ -26,30 +26,30 @@ Ext.apply(Ext, {
 		}
 	},
 	logf : function(format, arg1, arg2, etc) {
-		Ext.log(String.format.apply(String, arguments));
+		App.log(String.format.apply(String, arguments));
 	},
 	dump : function(o) {
 		if( typeof o == 'string' || typeof o == 'number' || typeof o == 'undefined' || Ext.isDate(o)) {
-			Ext.log(o);
+			App.log(o);
 		} else if(!o) {
-			Ext.log("null");
+			App.log("null");
 		} else if( typeof o != "object") {
-			Ext.log('Unknown return type');
+			App.log('Unknown return type');
 		} else if(Ext.isArray(o)) {
-			Ext.log('[' + o.join(',') + ']');
+			App.log('[' + o.join(',') + ']');
 		} else {
 			var b = ["{\n"];
 			for(var key in o) {
 				var to = typeof o[key];
 				if(to != "function" && to != "object") {
-					b.push(String.format("  {0}: {1},\n", key, o[key]));
+					b.push(Ext.String.format("  {0}: {1},\n", key, o[key]));
 				}
 			}
 			var s = b.join("");
 			if(s.length > 3) {
 				s = s.substr(0, s.length - 2);
 			}
-			Ext.log(s + "\n}");
+			App.log(s + "\n}");
 		}
 	},
 	_timers : {},
@@ -64,7 +64,7 @@ Ext.apply(Ext, {
 		var v = String.format("{0} ms", t - Ext._timers[name]);
 		Ext._timers[name] = new Date().getTime();
 		if(printResults !== false) {
-			Ext.log('Timer ' + (name == "def" ? v : name + ": " + v));
+			App.log('Timer ' + (name == "def" ? v : name + ": " + v));
 		}
 		return v;
 	}

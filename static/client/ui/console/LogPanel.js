@@ -18,25 +18,65 @@ Ext.define('App.ui.console.LogPanel', {
 	},
 	initComponent: function() {
 		this.groups = {};
+		this.logLevels = {
+			info: 'console-info',
+			warn: 'console-warn',
+			error: 'console-error',
+		};
 		this.callParent(arguments);
+	},
+	dump : function(o) {
+		if( typeof o == 'string' || typeof o == 'number' || typeof o == 'undefined' || Ext.isDate(o)) {
+			return o;
+		} else if(!o) {
+			return "null";
+		} else if( typeof o != "object") {
+			return 'Unknown return type';
+		} else if(Ext.isArray(o)) {
+			return '[' + o.join(',') + ']';
+		} else {
+			var b = ["{\n"];
+			for(var key in o) {
+				var to = typeof o[key];
+				if(to != "function" && to != "object") {
+					b.push(Ext.String.format("  {0}: {1},\n", key, o[key]));
+				}
+			}
+			var s = b.join("");
+			if(s.length > 3) {
+				s = s.substr(0, s.length - 2);
+			}
+			return s + "\n}";
+		}
 	},
 	/**
 	 * Logs args to the console
 	 * @param {Mixed} args
 	 * @param {Object} options Hash containing the following parameters:
-	 * 	- silent {Boolean} True to prevent the console from automatically showing if closed, false to automatically
+	 * @param {Object} [options.silent=false] {Boolean} True to prevent the console from automatically showing if closed, false to automatically
 	 *    show the console after this message (defaults to false)
-	 *  - iconCls {String} CSS class for an icon to display next to this message
-	 *  - group {Mixed} String title or panel config object for a "sub-console" to be created to display this message.
+	 * @param {Object} [options.iconCls=''] {String} CSS class for an icon to display next to this message
+	 * @param {Object} [options.group=null] {Mixed} String title or panel config object for a "sub-console" to be created to display this message.
 	 *    If the <var>group</var> name exists, this message is directed to that sub-console; else it is created. The 
 	 *    resulting {@link Ext.panel.Panel} can be accessed by {@link #getGroupPanel}. 
+	 * @param {Object} [options.level=info] {String} One of `info`, `warn`, or `error`. Styles the message to reflect the level of severity.
 	 */
 	log : function(args,options) {
 		var markup = '',
 		target,
 		bd = this.body.dom;
+		
+		_.defaults(options,{
+			silent: false,
+			iconCls: '',
+			level: 'info'
+		})
 		if(args && args!='') {
-			markup = [  '<div class="console-message '+options.iconCls+'">',
+			if(!_.isString(args)) {
+				args = this.dump(args);
+			}
+			
+			markup = [  '<div class="console-message ', options.iconCls, ' ', this.logLevels[options.level], '">',
 			Ext.util.Format.htmlEncode(args).replace(/\n/g, '<br/>').replace(/\s/g, '&#160;'),
 			'</div>'].join('');
 		}
@@ -94,3 +134,5 @@ Ext.define('App.ui.console.LogPanel', {
 		this.body.dom.scrollTop = 0;
 	}
 });
+
+

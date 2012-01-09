@@ -374,7 +374,7 @@ Ext.define('App.TaskRunner.Task', {
 			group : this.getGroupName(),
 			iconCls : this.iconCls
 		});
-		Ext.log(msg, opts);
+		App.log(msg, opts);
 	},
 	/**
 	 * Starts the task running on the server

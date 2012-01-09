@@ -347,6 +347,7 @@ Ext.define('App.ui.DD', {
 						text : 'Save Domains',
 						iconCls : 'save',
 						app : this,
+						defaultExtension : 'ddjs'
 					})]
 				},
 				bbar : new Ext.ux.statusbar.StatusBar({
@@ -472,7 +473,7 @@ Ext.define('App.ui.DD', {
 				this.structPane.setValue(this.data);
 				this.updateDomainsFromSpec();
 				this.structPane.bindDocument(this.document);
-				this.bindDocument(null);
+				this.unbindDocument();
 			} else if(ext == 'seq') {
 				this.addManyDomains(this.data);
 			} else if(ext == 'dd') {
@@ -752,7 +753,7 @@ Ext.define('App.ui.DD', {
 		if(this.strands) {
 			var segments = _.reduce(this.store.getRange(), function(memo, rec) {
 				var name = rec.get('name'), i = this.store.indexOf(rec);
-				memo[ name ? name : i] = this.designer.printDomainById(i);
+				memo[ name ? name : i+1] = this.designer.printDomainById(i);
 				return memo;
 			}, {}, this);
 			this.strandsPane.setValue(_.map(this.strands, function(spec, name) {

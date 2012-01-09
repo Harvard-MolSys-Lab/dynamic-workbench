@@ -161,6 +161,7 @@ Ext.define('App.DocumentTreeStore', {
 	constructor : function() {
 		Ext.apply(this, {
 			proxy : {
+				batchActions: false,
 				type : 'ajax',
 				// TODO: Make these configurable
 				api : {

@@ -228,15 +228,15 @@ exports.configure = function(app, express) {
 			// update the new path to include the new directory
 			newPath = utils.userFilePath(req.param('parentId'));
 			newPath = path.join(newPath, newName);
-			// otherwise, just change the basename
 		} else {
+			// otherwise, just change the basename
 			newPath = path.join(path.dirname(fullPath), newName);
 		}
 
-		if(!allowedPath(newPath, req) || !allowedPath(fullPath, req)) {
+		if(!allowedPath(path.dirname(newPath), req) || !allowedPath(fullPath, req)) {
 			//if(!allowedPath(node) || !allowedPath(fullPath) || !allowedPath(newPath)) {
 			forbidden(res);
-			winston.log("warn", "Can't enter path. ", {
+			winston.log("warn", "/rename: Can't enter path. ", {
 				fullPath : fullPath,
 				newPath : newPath
 			});
@@ -411,6 +411,7 @@ exports.configure = function(app, express) {
 						}
 						if(!!download) {
 							res.attachment(fullPath);
+							return;
 						}
 						res.send(data);
 					})
@@ -419,7 +420,6 @@ exports.configure = function(app, express) {
 					winston.log("warn", "Cannot send directory.", {
 						fullPath : fullPath
 					});
-
 					return;
 				} else {
 

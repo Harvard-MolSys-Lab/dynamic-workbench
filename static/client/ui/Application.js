@@ -1,5 +1,6 @@
 /**
  * Mixin which provides shared helper methods to client-side applications within the interface
+ *
  */
 Ext.define('App.ui.Application', {
 	/**
@@ -28,7 +29,7 @@ Ext.define('App.ui.Application', {
 	 * @constructor
 	 */
 	constructor : function(config) {
-		this.bindDocument( config ? (config.document ? config.document : null) : null);
+		this.bindDocument( config ? (config.document ? config.document : null) : null, true);
 	},
 	/**
 	 * Re-fetches the {@link App.Document document} from App.DocumentStore
@@ -46,9 +47,10 @@ Ext.define('App.ui.Application', {
 		}
 	},
 	/**
-	 * Attaches a {@link App.Document} to this Application, which can be saved by
+	 * Attaches a {@link App.Document} to this Application, which can be saved by the user.
 	 */
-	bindDocument : function(doc) {
+	bindDocument : function(doc, silent) {
+		silent || ( silent = false);
 		/**
 		 * @property {App.Document} doc
 		 * Alias for {@link #document}.
@@ -62,10 +64,31 @@ Ext.define('App.ui.Application', {
 		if(this.doc) {
 			this.doc.on('edit', this.updateTitle, this);
 			this.updateTitle();
+			if(!silent) {
+				/**
+				 * @event binddocument
+				 * Fires upon {@link #bindDocument binding} of a {@link App.Document document}
+				 * to this application.
+				 * @param {App.ui.Application} application
+				 * @param {App.Document} document
+				 */
+				this.fireEvent('binddocument', this, doc);
+			}
 		}
 	},
 	unbindDocument : function() {
 		this.doc.un('edit', this.updateTitle, this);
+
+		this.doc = this.document = null;
+		/**
+		 * @event unbinddocument
+		 * Fires upon {@link #unbindDocument unbinding} of a {@link App.Document document}
+		 * to this application.
+		 * @param {App.ui.Application} application
+		 * @param {App.Document} document
+		 */
+		this.fireEvent('unbinddocument', this, this.doc);
+
 	},
 	/**
 	 * Updates title of the Application panel to display the name of the {@link App.Document} being edited
@@ -81,7 +104,7 @@ Ext.define('App.ui.Application', {
 		}
 	},
 	/**
-	 * Returns the path ot the currently open doc
+	 * Returns the path to the currently open doc
 	 */
 	getPath : function() {
 		return this.doc ? this.doc.getPath() : false;
@@ -121,7 +144,7 @@ Ext.define('App.ui.Application', {
 		if(this.autoHideLoadingMask)
 			this.loadingMask.hide();
 		console.log('File load failed.', e);
-		Ext.log('File load failed.', {
+		App.log('File load failed.', {
 			silent : true,
 			error : true,
 		});
@@ -170,7 +193,7 @@ Ext.define('App.ui.Application', {
 			this.savingMask.hide();
 		this.onSave();
 		//console.log('File Saved.', this._lastSave);
-		Ext.log('File saved to server.', {
+		App.log('File saved to server.', {
 			silent : true,
 			iconCls : 'save',
 		});
@@ -182,7 +205,7 @@ Ext.define('App.ui.Application', {
 	doSaveFail : function(e) {
 		if(this.autoHideSavingMask)
 			this.savingMask.hide();
-		Ext.log('File save failed.', {
+		App.log('File save failed.', {
 			silent : true,
 			error : true,
 		});

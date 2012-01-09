@@ -109,7 +109,7 @@ Ext.define('App.ui.Launcher', {
 				tab.on('close', function(tab) { 
 					delete this._openTabs[tab.initialTrigger];
 				}, this);
-				Ext.log('Launched application with trigger: ' + trigger, {
+				App.log('Launched application with trigger: ' + trigger, {
 					iconCls : 'application',
 					silent : true
 				});
@@ -235,6 +235,7 @@ Ext.define('App.ui.Launcher', {
 		editorType : 'Text',
 		mode : '',
 	});
+	App.ui.Launcher.register('dynaml','App.ui.DynamlEditor',{});
 	App.ui.Launcher.register('html', 'App.ui.TextEditor', {
 		iconCls : 'html',
 		editorType : 'HTML',

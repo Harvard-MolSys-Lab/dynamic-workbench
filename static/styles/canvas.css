@@ -410,13 +410,30 @@ ul.dashboard-actions li a:hover {
 	height: 16px;
 }
 .console-message {
-	font-family: 'Mensch', courier, mono, sans-serif;
+	font-family: monospace, courier, mono, sans-serif;
 	font-size: 9pt;
-	padding: 3px 3px 3px 20px !important;
+	padding: 3px 3px 3px 22px !important;
 	border-bottom: 1px solid #ccc;
 	background-repeat: no-repeat;
 	background-position: 2px 2px;
 }
+
+.console-info {
+	color: black;
+}
+
+.console-warn { 
+	color: #F22;	
+}
+
+.console-error {
+	color: #F22;
+}
+
+.x-tab-default-top button {
+	height: 16px;
+}
+
 .no-bottom-border, .noborder-bottom {
 	border-bottom: none !important;
 }
@@ -486,24 +503,30 @@ ul.dashboard-actions li a:hover {
 .cm-sequence-name {
 	color: #22b;
 }
-.cm-sequence-a {
+.cm-sequence-a, .cm-sequence-a-lock {
 	color: green;
 }
-.cm-sequence-t {
+.cm-sequence-t, .cm-sequence-t {
 	color: red;
 }
-.cm-sequence-u {
+.cm-sequence-u, .cm-sequence-u {
 	color: red;
 }
-.cm-sequence-c {
+.cm-sequence-c, .cm-sequence-c {
 	color: blue;
 }
-.cm-sequence-g {
+.cm-sequence-g, .cm-sequence-g {
 	color: black;
 }
 .cm-sequence-n {
 	color: orange;
 }
+
+.cm-sequence-g-lock, .cm-sequence-a-lock, .cm-sequence-t-lock, .cm-sequence-c-lock {
+	font-weight: bold;
+}
+
+
 .x-tab-inner {
 	height: 16px !important;
 }
@@ -570,6 +593,20 @@ ul.dashboard-actions li a:hover {
 	border-radius: 8px;
 	-moz-border-radius: 8px;
 	background: #F6F6F6;
+	background-image: linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%);
+	background-image: -o-linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%);
+	background-image: -moz-linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%);
+	background-image: -webkit-linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%);
+	background-image: -ms-linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%);
+	
+	background-image: -webkit-gradient(
+		linear,
+		left bottom,
+		left top,
+		color-stop(1, rgb(246,246,246)),
+		color-stop(0, rgb(221,221,221))
+	);
+	
 	border: 2px solid #ccc;
 	margin-top: 2px;
 	padding: 10px 15px;

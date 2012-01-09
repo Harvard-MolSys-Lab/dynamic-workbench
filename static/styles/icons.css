@@ -406,9 +406,8 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 .document-export {
 	background-image: url(/images/icons/fugue/document-export.png) !important;	
 }
-.document-code, .svg {
-	background-image: url(/images/icons/fugue/document-code.png) !important;	
-}
+
+
 .transform {
 	background-image: url(/images/icons/fugue/arrow-transition.png) !important;	
 }
@@ -462,15 +461,7 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 .ui-slider {
 	background-image: url(/images/icons/fugue/ui-slider.png) !important;		
 }
-.package {
-	background-image: url(/images/icons/fugue/box.png) !important;		
-}
-.manifest {
-	background-image: url(/images/icons/etc/manifest.png) !important;		
-}
-.preferences {
-	background-image: url(/images/icons/fugue/switch.png) !important;		
-}
+
 .error {
 	background-image: url(/images/icons/fugue/exclamation-red.png) !important;		
 }
@@ -501,11 +492,24 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 .js {
 	background-image: url(/images/icons/fugue/script.png) !important;
 }
-
+.dynaml {
+	background-image: url(/images/icons/etc/dynaml.png) !important;	
+}
+.document-code, .svg {
+	background-image: url(/images/icons/fugue/document-code.png) !important;	
+}
 .document-error {
 	background-image: url(/images/icons/fugue/document--exclamation.png) !important;
 }
-
 .spurious-c, .spurious {
 	background-image: url(/images/icons/fugue/document-attribute-c.png) !important;
+}
+.package {
+	background-image: url(/images/icons/fugue/box.png) !important;		
+}
+.manifest {
+	background-image: url(/images/icons/etc/manifest.png) !important;		
+}
+.preferences {
+	background-image: url(/images/icons/fugue/switch.png) !important;		
 }

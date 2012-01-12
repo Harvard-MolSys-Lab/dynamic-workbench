@@ -16,7 +16,7 @@ Ext.define('Workspace.tools.secondary.StrandTool', {
 	},
 	extend : 'Workspace.tools.PolyLineTool',
 	requires : ['Workspace.objects.secondary.Strand'],
-
+	bulgeThreshold : 10,
 	baseSpacing : 10,
 	baseRadius : 3,
 	buildObject : function() {
@@ -65,20 +65,85 @@ Ext.define('Workspace.tools.secondary.StrandTool', {
 		});
 		return circle;
 	},
-	moveBase : function(base, x, y) {
+	moveBase : function(base, x, y, r) {
 		base.attr({
 			cx : x,
 			cy : y,
+			transform : 'R'+r
 		});
 	},
-	addPoint : function(pos) {
-		this.callParent(arguments);
+	addPoint : function(mouseupPos,mousedownPos) {
+		var bulgeRadius = App.Geom.Point.fromMixed(mouseupPos).distance(mousedownPos);
+		if(bulgeRadius > this.bulgeThreshold) {
+			var pos = mousedownPos;
+			var nextPoint = [pos.x, pos.y, bulgeRadius];
+		
+		} else {
+			var pos = mouseupPos;
+			var nextPoint = [pos.x, pos.y];	
+		}
+		var nextCommand = this.getCommand(mouseupPos,mousedownPos,bulgeRadius);
+		
+		this.x = parseInt(pos.x);
+		this.y = parseInt(pos.y);
+
+		this.lastPos = {
+			x : this.x,
+			y : this.y
+		};
+		
+		this.currentPoints.push(nextPoint);
+		this.currentPath.push(nextCommand);
+		this.points.push(nextPoint);
+
+		console.log(this.points);
+		
+		this.currentShape.attr({
+			path : this.currentPath
+		});
 		this.bases = this.bases.concat(this.segmentBases);
 		this.segmentBases = [];
 	},
-	updateDrawing : function(pos) {
-		this.callParent(arguments);
-		var distance = this.snapDistance(this.getDistance(pos, this.lastPos));
+	getCommand : function(mouseupPos,mousedownPos,bulgeRadius) {
+		if(mousedownPos) {
+			bulgeRadius || (bulgeRadius = App.Geom.Point.fromMixed(mouseupPos).distance(mousedownPos));
+			if(bulgeRadius > this.bulgeThreshold) {
+				var p1 = App.Geom.Point.fromMixed(_.last(this.currentPoints)), //
+					p2 = App.Geom.Point.fromMixed(mousedownPos);
+				
+				var mid = p1.midpoint(p2), //
+					mid2 = mid.addPolar(p1.angle(p2) + Math.PI/2,-bulgeRadius);
+					
+				var cw = Math.abs(bulgeRadius), //
+					c1 = mid2.addPolar(p1.angle(p2),-cw), //
+					c2 = mid2.addPolar(p1.angle(p2),cw);
+					
+				//return ['C',c1.x, ',', c1.y, ' ', c2.x, ',', c2.y, ' ', p2.x, ',', p2.y, ];
+				return ['C',c1.x, c1.y, c2.x, c2.y, p2.x, p2.y, ];
+
+			}
+		}
+		return ['L', parseInt(mouseupPos.x), parseInt(mouseupPos.y)];
+	},
+	updateDrawing : function(pos,mousedownPos) {
+		var nextCommand;
+		if(this.dragging) {
+			nextCommand = this.getCommand(pos,mousedownPos);
+		} else {
+			nextCommand = this.getCommand(pos);//['L', parseInt(pos.x), parseInt(pos.y)];
+		}
+		
+		this.currentPath.pop();
+		this.currentPath.push(nextCommand);
+		this.currentShape.attr({
+			path : this.currentPath
+		});
+		
+		
+		//this.callParent(arguments);
+		var lastTwoCommands = _.last(this.currentPath,2);
+		var segmentPath = [['M'].concat(_.last(lastTwoCommands[0],2)), nextCommand];
+		var distance = Raphael.getTotalLength(segmentPath);//this.snapDistance(this.getDistance(pos, this.lastPos));
 		var baseCount = this.countBases(distance), angle = Math.atan2(pos.y - this.lastPos.y, pos.x - this.lastPos.x);
 
 		// make new bases if we need more
@@ -96,10 +161,13 @@ Ext.define('Workspace.tools.secondary.StrandTool', {
 			}
 		}
 
-		var point = this.nextPosition(this.lastPos, angle, this.baseSpacing / 2);
+		//var point = this.nextPosition(this.lastPos, angle, this.baseSpacing / 2);
+		var length = this.baseSpacing / 2, point;
 		for(var i = 0; i < baseCount; i++) {
-			this.moveBase(this.segmentBases[i], point.x, point.y);
-			point = this.nextPosition(point, angle, this.baseSpacing);
+			point = Raphael.getPointAtLength(segmentPath,length);
+			this.moveBase(this.segmentBases[i], point.x, point.y, point.alpha);
+			length += this.baseSpacing;
+			//point = this.nextPosition(point, angle, this.baseSpacing);
 		}
 	},
 	startDrawing : function() {

@@ -53,14 +53,24 @@ Ext.define('Workspace.tools.PolyLineTool', {
 			path : this.currentPath
 		});
 	},
-	click : function(e, item) {
+	mousedown : function(e, item) {
+		this.dragging = true;
 		var pos = this.snapXY(this.getAdjustedXY(e), this.lastPos);
+		this.mousedownPos = pos;
+		e.stopEvent();
+	},
+	mouseup : function(e, item) {
+		this.dragging = false;
+		var pos = this.snapXY(this.getAdjustedXY(e), this.lastPos);
+		this.mouseupPos = pos;
 		if(this.drawing) {
-			this.addPoint(pos);
+			this.addPoint(this.mouseupPos, this.mousedownPos);
 		} else {
 			this.startDrawing(pos);
 		}
 		e.stopEvent();
+		this.mousedownPos = false;
+		this.mouseupPos = false;
 	},
 	dblclick : function(e, item) {
 
@@ -98,21 +108,18 @@ Ext.define('Workspace.tools.PolyLineTool', {
 			fillOpacity : 0.1
 		};
 	},
-	mousedown : function(e, item) {
-		this.dragging = true;
-		e.stopEvent();
-	},
-	mouseup : function(e, item) {
-		e.stopEvent();
-	},
 	mousemove : function(e, item) {
 		if(this.drawing) {
 			var pos = this.snapXY(this.getAdjustedXY(e), this.lastPos);
-			this.updateDrawing(pos)
+			this.updateDrawing(pos,this.mousedownPos);
 		}
 		e.stopEvent();
 	},
-	updateDrawing : function(pos) {
+	/**
+	 * @param {Object} currentPosition Current position of the cursor
+	 * @param {Object} mousedownPosition Position of the cursor on #event-mousedown. Allows custom logic for dragging
+	 */
+	updateDrawing : function(pos,mousedownPos) {
 		this.currentPath.pop();
 		this.currentPath.push(['L', parseInt(pos.x), parseInt(pos.y)]);
 		this.currentShape.attr({

@@ -99,7 +99,12 @@ Ext.define('Workspace.objects.Path', {
 	 */
 	interpolate : function(points) {
 		if(points) {
-			return ['M',points[0][0],',',points[0][1],' ',Workspace.objects.Interpolators[this.get('interpolator')](points)].join('');
+			var interpolator = this.get('interpolator');
+			if(_.isFunction(interpolator)) {
+				return ['M',points[0][0],',',points[0][1],' ',interpolator.call(this,points)].join('');
+			} else {
+				return ['M',points[0][0],',',points[0][1],' ',Workspace.objects.Interpolators[this.get('interpolator')](points)].join('');
+			}
 		} else {
 			return ''
 		}

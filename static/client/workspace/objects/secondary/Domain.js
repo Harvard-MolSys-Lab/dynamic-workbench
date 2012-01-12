@@ -5,8 +5,11 @@ Ext.define('Workspace.objects.secondary.Domain', {
 	shimConfig : {
 		property : 'identifier',
 	},
+	fillOpacity: 0,
 	baseRadius : 3,
 	baseSpacing : 10,
+	bulgeRadius : 0,
+	bulgeWidth : 0,
 	angle : function(x1,y1,x2,y2) {
 		return Math.atan2(y2-y1, x2-x1);
 	},
@@ -53,17 +56,25 @@ Ext.define('Workspace.objects.secondary.Domain', {
 		}, function(v) {
 			var p = this.get('points');
 			p.pop();
-			if(p.length > 0) {
-				p[p.length - 1] = v;
-			}
+			p.push(v);
 			this.set('points', p);
 		}, false, false);
 
 		this.expose('length', function() {
-			var p1 = this.get('leftPoint'), p2 = this.get('rightPoint');
-			return Math.sqrt(Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2));
+			// var p1 = this.get('leftPoint'), p2 = this.get('rightPoint');
+			// return Math.sqrt(Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2));
+			var path = this.get('path');
+			return Raphael.getTotalLength(path);
 		}, false, false, false);
 
+		this.expose('hybridized',true,true,true,false);
+		
+		this.expose('bulgeRadius',true,true,true,false);
+		this.expose('bulgeWidth',true,true,true,false);
+		
+		this.on('change:bulgeRadius',this.buildPath,this);
+		this.on('change:bulgeWidth',this.buildPath,this);
+		
 		this.on('change:identity', function(newValue, oldValue) {
 			this.change('identifier', this.get('identifier'), this.workspace.complementarityManager.makeIdentifier(oldValue, this.get('polarity')));
 			this.change('stroke', this.get('stroke'));
@@ -75,21 +86,44 @@ Ext.define('Workspace.objects.secondary.Domain', {
 		
 		this.on('change:stroke', function() {
 			this.updateBases();
-		},this)
+		},this);
+		
 
 		this.segmentBases = [];
 
 	},
-	interpolator: function() {
-		
+	interpolator: function(points) {
+		if(this.bulgeRadius) {
+			var p1 = App.Geom.Point.fromMixed(points[0]), //
+				p2 = App.Geom.Point.fromMixed(points[1]);
+			
+			var mid = p1.midpoint(p2), //
+				mid2 = mid.addPolar(p1.angle(p2) + Math.PI/2,this.bulgeRadius);
+				
+			var cw = Math.abs(this.get('bulgeRadius')), //
+				c1 = mid2.addPolar(p1.angle(p2),-cw), //
+				c2 = mid2.addPolar(p1.angle(p2),cw);
+				
+				
+			return ['C',c1.x, ',', c1.y, ' ', c2.x, ',', c2.y, ' ', p2.x, ',', p2.y, ].join('');
+		} else {
+			return Workspace.objects.Interpolators['linear'](points);
+		}
 	},
 	initialize : function() {
 		this.workspace.complementarityManager.checkoutIdentity(this, this.get('identity'));
+		var rightPoint = this.get('rightPoint');
+		if(rightPoint.length > 2) {
+			this.set('bulgeRadius',-rightPoint[2]);
+			this.set('rightPoint',rightPoint.slice(0,2));
+		}
+		
 		this.callParent(arguments);
 	},
-	// render : function() {
-	// this.updateBases();
-	// },
+	render : function() {
+		this.callParent(arguments);
+		this.updateBases();
+	},
 	countBases : function(distance) {
 		return Math.floor(distance / this.baseSpacing);
 	},
@@ -105,11 +139,28 @@ Ext.define('Workspace.objects.secondary.Domain', {
 			y : point[1],
 		}
 	},
-	nextPosition : function(lastPos, angle, distance) {
-		return {
-			x : lastPos.x + Math.cos(angle) * distance,
-			y : lastPos.y + Math.sin(angle) * distance,
-		};
+	hybridize : function(domain) {
+		var hybridized = this.get('hybridized');
+		if(hybridized && hybridized.getId() != domain.getId()) {
+			this.unhybridize();
+		} else {
+			this.set('hybridized',domain);
+			domain.on('change:points',this.hybridizedChangePoints,this);
+		}
+	},
+	unhybridize : function() {
+		var hybridized = this.get('hybridized');
+		if(hybridized) {
+			domain.un('change:points',this.hybridizedChangePoints,this);
+		}
+	},
+	/**
+	 * Called when this domain's #hybridized domain changes
+	 */
+	hybridizedChangePoints : function(newPoints,oldPoints) {
+		if(!this.ignoreHybridizedChangePoints) {
+			
+		}
 	},
 	makeBase : function() {
 		var circle = this.workspace.paper.circle(0, 0, this.baseRadius);
@@ -124,30 +175,47 @@ Ext.define('Workspace.objects.secondary.Domain', {
 			cx : x,
 			cy : y,
 			fill : this.get('stroke'),
+			stroke : this.get('stroke'),
 		});
 	},
-	updateBases : function() {
-		var distance = this.get('length'), angle = this.get('arc'), baseCount = this.countBases(distance);
-
-		// make new bases if we need more
-		if(baseCount > this.segmentBases.length) {
-			// for each new base
-			for(var i = 0, l = baseCount - this.segmentBases.length; i < l; i++) {
-				this.segmentBases.push(this.makeBase());
-			}
-
-			// remove old bases if we've got too many
-		} else if(baseCount < this.segmentBases.length) {
-			for(var i = 0, l = this.segmentBases.length - baseCount; i < l; i++) {
-				var base = this.segmentBases.pop();
-				base.remove();
-			}
-		}
-
-		var point = this.nextPosition(this.pointToPos(this.get('leftPoint')), angle, this.baseSpacing / 2);
+	updateBaseColor : function(base,stroke) {
+		base.attr({
+			stroke: stroke,
+		});
+	},
+	updateBaseColors: function() {
+		var distance = this.get('length'), baseCount = this.countBases(distance), stroke = this.get('stroke');
 		for(var i = 0; i < baseCount; i++) {
-			this.updateBase(this.segmentBases[i], point.x, point.y);
-			point = this.nextPosition(point, angle, this.baseSpacing);
+			this.updateBaseColor(this.segmentBases[i],stroke);
+		}
+	},
+	updateBases : function() {
+		if(this.is('rendered')) {
+			
+			var distance = this.get('length'), angle = this.get('arc'), baseCount = this.countBases(distance);
+	
+			// make new bases if we need more
+			if(baseCount > this.segmentBases.length) {
+				// for each new base
+				for(var i = 0, l = baseCount - this.segmentBases.length; i < l; i++) {
+					this.segmentBases.push(this.makeBase());
+				}
+	
+				// remove old bases if we've got too many
+			} else if(baseCount < this.segmentBases.length) {
+				for(var i = 0, l = this.segmentBases.length - baseCount; i < l; i++) {
+					var base = this.segmentBases.pop();
+					base.remove();
+				}
+			}
+	
+			//var point = this.nextPosition(this.pointToPos(this.get('leftPoint')), angle, this.baseSpacing / 2);
+			var length = this.baseSpacing / 2, path = this.get('path');
+			for(var i = 0; i < baseCount; i++) {
+				point = Raphael.getPointAtLength(path,length);//this.nextPosition(point, angle, this.baseSpacing);
+				this.updateBase(this.segmentBases[i], point.x, point.y);
+				length += this.baseSpacing;
+			}
 		}
 	},
 	updatePath : function() {

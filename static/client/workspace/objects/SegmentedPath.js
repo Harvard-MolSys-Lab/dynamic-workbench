@@ -19,6 +19,7 @@ Ext.define('Workspace.objects.SegmentedPath', {
 		this.callParent(arguments);
 		child.expose('index', true, true, true, false);
 		child.on('change:points', this.childChangePoints, this);
+		child.on('change:path',this.childChangePath,this);
 		this.indexedChildren[child.get('index')] = child;
 	},
 	removeChild : function(child) {
@@ -38,6 +39,13 @@ Ext.define('Workspace.objects.SegmentedPath', {
 		this.callParent(arguments);
 		this.toBack();
 	},
+	childChangePath : function() {
+		if(!this.ignoreChangeChildPoints && !this.ignoreChangeChildPath) {
+			this.ignoreChangeChildPath = true;
+			this.buildPath();
+			this.ignoreChangeChildPath = false;
+		}
+	},
 	childChangePoints : function(points, oldPoints, child) {
 		if(!this.ignoreChangeChildPoints) {
 			var myPoints = this.get('points');
@@ -52,6 +60,7 @@ Ext.define('Workspace.objects.SegmentedPath', {
 	buildPath : function() {
 		var points = this.get('points');
 		var p1, p2, child;
+		var path = [];
 
 		// same number of children
 		if(this.children.getCount() > 0) {
@@ -61,17 +70,21 @@ Ext.define('Workspace.objects.SegmentedPath', {
 					this.ignoreChangeChildPoints = true;
 					child.set('points', [p1, p2]);
 					this.ignoreChangeChildPoints = false;
+					path.push(child.interpolate(child.get('points')));
 				}
 			}
+			this.set('path',path.join(' '));
 		} else {
 			// first time
 			for(var i = 0, l = points.length - 1; i < l; i++) { p1 = points[i], p2 = points[i + 1];
-				this.makeChild({
+				child = this.makeChild({
 					points : [p1, p2]
 				});
+				path.push(child.interpolate(child.get('points')));
 			}
+			this.set('path',path.join(' '));
 		}
-		this.callParent(arguments);
+		//this.callParent(arguments);
 
 	},
 	/**
@@ -101,6 +114,7 @@ Ext.define('Workspace.objects.SegmentedPath', {
 			wtype : this.childWType,
 			strokeWidth : 4,
 			stroke : '#aaa',
+			fillOpacity : 0,
 			index : this.getNextIndex(),
 			showTitle : true,
 			//editable: false,
@@ -109,6 +123,7 @@ Ext.define('Workspace.objects.SegmentedPath', {
 		if(this.is('rendered')) {
 			child.insertAfter(this);
 		}
+		return child;
 	},
 	getSegment : function(index) {
 		return this.indexedChildren(index);

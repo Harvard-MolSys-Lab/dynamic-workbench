@@ -5,7 +5,7 @@ _ = require('underscore'),
 async = require('async'),
 path = require('path'),
 winston = require('winston'),
-DNA = require('../../static/lib/dna-utils').DNA;
+DNA = require('../../static/common/dna-utils').DNA;
 
 var sendError = utils.sendError,
 forbidden = utils.forbidden,

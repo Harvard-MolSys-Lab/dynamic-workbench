@@ -8,8 +8,8 @@
  * new file by calling App.ui.filesTree#newFileUnderSelection. 
  * 
  * A custom action can be performed upon #createButton click by overriding #onCreateButton. Additionally,
- * #autoCreateMenu can be set to false to prevent a #createMenu from being generated at all, limiting user
- * interaction to that specified by #onCreateButton.
+ * the #autoCreateMenu config can be set to false to prevent a #createMenu from being generated at all, 
+ * limiting user interaction to that specified by #onCreateButton.
  */
 Ext.define('App.ui.CreateMenu', {
 	extend: 'Ext.menu.Menu',

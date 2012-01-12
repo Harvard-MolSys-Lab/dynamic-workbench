@@ -289,8 +289,8 @@ Ext.define('App.ui.FilesTree', {
 		return this.newFile(rec,name);
 	},
 	/**
-	 * Create a new document underneath the passed <var>rec</var>, if <var>rec</var> is a folder; else creates a 
-	 * sibling to <var>rec</var>. 
+	 * Create a new document underneath the passed `rec`, if `rec` is a folder; else creates a 
+	 * sibling to `rec`. 
 	 * @param {App.Document} rec
 	 * @param {String} name 
 	 */

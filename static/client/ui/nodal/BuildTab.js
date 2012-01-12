@@ -217,7 +217,7 @@ Ext.define('App.ui.nodal.BuildTab', {
 				'representations of the system. Use the Sequence button to '+
 				'see options for sequence design. ',
 				closable: true,
-				autoHide: false,
+				autoHide: true,
 				dismissDelay: 10000,
 				showDelay: 1500,
 			});

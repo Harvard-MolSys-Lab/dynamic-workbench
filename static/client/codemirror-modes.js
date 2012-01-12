@@ -281,20 +281,71 @@ CodeMirror.defineMode("sequence", function() {
 					stream.skipToEnd();
 					return 'sequence-name';
 				case 'a':
+					return 'sequence-a';
 				case 'A':
 					return 'sequence-a';
 				case 'u':
+					return 'sequence-u';
 				case 'U':
 					return 'sequence-u';
 				case 't':
+					return 'sequence-t';
 				case 'T':
-						return 'sequence-t';
+					return 'sequence-t';
 				case 'c':
+					return 'sequence-c';
 				case 'C':
-						return 'sequence-c';
+					return 'sequence-c';
 				case 'g':
+					return 'sequence-g';
 				case 'G':
-						return 'sequence-g';
+					return 'sequence-g';
+				case 'n':
+				case 'N':
+						return 'sequence-n';
+				
+			}
+			if(ch.match(/\d/)) {
+				return 'number';
+			}
+
+		}
+	};
+});
+
+
+CodeMirror.defineMode("dd-sequence", function() {
+	return {
+		token: function(stream) {
+			var ch = stream.next();
+			switch(ch) {
+				case '%':
+				case '#':
+					stream.skipToEnd();
+					return "sequence-comment";
+				case '>':
+					stream.skipToEnd();
+					return 'sequence-name';
+				case 'a':
+					return 'sequence-a';
+				case 'A':
+					return 'sequence-a-lock';
+				case 'u':
+					return 'sequence-u';
+				case 'U':
+					return 'sequence-u-lock';
+				case 't':
+					return 'sequence-t';
+				case 'T':
+					return 'sequence-t-lock';
+				case 'c':
+					return 'sequence-c';
+				case 'C':
+					return 'sequence-c-lock';
+				case 'g':
+					return 'sequence-g';
+				case 'G':
+					return 'sequence-g-lock';
 				case 'n':
 				case 'N':
 						return 'sequence-n';

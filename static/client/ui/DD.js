@@ -138,8 +138,8 @@ Ext.define('App.ui.DD', {
 							innerHTML : '',
 							nodeType : 1
 						};
-						CodeMirror.runMode(v.toUpperCase(), 'sequence', x);
-						return x.innerHTML;
+						CodeMirror.runMode(v, 'dd-sequence', x);
+						return '<span class="dd-sequence">'+x.innerHTML+'</span>';
 					},
 					editor : {
 						allowBlank : false,
@@ -497,7 +497,7 @@ Ext.define('App.ui.DD', {
 	 */
 	reseedAll : function() {
 		this.designer.reseed();
-		this.updateInterface()
+		this.updateInterface(true);
 	},
 	/**
 	 * Syncs UI for a particular domain with the {@link #designer}
@@ -734,18 +734,28 @@ Ext.define('App.ui.DD', {
 	/**
 	 * Updates the UI after {@link #mutationStep} mutations
 	 */
-	updateInterface : function() {
+	updateInterface : function(refreshSequences,refreshScores) {
+		refreshSequences || (refreshSequences = false);
+		refreshScores || (refreshScores = true);
 		this.updateStatusBar();
 		// true to force a re-tally (since domain_score[] isn't automatically updated when a
 		// mutation is rejected; we risk showing an increased score that was actually rejected)
-		var scores = this.designer.getScores(true), mut_dom = this.designer.getMutatedDomain(), mut_dom_seq = this.designer.printfDomainById(mut_dom), rec;
+		var scores = this.designer.getScores(true), //
+			mut_dom = this.designer.getMutatedDomain(), //
+			mut_dom_seq = this.designer.printfDomainById(mut_dom), 
+			allSequences = (refreshSequences ? this.designer.printfDomains() : null),
+			rec;
 		for(var i = 0; i < scores.length; i++) {
 			rec = this.store.getAt(i);
-			//+1);
-			if(rec.get('score') != 0 && rec.get('score') < scores[i]) {
-				//throw "Score increase";
+			if(refreshScores) {			
+				if(rec.get('score') != 0 && rec.get('score') < scores[i]) {
+					//throw "Score increase";
+				}
+				rec.set('score', scores[i]);
 			}
-			rec.set('score', scores[i]);
+			if(refreshSequences) {
+				rec.set('sequence',allSequences[i]);
+			}
 		}
 		rec = this.store.getAt(mut_dom);
 		rec.set('sequence', mut_dom_seq);

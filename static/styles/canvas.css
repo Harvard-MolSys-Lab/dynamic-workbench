@@ -506,16 +506,16 @@ ul.dashboard-actions li a:hover {
 .cm-sequence-a, .cm-sequence-a-lock {
 	color: green;
 }
-.cm-sequence-t, .cm-sequence-t {
+.cm-sequence-t, .cm-sequence-t-lock {
 	color: red;
 }
-.cm-sequence-u, .cm-sequence-u {
+.cm-sequence-u, .cm-sequence-u-lock {
 	color: red;
 }
-.cm-sequence-c, .cm-sequence-c {
+.cm-sequence-c, .cm-sequence-c-lock {
 	color: blue;
 }
-.cm-sequence-g, .cm-sequence-g {
+.cm-sequence-g, .cm-sequence-g-lock {
 	color: black;
 }
 .cm-sequence-n {
@@ -523,13 +523,25 @@ ul.dashboard-actions li a:hover {
 }
 
 .cm-sequence-g-lock, .cm-sequence-a-lock, .cm-sequence-t-lock, .cm-sequence-c-lock {
-	font-weight: bold;
+	/* font-weight: bold; */
+	text-decoration: underline;
 }
 
+.dd-sequence {
+	text-transform: uppercase;
+}
 
+/*
+ * Fixes for ExtJS styles where 16 x 16px icons in tabs and panel headers are cut off at bottom
+ */
 .x-tab-inner {
 	height: 16px !important;
 }
+
+.x-panel-header-icon {
+	height: 18px !important;
+}
+
 .file-upload-throbber {
 	width: 100px;
 	height: 100px;

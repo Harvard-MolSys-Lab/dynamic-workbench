@@ -37,7 +37,9 @@ Ext.define('App.ui.SequenceEditor', {
 						tooltip: {
 							anchor: 'bottom',
 							title: 'Levenshtein distance',
-							html: 'The <a href="http://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein Distance</a> '+ 									'between two strings measures the minimum number of changes, or "edits" (insertions,  '+ 											'deletions, and substitutions) necessary two make the two strings equal.',
+							html: 'The <a href="http://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein Distance</a> '+ //
+							'between two strings measures the minimum number of changes, or "edits" (insertions,  '+ //
+							'deletions, and substitutions) necessary two make the two strings equal.',
 						},
 						menu: Ext.create('App.ui.CompareMenu',{
 							algorithm:DNA.levenshtein,
@@ -48,7 +50,9 @@ Ext.define('App.ui.SequenceEditor', {
 						tooltip: {
 							anchor: 'bottom',
 							title: 'Hamming Distance',
-							html: 'The <a href="http://en.wikipedia.org/wiki/Hamming_distance">Hamming Distance</a> '+ 											'between two strings of equal length measures the number of positions at which they are different; '+ 								'(i.e. it considers substitutions, but not insertions, deletions, or truncations.).'
+							html: 'The <a href="http://en.wikipedia.org/wiki/Hamming_distance">Hamming Distance</a> '+ //
+							'between two strings of equal length measures the number of positions at which they are different; '+ //
+							'(i.e. it considers substitutions, but not insertions, deletions, or truncations.).'
 						},
 						menu: Ext.create('App.ui.CompareMenu',{
 							algorithm:DNA.hamming,
@@ -413,10 +417,12 @@ Ext.define('App.ui.SequenceEditor', {
 			bbar: Ext.create('Ext.ux.statusbar.StatusBar',{
 				ref: 'statusBar',
 				items: [{
+					xtype: 'tbtext',
 					baseText: 'Strands: ',
 					text: 'Strands: ',
 					ref: 'strandCount',
 				},{
+					xtype: 'tbtext',
 					baseText: 'Bases: ',
 					text: 'Bases: ',
 					ref: 'baseCount',
@@ -437,9 +443,9 @@ Ext.define('App.ui.SequenceEditor', {
 		this.editor.on('cursorchange',this.updateStatusBar,this);
 	},
 	updateStatusBar: function() {
-		var sel = this.editor.getSelection();
-		strandCount = _.reduce(sel.split('\n')).length;
-		baseCount = sel.replace(/[^atcgu\s]/gmi,'').length;
+		var sel = this.getSelectionOrValue();
+		strandCount = _.compact(sel.split('\n')).length;
+		baseCount = sel.replace(/[^atcgu]/gmi,'').length;
 		this.strandCount.setText(this.strandCount.baseText + strandCount);
 		this.baseCount.setText(this.baseCount.baseText + baseCount);
 	},

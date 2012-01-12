@@ -33,9 +33,10 @@ Ext.define('App.ui.CodeMirror', {
 	afterrender : function() {
 		var textarea = this.getEl().down('textarea').dom;
 		if(textarea) {
-			this.codemirror = CodeMirror.fromTextArea(textarea, this);
+			this.codemirror = CodeMirror.fromTextArea(textarea, _.copyTo({
+				onCursorActivity : Ext.bind(this.onCursorActivity, this)
+			},this));
 			this.codemirror.setValue(this.value);
-			this.codemirror.onCursorActivity = Ext.bind(this.onCursorActivity, this);
 		}
 	},
 	/**
@@ -59,6 +60,25 @@ Ext.define('App.ui.CodeMirror', {
 		} else {
 			this.value = v;
 		}
+	},
+	/**
+	 * @param {Boolean} start True to get the position of the start of the selection, false to get the position of the end
+	 */
+	getCursor : function(start) {
+		return this.codemirror.getCursor(start);
+	},
+	/**
+	 * Gets the position of the beginning and end of the selection
+	 */
+	getSelectedRange : function() {
+		return {
+			from : this.getCursor(true),
+			to : this.getCursor(false)
+		}
+	},
+	autoFormatSelection : function() {
+		var range = this.getSelectedRange();
+		this.codemirror.autoFormatRange(range.from, range.to);
 	},
 	/**
 	 * Unmarks all regions in the editor.

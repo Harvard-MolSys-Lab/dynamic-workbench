@@ -17,7 +17,7 @@ vmShare = "/Users/caseygrun/vmshare/"
 all : vm js docs
 
 docs :
-	jsduck static/client --external 'Ext' --title='InfoMachine2 Documentation' --output static/docs	--categories categories.json
+	jsduck --config ./docs.json
 	
 vm : #unshare
 #	VBoxManage guestcontrol "DyNAMiC Workbench Server" exec '/usr/bin/make' --username "webserver-user" --password " " --verbose --wait-stdout --wait-exit -- --directory='/home/webserver-user' deploy 2>&1

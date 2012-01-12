@@ -1,0 +1,7 @@
+{
+	"--":["static/client","static/lib/dna-utils.js"], 
+	"--external":"Ext", 
+	"--title": "InfoMachine2 Documentation", 
+	"--output": "static/docs",	
+	"--categories":"categories.json"
+}

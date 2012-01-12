@@ -2083,7 +2083,7 @@ var DD = function() {
 			return this.printComposition(domain_gatc_avail[id]);
 		},
 		printDomains : function() {
-			return _.map(domain, this.printDomain(dom), this);
+			return _.map(domain, this.printDomain, this);
 		},
 		printfDomains : function() {
 			return _.map(domain, this.printfDomain, this);

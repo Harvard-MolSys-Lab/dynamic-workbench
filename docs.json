@@ -1,5 +1,5 @@
 {
-	"--":["static/client","static/lib/dna-utils.js"], 
+	"--":["static/client","static/common"], 
 	"--external":"Ext", 
 	"--title": "InfoMachine2 Documentation", 
 	"--output": "static/docs",	

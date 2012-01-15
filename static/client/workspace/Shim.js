@@ -1,9 +1,8 @@
-/*
+/**
  * @class Workspace.Shim
  * Renders an object (such as an idea label) which follows the movement of a Workspace.objects.Object
  * @extends Ext.util.Observable
  */
-//Workspace.Shim = {};
 Ext.define('Workspace.Shim', {
 	constructor : function(config) {
 		Workspace.Shim.superclass.constructor.apply(this, arguments);

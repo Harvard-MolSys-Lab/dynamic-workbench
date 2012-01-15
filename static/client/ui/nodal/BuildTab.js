@@ -194,7 +194,7 @@ Ext.define('App.ui.nodal.BuildTab', {
 		},this));
 	},
 	serializeTerse: function() {
-		var data = Workspace.tools.nodal.serializeForCompiler(this.ribbon.canvas.workspace),
+		var data = Workspace.tools.nodal.serializeTerse(this.ribbon.canvas.workspace),
 		node = this.ribbon.canvas.doc.getPath(); //App.path.repostfix([this.ribbon.canvas.doc.getPath(),'txt']);
 		App.runTask('Nodal',{
 			node:node,
@@ -240,7 +240,7 @@ Ext.define('App.ui.nodal.BuildTab', {
 Ext.ns('Workspace.tools.nodal');
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-Workspace.tools.nodal.serializeForCompiler = function(workspace) {
+Workspace.tools.nodal.serializeTerse = function(workspace) {
 	var nodes = [], complementarities = [], indexMap = {}, i = 1, out = [];
 	workspace.objects.each( function(obj) {
 		if(obj.isWType('Workspace.objects.dna.Node')) {
@@ -276,3 +276,60 @@ Workspace.tools.nodal.serializeForCompiler = function(workspace) {
 	});
 	return out.join('\n');
 };
+
+Workspace.tools.nodal.serializeDynaml = function(workspace) {
+	var imports = [], nodes = [], complements = {}, nodeNameMap = {};
+	
+	workspace.objects.each(function (obj) {
+		if(obj.isWType('Workspace.objects.dna.Node')) {
+			nodeNameMap[obj.get('label')] = obj;
+			nodes.push(obj);
+			
+			if(obj.get('motif')) {
+				imports.push(obj.get('motif'));
+			}
+		} else if(obj.isWType('Workspace.objects.dna.Complementarity')) {
+			var leftNodeId = obj.get('leftObject');
+			if(leftNodeId) leftNodeId = leftNodeId.getId(); else return;
+			if(!complements[leftNodeId]) complements[leftNodeId] = [];
+			
+			complements[leftNodeId].push(obj);
+		}
+	});
+	
+	imports = _.chain(imports).uniq().map(function(name) {
+		return {type: 'motif', name: name};
+	}).value();
+	
+	nodes = _.map(nodes,function(node) {
+		var outputNode = {
+			name: node.get('name'),
+			motif: node.get('motif'),
+			complementarities: _.map(complements[node.getId()] || [],function (complement) {
+				return {
+					source : complement.get('leftObject').get('name'),
+					target : complement.get('rightObject').get('name'),
+					node : complement.get('rightObject').get('parent').get('name')
+				};
+			}),
+			domains: _.map(node.getChildren(),function(child, i) {
+				if(child.isWType('Workspace.objects.dna.InputPort')) {
+					return {
+						name : child.get('name') || 'p'+i,
+						identity : child.get('identity')
+					}
+				} else if(child.isWType('Workspace.objects.dna.OutputPort')) {
+					return {
+						name : child.get('name') || 'p'+i,
+						identity : child.get('identity')
+					}
+				} else if(child.isWType('Workspace.objects.dna.BridgePort')) {
+					return {
+						name : child.get('name') || 'p'+i,
+						identity : child.get('identity')
+					}
+				}
+			})
+		}
+	});
+}

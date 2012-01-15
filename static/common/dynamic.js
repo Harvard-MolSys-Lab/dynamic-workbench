@@ -94,7 +94,8 @@ App.dynamic = exports = (function(_,DNA) {
 			if(!domain.polarity) {
 				throw new DynamlError({
 					type : 'unspecified motif domain polarity',
-					message : _.template('Domain <%= domain %> in motif <%= motif %> has no polarity specified. ' + 'Polarities are required for domains specified in motifs.', {
+					message : _.template('Domain <%= domain %> in motif <%= motif %> has no polarity specified. ' + //
+					 'Polarities are required for domains specified in motifs.', {
 						motif : this.name,
 						domain : domain.name,
 					}),
@@ -938,15 +939,24 @@ App.dynamic = exports = (function(_,DNA) {
 
 			var out = [];
 			
+			// TODO: Add custom parameters
+			// material = dna
+			// temperature[C] = 23.0 # optional units: C (default) or K
+			// trials = 3
+			// sodium[M] = 1.0       # optional units: M (default), mM, uM, nM, pM
+			// dangles = some
+			
+			
 			// print domains (segments)
-			// domain x = N7
+			// e.g.: domain x = N7
 			
 			out.push(_.map(library.segments,function(segment) {
 				return ['domain',segment.identity,'=',segment.getSequence()].join(' ');
 			}).join('\n'));
 			
 			// print strands ("optional?")
-			// strand J = gate_toehold1* gate_duplex1* gate_toehold2
+			// e.g.: strand J = gate_toehold1* gate_duplex1* gate_toehold2
+			// TODO: new NUPACK requires these not to be numbers... poo; need to letter domains.
 			
 			out.push(_.map(library.strands,function(strand) {
 				return ['strand',strand.getName(),'='].concat(_.map(strand.getSegments(),function(segment) {
@@ -955,15 +965,15 @@ App.dynamic = exports = (function(_,DNA) {
 			}).join('\n'));
 			
 			// print structures
-			// structure gate_full = D30(+D30(U6+))
-			// structure haripin = Ux Hx Ux Ux
+			// e.g.: structure gate_full = D30(+D30(U6+))
+			// e.g.: structure haripin = Ux Hx Ux Ux
 			
 			out.push(_.map(library.strands,function(strand) {
 				return ['structure',strand.getName()+'_structure','=',strand.getStructure()].join(' ');
 			}).join('\n'));
 			
 			// thread sequences onto structures 
-			// gate_full.seq = E G F
+			// e.g.: gate_full.seq = E G F
 			
 			out.push(_.map(library.strands,function(strand) {
 				return [strand.getName()+'_structure.seq','=',strand.getName()].join(' ');
@@ -1043,6 +1053,24 @@ App.dynamic = exports = (function(_,DNA) {
 				 */
 				
 				library = new Library(library);
+				
+				// Import motifs first
+				if(library['import']) {
+					_.each(library['import'],function(statement) {
+						if(statement.type && statement.name) {
+							switch(statement.type) {
+								case 'motif':
+									library.motifs.unshift(this.importObject(statement.type,statement.name));
+									break;
+								case 'node':
+									library.nodes.unshift(this.importObject(statement.type,statement.name));
+									break;
+								default:
+									break;
+							}
+						}
+					},this);
+				}
 
 				// Instantiate motifs to Motif objects
 				library.motifs = _.map(library.motifs, function(motif) {
@@ -1441,11 +1469,67 @@ App.dynamic = exports = (function(_,DNA) {
 			return out;
 		}
 		
+		
+		var standardMotifs = {
+			'm1' :{	
+				name: 'm1',
+				type: 'initiator',
+			    isInitiator: true,
+			    domains: [{
+			    	name: 'A',
+			    	role: 'output',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'a', role: ''},
+				        {name: 'w', role: 'clamp'},
+				        {name: 'b', role: ''},
+				        {name: 'x', role: 'clamp'},
+			    	]
+			    }]
+			  }, 
+			'm19':{
+				name: 'm19',
+				type: 'hairpin',
+				domains: [{
+			    	name: 'A',
+			    	role: 'input',
+			      	polarity: '+',
+			    	segments:  [
+			      		{name: 'a', role: 'toehold'},
+				      	{name: 'w', role: 'clamp'},
+				        {name: 'b', role: 'reverse'},
+				      	{name: 'x', role: 'clamp'},
+			    	]
+			   },{
+				   name: 'B',
+				   role: 'output',
+				   polarity: '-',
+				   segments: [
+					   {name: 'y', role: 'clamp'},
+					   {name: 'c', role: 'loop'},
+					   {name: 'x*', role: 'clamp'},
+					   {name: 'b*', role: 'toehold'},
+					   {name: 'w*', role: 'clamp'},
+				   ]
+			   }]
+			}
+		};
+		
 		return {
 			compile: compile,
 			compileLibrary: compileLibrary,
 			parse: parse,
 			printStrands: printStrands, 
+			importObject : function(type,name) {
+				switch(type) {
+					case 'motif': 
+						if(this.standardMotifs[name]) {
+							return this.standardMotifs[name];
+						}
+						// TODO: import from external files
+				}
+			},
+			standardMotifs : standardMotifs,
 		}
 
 	})();

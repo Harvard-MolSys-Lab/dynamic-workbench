@@ -1,7 +1,7 @@
 /**
  * @class Workspace.objects.Object
  * Represents an object in the workspace
- * @extends Machine.core.Machine.core.Serializable
+ * @extends Machine.core.Serializable
  * @abstract
  */
 Ext.define('Workspace.objects.Object', {
@@ -30,6 +30,15 @@ Ext.define('Workspace.objects.Object', {
 
 		/**
 		 * @property {Object} state
+		 * Hash containing a number of properties which reflect the temporal state 
+		 * of this object. Use #is to determine the value of these state parameters:
+		 * 
+		 * - selected
+		 * - dragging
+		 * - editing
+		 * - rendered
+		 * - destroyed
+		 *  
 		 */
 		this.state = {
 			selected : false,
@@ -68,9 +77,7 @@ Ext.define('Workspace.objects.Object', {
 
 		this.expose('children', true, false, true, false);
 		this.expose('x', true, true, true, false);
-		//'getX','updateX');
 		this.expose('y', true, true, true, false);
-		//,'getY','updateY');
 		this.expose('id', 'getId', false, true, false);
 		this.expose('parent', true, true, true, false);
 		this.expose('name', true, true, true, false);
@@ -94,11 +101,11 @@ Ext.define('Workspace.objects.Object', {
 	 */
 	wtype : 'Workspace.objects.Object',
 	/**
-	 * @cfg {Number} x
+	 * @cfg {Number}
 	 */
 	x : 0,
 	/**
-	 * @cfg {Number} y
+	 * @cfg {Number}
 	 */
 	y : 0,
 	/**
@@ -135,7 +142,6 @@ Ext.define('Workspace.objects.Object', {
 	name : 'New Object',
 
 	/**
-	 * initialize
 	 * Realizes properties containing complex objects (such as {@link #parent}) which may have been serialized.
 	 * Invoked automatically by the {@link Workspace} after all components have been instantiated
 	 */
@@ -146,27 +152,27 @@ Ext.define('Workspace.objects.Object', {
 		this.buildChildren();
 	},
 	/**
-	 * getParent
+	 * Gets the #parent object
 	 * @return {Workspace.objects.Object} parent
 	 */
 	getParent : function() {
 		return this.get('parent');
 	},
 	/**
-	 * setParent
+	 * Sets the #parent of this object to another object
 	 * @param {Workspace.objects.Object} parent
 	 */
 	setParent : function(parent) {
 		this.set('parent', parent);
 	},
 	/**
-	 * hasParent
+	 * Determines whether this object is a child of another object by 
+	 * examining the #parent property
 	 */
 	hasParent : function() {
 		return this.get('parent') != false;
 	},
 	/**
-	 * orphan
 	 * unsets {@link #parent}
 	 */
 	orphan : function() {
@@ -196,7 +202,7 @@ Ext.define('Workspace.objects.Object', {
 	},
 	/**
 	 * Adds a child to this object
-	 * @param {Workspace.Object} child
+	 * @param {Workspace.objects.Object} child
 	 */
 	addChild : function(child) {
 		this.children.add(child);
@@ -210,7 +216,7 @@ Ext.define('Workspace.objects.Object', {
 	},
 	/**
 	 * Removes a child from this idea
-	 * @param {Workspace.Object} child
+	 * @param {Workspace.objects.Object} child
 	 */
 	removeChild : function(child) {
 		this.children.remove(child);
@@ -268,7 +274,6 @@ Ext.define('Workspace.objects.Object', {
 		return this;
 	},
 	/**
-	 * invertSelection
 	 * If selected, unselects; else, selects.
 	 */
 	invertSelection : function() {
@@ -279,7 +284,15 @@ Ext.define('Workspace.objects.Object', {
 		}
 	},
 	/**
-	 * getX
+	 * Gets all {@link #children}
+	 */
+	getChildren : function() {
+		var children = this.get('children');
+		if(children) {
+			return children.getRange();
+		}
+	},
+	/**
 	 * Returns the object's x position relative to another workspace object
 	 * @param {Workspace.objects.Object} rel Another object to whose position this object should be compared
 	 */
@@ -291,7 +304,6 @@ Ext.define('Workspace.objects.Object', {
 		}
 	},
 	/**
-	 * getY
 	 * Returns the object's y position relative to another workspace object
 	 * @param {Workspace.objects.Object} rel Another object to whose position this object should be compared
 	 */
@@ -303,7 +315,6 @@ Ext.define('Workspace.objects.Object', {
 		}
 	},
 	/**
-	 * updateX
 	 * Invoked by change:x; fires move event
 	 * @private
 	 * @param {Number} x
@@ -312,7 +323,6 @@ Ext.define('Workspace.objects.Object', {
 		this.fireEvent('move', x, this.getY());
 	},
 	/**
-	 * setT
 	 * Invoked by change:y; fires move event
 	 * @private
 	 * @param {Number} y
@@ -321,7 +331,6 @@ Ext.define('Workspace.objects.Object', {
 		this.fireEvent('move', this.getX(), y);
 	},
 	/**
-	 * getPosition
 	 * Returns the object's x,y position
 	 * @returns {Object} pos Hash containing <var>x</var> and <var>y</var>
 	 */
@@ -332,7 +341,6 @@ Ext.define('Workspace.objects.Object', {
 		};
 	},
 	/**
-	 * setPosition
 	 * Sets this object's x and y position (and optionally that of its children)
 	 * @param {Object} x
 	 * @param {Object} y
@@ -361,7 +369,6 @@ Ext.define('Workspace.objects.Object', {
 		this.fireEvent('move', this, x, y);
 	},
 	/**
-	 * getAbsolutePosition
 	 * @deprecated
 	 */
 	getAbsolutePosition : function() {
@@ -371,7 +378,6 @@ Ext.define('Workspace.objects.Object', {
 		return pos;
 	},
 	/**
-	 * moveTo
 	 * Alias for {@link #setPosition}
 	 * @param {Object} x
 	 * @param {Object} y
@@ -381,11 +387,10 @@ Ext.define('Workspace.objects.Object', {
 		// this.fireEvent('move',this,this.getX(),this.getY());
 	},
 	/**
-	 * translate
 	 * Moves this object (and optionally its children) by the specified amount
 	 * @param {Object} dx
 	 * @param {Object} dy
-	 * @param {Object} applyToChildren (Optional) True to shift the position of all children as well, false to retain their position (defaults to true)
+	 * @param {Object} [applyToChildren=true] True to shift the position of all children as well, false to retain their position.
 	 */
 	translate : function(dx, dy, applyToChildren) {
 		// default
@@ -409,7 +414,6 @@ Ext.define('Workspace.objects.Object', {
 		this.fireEvent('move', this, this.getX(), this.getY());
 	},
 	/**
-	 * move
 	 * Alias for {@link #translate}
 	 * @param {Object} dx
 	 * @param {Object} dy
@@ -418,11 +422,12 @@ Ext.define('Workspace.objects.Object', {
 		this.translate(dx, dy)
 	},
 	/**
-	 * getDelta
 	 * Calculates difference between position of object and the provided coordinates.
 	 * @param {Object} x2
 	 * @param {Object} y2
-	 * @return {Object} delta Hash containing <var>dx</var> and <var>dy</var>
+	 * @return {Object} delta Hash containing:
+	 * @return {Number} delta.dx
+	 * @return {Number} delta.dy
 	 */
 	getDelta : function(x2, y2) {
 		return {
@@ -431,7 +436,6 @@ Ext.define('Workspace.objects.Object', {
 		};
 	},
 	/**
-	 * setState
 	 * Changes properties in {@link #state}
 	 * @param {String} field
 	 * @param {Mixed} value
@@ -440,15 +444,14 @@ Ext.define('Workspace.objects.Object', {
 		this.state[field] = value;
 	},
 	/**
-	 * is
 	 * Queries properties in {@link #state}
-	 * @param {String} field
+	 * @param {String} field Name of a field of `this`#state
+	 * @returns {Mixed} fieldState
 	 */
 	is : function(field) {
 		return this.state[field];
 	},
 	/**
-	 * addShim
 	 * Links the provided shim to this object
 	 * @param {Workspace.Shim} shim
 	 */
@@ -458,15 +461,13 @@ Ext.define('Workspace.objects.Object', {
 		}
 	},
 	/**
-	 * render
-	 * Fires the render event, sets state to rendered.
+	 * Fires the {@link #event-render} event, updates #state.
 	 */
 	render : function() {
 		this.setState('rendered', true);
 		this.fireEvent('render');
 	},
 	/**
-	 * destroy
 	 * Destroys the component and all children;
 	 */
 	destroy : function() {

@@ -187,13 +187,6 @@ Ext.define('App.ui.nodal.HomeTab', {
 		}
 	},
 },function() {
-	Workspace.DDManager.addHandler('ext/motif', function(data,e) {
-		var pos = this.getAdjustedXY(e), tool;
-		tool = this.workspace.activeTool;
-		this.workspace.setActiveTool('node');
-		this.workspace.getActiveTool().buildMotif(data.draggedRecord.get('number'),pos.x,pos.y);
-		this.workspace.setActiveTool(tool);
-	});
 
 });
 

@@ -1,7 +1,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 Ext.ns('Workspace.objects.dna');
 
-
+/**
+ * @class Workspace.objects.dna.Motifs
+ * @singleton
+ */
 Workspace.objects.dna.Motifs = {
 	'0': [],
 	'1': ['init',], // initiator (2 segments)
@@ -16,6 +19,10 @@ Workspace.objects.dna.Motifs = {
 	'19': ['input','blue'],
 };
 
+/**
+ * @class Workspace.objects.dna.Ports
+ * @singleton
+ */
 Workspace.objects.dna.Ports = {
 	'input': {
 		wtype: 'Workspace.objects.dna.InputPort',
@@ -43,6 +50,23 @@ Workspace.objects.dna.Ports = {
 	},
 };
 
+// TODO: just grab built-in motifs from App.dynamic.Compiler#standardMotifs
+Workspace.objects.dna.Motifs = function(motifs) {
+	var newMotifs = {};
+	_.each(motifs,function(spec,name) {
+		if(_.isArray(spec)) {
+			newMotifs[name] = _.map(spec,function(port) {
+				if(_.isString(port)) {
+					return Workspace.objects.dna.Ports[port];
+				}
+			});
+		} else {
+			newMotifs[name] = spec;
+		}
+	});
+	return newMotifs;
+}(Workspace.objects.dna.Motifs);
+
 Workspace.objects.dna.motifStore = (function() {
 	var data = [], i=0;
 	for(var m in Workspace.objects.dna.Motifs) {
@@ -69,7 +93,9 @@ Workspace.objects.dna.motifStore = (function() {
 	});
 })();
 
-
+/**
+ * Represents a single node in a {@link App.ui.NodalCanvas nodal system}
+ */
 Ext.define('Workspace.objects.dna.Node', {
 	extend: 'Workspace.objects.IdeaObject',
 	wtype: 'Workspace.objects.dna.Node',

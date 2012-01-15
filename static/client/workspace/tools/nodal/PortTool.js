@@ -1,3 +1,8 @@
+/**
+ * @class Workspace.tools.nodal.PortTool
+ * Allows adding {@link Workspace.objects.nodal.NodePort ports} to 
+ * {@link Workspace.objects.nodal.Node nodes}.
+ */
 Ext.define('Workspace.tools.nodal.PortTool', {
 	extend:'Workspace.tools.BaseTool',
 	require: ['Workspace.objects.dna.OutputPort','Workspace.objects.dna.InputPort',],
@@ -26,8 +31,21 @@ Ext.define('Workspace.tools.nodal.PortTool', {
 	accept: function(item) {
 		return (item.isWType('Workspace.objects.dna.Node'));
 	},
-	buildPort: function(name) {
-		return this.workspace.createObject(Workspace.objects.dna.Ports[name]);
+	
+	/**
+	 * Constructs a {@link Workspace.objects.nodal.NodePort port}
+	 * @param {String/Object} config String name of a port class in Workspace.objects.dna.Ports or configuration object for a Workspace.objects.nodal.NodePort. 
+	 */
+	buildPort: function(config) {
+		config || (config = {});
+		if(_.isString(config)) {
+			return this.workspace.createObject(Workspace.objects.dna.Ports[config]);
+		} else {
+			if(!config.name) {
+				
+			}
+			return this.workspace.createObject(config);
+		}
 	}
 }, function() {
 	Workspace.Tools.register('port', Workspace.tools.nodal.PortTool);

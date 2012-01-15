@@ -128,12 +128,21 @@ while oldpol != [m[i]['polarity'] for i in range(len(m))]:  # repeat while still
       targ = m[i]['out'][j]
       # current implementation assumes only one arrow drawn from each output
       if targ != []:  # [] means no arrow for this output port
+      
+      	# dirs = (relative polarity of this port) * (polarity of this node)
+      	# overall polarity of the downstream node should be equal to this node's polarity times the
+      	# relative polarity of the port.
         dirs = mtable[m[i]['type']]['relpol'][j] * m[i]['polarity'];
-        if dirs != 0:  # if m[i] was already assigned a polarity
+        
+        if dirs != 0:  # if node m[i] was already assigned a polarity
+    	
+    	  # if the downstream motif has the opposite polarity, throw error
           if m[targ-1]['polarity'] == -dirs:  # -1 because python is 0-indexed
             print 'Polarity error: ' + repr(i+1) + ' ' + repr(targ)
             sys.exit(1)
             #raise PolarityError([i,targ])
+          
+          # set polarity of downstream node
           m[targ-1]['polarity'] = dirs
 
 # now create constraint matrix
@@ -149,10 +158,11 @@ labels = [-(i+1) for i in range(totnsegs)]
 ofs = 0  # offset for each new motif
 for i in range(len(m)):
   m[i]['ofs'] = ofs
-  for j in range(len(mtable[m[i]['type']]['hcomp'])):
-    lst = mtable[m[i]['type']]['hcomp'][j]
+  for j in range(len(mtable[m[i]['type']]['hcomp'])): # for each hcomp (helix complementarity)
+    lst = mtable[m[i]['type']]['hcomp'][j] # list containing indicies of two segments which should be complementary
     cmat[ofs+lst[0]-1][ofs+lst[1]-1] = -1  # [...-1] because python is 0-indexed
-  ofs += seglst[m[i]['type']]
+  ofs += seglst[m[i]['type']] # offset += number of segments in this node
+  
 # arrow positive constraints: anything where an output points to an input involves complementarity for the associated segments
 for i in range(len(m)):
   for j in range(len(m[i]['out'])):
@@ -173,6 +183,8 @@ for i in range(len(m)):
         inlst.reverse()
     for l in range(len(inlst)):
       cmat[m[i]['ofs']+outlst[l]-1][m[k]['ofs']+inlst[l]] = -1  # at this point outlst is 1-indexed, inlst is 0-indexed
+
+print(repr(cmat));
 
 # now keep updating the labels according to the constraint matrix
 # negative labels mean complementary

@@ -315,6 +315,11 @@ App.dynamic = exports = (function(_,DNA) {
 	_.extend(Node, {
 		/**
 		 * Hash of post-processors to be passed the node at the end of the constructor.
+		 * 
+		 * Current types:
+		 * -	`hairpin`
+		 * 
+		 * @static
 		 */
 		types: {
 			'hairpin': function(node) {
@@ -786,6 +791,17 @@ App.dynamic = exports = (function(_,DNA) {
 		getTargetPort : function() {
 			return this.targetPort;
 		},
+		/**
+		 * Returns the type of this relationship, either `output` or `bridge`
+		 */
+		getType: function() {
+			if(this.getTargetPort().role == 'input' && this.getSourcePort().role == 'output') {
+				return 'output';
+			}
+			if(this.getTargetPort().role == this.getSourcePort().role == 'bridge') {
+				return 'bridge';
+			}
+		}
 	}
 
 	/* ***************************************************************** */
@@ -1178,18 +1194,22 @@ App.dynamic = exports = (function(_,DNA) {
 					// clone so we can potentially flip later or mutate later
 					var sourceSegments = _.clone(complement.getSourceDomain().getSegments());
 					var targetSegments = _.clone(complement.getTargetDomain().getSegments());
-
-					if(complement.sourceNode.polarity == complement.targetNode.polarity) {
-						targetSegments.reverse();
+					var complementType = complement.getType();
+					
+					// flip domains for output ports, but not for bridges
+					if(complementType=='output') {
+						if(complement.sourceNode.polarity == complement.targetNode.polarity) {
+							targetSegments.reverse();
+						}
 					}
 					
 					// Two complementary ports should have the same length
 					if(sourceSegments.length != targetSegments.length) {
 
-						// If there's just an extra clamp, that's okay
-						if(sourceSegments.length - targetSegments.length == 1 && _.last(sourceSegments).role == 'clamp') {
+						// If there's just an extra clamp for outputs, that's okay
+						if(complementType=='output' && sourceSegments.length - targetSegments.length == 1 && _.last(sourceSegments).role == 'clamp') {
 							sourceSegments.pop();
-						} else if(targetSegments.length - sourceSegments.length == 1 && _.last(targetSegments).role == 'clamp') {
+						} else if(complementType=='output' && targetSegments.length - sourceSegments.length == 1 && _.last(targetSegments).role == 'clamp') {
 							targetSegments.pop();
 
 						} else {
@@ -1210,8 +1230,6 @@ App.dynamic = exports = (function(_,DNA) {
 							});
 						}
 					}
-
-					// TODO: handle bridge ports
 
 					// Merges happen left (source) to right (target)
 					// For each segment in sourceSegments
@@ -1453,7 +1471,7 @@ App.dynamic = exports = (function(_,DNA) {
 							(options.annotations ? '[' : '')
 							
 							// segment body
-							].concat(_.map(domain.getSegments(),function(segment) {				
+							].concat(_.map(segments,function(segment) {				
 								return options.originalSegmentNames ? segment.getQualifiedName() : segment.getIdentifier(); //makeIdentifier(segment.identity, segment.polarity);
 							}))
 							
@@ -1469,10 +1487,258 @@ App.dynamic = exports = (function(_,DNA) {
 			return out;
 		}
 		
-		
-		var standardMotifs = {
-			'm1' :{	
+		/**
+		 * @property {Object} standardMotifs
+		 * Hash containing configuration objects for each of the standard motifs, indexed by name.
+		 */
+		var standardMotifs = [{
 				name: 'm1',
+				type: 'initiator',
+			    isInitiator: true,
+			    domains: [{
+			    	name: 'A',
+			    	role: 'output',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'a', role: ''},
+				        {name: 'b', role: ''},
+			    	]
+			    }]
+			},{
+				name: 'm2',
+				type: 'initiator',
+			    isInitiator: true,
+			    domains: [{
+			    	name: 'A',
+			    	role: 'output',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'a', role: ''},
+				        {name: 'b', role: ''},
+				        {name: 'c', role: ''},
+			    	]
+			    }]
+			},{
+				name: 'm3',
+				type: 'hairpin',
+			    domains: [{
+			    	name: 'A',
+			    	role: 'input',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'a', role: 'toehold'},
+				        {name: 'b', role: ''},
+			    	]
+			    },{
+			    	name: 'B',
+			    	role: 'output',
+			    	type: 'loop',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'c', role: 'loop'},
+				        {name: 'b*', role: ''},
+			    	]
+			    }]
+			},{
+				name: 'm4',
+				type: 'hairpin',
+			    domains: [{
+			    	name: 'A',
+			    	role: 'input',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'a', role: 'toehold'},
+				        {name: 'b', role: ''},
+				        {name: 'c', role: ''},
+			    	]
+			    },{
+			    	name: 'B',
+			    	role: 'output',
+			    	type: 'loop',
+			    	polarity: '-',
+			    	segments: [
+				      	{name: 'd', role: 'loop'},
+				        {name: 'e', role: 'loop'},
+				        {name: 'c*', role: ''},
+			    	]
+			    },{
+			    	name: 'C',
+			    	role: 'output',
+			    	type: 'tail',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'b*', role: 'toehold'},
+				        {name: 'f', role: ''},
+				        {name: 'g', role: ''},
+			    	]
+			    }]	
+			},{
+				name: 'm5',
+				type: 'hairpin',
+			    domains: [{
+			    	name: 'A',
+			    	role: 'input',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'a', role: 'toehold'},
+				        {name: 'b', role: ''},
+				        {name: 'c', role: ''},
+			    	]
+			    },{
+			    	name: 'B',
+			    	role: 'bridge',
+			    	type: 'loop',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'd', role: 'loop'},
+			    	]
+			    },{
+			    	name: 'C',
+			    	role: 'null',
+			    	type: 'stem',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'b*', role: ''},
+				        {name: 'c*', role: ''},
+			    	]
+			    }]	
+			},{
+				name: 'm6',
+				type: 'hairpin',
+			    domains: [{
+			    	name: 'A',
+			    	role: 'input',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'a', role: 'toehold'},
+				        {name: 'b', role: ''},
+				        {name: 'c', role: ''},
+			    	]
+			    },{
+			    	name: 'B',
+			    	role: 'bridge',
+			    	type: 'loop',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'd', role: 'loop'},
+			    	]
+			    },{
+			    	name: 'C',
+			    	role: 'output',
+			    	type: 'loop',
+			    	polarity: '-',
+			    	segments: [
+				      	{name: 'e', role: 'loop'},
+				      	{name: 'f', role: 'loop'},
+				      	{name: 'g', role: 'loop'},
+				      	{name: 'c*', role: 'loop'},
+			    	]
+			    },{
+			    	name: 'D',
+			    	role: 'output',
+			    	type: 'tail',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'b*', role: 'toehold'},
+				        {name: 'h', role: ''},
+				        {name: 'i', role: ''},
+			    	]
+			    }]	
+			},{
+				name: 'm7',
+				type: 'hairpin',
+			    domains: [{
+			    	name: 'A',
+			    	role: 'input',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'a', role: 'toehold'},
+				        {name: 'b', role: ''},
+				        {name: 'c', role: ''},
+			    	]
+			    },{
+			    	name: 'B',
+			    	role: 'output',
+			    	type: 'loop',
+			    	polarity: '-',
+			    	segments: [
+				      	{name: 'd', role: 'loop'},
+				      	{name: 'e', role: 'loop'},
+				      	{name: 'c*', role: ''},
+			    	]
+			    },{
+			    	name: 'C',
+			    	role: 'bridge',
+			    	type: 'stem',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'b*', role: 'toehold'},
+						{name: 'e', role: ''},
+				      	{name: 'f', role: ''},
+			    	]
+			    }]
+			},{
+				name: 'm8',
+				type: 'hairpin',
+			    domains: [{
+			    	name: 'A',
+			    	role: 'input',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'a', role: 'toehold'},
+				        {name: 'b', role: ''},
+				        {name: 'c', role: ''},
+			    	]
+			    },{
+			    	name: 'B',
+			    	role: 'bridge',
+			    	type: 'loop',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'd', role: 'loop'},
+				      	{name: 'c*', role: ''},
+			    	]
+			    },{
+			    	name: 'C',
+			    	role: 'output',
+			    	type: 'tail',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'b*', role: ''},
+			    	]
+			    }]
+			},{
+				name: 'm9',
+				type: 'hairpin',
+			    domains: [{
+			    	name: 'A',
+			    	role: 'input',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'a', role: 'toehold'},
+				        {name: 'b', role: ''},
+				        {name: 'c', role: ''},
+			    	]
+			    },{
+			    	name: 'B',
+			    	role: 'bridge',
+			    	type: 'loop',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'd', role: 'loop'},
+				      	{name: 'c*', role: ''},
+			    	]
+			    },{
+			    	name: 'C',
+			    	role: 'null',
+			    	type: 'stem',
+			    	polarity: '+',
+			    	segments: [
+				      	{name: 'b*', role: ''},
+			    	]
+			    }]
+			},{	
+				name: 'm1c',
 				type: 'initiator',
 			    isInitiator: true,
 			    domains: [{
@@ -1486,9 +1752,8 @@ App.dynamic = exports = (function(_,DNA) {
 				        {name: 'x', role: 'clamp'},
 			    	]
 			    }]
-			  }, 
-			'm19':{
-				name: 'm19',
+			  }, {
+				name: 'm19c',
 				type: 'hairpin',
 				domains: [{
 			    	name: 'A',
@@ -1513,7 +1778,11 @@ App.dynamic = exports = (function(_,DNA) {
 				   ]
 			   }]
 			}
-		};
+		];
+		standardMotifs = _.reduce(standardMotifs,function(memo,motif) {
+			memo[motif.name] = motif;
+			return memo; 
+		},{});
 		
 		return {
 			compile: compile,

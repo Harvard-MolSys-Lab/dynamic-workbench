@@ -25,6 +25,10 @@ Ext.define('Workspace.objects.dna.OutputPort', {
 		}
 		this.callParent(arguments);
 	},
+	render: function() {
+		this.callParent(arguments);
+		this.mixins.port.render.apply(this,arguments);
+	},
 }, function() {
 	Workspace.reg('Workspace.objects.dna.OutputPort',Workspace.objects.dna.OutputPort);
 });

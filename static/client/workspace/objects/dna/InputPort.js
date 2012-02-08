@@ -20,6 +20,7 @@ Ext.define('Workspace.objects.dna.InputPort', {
 		Workspace.objects.Path.superclass.render.call(this);
 		this.path = this.vectorElement.attr('path');
 		this.updateDimensions();
+		this.mixins.port.render.apply(this,arguments);
 	},
 }, function() {
 	Workspace.reg('Workspace.objects.dna.InputPort',Workspace.objects.dna.InputPort);

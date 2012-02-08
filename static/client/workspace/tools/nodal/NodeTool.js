@@ -27,11 +27,13 @@ Ext.define('Workspace.tools.nodal.NodeTool', {
 				motif: name
 			});
 			for(var i=0; i<spec.length; i++) {
-				var cfg = _.clone(spec[i]);
+				var cfg = _.deepClone(spec[i]);
 				if(_.isObject(cfg)) {
 					cfg.name = 'p'+(i+1);
+					cfg.wtype = Workspace.objects.dna.PortClasses[cfg.role];
+					cfg.stroke = App.dynamic.Compiler.getColor(cfg);
 				}
-				node.adopt(this.buildPort(spec[i]));
+				node.adopt(this.buildPort(cfg));
 			}
 		}
 		return node;

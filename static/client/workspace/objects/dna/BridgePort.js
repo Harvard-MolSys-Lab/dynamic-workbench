@@ -23,6 +23,7 @@ Ext.define('Workspace.objects.dna.BridgePort', {
 	render: function() {
 		this.arguments = [this.get('x') + this.getRadiusX(), this.get('y') + this.getRadiusY(), this.getRadiusX()]; //, this.getRadiusY()];
 		Workspace.objects.Rectangle.superclass.render.call(this);
+		this.mixins.port.render.apply(this,arguments);
 		//		this.path = this.vectorElement.attr('path');
 		//		this.updateDimensions();
 	},

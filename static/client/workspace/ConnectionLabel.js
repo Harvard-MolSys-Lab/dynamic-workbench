@@ -13,7 +13,7 @@ Ext.define('Workspace.ConnectionLabel', {
 				cls : 'workspace-label-center'
 			}
 		});
-		Workspace.ConnectionLabel.superclass.constructor.apply(this.arguments);
+		Workspace.ConnectionLabel.superclass.constructor.apply(this,arguments);
 	},
 	/**
 	 * onMove

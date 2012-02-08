@@ -38,7 +38,7 @@ Ext.define('App.ui.nodal.NodeInspector', {
 				queryMode : 'local',
 				displayField : 'number',
 				valueField : 'number',
-				forceSelection : true,
+				forceSelection : false,//true,
 				listConfig : {
 					getInnerTpl : function() {
 						return '<div class="search-item"><img src="images/motifs/m{number}.gif" /></div>';

@@ -1533,7 +1533,7 @@ App.dynamic = exports = (function(_,DNA) {
 			    	name: 'B',
 			    	role: 'output',
 			    	type: 'loop',
-			    	polarity: '+',
+			    	polarity: '-',
 			    	segments: [
 				      	{name: 'c', role: 'loop'},
 				        {name: 'b*', role: ''},
@@ -1784,6 +1784,15 @@ App.dynamic = exports = (function(_,DNA) {
 			return memo; 
 		},{});
 		
+		var domainColors = {
+			'init' : '#553300',
+			'input' : 'orange',
+			'output.loop' : '#33ccff', // blue
+			'output.tail' : '#66ff33', // green
+			'bridge.loop' : '#ff1177', // pink
+			'bridge.stem' : '#9900cc',
+		}
+		
 		return {
 			compile: compile,
 			compileLibrary: compileLibrary,
@@ -1799,6 +1808,13 @@ App.dynamic = exports = (function(_,DNA) {
 				}
 			},
 			standardMotifs : standardMotifs,
+			domainColors: domainColors,
+			getColor : function(domain) {
+				if(domain.role && domain.type) {
+					return domainColors[[domain.role, domain.type].join('.')];
+				}
+				return domainColors[domain.role];
+			}
 		}
 
 	})();

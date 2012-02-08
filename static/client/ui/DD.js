@@ -1,4 +1,5 @@
 /**
+ * @class App.ui.DD
  * Provides an interface allowing the user to performs domain-based sequence design using Web {@link DD}.
  */
 Ext.define('App.ui.DD', {
@@ -380,6 +381,7 @@ Ext.define('App.ui.DD', {
 				saveButtonText: 'Save Strands',
 				ref : 'structPane',
 				collapsible : true,
+				collapsed: true,
 				width : 200,
 				split : true,
 				margin : 0, //'2 2 0 0',
@@ -399,7 +401,21 @@ Ext.define('App.ui.DD', {
 					}],
 					handler : this.updateDomainsFromSpec,
 					scope : this,
-				}]
+				}],
+				listeners: {
+					'afterrender' : {
+						scope : this,
+						fn : function(structPane) {
+							structPane.header.tooltip = {
+								title: 'Structure',
+								text: 'Use this pane to thread your domains onto strands. You can use a NUPACK-like syntax to describe ' + //
+									'your strands. For example, to describe strand "M1" containing domains 1, 2, and 3*, simply enter "M1 : 1 2 3*" ' + //
+									'then click "Update." Your changes will be reflected in the "Strands" pane below'
+							};
+							this.mixins.tip.buildTip(structPane.header);
+						}
+					}
+				}
 			}), Ext.create('App.ui.SequenceEditor', {
 				region : 'south',
 				title : 'Strands',
@@ -407,11 +423,24 @@ Ext.define('App.ui.DD', {
 				saveButtonText: 'Save Sequences',
 				ref : 'strandsPane',
 				collapsible : true,
+				collapsed: true,
 				height : 200,
 				split : true,
 				border : true, //'1 0 0 0',
 				bodyBorder : true,
 				margin : 0, //'0 2 2 2',
+				listeners: {
+					'afterrender' : {
+						scope : this,
+						fn : function(strandsPane) {
+							strandsPane.header.tooltip = {
+								title: 'Strands',
+								text: 'This pane shows the sequences of the strands described in the "Structure" pane on the right. '
+							};
+							this.mixins.tip.buildTip(strandsPane.header);
+						}
+					}
+				}
 			})]
 
 		});
@@ -437,6 +466,9 @@ Ext.define('App.ui.DD', {
 		var spec = DNA.structureSpec(CodeMirror.tokenize(this.structPane.getValue(), 'nupack'));
 		this.syncDomains(spec.domains, this.clobberOnUpdate.checked);
 		this.setStrands(spec.strands);
+		this.structPane.expand();
+		this.strandsPane.expand();
+		this.updateStrandsPane();
 	},
 	setStrands : function(strands) {
 		this.strands = strands;
@@ -738,6 +770,7 @@ Ext.define('App.ui.DD', {
 		refreshSequences || (refreshSequences = false);
 		refreshScores || (refreshScores = true);
 		this.updateStatusBar();
+		
 		// true to force a re-tally (since domain_score[] isn't automatically updated when a
 		// mutation is rejected; we risk showing an increased score that was actually rejected)
 		var scores = this.designer.getScores(true), //
@@ -770,6 +803,16 @@ Ext.define('App.ui.DD', {
 				return name + ' : ' + DNA.threadSegments(segments, spec);
 			}).join('\n'));
 		}
+	},
+	updateStrandsPane : function() {
+		var segments = _.reduce(this.store.getRange(), function(memo, rec) {
+			var name = rec.get('name'), i = this.store.indexOf(rec);
+			memo[ name ? name : i+1] = this.designer.printDomainById(i);
+			return memo;
+		}, {}, this);
+		this.strandsPane.setValue(_.map(this.strands, function(spec, name) {
+			return name + ' : ' + DNA.threadSegments(segments, spec);
+		}).join('\n'));
 	},
 	/**
 	 * Begins mutating on a timer

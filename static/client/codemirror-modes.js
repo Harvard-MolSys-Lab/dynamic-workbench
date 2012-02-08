@@ -271,6 +271,17 @@ CodeMirror.defineMode("pepper", function(config, parserConfig) {
 CodeMirror.defineMode("sequence", function() {
 	return {
 		token: function(stream) {
+			if(stream.sol()) {
+				if(stream.match(/^[\w\s-]+:\s+/)) {
+					return 'sequence-name';
+				}
+			}
+			
+			// var urlRegex = new RegExp("\b(https?|ftp|file)://[-A-Z0-9+&@#/%?=~_|!:,.;]*[A-Z0-9+&@#/%=~_|]");
+			// if(stream.match(urlRegex)) {
+				// return 'sequence-link';
+			// }
+			
 			var ch = stream.next();
 			switch(ch) {
 				case '%':
@@ -369,6 +380,8 @@ CodeMirror.defineMode("nupack", function(config) {
 			if(stream.eatSpace()) {
 				return '';
 			}
+			
+			// Beginning of line
 			if(state.value=='') {
 				if(stream.eat('%')) {
 					stream.skipToEnd();
@@ -379,9 +392,14 @@ CodeMirror.defineMode("nupack", function(config) {
 				} else if(stream.match('sequence',true,true)) {
 					state.value = 'sequence-definition-left';
 					return 'keyword';
+				} else if(stream.match('strand',true,true)) {
+					state.value='structure-name';
+					return 'keyword';
 				} else {
 					state.value='structure-name';
 				}
+				
+			// structure (name) = (spec in HU+)
 			} else if(state.value=='structure-definition-left') {
 				stream.eatWhile(/\S/);
 				state.value = 'structure-definition-assign';
@@ -399,6 +417,11 @@ CodeMirror.defineMode("nupack", function(config) {
 				stream.skipToEnd();
 				state.value='';
 				return 'nupack-huplus';
+				
+			// sequence (name) = (spec)
+			// sequence (name) : (spec)
+			// domain (name) = (spec)
+			// domain (name) : (spec)
 			} else if(state.value=='sequence-definition-left') {
 				stream.eatWhile(/\S/);
 				state.value = 'sequence-definition-assign';
@@ -418,7 +441,7 @@ CodeMirror.defineMode("nupack", function(config) {
 				state.value = 'structure-assign';
 				return 'variable';
 			} else if(state.value=='structure-assign') {
-				if(stream.eat(':')) {
+				if(stream.eat('=') || stream.eat(':')) {
 					state.value = 'structure-thread'
 					return 'operator';
 				} else if(stream.eat('<')) {

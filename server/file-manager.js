@@ -510,7 +510,7 @@ exports.configure = function(app, express) {
 			//fileType = req.header('x-file-type');
 			var node = req.param('node') || req.param('userfile'), fullPath = utils.userFilePath(node);
 
-			if(!allowedPath(fullPath, req)) {
+			if(!allowedPath(path.dirname(fullPath), req)) {
 				//if(!allowedPath(node) || !allowedPath(fullPath)) {
 				forbidden(res);
 				winston.log("warn", "/upload: Couldn\'t save upload; access denied.", {

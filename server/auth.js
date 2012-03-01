@@ -1,5 +1,8 @@
 var config = require('./config');
-var crypto = require('crypto'), mongoose = require('mongoose@1.7.3'), fs = require('fs'), path = require('path'), _ = require('underscore'), validate = require('validator'), winston = require('winston');
+var crypto = require('crypto'), //
+mongoose = require('mongoose'), // @1.7.3
+
+fs = require('fs'), path = require('path'), _ = require('underscore'), validate = require('validator'), winston = require('winston');
 var check = validate.check, sanitize = validate.sanitize;
 var filesPath = config.files.path;
 // path.resolve(__dirname,'../../sf_fileshare/files');// '/mount/sf_fileshare/files'; //'~/file-share/files';//

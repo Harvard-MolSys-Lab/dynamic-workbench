@@ -29,9 +29,13 @@ Ext.define('App.ui.nodal.NodeInspector', {
 					return String(thumb.value) + '°';
 				}
 			}, {
-				xtype: 'checkbox',
+				xtype: 'numberfield',
 				fieldLabel: 'Polarity',
 				objectBinding : 'polarity',
+				minValue: -1,
+				maxValue: 1,
+				step: 1,
+				anchor : '95%',
 			},{
 				xtype : 'combo',
 				store : Workspace.objects.dna.motifStore,
@@ -41,7 +45,7 @@ Ext.define('App.ui.nodal.NodeInspector', {
 				forceSelection : false,//true,
 				listConfig : {
 					getInnerTpl : function() {
-						return '<div class="search-item"><img src="images/motifs/m{number}.gif" /></div>';
+						return '<div class="search-item"><img src="images/motifs/{number}.gif" /></div>';
 					}
 				},
 				fieldLabel : 'Motif',

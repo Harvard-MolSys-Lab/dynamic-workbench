@@ -10,12 +10,14 @@ Ext.define('Workspace.objects.dna.OutputPort', {
 	stroke: '#33ccff',
 	strokeWidth: 2,
 	name: 'Output Port',
+	role: 'output',
 	width: 8,
 	height: 8,
 	polarity: 1,
 	isResizable: false,
 	constructor: function() {
 		this.callParent(arguments);
+		this.mixins.port.constructor.apply(this,arguments);
 		//Workspace.objects.dna.OutputPort.superclass.constructor.apply(this,arguments);
 		this.expose('complementarity',true,true,true,false);
 	},

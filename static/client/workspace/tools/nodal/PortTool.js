@@ -33,19 +33,10 @@ Ext.define('Workspace.tools.nodal.PortTool', {
 	},
 	
 	/**
-	 * Constructs a {@link Workspace.objects.nodal.NodePort port}
-	 * @param {String/Object} config String name of a port class in Workspace.objects.dna.Ports or configuration object for a Workspace.objects.nodal.NodePort. 
+	 * @inheritdoc Workspace.objects.dna.BuildManager#buildPort
 	 */
 	buildPort: function(config) {
-		config || (config = {});
-		if(_.isString(config)) {
-			return this.workspace.createObject(Workspace.objects.dna.Ports[config]);
-		} else {
-			if(!config.name) {
-				
-			}
-			return this.workspace.createObject(config);
-		}
+		return this.workspace.buildManager.buildPort(config);
 	}
 }, function() {
 	Workspace.Tools.register('port', Workspace.tools.nodal.PortTool);

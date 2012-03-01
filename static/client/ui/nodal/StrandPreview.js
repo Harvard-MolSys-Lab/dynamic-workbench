@@ -20,7 +20,7 @@ Ext.define('App.ui.nodal.StrandPreview', {
 
 		var motifSpec = Workspace.objects.dna.Motifs[motif];
 		var paths = [];
-
+		return;
 		if(motifSpec) {
 			var ports = {
 				init : (motifSpec.indexOf('init') != -1),

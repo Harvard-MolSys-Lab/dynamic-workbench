@@ -13,11 +13,13 @@ Ext.define('Workspace.objects.dna.BridgePort', {
 	stroke: 'purple',
 	strokeWidth: 2,
 	name: 'Bridge Port',
+	role: 'bridge',
 	isResizable: false,
 
 	path: false,
 	constructor: function() {
 		Workspace.objects.dna.BridgePort.superclass.constructor.apply(this,arguments);
+		this.mixins.port.constructor.apply(this,arguments);
 		this.expose('complementarity',true,true,true,false);
 	},
 	render: function() {

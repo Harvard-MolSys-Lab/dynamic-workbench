@@ -3,8 +3,13 @@
 Ext.define('Workspace.objects.dna.NodePort', {
 	requires: ['Workspace.objects.Ellipse','Workspace.ConnectionLabel'],
 	constructor: function() {
+		this.expose('dynaml',true,true,true,false);
+		this.expose('role',true,true,true,false);
+		this.expose('identity',true,true,true,false);
+		this.expose('type',true,true,true,false);
 	},
 	//	wtype: 'Workspace.objects.dna.NodePort',
+	role: '',
 	fill: '#fff',
 	strokeWidth: 2,
 	isResizable: false,

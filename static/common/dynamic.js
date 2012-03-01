@@ -15,6 +15,44 @@ App.dynamic = exports = (function(_,DNA) {
 	 */
 	_.mixin({
 		/**
+		 * Returns a deep copy of the provided object, which will be a simple 
+		 * object. Recursive structures are intelligently handled. If objects
+		 * have their own `serialize` method defined, that is used.
+		 * @param {Mixed} o
+		 * @param {Boolean} isChild 
+		 */
+		serialize: function(o,isChild) {
+			isChild || (isChild = false);
+			
+			// if o defines its own serialization function (ie: for higher level objects), use that
+			if (o && o.serialize && _.isFunction(o.serialize)) {
+				return o.serialize(isChild)
+			}
+
+			// serialize an array
+			if (_.isArray(o)) {
+				var r = [];
+				for (var i = 0, l = o.length; i < l; i++) {
+					r.push(_.serialize(o[i], true));
+				}
+				return r;
+			}
+
+			// serialize a simply object hash (allow for complex objects contained in the hash)
+			if (_.isObject(o)) {
+				var r = {};
+				for (var p in o) {
+					if(Object.prototype.hasOwnProperty.call(o,p)) {
+						r[p] = _.serialize(o[p], true);
+					}
+				}
+				return r;
+			}
+
+			// no serialization needed; Ext will take care of the .toString()s
+			return o;
+		},
+		/**
 		 * Produces a copy of source which does not include properties on the prototype chain.
 		 * @param {Object} source
 		 */
@@ -151,6 +189,10 @@ App.dynamic = exports = (function(_,DNA) {
 		getName : function() {
 			return this.name;
 		},
+		serialize: function() {
+			var out = _.copy(this);
+			return _.serialize(out);
+		}
 	}
 	_.extend(Motif, {
 		/**
@@ -217,6 +259,14 @@ App.dynamic = exports = (function(_,DNA) {
 
 		// Apply configuration options with defaults to this object
 		_.copyTo(this, config), _.defaults({
+			/**
+			 * @cfg {String} [type='hairpin']
+			 * Type of motif to create. Currently one of: `"initiator"` or `"hairpin"`
+			 */
+			type: 'hairpin',
+			/**
+			 * @cfg {Number} [polarity=0]
+			 */
 			polarity : 0,
 		});
 
@@ -248,7 +298,7 @@ App.dynamic = exports = (function(_,DNA) {
 
 	_.extend(Node.prototype, Motif.prototype);
 	_.extend(Node.prototype, {
-
+		polarity: 0,
 		/**
 		 * Produces a constraint matrix; essentially a hash describing the relationship between each
 		 * of the {@link App.dynamic.Segment#id segment IDs} of the {@link App.dynamic.Segment segments}
@@ -309,6 +359,11 @@ App.dynamic = exports = (function(_,DNA) {
 			});
 			return identities;
 
+		},
+		serialize: function() {
+			var out = _.copy(this);
+			if(out.motif) { out.motif = out.motif.getName(); }
+			return _.serialize(out);
 		}
 	});
 
@@ -383,6 +438,7 @@ App.dynamic = exports = (function(_,DNA) {
 	function Strand(config) {
 		// Apply configuration options with defaults to this object
 		_.copyTo(this, config), _.defaults(this, {
+
 		});
 
 		this.polarity = DNA.parsePolarity(this.polarity);
@@ -451,6 +507,11 @@ App.dynamic = exports = (function(_,DNA) {
 				}
 				
 				return out.join(' ')				
+		},
+		serialize: function() {
+			var out = _.copy(this);
+			if(out.node) { delete out.node }
+			return _.serialize(out);
 		}
 	}
 
@@ -507,6 +568,12 @@ App.dynamic = exports = (function(_,DNA) {
 		 */
 		getName : function() {
 			return this.name;
+		},
+		serialize: function() {
+			var out = _.copy(this);
+			if(out.strand) { delete out.strand }
+			if(out.node) { delete out.node }
+			return _.serialize(out);
 		}
 	};
 
@@ -648,6 +715,14 @@ App.dynamic = exports = (function(_,DNA) {
 		duplicate : function() {
 			return _.copy(this);
 		},
+		serialize: function() {
+			var out = _.copy(this);
+			if(out.strand) { delete out.strand }
+			if(out.domain) { delete out.domain }
+			if(out.node) { delete out.node }
+			
+			return _.serialize(out);
+		}
 	}
 
 	_.extend(Segment, {
@@ -674,6 +749,79 @@ App.dynamic = exports = (function(_,DNA) {
 				return "segment_" + count;
 			}
 		}()
+	})
+
+	/* ***************************************************************** */
+		
+	/**
+	 * @class App.dynamic.Structure
+	 * Represents a secondary structure of a motif or node
+	 */
+	function Structure(config) {
+		var spec, type;
+		if(_.isString(config)) {
+			spec = config;
+			if(spec.match('.')) {
+				type = 'dot-paren';
+			} else if(spec.match(/[DHU]+/gi)) {
+				spec = spec.replace('H','D');
+				type = 'DU+';
+			}
+			config = {
+				spec: spec,
+				type: type,
+			};
+		}
+		/**
+		 * @property {String} spec
+		 */
+		/**
+		 * @property {String} type
+		 * One of "dot-paren" or "DU+"
+		 */
+		_.copyTo(this, config);
+		_.defaults(this, {});
+	}
+	
+	_.extend(Structure.prototype,{
+		expand: function(lengths) {
+			if(lengths.length != spec.length) {
+				throw new DynamlError({
+					type: "structure size mismatch",
+					structure: spec,
+					lengths: lengths,
+				});
+			}
+			var spec = this.spec, out = [], len, ch;
+			while(spec.length>0){
+				len = lengths.shift();
+				ch = Array.prototype.shift.apply(spec);
+				out.push(Array(len+1).join(ch));
+			}
+			return out.join('');
+		}
+	});
+	
+	_.extend(Structure,{
+		parseDUPlus: function(spec) {
+			
+		},
+		DUtoDotParen: function(spec) {
+			
+		},
+		dotParenToDU: function(spec) {
+			var ch = '', count=0, out = [];
+			while(spec.length > 0) {
+				if(ch != spec[0]) {
+					out.push(Array(count+1).join(ch));
+				} else {
+					n++;
+				}
+				Array.prototype.shift.apply(spec);
+			}
+			out.push(Array(count+1).join(ch));
+			return out.join('');
+		}
 	})
 
 	/* ***************************************************************** */
@@ -801,6 +949,14 @@ App.dynamic = exports = (function(_,DNA) {
 			if(this.getTargetPort().role == this.getSourcePort().role == 'bridge') {
 				return 'bridge';
 			}
+		},
+		serialize: function() {
+			var out = _.copy(this);
+			if(out.strand) { delete out.strand }
+			if(out.domain) { delete out.domain }
+			if(out.node) { delete out.node }
+			
+			return _.serialize(out);
 		}
 	}
 
@@ -1129,9 +1285,29 @@ App.dynamic = exports = (function(_,DNA) {
 							// Downstream node should have polarity opposite the sourcePort's absolute polarity
 							// (absolute polarity) = (relative port polarity) * (node polarity)
 							var targetPolarity = -1 * complement.sourcePort.polarity * complement.sourceNode.polarity
+							
+							if(isNaN(targetPolarity)) {
+								if(isNaN(complement.sourcePort.polarity)) {									
+									throw new DynamlError({
+										type: 'polarity unspecified',
+										message: 'source port polarity is NaN',
+										sourceNode: complement.sourceNode,
+										sourcePort: complement.sourcePort,
+										complement: complement,
+									});
+								} else {
+									throw new DynamlError({
+										type: 'polarity unspecified',
+										message: 'source node polarity is NaN',
+										sourceNode: complement.sourceNode,
+										sourcePort: complement.sourcePort,
+										complement: complement,
+									})
+								}
+							}
 
 							// If the targetNode already has a polarity and it's wrong, throw polarity error
-							if(complement.targetNode.polarity == -targetPolarity) {
+							if(complement.targetNode.polarity != 0 && complement.targetNode.polarity == -targetPolarity) {
 								throw new DynamlError({
 									type : 'polarity conflict',
 									message : _.template('Complementarity statement in node <%= source %> implies node <%= target %> ' + 'should have polarity <%= expected %>, but instead it has polarity <%= encountered %>', {
@@ -1216,9 +1392,11 @@ App.dynamic = exports = (function(_,DNA) {
 							// Otherwise complain
 							throw new DynamlError({
 								type : 'domain length mismatch',
-								message : _.template('Complementarity statement in node <%= source %> implies domain <%= target %> ' + 'should have <%= expected %> segments, but instead it has <%= encountered %> segments', {
-									source : complement.sourceNode.getName(),
-									target : complement.targetPort.getName(),
+								message : _.template('Complementarity statement in node <%= sourceNode %> implies domain <%= targetNode %>.<%= targetPort %> ' + //
+								'should have <%= expected %> segments, but instead it has <%= encountered %> segments', {
+									sourceNode : complement.sourceNode.getName(),
+									targetNode : complement.targetPort.getName(),
+									targetPort : complement.targetPort.getName(),
 									expected : sourceSegments.length,
 									encountered : targetSegments.length,
 								}),
@@ -1498,6 +1676,7 @@ App.dynamic = exports = (function(_,DNA) {
 			    domains: [{
 			    	name: 'A',
 			    	role: 'output',
+			    	type: 'init',
 			    	polarity: '+',
 			    	segments: [
 				      	{name: 'a', role: ''},
@@ -1511,6 +1690,7 @@ App.dynamic = exports = (function(_,DNA) {
 			    domains: [{
 			    	name: 'A',
 			    	role: 'output',
+			    	type: 'init',
 			    	polarity: '+',
 			    	segments: [
 				      	{name: 'a', role: ''},
@@ -1744,6 +1924,7 @@ App.dynamic = exports = (function(_,DNA) {
 			    domains: [{
 			    	name: 'A',
 			    	role: 'output',
+			    	type: 'init',
 			    	polarity: '+',
 			    	segments: [
 				      	{name: 'a', role: ''},
@@ -1787,8 +1968,11 @@ App.dynamic = exports = (function(_,DNA) {
 		var domainColors = {
 			'init' : '#553300',
 			'input' : 'orange',
+			'output' : '#33ccff',
+			'output.init' : '#553300', // init (brown)
 			'output.loop' : '#33ccff', // blue
 			'output.tail' : '#66ff33', // green
+			'bridge' : '#ff1177',
 			'bridge.loop' : '#ff1177', // pink
 			'bridge.stem' : '#9900cc',
 		}
@@ -1803,6 +1987,14 @@ App.dynamic = exports = (function(_,DNA) {
 					case 'motif': 
 						if(this.standardMotifs[name]) {
 							return this.standardMotifs[name];
+						} else if (this.standardMotifs['m'+name]) {
+							return this.standardMotifs['m'+name];
+						} else {
+							throw new DynamlError({
+								type: 'undefined motif',
+								name: 'name',
+								message: "Couldn't find imported motif '<%= name %>'"
+							});
 						}
 						// TODO: import from external files
 				}
@@ -1813,7 +2005,7 @@ App.dynamic = exports = (function(_,DNA) {
 				if(domain.role && domain.type) {
 					return domainColors[[domain.role, domain.type].join('.')];
 				}
-				return domainColors[domain.role];
+				return domainColors[domain.role] || '#000';
 			}
 		}
 
@@ -1827,6 +2019,7 @@ App.dynamic = exports = (function(_,DNA) {
 		Library : Library,
 		Compiler : Compiler,
 		DynamlError : DynamlError, 
+		Structure : Structure,
 	}
 
 })(_,DNA);

@@ -5,7 +5,12 @@ Ext.define('Workspace.objects.dna.InputPort', {
 	mixins: {
 		port: 'Workspace.objects.dna.NodePort'
 	},
+	constructor: function() {
+		this.callParent(arguments);
+		this.mixins.port.constructor.apply(this,arguments);
+	},
 	wtype: 'Workspace.objects.dna.InputPort',
+	role: 'input',
 	width: 12,
 	height: 12,
 	polarity: 1,

@@ -5,7 +5,7 @@ Ext.define('App.ui.NodalCanvas',{
 	extend: 'App.ui.Canvas',
 	editorType: 'Nodal',
 	iconCls: 'nodal',
-	requires: ['App.ui.nodal.HomeTab','App.ui.nodal.BuildTab','Workspace.objects.dna.Node','Workspace.objects.dna.Complementarity',
+	requires: ['App.ui.nodal.HomeTab','App.ui.nodal.BuildTab','Workspace.objects.dna.BuildManager','Workspace.objects.dna.Node','Workspace.objects.dna.Complementarity',
 	'Workspace.tools.nodal.NodeTool','Workspace.tools.nodal.PortTool','Workspace.tools.nodal.ComplementarityTool',
 	'App.ui.nodal.NodeInspector','App.ui.nodal.PortInspector','App.ui.MotifPalette'],
 	border : false,
@@ -42,7 +42,12 @@ Ext.define('App.ui.NodalCanvas',{
 			ref :'portInspector',
 		})];
 		this.callParent(arguments);
-	} 
+	},
+	setupWorkspace: function() {
+		if(!this.workspace.buildManager) {
+			this.workspace.buildManager = this.workspace.createObject({wtype:'Workspace.objects.dna.BuildManager'});
+		}
+	}
 },function() {
 	Workspace.DDManager.addHandler('ext/motif', function(data,e) {
 		var pos = this.getAdjustedXY(e), tool;

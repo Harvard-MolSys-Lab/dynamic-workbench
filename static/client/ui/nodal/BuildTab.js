@@ -30,7 +30,7 @@ Ext.define('App.ui.nodal.BuildTab', {
 						// },
 						// scope: this,
 						ref: 'serializeButton',
-						handler: this.serializeTerse,
+						handler: this.compile,
 						scope: this,
 						tooltip: {
 							title: 'Compile System',
@@ -193,9 +193,28 @@ Ext.define('App.ui.nodal.BuildTab', {
 			Ext.msg('Nodal Build','Build of system <strong>{0}</strong> completed.',this.getDoc().getBasename());
 		},this));
 	},
-	serializeTerse: function() {
-		var data = Workspace.tools.nodal.serializeTerse(this.ribbon.canvas.workspace),
-		node = this.ribbon.canvas.doc.getPath(); //App.path.repostfix([this.ribbon.canvas.doc.getPath(),'txt']);
+	serialize: function() {
+		this.serializeDynaml();
+		var data = Workspace.tools.nodal.serializeTerse(this.ribbon.canvas.workspace);
+		console.log(data);
+	},
+	compile: function() {
+		try {			
+			var lib = this.compileDynamic();
+			console.log(lib); console.log(App.dynamic.Compiler.printStrands(lib));
+		} catch(e) {
+			console.log(e);
+		}
+		this.compileTerse();
+	},
+	compileDynamic: function() {
+		var dynaml = this.serializeDynaml();
+		var lib = App.dynamic.Compiler.compileLibrary(dynaml);
+		return lib;
+	},
+	compileTerse: function() {
+		var data = this.serializeTerse(),
+			node = this.ribbon.canvas.doc.getPath(); //App.path.repostfix([this.ribbon.canvas.doc.getPath(),'txt']);
 		App.runTask('Nodal',{
 			node:node,
 			data:data,
@@ -205,6 +224,12 @@ Ext.define('App.ui.nodal.BuildTab', {
 			Ext.msg('Nodal Build','Build of system <strong>{0}</strong> completed.',this.getDoc().getBasename());
 			this.highlightOutput();
 		},this));
+	},
+	serializeDynaml: function() {
+		return Workspace.tools.nodal.serializeDynaml(this.ribbon.canvas.workspace);	
+	},
+	serializeTerse: function() {
+		return Workspace.tools.nodal.serializeTerse(this.ribbon.canvas.workspace)
 	},
 	highlightOutput: function() {
 		if(!this.outputTip) {
@@ -241,95 +266,9 @@ Ext.ns('Workspace.tools.nodal');
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 Workspace.tools.nodal.serializeTerse = function(workspace) {
-	var nodes = [], complementarities = [], indexMap = {}, i = 1, out = [];
-	workspace.objects.each( function(obj) {
-		if(obj.isWType('Workspace.objects.dna.Node')) {
-			indexMap[obj.getId()] = i;
-			i++;
-
-			nodes.push(obj);
-		} else if(obj.isWType('Workspace.objects.dna.Complementarity')) {
-			complementarities.push(obj);
-		}
-	});
-	out.push(nodes.length.toString());
-
-	var untitledCount = 0;
-	Ext.each(nodes, function(obj) {
-		var row = [obj.get('name').replace(/\s/g,'_') || ("Untitled_"+ (++untitledCount)), obj.get('motif')], complementaryPort, complementaryNode;
-		obj.children.each( function(port) {
-			if(port.isWType('Workspace.objects.dna.OutputPort') || port.isWType('Workspace.objects.dna.BridgePort')) {
-				if(port.get('complementarity')) {
-					complementaryPort = port.get('complementarity');
-					if(complementaryPort.hasParent()) {
-						complementaryNode = complementaryPort.get('parent');
-						if(complementaryNode) {
-							row.push(indexMap[complementaryNode.getId()]);
-							return true;
-						}
-					}
-				}
-				row.push('0');
-			}
-		});
-		out.push(row.join(' '));
-	});
-	return out.join('\n');
-};
+	return workspace.buildManager.serializeTerse();
+}
 
 Workspace.tools.nodal.serializeDynaml = function(workspace) {
-	var imports = [], nodes = [], complements = {}, nodeNameMap = {};
-	
-	workspace.objects.each(function (obj) {
-		if(obj.isWType('Workspace.objects.dna.Node')) {
-			nodeNameMap[obj.get('label')] = obj;
-			nodes.push(obj);
-			
-			if(obj.get('motif')) {
-				imports.push(obj.get('motif'));
-			}
-		} else if(obj.isWType('Workspace.objects.dna.Complementarity')) {
-			var leftNodeId = obj.get('leftObject');
-			if(leftNodeId) leftNodeId = leftNodeId.getId(); else return;
-			if(!complements[leftNodeId]) complements[leftNodeId] = [];
-			
-			complements[leftNodeId].push(obj);
-		}
-	});
-	
-	imports = _.chain(imports).uniq().map(function(name) {
-		return {type: 'motif', name: name};
-	}).value();
-	
-	nodes = _.map(nodes,function(node) {
-		var outputNode = {
-			name: node.get('name'),
-			motif: node.get('motif'),
-			complementarities: _.map(complements[node.getId()] || [],function (complement) {
-				return {
-					source : complement.get('leftObject').get('name'),
-					target : complement.get('rightObject').get('name'),
-					node : complement.get('rightObject').get('parent').get('name')
-				};
-			}),
-			domains: _.map(node.getChildren(),function(child, i) {
-				if(child.isWType('Workspace.objects.dna.InputPort')) {
-					return {
-						name : child.get('name') || 'p'+i,
-						identity : child.get('identity')
-					}
-				} else if(child.isWType('Workspace.objects.dna.OutputPort')) {
-					return {
-						name : child.get('name') || 'p'+i,
-						identity : child.get('identity')
-					}
-				} else if(child.isWType('Workspace.objects.dna.BridgePort')) {
-					return {
-						name : child.get('name') || 'p'+i,
-						identity : child.get('identity')
-					}
-				}
-			})
-		}
-	});
+	return workspace.buildManager.serializeDynaml();
 }

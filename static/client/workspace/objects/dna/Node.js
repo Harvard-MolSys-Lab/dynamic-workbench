@@ -1,106 +1,3 @@
-////////////////////////////////////////////////////////////////////////////////////////////////
-Ext.ns('Workspace.objects.dna');
-
-/**
- * @class Workspace.objects.dna.Motifs
- * @singleton
- */
-Workspace.objects.dna.Motifs = _.deepClone(App.dynamic.Compiler.standardMotifs);
-// {
-	// '0': [],
-	// '1': ['init',], // initiator (2 segments)
-	// '2': ['init',], // initiator (3 segments)
-	// '3': ['input','blue'],
-	// '4': ['input','green','blue'], //'blue','green'],
-	// '5': ['input','pink'],
-	// '6': ['input','green','blue','pink',], // TODO FIX ORDER
-	// '7': ['input','purple','blue'],
-	// '8': ['input','green','purple'],
-	// '9': ['input','purple',],
-	// '19': ['input','blue'],
-// };
-
-/**
- * @class Workspace.objects.dna.Ports
- * @singleton
- */
-
-Workspace.objects.dna.PortClasses = {
-	'input' : 'Workspace.objects.dna.InputPort',
-	'init' : 'Workspace.objects.dna.OutputPort',
-	'output' : 'Workspace.objects.dna.OutputPort',
-	'bridge' : 'Workspace.objects.dna.BridgePort',
-}
-
-Workspace.objects.dna.Ports = {
-	'input': {
-		wtype: 'Workspace.objects.dna.InputPort',
-		stroke: 'orange',
-	},
-	'init': {
-		wtype: 'Workspace.objects.dna.OutputPort',
-		stroke:'#553300'
-	},
-	'green': {
-		wtype: 'Workspace.objects.dna.OutputPort',
-		stroke:'#66ff33'
-	},
-	'blue': {
-		wtype: 'Workspace.objects.dna.OutputPort',
-		stroke:'#33ccff'
-	},
-	'pink': {
-		wtype: 'Workspace.objects.dna.BridgePort',
-		stroke:'#ff1177'
-	},
-	'purple': {
-		wtype: 'Workspace.objects.dna.BridgePort',
-		stroke:'#9900cc'
-	},
-};
-
-// TODO: just grab built-in motifs from App.dynamic.Compiler#standardMotifs
-Workspace.objects.dna.Motifs = function(motifs) {
-	var newMotifs = {};
-	_.each(motifs,function(spec,name) {
-		if(_.isArray(spec)) {
-			newMotifs[name] = _.map(spec,function(port) {
-				if(_.isString(port)) {
-					return Workspace.objects.dna.Ports[port];
-				}
-			});
-		} else {
-			newMotifs[name] = spec;
-		}
-	});
-	return newMotifs;
-}(Workspace.objects.dna.Motifs);
-
-Workspace.objects.dna.motifStore = (function() {
-	var data = [], i=0;
-	for(var m in Workspace.objects.dna.Motifs) {
-		data[i] = {
-			number: m, //parseInt(m),
-			spec: Workspace.objects.dna.Motifs[m]
-		};
-		i++;
-	}
-	Ext.define('Motif', {
-		extend: 'Ext.data.Model',
-		fields: [{
-			name: 'number',
-			type: 'string'
-		},{
-			name: 'spec',
-			type: 'auto'
-		}
-		]
-	});
-	return Ext.create('Ext.data.Store', {
-		data: data,
-		model: 'Motif',
-	});
-})();
 
 /**
  * Represents a single node in a {@link App.ui.NodalCanvas nodal system}
@@ -109,7 +6,7 @@ Ext.define('Workspace.objects.dna.Node', {
 	extend: 'Workspace.objects.IdeaObject',
 	wtype: 'Workspace.objects.dna.Node',
 	layout: 'Workspace.objects.dna.NodeLayout',
-	requires: ['Workspace.objects.Ellipse','Workspace.objects.dna.NodeLayout','Workspace.objects.dna.InputPort','Workspace.objects.dna.OutputPort','Workspace.objects.dna.BridgePort',],
+	requires: ['Workspace.objects.Ellipse','Workspace.objects.dna.NodeLayout','Workspace.objects.dna.InputPort','Workspace.objects.dna.OutputPort','Workspace.objects.dna.BridgePort','Workspace.objects.dna.Motifs','Workspace.ConnectionLabel'],
 	statics: {
 		nextName: function() {
 			var i = -1, s='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -129,22 +26,24 @@ Ext.define('Workspace.objects.dna.Node', {
 	shape: 'ellipse',
 	width: 30,
 	height: 30,
-	strokeWidth: 3,
+	strokeWidth: 2.5,
 	autoFill: false,
 	fill: '#ffffff',
 	stroke: '#000000',
 	theta: 180,
 	destroyChildren: true,
 	isResizable: false,
+	polarity: 0,
 
 	render: function() {
 		this.arguments = [this.get('x') + this.getRadiusX(), this.get('y') + this.getRadiusY(), this.getRadiusX(), this.getRadiusY()];
 		Workspace.objects.Ellipse.superclass.render.call(this);
 		this.layout.doFirstLayout();
 		this.toBack();
-		this.addShim(new Workspace.Label({
-			cls: 'workspace-label-plain',
-			offsets: [11,26],
+		this.addShim(new Workspace.ConnectionLabel({
+			cls: 'workspace-label-plain workspace-label-small',
+			offsets:[0,2],
+			//offsets: [11,26],
 			property: 'motif',
 			editable: false
 		}));
@@ -156,7 +55,8 @@ Ext.define('Workspace.objects.dna.Node', {
 			offsets: [0,-5]
 		};
 		Workspace.objects.dna.Node.superclass.constructor.apply(this,arguments);
-
+		
+		this.expose('polarity',true,true,true,false);
 		this.expose('motif',true,true,true,false);
 		this.expose('theta',true,true,true,false);
 

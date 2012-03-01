@@ -351,16 +351,12 @@ Ext.define('App.ui.DD', {
 						defaultExtension : 'ddjs'
 					})]
 				},
-				bbar : new Ext.ux.statusbar.StatusBar({
+				bbar : {
 					/**
 					 * @property {Ext.ux.statusbar.Statusbar}
 					 */
 					ref : 'statusBar',
 					items : [{
-						baseText : 'Score: ',
-						text : 'Score: ',
-						ref : 'scoreField',
-					}, {
 						baseText : 'Attempts: ',
 						text : 'Attempts: ',
 						ref : 'attemptCount',
@@ -368,8 +364,24 @@ Ext.define('App.ui.DD', {
 						baseText : 'Mutations: ',
 						text : 'Mutations: ',
 						ref : 'mutCount',
-					}]
-				}),
+					}, {
+						baseText : 'Flux: ',
+						text : 'Flux: ',
+						ref : 'mutFlux',
+					}, {
+						baseText : 'Bored: ',
+						text : 'Bored: ',
+						ref : 'boredField',
+					}, {
+						baseText : '∆: ',
+						text : '∆: ',
+						ref : 'deltaField',
+					},'->','->',{
+						baseText : 'Score: ',
+						text : 'Score: ',
+						ref : 'scoreField',
+					}] 
+				},
 				margin : 0, //'2 0 0 2',
 				bodyBorder : false,
 				border : true, //'0 1 1 0',
@@ -580,10 +592,18 @@ Ext.define('App.ui.DD', {
 	 * Updates the status bar to reflect the number of attempts and successful mutations
 	 */
 	updateStatusBar : function() {
-		var attempts = this.designer.getMutationAttempts(), muts = this.designer.getMutationCount(), score = this.designer.getWorstScore();
+		var attempts = this.designer.getMutationAttempts(), //
+			muts = this.designer.getMutationCount(), //
+			score = this.designer.getWorstScore(), //
+			flux = this.designer.getMutationFlux(),
+			delta = this.designer.getMutationDelta(),
+			bored = this.designer.getBoredMutations();
 		this.attemptCount.setText(this.attemptCount.baseText + attempts);
 		this.mutCount.setText(this.mutCount.baseText + muts);
 		this.scoreField.setText(this.scoreField.baseText + Ext.util.Format.number(score, this.scoreFormat));
+		this.mutFlux.setText(this.mutFlux.baseText + Ext.util.Format.number(flux, this.scoreFormat));
+		this.deltaField.setText(this.deltaField.baseText + Ext.util.Format.number(delta,this.scoreFormat));
+		this.boredField.setText(this.boredField.baseText + bored);
 	},
 	/**
 	 * Deletes the selected domain(s)

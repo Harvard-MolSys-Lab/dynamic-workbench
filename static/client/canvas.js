@@ -104,6 +104,7 @@ App.ui.buildInterface = function() {
 			border : false,
 			bodyBorder : false,
 			tbar : {
+				cls: 'toolbar-background',
 				items : [{
 					text : App.getFullTitleFormatted() + (App.isPreRelease ? '&nbsp;|&nbsp;<strong class="pre-release">Pre-release. Do not distribute</strong>' : ''),
 				}, '-', {

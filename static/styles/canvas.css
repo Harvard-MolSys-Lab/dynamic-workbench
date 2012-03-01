@@ -341,7 +341,20 @@ ul.dashboard-actions li a:hover {
 	border-radius: 3px;
 	overflow: auto;
 }
-.workspace-label-plain {
+
+.workspace-label-small {
+	font-size: 10px;
+}
+
+.workspace-label-xsmall {
+	font-size: 7px;
+}
+
+.workspace-label-plain-small {
+	font-size: 7px;
+}
+
+.workspace-label-plain, .workspace-label-plain-small {
 	background-color: transparent !important;
 	border: none !important;
 }
@@ -434,6 +447,15 @@ ul.dashboard-actions li a:hover {
 	height: 16px;
 }
 
+.toolbar-background {
+	background-color: #DFE9F4;
+	background-image: none;
+}
+.tab-panel-body-toolbar {
+	background-color: #D3E1F1;
+}
+
+
 .no-bottom-border, .noborder-bottom {
 	border-bottom: none !important;
 }
@@ -499,6 +521,10 @@ ul.dashboard-actions li a:hover {
 }
 .cm-sequence-comment, .cm-nupack-comment {
 	color: #a70;
+}
+.cm-sequence-link {
+	color: #a70; 
+	text-decoration: underline;
 }
 .cm-sequence-name {
 	color: #22b;

@@ -18,6 +18,7 @@ Ext.define('App.ui.Ribbon', {
 			defaults : {
 				border : false,
 				bodyBorder: false,
+				bodyCls: 'tab-panel-body-toolbar'
 			},
 			tabBar : {
 				border : false,

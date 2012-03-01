@@ -1,6 +1,7 @@
 Ext.define('App.ui.TabPanel', {
 	extend : 'Ext.tab.Panel',
 	bodyCls : 'x-docked-noborder-top',
+	plain: true,
 	items : [],
 	initComponent : function() {
 		this.mon(this, {

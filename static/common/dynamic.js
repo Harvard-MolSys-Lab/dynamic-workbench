@@ -38,11 +38,11 @@ App.dynamic = exports = (function(_,DNA) {
 				return r;
 			}
 
-			// serialize a simply object hash (allow for complex objects contained in the hash)
+			// serialize a simple object hash (allow for complex objects contained in the hash)
 			if (_.isObject(o)) {
 				var r = {};
 				for (var p in o) {
-					if(Object.prototype.hasOwnProperty.call(o,p)) {
+					if(_.has(o,p)) {
 						r[p] = _.serialize(o[p], true);
 					}
 				}
@@ -55,6 +55,7 @@ App.dynamic = exports = (function(_,DNA) {
 		/**
 		 * Produces a copy of source which does not include properties on the prototype chain.
 		 * @param {Object} source
+		 * @returns {Object} copy
 		 */
 		copy : function(source) {
 			return _.copyTo({}, source)
@@ -64,14 +65,24 @@ App.dynamic = exports = (function(_,DNA) {
 		 * to `destination`
 		 * @param {Object} destination
 		 * @param {Object} source
+		 * @returns {Object} destination
 		 */
 		copyTo : function(destination, source) {
 			_.each(source, function(value, key) {
-				if(source.hasOwnProperty(key)) {
+				if(_.has(source,key)) {
 					destination[key] = value;
 				}
 			});
 			return destination;
+		},
+		/**
+		 * Returns a {@link _#copy copy} of `source`, extended with values in `change`
+		 * @param {Object} source Object to copy
+		 * @param {Object} change Additional properties to over write in `source
+		 * @returns {Object} destination
+		 */
+		copyWith : function(source, change) {
+			return _.extend(_.copy(source),change);
 		},
 		deepClone : function(source) {
 			var dest;
@@ -114,21 +125,31 @@ App.dynamic = exports = (function(_,DNA) {
 			 * @cfg
 			 */
 			isInitiator : false,
-			domains : [],
 		});
 
 		this.isInitiator = this.isInitiator || this.type == 'initiator';
+
+		if(this.strands) {		
+			this.strands = _.map(this.strands,function(s) {return new Strand(s); });
+		}
+		if(this.domains) {
+			this.strands = [
+				new Strand({
+					domains: this.domains
+				})
+			];
+		}
 
 		/**
 		 * @property {App.dynamic.Domain[]}
 		 * @private
 		 * Use #getDomains
 		 */
-		this.domains = _.map(this.domains, function(domain) {
-			return new Domain(domain);
-		});
+		// this.domains = _.map(this.domains, function(domain) {
+			// return new Domain(domain);
+		// });
 
-		_.each(this.domains, function(domain) {
+		_.each(this.getDomains(), function(domain) {
 			if(!domain.polarity) {
 				throw new DynamlError({
 					type : 'unspecified motif domain polarity',
@@ -142,8 +163,9 @@ App.dynamic = exports = (function(_,DNA) {
 				});
 			}
 		}, this);
+		
 		/**
-		 *
+		 * @property
 		 */
 		this.polarity = DNA.parsePolarity(this.polarity);
 
@@ -174,7 +196,12 @@ App.dynamic = exports = (function(_,DNA) {
 		 * @returns {App.dynamic.Domain[]} domains
 		 */
 		getDomains : function() {
-			return this.domains;
+			return _.flatten(_.map(this.getStrands(),function(strand) {
+				return strand.getDomains();
+			}))
+		},
+		getStrands : function() {
+			return this.strands;
 		},
 		/**
 		 * Gets the {@link App.dynamic.Domain domain} with the provided name
@@ -250,12 +277,26 @@ App.dynamic = exports = (function(_,DNA) {
 			_.copyTo(this, Motif.get(config.motif));
 		}
 
-		// Save domains from the motif in a hash table by their names
-		// TODO: the motif really should do this.
-		var motifDomainsMap = _.reduce(this.domains || [], function(memo, domain) {
+		// // Save domains from the motif in a hash table by their names
+		// // TODO: the motif really should do this.
+		// var motifDomainsMap = _.reduce(this.getDomains() || [], function(memo, domain) {
+			// memo[domain.name] = domain;
+			// return memo;
+		// }, {});
+
+		// Capture any domain/strand properties specified on the nodes
+		var nodeDomainProperties = _.reduce(config.domains || [], function(memo, domain) {
 			memo[domain.name] = domain;
 			return memo;
 		}, {});
+		
+		var nodeStrandProperties = _.reduce(config.strands || [], function(memo,strand) {
+			memo[strand.name] = strand;
+			return memo;
+		},{});
+		
+		delete config.domains;
+		delete config.strands;
 
 		// Apply configuration options with defaults to this object
 		_.copyTo(this, config), _.defaults({
@@ -269,18 +310,46 @@ App.dynamic = exports = (function(_,DNA) {
 			 */
 			polarity : 0,
 		});
-
-		// Construct Domain objects from specifications
-		this.domains = _.map(this.domains, function(domain) {
-
-			// Find domains with matching identities in motif
-			if(domain.identity && motifDomainsMap[domain.identity]) {
-				domain = _.extend(_.copy(motifDomainsMap[domain.identity]), domain);
+		
+		
+		
+		this.strands = _.map(this.strands,function(strand) {
+			
+			// See if additional strand properties for this strand were specified by the node
+			if(nodeStrandProperties[strand.name]) {
+				strand = _.copyWith(strand,nodeStrandProperties[strand.name]);
 			}
-			domain.node = this;
-			return new Domain(domain);
 
-		}, this);
+			// See if additional domain properties for this strand were specified by the node			
+			strand.domains = _.map(strand.domains, function(domain) {
+		
+				// Find domains with matching identities in motif
+				//if(domain.identity && motifDomainsMap[domain.identity]) {
+				//	domain = _.extend(_.copy(motifDomainsMap[domain.identity]), domain);
+				//}
+				//domain.node = this;
+				
+				if(nodeDomainProperties[domain.name]) {
+					domain = _.copyWith(domain,nodeDomainProperties[domain.name]);
+				}
+				
+				return domain //new Domain(domain);
+			
+			}, this);
+			return new Strand(_.copyWith(strand,{ node: this }));
+		},this);
+		
+		// Construct Domain objects from specifications
+		// this.domains = 		_.map(this.domains, function(domain) {
+// 		
+			// // Find domains with matching identities in motif
+			// if(domain.identity && motifDomainsMap[domain.identity]) {
+				// domain = _.extend(_.copy(motifDomainsMap[domain.identity]), domain);
+			// }
+			// domain.node = this;
+			// return new Domain(domain);
+// 		
+		// }, this);
 		
 		// TODO: compiler should do this.
 		if(this.isInitiator) {
@@ -299,6 +368,12 @@ App.dynamic = exports = (function(_,DNA) {
 	_.extend(Node.prototype, Motif.prototype);
 	_.extend(Node.prototype, {
 		polarity: 0,
+		/**
+		 * @returns {Number} node polarity
+		 */
+		getPolarity : function() {
+			return this.polarity;
+		},
 		/**
 		 * Produces a constraint matrix; essentially a hash describing the relationship between each
 		 * of the {@link App.dynamic.Segment#id segment IDs} of the {@link App.dynamic.Segment segments}
@@ -437,18 +512,47 @@ App.dynamic = exports = (function(_,DNA) {
 	 */
 	function Strand(config) {
 		// Apply configuration options with defaults to this object
-		_.copyTo(this, config), _.defaults(this, {
-
+		_.copyTo(this, config); 
+		_.defaults(this, {
 		});
+		
+		/**
+		 * @property {App.dynamic.Domain[]}
+		 * @private
+		 * Use #getDomains
+		 */
+		this.domains = _.map(this.domains, function(domain) {
+			return new Domain(_.copyWith(domain,{ strand: this }));
+			// return new Domain(_.copyTo(_.copy(domain),{
+				// strand: this
+			// }));
+		},this);
 
+		this.structure = new Structure(this.structure);
+		
 		this.polarity = DNA.parsePolarity(this.polarity);
-
+		if(this.polarity == 0) {
+			this.polarity = 1;
+		}
 	}
 
 
 	Strand.prototype = {
+		getNode: function() {
+			return this.node;
+		},
 		getName : function() {
 			return this.name;
+		},
+		getAbsolutePolarity : function() {
+			if(this.node) {
+				return this.node.getPolarity() * this.getPolarity();
+			} else {
+				return this.getPolarity();
+			}
+		},
+		getPolarity : function() {
+			return this.polarity;
 		},
 		/**
 		 * @inheritdoc App.dynamic.Node#getSegments
@@ -512,7 +616,7 @@ App.dynamic = exports = (function(_,DNA) {
 			var out = _.copy(this);
 			if(out.node) { delete out.node }
 			return _.serialize(out);
-		}
+		},
 	}
 
 	/* ***************************************************************** */
@@ -557,11 +661,14 @@ App.dynamic = exports = (function(_,DNA) {
 		getSegments : function() {
 			return this.segments;
 		},
+		getStrand : function() {
+			return this.strand;
+		},
 		/**
 		 * @return {Node} node The node which contains this domain.
 		 */
 		getNode : function() {
-			return this.node;
+			return this.getStrand().getNode();
 		},
 		/**
 		 * Gets the name of the domain
@@ -574,7 +681,8 @@ App.dynamic = exports = (function(_,DNA) {
 			if(out.strand) { delete out.strand }
 			if(out.node) { delete out.node }
 			return _.serialize(out);
-		}
+		},
+		
 	};
 
 	/* ***************************************************************** */
@@ -1283,8 +1391,8 @@ App.dynamic = exports = (function(_,DNA) {
 						if(complement.sourceNode.polarity != 0) {
 
 							// Downstream node should have polarity opposite the sourcePort's absolute polarity
-							// (absolute polarity) = (relative port polarity) * (node polarity)
-							var targetPolarity = -1 * complement.sourcePort.polarity * complement.sourceNode.polarity
+							// (absolute polarity) = (relative port polarity) * (relative strand polarity) * (node polarity)
+							var targetPolarity = -1 * complement.sourcePort.polarity * complement.sourcePort.getStrand().getPolarity() * complement.sourceNode.polarity
 							
 							if(isNaN(targetPolarity)) {
 								if(isNaN(complement.sourcePort.polarity)) {									
@@ -1374,7 +1482,13 @@ App.dynamic = exports = (function(_,DNA) {
 					
 					// flip domains for output ports, but not for bridges
 					if(complementType=='output') {
-						if(complement.sourceNode.polarity == complement.targetNode.polarity) {
+						
+						if((complement.sourcePort.getStrand().getAbsolutePolarity() == complement.targetPort.getStrand().getAbsolutePolarity()) != (complement.sourceNode.polarity == complement.targetNode.polarity)) {
+							throw 'wut';
+						}
+						
+						if(complement.sourcePort.getStrand().getAbsolutePolarity() == complement.targetPort.getStrand().getAbsolutePolarity()) {
+						//if(complement.sourceNode.polarity == complement.targetNode.polarity) {
 							targetSegments.reverse();
 						}
 					}
@@ -1556,11 +1670,18 @@ App.dynamic = exports = (function(_,DNA) {
 				library.allSegments = [];
 
 				_.each(library.nodes, function(node) {
-					_.each(node.getSegments(), function(segment) {
-						segment.identity = Math.abs(labels[segment.getId()]);
-						segment.polarity = DNA.signum(labels[segment.getId()]);
-						library.allSegments.push(segment);
-					})
+					_.each(node.getStrands(), function(strand) {
+						_.each(strand.getSegments(), function(segment) {
+							segment.identity = Math.abs(labels[segment.getId()]);
+							segment.polarity = DNA.signum(labels[segment.getId()]);
+							library.allSegments.push(segment);
+						})
+					});
+					// _.each(node.getSegments(), function(segment) {
+						// segment.identity = Math.abs(labels[segment.getId()]);
+						// segment.polarity = DNA.signum(labels[segment.getId()]);
+						// library.allSegments.push(segment);
+					// })
 				});
 				
 				// Build an array of new Segment objects, each representing a unique segment identity.
@@ -1583,9 +1704,13 @@ App.dynamic = exports = (function(_,DNA) {
 				}).value();
 
 				// Build an array of strands with properly numbered segments.
-				library.strands = _.map(library.nodes, function(node) {
-					return new Strand(node);
-				});
+				library.strands = _.chain(library.nodes).map(function(node) {
+					return node.getStrands();
+					
+					// return _.map(node.getStrands(),function(strand) {
+						// return new Strand(strand);
+					// }); //new Strand(node);
+				}).flatten().value();
 			} else {
 				library = {};
 			}
@@ -1622,7 +1747,7 @@ App.dynamic = exports = (function(_,DNA) {
 			out += _.map(library.strands, function(strand) {
 				var name = strand.name;
 				var domains = _.clone(strand.getDomains());
-				if(strand.polarity == -1) {
+				if(strand.getAbsolutePolarity() == -1) {
 					domains = domains.reverse();
 				}
 				
@@ -1633,14 +1758,14 @@ App.dynamic = exports = (function(_,DNA) {
 					name, 
 					
 					// strand polarity specifier
-					(options.annotations ? (strand.polarity == -1 ? '-' : '+') : ''),
+					(options.annotations ? (strand.getAbsolutePolarity() == -1 ? '-' : '+') : ''),
 					
 					':',
 					
 					].concat(_.map(domains, function(domain) {
 					
 						var segments = _.clone(domain.getSegments());
-						if(strand.polarity == -1) {
+						if(strand.getAbsolutePolarity() == -1) {
 							segments = segments.reverse();
 						}
 						

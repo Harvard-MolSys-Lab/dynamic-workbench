@@ -6,10 +6,7 @@ Ext.define('Workspace.tools.nodal.NodeTool', {
 	extend:'Workspace.tools.BaseTool',
 	defaultMotif: '0',
 	statics: {
-		dynaml: {
-			domainProperties: ['name', 'identity','role',],
-			nodeProperties: ['name','motif',],
-		},
+		
 	},
 	requires: ['Workspace.objects.dna.Node','Workspace.tools.nodal.PortTool'],
 	click: function(e,item) {

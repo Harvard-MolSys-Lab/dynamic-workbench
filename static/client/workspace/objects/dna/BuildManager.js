@@ -4,9 +4,20 @@
  */
 Ext.define("Workspace.objects.dna.BuildManager", {
 	extend : 'Workspace.objects.Object',
+	statics: {
+		dynaml: {
+			domainProperties: ['name', 'identity','role',],
+			nodeProperties: ['name','motif',],
+		},
+	},
 	constructor : function() {
 		this.callParent(arguments);
 		this.workspace.buildManager = this;
+	},
+	nodeIndex: 0,
+	getNextNodeName: function() {
+		this.nodeIndex++;
+		return "n"+this.nodeIndex;
 	},
 	serializeDynaml : function() {
 		var workspace = this.workspace;
@@ -59,7 +70,7 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 				}),
 				domains : _.map(node.getChildren(), function(child, i) {
 					if(child.isWType('Workspace.objects.dna.InputPort') || child.isWType('Workspace.objects.dna.OutputPort') || child.isWType('Workspace.objects.dna.BridgePort')) {
-						return _.extend(_.reduce(Workspace.tools.nodal.NodeTool.dynaml.domainProperties, function(memo, property) {
+						return _.extend(_.reduce(Workspace.objects.dna.BuildManager.dynaml.domainProperties, function(memo, property) {
 							if(child.has(property)) {
 								memo[property] = child.get(property);
 							}
@@ -160,8 +171,8 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 				var port = _.clone(dom); 
 				var cfg = {};
 				if(_.isObject(port)) {
-					cfg.name = 'p'+(i+1);
-					cfg.identity = port.name;
+					cfg.name = port.name;//'p'+(i+1);
+					//cfg.identity = port.name;
 					cfg.wtype = Workspace.objects.dna.PortClasses[port.role];
 					cfg.stroke = App.dynamic.Compiler.getColor(port);
 					cfg.segments = port.segments;

@@ -61,7 +61,7 @@ Ext.define('Workspace.objects.dna.Node', {
 		this.expose('theta',true,true,true,false);
 
 		if(!this.name) {
-			this.name = Workspace.objects.dna.Node.nextName();
+			this.name = this.workspace.buildManager.getNextNodeName(); //Workspace.objects.dna.Node.nextName();
 		}
 		this.on('change:theta', function() {
 			this.layout.doLayout();

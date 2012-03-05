@@ -12,9 +12,10 @@ Ext.define('App.ui.ToolsTab', {
 	 */
 	tool: 'pointer',
 	border: false,
+	layout: 'hbox',
 	generateConfig: function() {
 		return {
-			tbar: [{
+			items: [{
 
 				// 'Tools' group
 				xtype: 'buttongroup',

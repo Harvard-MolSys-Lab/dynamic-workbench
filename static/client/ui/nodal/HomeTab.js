@@ -4,8 +4,13 @@ Ext.define('App.ui.nodal.HomeTab', {
 	requires: ['Workspace.DDManager'],
 	generateConfig: function() {
 		return {
-			dockedItems: [{
-				'xtype': 'toolbar',
+			// dockedItems: [{
+				// 'xtype': 'toolbar',
+				defaults: {
+					xtype: 'buttongroup',
+					headerPosition: 'bottom',
+					margins: '3 0 5 3',
+				},
 				// setHeight: function(h) {
 					// return this.callParent([h+1]);
 				// },
@@ -156,7 +161,7 @@ Ext.define('App.ui.nodal.HomeTab', {
 					 text: 'The object type.'
 					 }
 					 }*/]
-				},'->',{
+				},{xtype:'tbfill'},{
 
 					// 'Workspace' group
 					xtype: 'buttongroup',
@@ -183,7 +188,7 @@ Ext.define('App.ui.nodal.HomeTab', {
 						scope: this,
 					}]
 				},]
-			}]
+			// }]
 		}
 	},
 },function() {

@@ -6,8 +6,13 @@ Ext.define('App.ui.nodal.BuildTab', {
 	},
 	generateConfig: function() {
 		return {
-			dockedItems: [{
-				xtype: 'toolbar',
+			// dockedItems: [{
+				// xtype: 'toolbar',
+				defaults: {
+					xtype: 'buttongroup',
+					headerPosition: 'bottom',
+					margins: '3 0 3 3',
+				},
 				items:[{
 					// 'Implementation' group
 					xtype: 'buttongroup',
@@ -133,7 +138,7 @@ Ext.define('App.ui.nodal.BuildTab', {
 						iconAlign: 'left'
 					}]
 				}]
-			}]
+//			}]
 		}
 	},
 	getDoc: function() {
@@ -201,7 +206,7 @@ Ext.define('App.ui.nodal.BuildTab', {
 	compile: function() {
 		try {			
 			var lib = this.compileDynamic();
-			console.log(lib); console.log(App.dynamic.Compiler.printStrands(lib));
+			console.log(lib); console.log(App.dynamic.Compiler.printStrands(lib)); console.log(lib.toNupackOutput());
 		} catch(e) {
 			console.log(e);
 		}

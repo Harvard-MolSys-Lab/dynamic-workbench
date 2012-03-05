@@ -7,10 +7,19 @@ Ext.define('App.ui.Ribbon', {
 	extend : 'Ext.tab.Panel',
 	alias: 'widget.ribbon',
 	requires : ['App.ui.ToolsTab', 'App.ui.InsertTab', 'App.ui.FillStrokeTab', 'App.ui.GeometryTab', 'App.ui.MetaTab'],
-	plain : true,
-	border : false,
-	bodyBorder : true,
-	tabPosition : 'bottom',
+	
+    cls: 'ui-ribbonbar',
+    activeTab: 0,
+    plain: true,
+//    unstyled: true,
+    margin: '5 0 0 0',
+    autoHeight: true,
+	// plain : true,
+	 border : false,
+	 bodyBorder : '0 1 1 1',
+	 bodyCls: 'noborder-top',
+	 autoHeight: true,
+	//tabPosition : 'bottom',
 	initComponent : function() {
 		
 		Ext.applyIf(this, {
@@ -171,4 +180,31 @@ Ext.define('App.ui.Ribbon', {
 	saveWorkspace : function() {
 		this.canvas.saveWorkspace();
 	}
-})
+});
+
+
+
+
+// /**
+ // * @class App.lib.ux.Ribbon
+ // * @extend Ext.tab.Panel
+ // */
+// Ext.define('App.lib.ux.Ribbon', {
+    // extend: 'Ext.tab.Panel',
+    // alias: 'widget.appuxribbon',
+    // cls: 'ui-ribbonbar',
+    // activeTab: 0,
+    // plain: true,
+    // unstyled: true,
+    // margin: '5 0 0 0',
+    // autoHeight: true,
+// 
+    // addTab: function (config, focus) {
+        // var tab = this.add(config);
+        // if (focus === true) this.setActiveTab(tab);
+    // },
+// 
+    // initComponent: function () {
+        // this.callParent(arguments);
+    // }
+// });

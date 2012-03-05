@@ -128,17 +128,46 @@ App.dynamic = exports = (function(_,DNA) {
 		});
 
 		this.isInitiator = this.isInitiator || this.type == 'initiator';
-
-		if(this.strands) {		
-			this.strands = _.map(this.strands,function(s) {return new Strand(s); });
+				
+		// Thread structures to appropriate strands
+		var strandStructures = {};
+		if(this.structure) {
+			var structures = this.structure;
+			if(!_.isArray(structures)) {
+				structures = [structures];
+			}
+			
+			structures = _.map(structures,function(struct) {
+				/* 
+				 * returns an object mapping strand indicies to the sub-structures (separated by +) of struct
+				 * allows for the case where the structure(s) refer to a different permutation of strands than
+				 * order of strands in the motif
+				 */
+				return Structure.parseMultiple(struct);
+			});
+			
+			// TODO: deal with multiple structures
+			strandStructures = _.first(structures);
 		}
-		if(this.domains) {
+		if(this.strands) {		
+			this.strands = _.map(this.strands,function(strand) {
+				if(strand.name && strandStructures[strand.name]) {
+					strand.structure = strandStructures[strand.name];
+				} else if(strandStructure[i]) {
+					strand.structure = strandStructure[i];
+				}
+				return new Strand(strand); 
+			});
+		} else if(this.domains) {
+			var structure = strandStructures[0]; 
 			this.strands = [
 				new Strand({
-					domains: this.domains
+					domains: this.domains,
+					structure: structure,
 				})
 			];
 		}
+		
 
 		/**
 		 * @property {App.dynamic.Domain[]}
@@ -313,7 +342,7 @@ App.dynamic = exports = (function(_,DNA) {
 		
 		
 		
-		this.strands = _.map(this.strands,function(strand) {
+		this.strands = _.map(this.strands,function(strand,i) {
 			
 			// See if additional strand properties for this strand were specified by the node
 			if(nodeStrandProperties[strand.name]) {
@@ -336,6 +365,9 @@ App.dynamic = exports = (function(_,DNA) {
 				return domain //new Domain(domain);
 			
 			}, this);
+			
+			strand.name || (strand.name = (this.strands.length > 1) ? 'strand'+i : '');
+			
 			return new Strand(_.copyWith(strand,{ node: this }));
 		},this);
 		
@@ -544,6 +576,11 @@ App.dynamic = exports = (function(_,DNA) {
 		getName : function() {
 			return this.name;
 		},
+		getQualifiedName : function() {
+			var n =[this.getNode().name];
+			if(this.getName()) {n.push(this.getName())} 
+			return n.join('_');
+		},
 		getAbsolutePolarity : function() {
 			if(this.node) {
 				return this.node.getPolarity() * this.getPolarity();
@@ -576,41 +613,48 @@ App.dynamic = exports = (function(_,DNA) {
 				return dom.name == name;
 			});
 		},
+		getSegmentLengths: function() {
+			return _.map(this.getSegments(),function(segment) {
+				return segment.getLength();
+			})
+		},
 		getStructure : function() {
-				var duplex = false, lastDuplex = false, regionLength = 0, out = [];
-				
-				// This code isn't right
-				_.each(this.getSegments(),function(segment) {
-					
-					
-					if(!!segment.duplex != duplex) {
-						if(regionLength > 0) {						
-							out.push((duplex ? 'D' : 'U') +regionLength);
-							
-							// silence the next duplex 
-							if(duplex) {
-								lastDuplex = !lastDuplex;								
-							}
-						}
-						duplex = !duplex;
-						regionLength = 0;
-					}
-
-					if(!!segment.duplex == duplex) {
-						if(duplex && lastDuplex) {
-							return;
-						}
-						regionLength += segment.getLength();
-					}
-					
-				});
-				
-				// Finish the remaining segment
-				if(regionLength > 0) {
-					out.push((duplex ? 'D' : 'U') +regionLength);
-				}
-				
-				return out.join(' ')				
+			return this.structure.expand(this.getSegmentLengths());
+			
+				// var duplex = false, lastDuplex = false, regionLength = 0, out = [];
+// 				
+				// // This code isn't right
+				// _.each(this.getSegments(),function(segment) {
+// 					
+// 					
+					// if(!!segment.duplex != duplex) {
+						// if(regionLength > 0) {						
+							// out.push((duplex ? 'D' : 'U') +regionLength);
+// 							
+							// // silence the next duplex 
+							// if(duplex) {
+								// lastDuplex = !lastDuplex;								
+							// }
+						// }
+						// duplex = !duplex;
+						// regionLength = 0;
+					// }
+// 
+					// if(!!segment.duplex == duplex) {
+						// if(duplex && lastDuplex) {
+							// return;
+						// }
+						// regionLength += segment.getLength();
+					// }
+// 					
+				// });
+// 				
+				// // Finish the remaining segment
+				// if(regionLength > 0) {
+					// out.push((duplex ? 'D' : 'U') +regionLength);
+				// }
+// 				
+				// return out.join(' ')				
 		},
 		serialize: function() {
 			var out = _.copy(this);
@@ -892,7 +936,30 @@ App.dynamic = exports = (function(_,DNA) {
 	}
 	
 	_.extend(Structure.prototype,{
+		toDotParen: function() {
+			if(this.type=='dot-paren') {
+				return this.spec;				
+			} else {
+				throw new DynamlError({
+					type: 'unimplemented',
+				});
+			}
+		},
+		reverse: function() {
+			if(this.type=='dot-paren') {
+				return new Structure(_.chain(this.spec.split('')).reverse().map(function(ch) { 
+					if(ch=='(') return ')' 
+					else if(ch==')') return '()'
+					else return ch
+				}).value());
+			} else {
+				throw new DynamlError({
+					type: 'unimplemented',
+				});
+			}
+		},
 		expand: function(lengths) {
+			var spec = this.spec, out = [], len, ch;
 			if(lengths.length != spec.length) {
 				throw new DynamlError({
 					type: "structure size mismatch",
@@ -900,17 +967,35 @@ App.dynamic = exports = (function(_,DNA) {
 					lengths: lengths,
 				});
 			}
-			var spec = this.spec, out = [], len, ch;
-			while(spec.length>0){
-				len = lengths.shift();
-				ch = Array.prototype.shift.apply(spec);
+			for(var i=0;i<lengths.length;i++) {
+				len = lengths[i];
+				ch = spec[i];
 				out.push(Array(len+1).join(ch));
 			}
-			return out.join('');
+			return new Structure(out.join(''));
 		}
 	});
 	
 	_.extend(Structure,{
+		parseMultiple: function(o) {
+			if(_.isObject(o)) {
+				var spec = o.spec || '',
+					specs = spec.split('+');
+				
+				if(o.order) {
+					specs = _.reduce(o.order,function(memo,destinationIndex,specIndex) {
+						memo[index] = new Structure(specs[specIndex]);
+						return memo;
+					},{});
+					return specs;
+				}
+			} else {
+				specs = o.split('+');
+			}
+			return _.map(specs,function(spec) {
+				return new Structure(spec);
+			})
+		},
 		parseDUPlus: function(spec) {
 			
 		},
@@ -1130,10 +1215,31 @@ App.dynamic = exports = (function(_,DNA) {
 			 * @cfg {Object[]} import
 			 */
 			'import' : [],
+			objects: {
+				node: {},
+				motif: {},
+				segment: {},
+			}
 		});
 	}
 	
 	Library.prototype = {
+		getNode: function(name) {
+			return this.objects['node'][name];
+		},
+		getMotif: function() {
+			return this.objects['motif'][name];
+		},
+		getSegment: function() {
+			return this.objects['segment'][name];
+		},
+		register: function(type,name,object) {
+			this.objects[type][name] = object;
+		},
+		get: function(type,name) {
+			return this.objects[type][name];
+		},
+		
 		/**
 		 * Compiles this library to generate #strands, #segments, etc.
 		 */
@@ -1230,8 +1336,12 @@ App.dynamic = exports = (function(_,DNA) {
 			// print domains (segments)
 			// e.g.: domain x = N7
 			
+			function nupackifyIdentity(id) {
+				return 'd'+id;
+			}
+			
 			out.push(_.map(library.segments,function(segment) {
-				return ['domain',segment.identity,'=',segment.getSequence()].join(' ');
+				return ['domain',nupackifyIdentity(segment.identity),'=',segment.getSequence()].join(' ');
 			}).join('\n'));
 			
 			// print strands ("optional?")
@@ -1239,8 +1349,8 @@ App.dynamic = exports = (function(_,DNA) {
 			// TODO: new NUPACK requires these not to be numbers... poo; need to letter domains.
 			
 			out.push(_.map(library.strands,function(strand) {
-				return ['strand',strand.getName(),'='].concat(_.map(strand.getSegments(),function(segment) {
-					return segment.getIdentifier();
+				return ['strand',strand.getQualifiedName(),'='].concat(_.map(strand.getSegments(),function(segment) {
+					return nupackifyIdentity(segment.getIdentifier());
 				})).join(' ');
 			}).join('\n'));
 			
@@ -1249,14 +1359,18 @@ App.dynamic = exports = (function(_,DNA) {
 			// e.g.: structure haripin = Ux Hx Ux Ux
 			
 			out.push(_.map(library.strands,function(strand) {
-				return ['structure',strand.getName()+'_structure','=',strand.getStructure()].join(' ');
+				var struct = strand.getStructure();
+				if(strand.getAbsolutePolarity == -1) {
+					struct = struct.reverse();
+				}
+				return ['structure',strand.getQualifiedName()+'_structure','=',struct.toDotParen()].join(' ');
 			}).join('\n'));
 			
 			// thread sequences onto structures 
 			// e.g.: gate_full.seq = E G F
 			
 			out.push(_.map(library.strands,function(strand) {
-				return [strand.getName()+'_structure.seq','=',strand.getName()].join(' ');
+				return [strand.getQualifiedName()+'_structure.seq','=',strand.getQualifiedName()].join(' ');
 			}).join('\n'));
 			
 			return out.join('\n\n');
@@ -1369,6 +1483,7 @@ App.dynamic = exports = (function(_,DNA) {
 				var complementarities = _.chain(library.nodes).map(function(node) {
 					return _.map(node.complementarities || [], function(complement) {
 						complement.sourceNode = node;
+						complement.library = library;
 						return new Complement(complement);
 					});
 				}).compact().flatten().value();
@@ -1797,6 +1912,7 @@ App.dynamic = exports = (function(_,DNA) {
 		var standardMotifs = [{
 				name: 'm1',
 				type: 'initiator',
+				structure: '..',
 			    isInitiator: true,
 			    domains: [{
 			    	name: 'A',
@@ -1812,6 +1928,7 @@ App.dynamic = exports = (function(_,DNA) {
 				name: 'm2',
 				type: 'initiator',
 			    isInitiator: true,
+			    structure: '...',
 			    domains: [{
 			    	name: 'A',
 			    	role: 'output',
@@ -1826,6 +1943,7 @@ App.dynamic = exports = (function(_,DNA) {
 			},{
 				name: 'm3',
 				type: 'hairpin',
+				structure: '.(.)',
 			    domains: [{
 			    	name: 'A',
 			    	role: 'input',
@@ -1847,6 +1965,7 @@ App.dynamic = exports = (function(_,DNA) {
 			},{
 				name: 'm4',
 				type: 'hairpin',
+				structure: '.((..))..',
 			    domains: [{
 			    	name: 'A',
 			    	role: 'input',
@@ -1880,6 +1999,7 @@ App.dynamic = exports = (function(_,DNA) {
 			},{
 				name: 'm5',
 				type: 'hairpin',
+				structure: '.((.)).',
 			    domains: [{
 			    	name: 'A',
 			    	role: 'input',
@@ -1910,6 +2030,7 @@ App.dynamic = exports = (function(_,DNA) {
 			},{
 				name: 'm6',
 				type: 'hairpin',
+				structure: '.((....))..',
 			    domains: [{
 			    	name: 'A',
 			    	role: 'input',
@@ -1952,6 +2073,7 @@ App.dynamic = exports = (function(_,DNA) {
 			},{
 				name: 'm7',
 				type: 'hairpin',
+				structure: '.((..))..',
 			    domains: [{
 			    	name: 'A',
 			    	role: 'input',
@@ -1985,6 +2107,7 @@ App.dynamic = exports = (function(_,DNA) {
 			},{
 				name: 'm8',
 				type: 'hairpin',
+				structure: '.((.))',
 			    domains: [{
 			    	name: 'A',
 			    	role: 'input',
@@ -2015,6 +2138,7 @@ App.dynamic = exports = (function(_,DNA) {
 			},{
 				name: 'm9',
 				type: 'hairpin',
+				structure: '.((.))',
 			    domains: [{
 			    	name: 'A',
 			    	role: 'input',
@@ -2046,6 +2170,7 @@ App.dynamic = exports = (function(_,DNA) {
 				name: 'm1c',
 				type: 'initiator',
 			    isInitiator: true,
+			    structure: '....',
 			    domains: [{
 			    	name: 'A',
 			    	role: 'output',
@@ -2061,6 +2186,7 @@ App.dynamic = exports = (function(_,DNA) {
 			  }, {
 				name: 'm19c',
 				type: 'hairpin',
+				structure: '.(((..)))',
 				domains: [{
 			    	name: 'A',
 			    	role: 'input',

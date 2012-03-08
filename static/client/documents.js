@@ -29,18 +29,22 @@ Ext.define('App.Document', {
 	iconCls: 'document-error',
 	/**
 	 * Returns the file path to this document
+	 * 
+	 * Why the funny name? In 4.0.7 Ext introduced a method which does 
+	 * something similar but not quite the same, so we had to change to
+	 * accomodate.
 	 */
-	getPath : function() {
+	getDocumentPath : function() {
 		return this.get('node');
 	},
 	/**
 	 * Returns the {@link App.Path#basename} to this document
 	 */
 	getBasename : function() {
-		return App.Path.basename(this.getPath());
+		return App.Path.basename(this.getDocumentPath());
 	},
 	getExt : function() {
-		return App.Path.extname(this.getPath());
+		return App.Path.extname(this.getDocumentPath());
 	},
 	/**
 	 * If this record represents a folder, returns this; otherwise returns this record's parent node.
@@ -80,7 +84,7 @@ Ext.define('App.Document', {
 	 */
 	download : function() {
 		var url = Ext.urlAppend(App.getEndpoint('load'), Ext.Object.toQueryString({
-			node : this.getPath(),
+			node : this.getDocumentPath(),
 			download : true,
 		}));
 		window.open(url, '_blank');
@@ -101,7 +105,7 @@ Ext.define('App.Document', {
 				url : App.getEndpoint('load'), //'/canvas/index.php/workspaces/save',
 				method : 'GET',
 				params : {
-					node : me.getPath(),
+					node : me.getDocumentPath() //me.get('node'),//me.getPath('text'),
 				},
 				success : function(response) {
 					Ext.bind(options.success,options.scope)(response.responseText, me, response);
@@ -165,8 +169,8 @@ Ext.define('App.DocumentTreeStore', {
 				type : 'ajax',
 				// TODO: Make these configurable
 				api : {
-					read : '/tree',
 					create : '/new',
+					read : '/tree',
 					update : '/rename',
 					destroy : '/delete'
 				},

@@ -189,7 +189,7 @@ Ext.define('App.ui.nodal.BuildTab', {
 		}
 	},
 	clean: function() {
-		var node = this.ribbon.canvas.doc.getPath(); 
+		var node = this.ribbon.canvas.doc.getDocumentPath(); 
 		App.runTask('Nodal',{
 			node:node,
 			action:'clean',
@@ -219,7 +219,7 @@ Ext.define('App.ui.nodal.BuildTab', {
 	},
 	compileTerse: function() {
 		var data = this.serializeTerse(),
-			node = this.ribbon.canvas.doc.getPath(); //App.path.repostfix([this.ribbon.canvas.doc.getPath(),'txt']);
+			node = this.ribbon.canvas.doc.getDocumentPath(); //App.path.repostfix([this.ribbon.canvas.doc.getDocumentPath(),'txt']);
 		App.runTask('Nodal',{
 			node:node,
 			data:data,

@@ -435,7 +435,7 @@ Ext.define('App.TaskRunner.Task', {
 		this.log(out);
 		if(this.arguments && this.arguments.node) {
 			var path = App.Path.pop(this.arguments.node);
-			App.ui.filesTree.refresh(App.DocumentStore.tree.getNodeById(path))
+			App.ui.filesTree.refreshDocument(App.DocumentStore.tree.getNodeById(path))
 		}
 	},
 });

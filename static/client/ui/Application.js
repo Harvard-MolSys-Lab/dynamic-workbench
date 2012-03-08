@@ -107,7 +107,13 @@ Ext.define('App.ui.Application', {
 	 * Returns the path to the currently open doc
 	 */
 	getPath : function() {
-		return this.doc ? this.doc.getPath() : false;
+		return this.doc ? this.doc.getDocumentPath() : false;
+	},
+	/**
+	 * Alias for #getPath, by analogy to App.Document#getDocumentPath
+	 */
+	getDocumentPath : function() {
+		return this.getPath();
 	},
 	/**
 	 * Loads the file body for this.{@link #document}. Calls {@link #doLoad} or {@link #doLoadFail} as an internal callback, which

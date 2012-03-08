@@ -668,7 +668,6 @@ Ext.define('Workspace', {
 
 	},
 	/**
-	 * getPath
 	 * Returns the file path on the server where this workspace is stored
 	 * @return {String} path
 	 */

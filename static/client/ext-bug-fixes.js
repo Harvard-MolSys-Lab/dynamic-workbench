@@ -49,8 +49,8 @@ Ext.data.TreeStore.override({
         }
 
         if (me.clearOnLoad) {
-        	// fix from 4.0.2; without this, all files are deleted by ext on refresh of tree
-            node.removeAll(false,true);//true);
+        	// BUGFIX: from 4.0.2; without this, all files are deleted by ext on refresh of tree
+            node.removeAll(false);//true,true);//true);
         }
 
         Ext.applyIf(options, {

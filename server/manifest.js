@@ -4,7 +4,7 @@ var scriptPath = 'client';
 var commonPath = 'common';
 var libPath = 'lib';
 // scriptPath + '/lib';
-var extPath = libPath + '/ext-4.0.1';
+var extPath = libPath + '/ext-4.0.7';
 var stylePath = 'static/styles';
 var extStyles = extPath + '/resources/css/ext-all';
 var codeMirrorVersion = '2.2';

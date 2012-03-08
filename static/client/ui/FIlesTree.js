@@ -20,6 +20,18 @@ Ext.define('App.ui.FilesTree', {
 	allowDrop : true,
 	initComponent: function() {
 		Ext.apply(this, {
+			// tbar: [{
+				// xtype: 'textfield',
+				// emptyText: 'Search...',
+				// // fieldLabel: 'Filter',
+                // // labelAlign: 'right',
+                // // labelWidth: 35,
+                // listeners: {
+                    // scope : this,
+                    // buffer: 50,
+                    // change: this.filter
+                // }
+			// }],
 			/*
 			columns: [{
 				xtype:'treecolumn',
@@ -80,7 +92,7 @@ Ext.define('App.ui.FilesTree', {
 					text: 'Refresh',
 					iconCls: 'refresh',
 					handler: function() {
-						this.refresh(this.currentRecord);
+						this.refreshDocument(this.currentRecord);
 					},
 					scope:this,
 				},{
@@ -177,6 +189,24 @@ Ext.define('App.ui.FilesTree', {
 		this.ddManager.render();
 	},
 	/**
+     * @private
+     * Called whenever the user types in the Filter textfield. Filters the DataView's store
+     */
+    filter: function(field, newValue) {
+        var store = this.getStore();
+        
+        store.suspendEvents();
+        store.clearFilter();
+        this.getSelectionModel().clearSelections();
+        store.resumeEvents();
+        store.filter({
+            property: 'name',
+            anyMatch: true,
+            value   : newValue
+        });
+    },
+	
+	/**
 	 * Shows the context menu attached to a particular record.
 	 */
 	showContextMenu: function(tree,rec,dom,i,e) {
@@ -201,20 +231,39 @@ Ext.define('App.ui.FilesTree', {
 	/**
 	 * Reloads the file heirarchy underneath the provided {@link App.Document}
 	 * @param {App.Document} rec The record under which to refresh
-	 */
-	refresh: function(rec) {
+	 * @param {Function} callback Function to execute when operation completed.  Will be called with the following parameters:
+     * - records : Array of Ext.data.Model objects.
+     * - operation : The Ext.data.Operation itself.
+     * - success : True when operation completed successfully.
+     */
+	refreshDocument: function(rec, callback, scope) {
 		if(rec) {
 			//hackity hack
-			rec.collapse();
-			rec.set('loaded',false);
-			// this.getView().on('itemupdate', function() {
-			// rec.expand();
-			// },this, {
-			// single: true
-			// })
-			this.getView().refreshNode(rec.index);
-			_.delay(_.bind(App.ui.Launcher.renewAll,App.ui.Launcher),1000);
+			// rec.collapse();
+			// rec.set('loaded',false);
+			// // this.getView().on('itemupdate', function() {
+			// // rec.expand();
+			// // },this, {
+			// // single: true
+			// // })
+			// this.getView().refreshNode(rec.index);
+			// _.delay(_.bind(App.ui.Launcher.renewAll,App.ui.Launcher),1000);
+			scope = scope || window;
+			var cb = callback ? function() {
+				callback.apply(scope,arguments);
+				this.renewAll();
+			} : this.renewAll;
+			
+			this.store.load({
+				node: rec,
+				callback: cb,
+				scope: this,
+			});
+
 		}
+	},
+	renewAll: function() {
+		// App.ui.Launcher.renewAll();
 	},
 	/**
 	 * Downloads the requested file

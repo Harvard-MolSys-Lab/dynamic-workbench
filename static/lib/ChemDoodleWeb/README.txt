@@ -47,13 +47,16 @@ Downloaded zip file contents:
     - ChemDoodleWeb-sketcher.js     ==> SketcherCanvas plugin Javascript (packed)
 
 - samples                   ==> folder containing full sample HTML pages of example components, open them in your browser to view them, view the source to see how they work. View the tutorial on the website for in depth instructions.
-  - rotator_2D_ballnstick.html               ==> A RotatorCanvas with a spinning molecule in a 2D-based "Ball and Stick" representation.
-  - sketcher_2D.html                         ==> A SketcherCanvas component.
-  - spectrum_mass_styled.html                ==> A PerspectiveCanvas component that has been styled and presents a mass spectrum.
-  - transformer_morphine_2D_wireframe.html   ==> A TransformCanvas component. Interact with a 3D model of morphine in a 2D-based "Wireframe" representation.
-  - viewer_caffeine_2D_acs1996.html          ==> A ViewerCanvas component with caffeine drawn to ACS Document 1996 style.
-  - webgl_transformer_1CRN_3D_Ribbon.html    ==> A TransformCanvas3D component showing an interactive cartoon ribbon model of the PDB ID 1CRN. WebGL is required.
-  - webgl_transformer_DDT_3D_ballnstick.html ==> A TransformCanvas3D component showing an interactive model of DDT in a "Ball and Stick" representation. WebGL is required.
+  - periodicTable.html                         ==> A PeriodicTableCanvas component.
+  - rotator_2D_ballnstick.html                 ==> A RotatorCanvas with a spinning molecule in a 2D-based "Ball and Stick" representation.
+  - sketcher_2D.html                           ==> A SketcherCanvas component.
+  - spectrum_mass_styled.html                  ==> A PerspectiveCanvas component that has been styled and presents a mass spectrum.
+  - transformer_morphine_2D_wireframe.html     ==> A TransformCanvas component. Interact with a 3D model of morphine in a 2D-based "Wireframe" representation.
+  - viewer_caffeine_2D_acs1996.html            ==> A ViewerCanvas component with caffeine drawn to ACS Document 1996 style.
+  - webgl_transformer_1CRN_3D_Ribbon.html      ==> A TransformCanvas3D component showing an interactive cartoon ribbon model of the PDB ID 1CRN. WebGL is required.
+  - webgl_transformer_2OEY_3D_NucleicAcid.html ==> A TransformCanvas3D component showing an interactive model of the Nucleic Acid represented by PDB code 2OEY. WebGL is required.
+  - webgl_transformer_DDT_3D_ballnstick.html   ==> A TransformCanvas3D component showing an interactive model of DDT in a "Ball and Stick" representation. WebGL is required.
+  - webgl_transformer_MAZ_3D_Crystal.html      ==> A TransformCanvas3D component showing an interactive model of the zeolite MAZ. WebGL is required.
 
 - src                       ==> folder containing the unpacked Javascript source
   - ChemDoodleWeb-unpacked.js           ==> ChemDoodle Web Components library Javascript (unpacked)

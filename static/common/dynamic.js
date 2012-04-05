@@ -1,14 +1,14 @@
 if( typeof require === 'function') {
 	_ = require('underscore');
-	DNA = require('utils/dna-utils.js').DNA;
+	DNA = require('./dna-utils.js').DNA;
 } else {
-	exports = {};
+	module = {}; module.exports = {};
 }
 if( typeof App == 'undefined') {
 	App = {};
 }
 
-App.dynamic = exports = (function(_,DNA) {
+App.dynamic = module.exports = (function(_,DNA) {
 	/**
 	 * @class _
 	 * Provides some additional methods inspired by _.js
@@ -107,6 +107,15 @@ App.dynamic = exports = (function(_,DNA) {
 	 * Represents a single motif
 	 */
 	function Motif(config) {
+		if(!config.library) {
+			throw new DynamlError({
+				type: 'no library',
+				message: 'motif instantiated without library reference',
+				motif: this,
+				config: config,
+			});
+		}
+
 
 		// Apply configuration options with defaults to this object
 		_.copyTo(this, config);
@@ -150,18 +159,20 @@ App.dynamic = exports = (function(_,DNA) {
 			strandStructures = _.first(structures);
 		}
 		if(this.strands) {		
-			this.strands = _.map(this.strands,function(strand) {
+			this.strands = _.map(this.strands,function(strand,i) {
 				if(strand.name && strandStructures[strand.name]) {
 					strand.structure = strandStructures[strand.name];
-				} else if(strandStructure[i]) {
-					strand.structure = strandStructure[i];
+				} else if(strandStructures[i]) {
+					strand.structure = strandStructures[i];
 				}
+				strand.library = this.library;
 				return new Strand(strand); 
-			});
+			},this);
 		} else if(this.domains) {
 			var structure = strandStructures[0]; 
 			this.strands = [
 				new Strand({
+					library: this.library,
 					domains: this.domains,
 					structure: structure,
 				})
@@ -198,7 +209,7 @@ App.dynamic = exports = (function(_,DNA) {
 		 */
 		this.polarity = DNA.parsePolarity(this.polarity);
 
-		Motif.register(this.name, this);
+		this.library.register('motif',this.name, this);
 	}
 
 
@@ -247,6 +258,7 @@ App.dynamic = exports = (function(_,DNA) {
 		},
 		serialize: function() {
 			var out = _.copy(this);
+			if(out.library) { delete out.library; }
 			return _.serialize(out);
 		}
 	}
@@ -295,15 +307,27 @@ App.dynamic = exports = (function(_,DNA) {
 	 * @extends App.dynamic.Motif
 	 */
 	function Node(config) {
-
+		
+		if(!config.library) {
+			throw new DynamlError({
+				type: 'no library',
+				message: 'node instantiated without library reference; can\'t decode motif',
+				node: this,
+				config: config,
+			});
+		}
+		this.library = config.library;
+		
 		// Inherit motif if configured
 		if(config.motif) {
+			var motif = config.library.getMotif(config.motif);
 			/**
 			 * @cfg {String/App.dynamic.Motif} motif
 			 * Name or reference to a {@link App.dynamic.Motif motif} from
 			 * which this node inherits.
 			 */
-			_.copyTo(this, Motif.get(config.motif));
+			_.copyTo(this, motif);
+			
 		}
 
 		// // Save domains from the motif in a hash table by their names
@@ -367,6 +391,7 @@ App.dynamic = exports = (function(_,DNA) {
 			}, this);
 			
 			strand.name || (strand.name = (this.strands.length > 1) ? 'strand'+i : '');
+			strand.library = this.library;
 			
 			return new Strand(_.copyWith(strand,{ node: this }));
 		},this);
@@ -393,7 +418,7 @@ App.dynamic = exports = (function(_,DNA) {
 			Node.types[this.type](this);
 		}
 
-		Node.register(this.name, this);
+		this.library.register('node',this.name, this);
 	}
 
 
@@ -401,6 +426,7 @@ App.dynamic = exports = (function(_,DNA) {
 	_.extend(Node.prototype, {
 		polarity: 0,
 		/**
+		 * Returns the absolute polarity of this node
 		 * @returns {Number} node polarity
 		 */
 		getPolarity : function() {
@@ -467,9 +493,20 @@ App.dynamic = exports = (function(_,DNA) {
 			return identities;
 
 		},
+		getStructure: function() {
+			return Structure.join(_.map(this.getStrands(),function(strand) {
+				return strand.getStructure();
+			}));
+		},
+		getSegmentwiseStructure: function() {
+			return Structure.join(_.map(this.getStrands(),function(strand) {
+				return strand.getSegmentwiseStructure();
+			}));
+		},
 		serialize: function() {
 			var out = _.copy(this);
 			if(out.motif) { out.motif = out.motif.getName(); }
+			if(out.library) { delete out.library; }
 			return _.serialize(out);
 		}
 	});
@@ -543,6 +580,15 @@ App.dynamic = exports = (function(_,DNA) {
 	 * @class App.dynamic.Strand
 	 */
 	function Strand(config) {
+		if(!config.library) {
+			throw new DynamlError({
+				type: 'no library',
+				message: 'strand instantiated without library reference',
+				strand: this,
+				config: config,
+			});
+		}
+		
 		// Apply configuration options with defaults to this object
 		_.copyTo(this, config); 
 		_.defaults(this, {
@@ -554,14 +600,24 @@ App.dynamic = exports = (function(_,DNA) {
 		 * Use #getDomains
 		 */
 		this.domains = _.map(this.domains, function(domain) {
-			return new Domain(_.copyWith(domain,{ strand: this }));
+			return new Domain(_.copyWith(domain,{ strand: this, library: this.library, }));
 			// return new Domain(_.copyTo(_.copy(domain),{
 				// strand: this
 			// }));
 		},this);
-
+		
+		/**
+		 * @property {App.dynamic.Structure}
+		 * @private
+		 * Use #getStructure or #getSegmentwiseStructure
+		 */
 		this.structure = new Structure(this.structure);
 		
+		/**
+		 * @property {Number}
+		 * @private
+		 * Use #getPolarity or #getAbsolutePolarity
+		 */
 		this.polarity = DNA.parsePolarity(this.polarity);
 		if(this.polarity == 0) {
 			this.polarity = 1;
@@ -570,17 +626,34 @@ App.dynamic = exports = (function(_,DNA) {
 
 
 	Strand.prototype = {
+		/**
+		 * @return {App.dynamic.Node} node
+		 */
 		getNode: function() {
 			return this.node;
 		},
+		/**
+		 * @return {String} name
+		 */
 		getName : function() {
 			return this.name;
 		},
+		/**
+		 * Returns the name of this strand, or the name of the node
+		 * which this represents, if there is only one strand in the
+		 * node.
+		 * @return {String} name
+		 */
 		getQualifiedName : function() {
 			var n =[this.getNode().name];
 			if(this.getName()) {n.push(this.getName())} 
 			return n.join('_');
 		},
+		/**
+		 * Returns the absolute polarity of this strand
+		 * absolute polarity = (relative strand polarity) * (node polarity)
+		 * @returns {Number} polarity -1 = 3' -> 5', 1 = 5' -> 3', 0 = undetermined
+		 */
 		getAbsolutePolarity : function() {
 			if(this.node) {
 				return this.node.getPolarity() * this.getPolarity();
@@ -588,6 +661,11 @@ App.dynamic = exports = (function(_,DNA) {
 				return this.getPolarity();
 			}
 		},
+		/**
+		 * Returns the polarity of this strand, relative to the 
+		 * {@link App.dynamic.Node#polarity node polarity}
+		 * @param {Number} polarity -1 = 3' -> 5', 1 = 5' -> 3', 0 = undetermined
+		 */
 		getPolarity : function() {
 			return this.polarity;
 		},
@@ -613,11 +691,30 @@ App.dynamic = exports = (function(_,DNA) {
 				return dom.name == name;
 			});
 		},
+		/**
+		 * Returns a list of lengths of the segments in the strand, in bases
+		 * @return {Number[]}
+		 */
 		getSegmentLengths: function() {
 			return _.map(this.getSegments(),function(segment) {
 				return segment.getLength();
 			})
 		},
+		/**
+		 * Returns the structure of the strand, representing each segment
+		 * as a single unit/character. See #getStructure
+		 * to get the structure with each base represented by one character.
+		 * @return {App.dynamic.Structure} structure
+		 */
+		getSegmentwiseStructure: function() {
+			return this.structure;	
+		},
+		/**
+		 * Returns the structure of the strand, representing each base
+		 * as a single unit/character. See #getSegmentwiseStructure
+		 * to get the structure with each segment represented by one character.
+		 * @return {App.dynamic.Structure} structure
+		 */
 		getStructure : function() {
 			return this.structure.expand(this.getSegmentLengths());
 			
@@ -659,6 +756,7 @@ App.dynamic = exports = (function(_,DNA) {
 		serialize: function() {
 			var out = _.copy(this);
 			if(out.node) { delete out.node }
+			if(out.library) { delete out.library; }
 			return _.serialize(out);
 		},
 	}
@@ -671,7 +769,15 @@ App.dynamic = exports = (function(_,DNA) {
 	 * within a {@link App.dynamic.Node node} or {App.dynamic.Motif motif}.
 	 */
 	function Domain(config) {
-
+		if(!config.library) {
+			throw new DynamlError({
+				type: 'no library',
+				message: 'domain instantiated without library reference',
+				domain: this,
+				config: config,
+			});
+		}
+		
 		// Apply configuration options with defaults to this object
 		_.copyTo(this, config), _.defaults(this, {
 			segments : [],
@@ -684,8 +790,9 @@ App.dynamic = exports = (function(_,DNA) {
 
 		// Construct Segment objects from specification
 		this.segments = _.map(this.segments, function(segment) {
-			segment = _.extend(_.copy(segment), {
-				domain : this
+			segment = _.copyWith(segment, {
+				domain : this, 
+				library : this.library,
 			});
 			return new Segment(segment);
 		}, this);
@@ -699,12 +806,24 @@ App.dynamic = exports = (function(_,DNA) {
 	Domain.prototype = {
 		role : "output",
 		/**
+		 * Returns the absolute polarity of this domain
+		 * absolute polarity = (domain relative polarity) * (strand relative polarity) * (node polarity)
+		 * @return {Number} Abs. polarity
+		 */
+		getAbsolutePolarity : function() {
+			return this.getPolarity() * this.getStrand().getPolarity() * this.getNode().getPolarity();
+		},
+		/**
 		 * Retrieves the segments associated with this domain
 		 * @returns {App.dynamic.Segment[]} segments
 		 */
 		getSegments : function() {
 			return this.segments;
 		},
+		/**
+		 * Retrieves the strand of which this domain is a part
+		 * @return {App.dynamic.Strand}
+		 */
 		getStrand : function() {
 			return this.strand;
 		},
@@ -716,14 +835,22 @@ App.dynamic = exports = (function(_,DNA) {
 		},
 		/**
 		 * Gets the name of the domain
+		 * @return {String} name
 		 */
 		getName : function() {
 			return this.name;
+		},
+		/**
+		 * Returns the relative polarity of this domain
+		 */
+		getPolarity : function() {
+			return this.polarity;
 		},
 		serialize: function() {
 			var out = _.copy(this);
 			if(out.strand) { delete out.strand }
 			if(out.node) { delete out.node }
+			if(out.library) { delete out.library; }
 			return _.serialize(out);
 		},
 		
@@ -778,7 +905,7 @@ App.dynamic = exports = (function(_,DNA) {
 			_.extend(this, DNA.parseIdentifier(this.name));
 		}
 		this.id = Segment.getId();
-		Segment.register(this.id, this);
+		this.getLibrary().register('segment',this.id, this);
 	}
 
 
@@ -872,8 +999,11 @@ App.dynamic = exports = (function(_,DNA) {
 			if(out.strand) { delete out.strand }
 			if(out.domain) { delete out.domain }
 			if(out.node) { delete out.node }
-			
+			if(out.library) { delete out.library; }
 			return _.serialize(out);
+		},
+		getLibrary: function() {
+			return this.library;
 		}
 	}
 
@@ -1014,6 +1144,11 @@ App.dynamic = exports = (function(_,DNA) {
 			}
 			out.push(Array(count+1).join(ch));
 			return out.join('');
+		},
+		join: function(structures) {
+			return new Structure(_.map(structures,function(struct) {
+				return struct.toDotParen();
+			}).join('+'));
 		}
 	})
 
@@ -1028,6 +1163,17 @@ App.dynamic = exports = (function(_,DNA) {
 	 * @param {Object} config
 	 */
 	function Complement(config) {
+		this.library = config.library;
+		if(!config.library) {
+			throw new DynamlError({
+				type: 'no library',
+				message: 'complement instantiated without library reference; can\'t decode node references',
+				complement: this,
+				complements: [this],
+				config: config,
+			});
+		}
+		
 		/**
 		 * @cfg {String/App.dynamic.Node} sourceNode
 		 * Name or reference to the node which will become #property-sourceNode
@@ -1035,7 +1181,7 @@ App.dynamic = exports = (function(_,DNA) {
 		/**
 		 * @property {App.dynamic.Node} sourceNode
 		 */
-		this.sourceNode = Node.get(config.sourceNode);
+		this.sourceNode = this.library.getNode(config.sourceNode);
 		/**
 		 * @cfg {String/App.dynamic.Node} node
 		 * Name or reference to the node which will become #property-targetNode
@@ -1043,7 +1189,7 @@ App.dynamic = exports = (function(_,DNA) {
 		/**
 		 * @property {App.dynamic.Node} targetNode
 		 */
-		this.targetNode = Node.get(config.node);
+		this.targetNode = this.library.getNode(config.node);
 
 		/**
 		 * @cfg {String} source
@@ -1072,6 +1218,9 @@ App.dynamic = exports = (function(_,DNA) {
 				targetNode : config.node,
 				sourcePort : config.source,
 				targetPort : config.target,
+				nodes: [config.sourceNode, config.targetNode],
+				ports: [config.source, config.target],
+				complements: [this],
 			})
 		}
 		if(this.targetNode == null) {
@@ -1082,6 +1231,9 @@ App.dynamic = exports = (function(_,DNA) {
 				targetNode : config.node,
 				sourcePort : config.source,
 				targetPort : config.target,
+				nodes: [config.sourceNode, config.targetNode],
+				ports: [config.source, config.target],
+				complements: [this],
 			});
 		}
 		if(this.sourcePort == null) {
@@ -1092,6 +1244,9 @@ App.dynamic = exports = (function(_,DNA) {
 				targetNode : config.node,
 				sourcePort : config.source,
 				targetPort : config.target,
+				nodes: [config.sourceNode, config.targetNode],
+				ports: [config.source, config.target],
+				complements: [this],
 			});
 		}
 		if(this.targetPort == null) {
@@ -1102,6 +1257,8 @@ App.dynamic = exports = (function(_,DNA) {
 				targetNode : config.node,
 				sourcePort : config.source,
 				targetPort : config.target,
+				nodes: [config.sourceNode, config.targetNode],
+				ports: [config.source, config.target],
 			});
 		}
 	}
@@ -1148,7 +1305,7 @@ App.dynamic = exports = (function(_,DNA) {
 			if(out.strand) { delete out.strand }
 			if(out.domain) { delete out.domain }
 			if(out.node) { delete out.node }
-			
+			if(out.library) { delete out.library; }
 			return _.serialize(out);
 		}
 	}
@@ -1179,7 +1336,11 @@ App.dynamic = exports = (function(_,DNA) {
 		}
 		_.copyTo(this, config);
 	}
-
+	
+	DynamlError.prototype.serialize = function() {
+		return _.serialize(_.copy(this));
+	}
+	
 	/* ***************************************************************** */
 
 	/**
@@ -1225,12 +1386,15 @@ App.dynamic = exports = (function(_,DNA) {
 	
 	Library.prototype = {
 		getNode: function(name) {
+			if(name instanceof Node) return name;
 			return this.objects['node'][name];
 		},
-		getMotif: function() {
+		getMotif: function(name) {
+			if(name instanceof Motif) return name;
 			return this.objects['motif'][name];
 		},
-		getSegment: function() {
+		getSegment: function(name) {
+			if(name instanceof Segment) return name;
 			return this.objects['segment'][name];
 		},
 		register: function(type,name,object) {
@@ -1375,7 +1539,174 @@ App.dynamic = exports = (function(_,DNA) {
 			
 			return out.join('\n\n');
 			
-		}
+		},
+		toDomainsOutput: function() {
+			return Compiler.printStrands(this,{annotations: false});
+		},
+		toSVGOutput: function() {
+			String.prototype.format = function() {
+			  var args = arguments;
+			  return this.replace(/{(\d+)}/g, function(match, number) { 
+			    return typeof args[number] != 'undefined'
+			      ? args[number]
+			      : match
+			    ;
+			  });
+			};
+			
+			var fid = {
+				out: [],
+				write: function(x) {
+					this.out.push(x)
+				},
+				close: function() {
+					return this.out.join('');
+				}
+			}
+			
+			var x = 0,
+			y = 0,
+			H=300,
+			V=160,
+			// space allocated for each motif to be drawn in (one tile)
+			R = Math.round(Math.sqrt(this.strands.length)),
+			C = Math.ceil(this.strands.length/R);
+			
+			fid.write('<?xml version="1.0" standalone="no"?>\n<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"\nviewBox = "0 0 ' + repr(H*C) + ' ' + repr(V*R) + '" version = "1.1">\n<defs><path id="arrow" d="M -7 -7 L 0 0 L -7 7"/>\n</defs>\n')
+
+			for(var svgi = 0; svgi < this.strands.length; svgi++) {
+				var strand = this.strands[svgi];
+				
+				 var structure = strand.getSegmentwiseStructure().toDotParen();
+				
+				if(structure.match(/^\.+$/)) { //initiator, straight strand without hybridization
+					fid.write('<g stroke = "rgb(139,98,61)" stroke-width = "2" fill = "none">\n<path d = "M {0} {1} L {2} {3}"/>\n'.format(x+H*.15,y+V*.5,x+H*.6,y+V*.5))
+				    if (strand.getPolarity()==-1) 
+				      fid.write('<use x="{0}" y="{1}" xlink:href="#arrow" transform="rotate(180,{2},{3})"/>\n'.format(x+H*.15,y+V*.5,x+H*.15,y+V*.5))
+				    else
+				      fid.write('<use x="{0}" y="{1}" xlink:href="#arrow"/>\n'.format(x+H*.6,y+V*.5))
+				    fid.write('</g>\n<g stroke="none" fill="black" font-size="16">\n')
+				    var segments = strand.getSegments();
+				    for(var svgj = 0; svgj < segments.length; svgj++) {
+				      var s = segments[svgj].getIdentifier();
+				      fid.write('<text x="{0}" y="{1}" stroke="none" fill="black">{2}</text>\n'.format(x+H*.15+H*(svgj+.5)/segments.length*.45,y+V*.5-V*.05,s))
+				    }
+				    fid.write('</g>\n')
+				} else if(structure.match(/^\.+\(+\.+\)+(\.+)?$/)) { //hairpin loop
+			    	var segments = strand.getSegments();
+					var a = structure.indexOf('(');  // number of first hybridized segment
+
+				    var b = a;
+				    while(structure[b]=='(') { b++ } // number of last hybridized segment
+
+				    c = structure.indexOf(')');  // number of first hybridized segment after wraparound
+				    
+				    var d = c; // number of last hybridized segment after wraparound
+				    while(structure[d]==')') { d++ }
+				    
+				    var segmentLengths = strand.getSegmentLengths();
+				    
+				    function sum(ls) {
+				    	return _.reduce(ls,function(m,x) {return m+x},0);
+				    }
+				    
+				    var len1 = sum(segmentLengths.slice(0,a)),  // length of the initial toehold, in bases
+				    len2 = sum(segmentLengths.slice(a,b+1)),  // length of the duplex region, in bases
+				    len3 = sum(segmentLengths.slice(b+1,c)),  // length of the hairpin loop, in bases
+				    len4 = sum(segmentLengths.slice(d));  // length of the trailing end, in bases
+
+
+				    fid.write('<g stroke = "black" stroke-width = "1" fill = "none">\n')
+				    for(var svgj = 0; svgj < segments.length; svgj++) { // draw cross-lines for paired bases
+			      		fid.write('<line x1 = "{0}" y1 = "{1}" x2 = "{2}" y2 = "{3}"/>\n'.format(x+H*.3+H*.3*svgj/len2,y+V*.45,x+H*.3+H*.3*svgj/len2,y+V*.5))
+				      }
+			    	fid.write('</g>\n')
+			    	fid.write('<g stroke = "black" stroke-width = "2" fill = "none">\n<path d = "M {0} {1} a {2} {3} 0 1 1 {4} {5} L {6} {7}" stroke="black"/>\n'.format(x+H*.6,y+V*.45,H*.085,V*.25,0,V*.05,x+H*.3,y+V*.5))  // loop and bottom line
+			    	fid.write('<line x1 = "{0}" y1 = "{1}" x2 = "{2}" y2 = "{3}" stroke = "rgb(241,139,17)"/>\n'.format(x+H*.15,y+V*.45,x+H*.6,y+V*.45))  // yellow top line
+			    	if (len4>0)
+			      		fid.write('<path d = "M {0} {1} L {2} {3}" stroke = "black"/>\n'.format(x+H*.45,y+V*.5,x+H*.15,y+V*.5))  // trailing end
+			    	if (strand.getPolarity() == -1) {
+			    		
+			      		fid.write('<use x="{0}" y="{1}" stroke="rgb(241,139,17)" xlink:href="#arrow" transform="rotate(180,{2},{3})"/>\n'.format(x+H*.15,y+V*.45,x+H*.15,y+V*.45))  // yellow top arrow
+			    	} else {
+			    	
+				      if (len4>0)
+				        fid.write('<use x="{0}" y="{1}" stroke="rgb(0,159,47)" xlink:href="#arrow" transform="rotate({2},{3},{4})"/>\n'.format(x+H*.15,y+V*.8,90+180/pi*atan2(V*.3,H*.15),x+H*.15,y+V*.8))  // bottom arrow
+				      else
+				        fid.write('<use x="{0}" y="{1}" xlink:href="#arrow" transform="rotate(180,{2},{3})"/>\n'.format(x+H*.3,y+V*.5,x+H*.3,y+V*.5))
+				    }
+				    fid.write('</g>\n<g stroke="none" fill="black" font-size="16">\n')
+				    labelx = []
+				    labely = []
+				    
+				    
+				   
+				    
+				   
+				    
+				    function repr(x) {
+				    	return x;
+				    }
+				    
+				    function range(x) {
+				    	return _.range(0,x);
+				    }
+				    
+				    var cos = Math.cos, sin = Math.sin, pi = Math.PI;
+				    
+				    for (svgj in range(a)) {
+				    	
+				      labelx.push(H*(.15 + .15*(svgj+.5)/a))
+				      labely.push(V*.4)
+				    }  // toehold
+				    for (svgj in range(b+1-a)) {
+				    	
+				      labelx.push(H*(.3 + .3*(svgj+.5)/(b+1-a)))
+				      labely.push(V*.4)
+				    }  // duplex region
+				    for (svgj in range(c-(b+1))) {
+				    	
+				      labelx.push(H*(.75 - .1*cos(2*pi*(svgj+.5)/(c-(b+1)))))
+				      labely.push(V*(.45 + .25*sin(2*pi*(svgj+.5)/(c-(b+1)))))
+				    }  // hairpin loop
+				    for (svgj in range(b+1-a)) {
+				    	
+				      labelx.push(H*(.6 - .3*(svgj+.5)/(b+1-a)))
+				      labely.push(V*.6)
+				    }  // duplex region again
+				    for (svgj in range(d+1-c)) {
+				    	
+				      labelx.push(H*(.3 - .15*(svgj+.5)/(d+1-c)))
+				      labely.push(V*(.6 -.2*(svgj+.5)/(d+1-c)))
+				    }  // trailing end
+				    for (svgj in range(segments.length)) {
+				      var segment = segments[svgj];
+				      svgk = segment.getIdentifier();
+				      // if (svgk>0)
+				        // s = repr(svgk)
+				      // else
+				        // s = repr(-svgk) + '*'
+				      fid.write('<text x="{0}" y="{1}" stroke="none" fill="black">{2}</text>\n'.format(x+labelx[svgj],y+labely[svgj],s))
+				    }
+			    	fid.write('</g>\n')
+					
+
+				}
+			  fid.write('<text x="{0}" y="{1}" font-size="20" stroke-width="1" fill="black" stroke="none">{2}</text>\n'.format(x+H*.8, y+V*.5, strand.getQualifiedName()))
+			  y += V
+			  if (y>=V*R) {			  	
+			    y=0
+			    x += H
+			  }
+			}
+
+			fid.write('</svg>\n')
+			return fid.close()
+			
+		},
+		toPilOutput: function() {
+			return '';
+		},
 	};
 	
 	
@@ -1406,7 +1737,7 @@ App.dynamic = exports = (function(_,DNA) {
 		function parse(jsonString) {
 			var input = jsonString, library;
 			try {
-				library = Ext.decode(input);
+				library = JSON.parse(input);
 			} catch(e) {
 				throw new DynamlError({
 					type : e.type,
@@ -1424,7 +1755,7 @@ App.dynamic = exports = (function(_,DNA) {
 		 * @returns {App.dynamic.Library} library
 		 */
 		function compile(jsonString) {
-			return this.compileLibrary(this.parse(jsonString));
+			return compileLibrary(parse(jsonString));
 		}
 		
 		/**
@@ -1454,10 +1785,10 @@ App.dynamic = exports = (function(_,DNA) {
 						if(statement.type && statement.name) {
 							switch(statement.type) {
 								case 'motif':
-									library.motifs.unshift(this.importObject(statement.type,statement.name));
+									library.motifs.unshift(importObject(statement.type,statement.name));
 									break;
 								case 'node':
-									library.nodes.unshift(this.importObject(statement.type,statement.name));
+									library.nodes.unshift(importObject(statement.type,statement.name));
 									break;
 								default:
 									break;
@@ -1468,6 +1799,9 @@ App.dynamic = exports = (function(_,DNA) {
 
 				// Instantiate motifs to Motif objects
 				library.motifs = _.map(library.motifs, function(motif) {
+					motif = _.copyWith(motif,{
+						library: library,
+					});
 					return new Motif(motif);
 				});
 				
@@ -1476,6 +1810,7 @@ App.dynamic = exports = (function(_,DNA) {
 					if(node.polarity) {
 						delete node.polarity;
 					}
+					node.library = library;
 					return new Node(node);
 				});
 				
@@ -1517,6 +1852,8 @@ App.dynamic = exports = (function(_,DNA) {
 										sourceNode: complement.sourceNode,
 										sourcePort: complement.sourcePort,
 										complement: complement,
+										nodes: [config.sourceNode,],
+										ports: [config.sourcePort,],
 									});
 								} else {
 									throw new DynamlError({
@@ -1525,6 +1862,8 @@ App.dynamic = exports = (function(_,DNA) {
 										sourceNode: complement.sourceNode,
 										sourcePort: complement.sourcePort,
 										complement: complement,
+										nodes: [config.sourceNode,],
+										ports: [config.sourcePort,],
 									})
 								}
 							}
@@ -1544,6 +1883,8 @@ App.dynamic = exports = (function(_,DNA) {
 									targetNode : complement.targetNode,
 									sourcePort : complement.getSourcePort(),
 									targetPort : complement.getTargetPort(),
+									nodes: [complement.sourceNode,complement.targetNode],
+									ports: [complement.getSourcePort(), complement.getTargetPort(),],
 								});
 							} else if(complement.targetNode.polarity == targetPolarity) {
 								return;
@@ -1634,6 +1975,8 @@ App.dynamic = exports = (function(_,DNA) {
 								targetNode : complement.targetNode,
 								sourcePort : complement.getSourcePort(),
 								targetPort : complement.getTargetPort(),
+								ports : [complement.getSourcePort(),complement.getTargetPort(),],
+								
 							});
 						}
 					}
@@ -1698,7 +2041,7 @@ App.dynamic = exports = (function(_,DNA) {
 
 									// Ensure they're not already complementary
 									if(labels[leftSegmentId] == -labels[rightSegmentId]) {
-										var leftSeg = Segment.get(leftSegmentId), rightSeg = Segment.get(rightSegmentId);
+										var leftSeg = library.getSegment(leftSegmentId), rightSeg = library.getSegment(rightSegmentId);
 										throw new DynamlError({
 											type : 'equality conflict',
 											message : "Segments <%= left %> and <%= right %> should be equal, but they're already complementary!",
@@ -1718,7 +2061,7 @@ App.dynamic = exports = (function(_,DNA) {
 
 									// Ensure they're not already equal
 									if(labels[leftSegmentId] == labels[rightSegmentId]) {
-										var leftSeg = Segment.get(leftSegmentId), rightSeg = Segment.get(rightSegmentId);
+										var leftSeg = library.getSegment(leftSegmentId), rightSeg = library.getSegment(rightSegmentId);
 										throw new DynamlError({
 											type : 'equality conflict',
 											message : "Segments <%= left %> and <%= right %> should be complementary, but they're already equal!",
@@ -1749,7 +2092,7 @@ App.dynamic = exports = (function(_,DNA) {
 									// Update downstream segments.
 									_.each(segmentIdsToRelabel, function(segmentId) {
 
-										var segment = Segment.get(segmentId);
+										var segment = library.getSegment(segmentId);
 										segment.identity = Math.abs(newLabel);
 										segment.polarity = DNA.signum(newLabel);
 
@@ -1847,7 +2190,7 @@ App.dynamic = exports = (function(_,DNA) {
 			});
 			var out = '';
 	
-			var defaultPolaritySpecifier = this.defaultPolaritySpecifier;
+			var defaultPolaritySpecifier = "*";
 			
 			function makeIdentifier(name, polarity) {
 				return name + ((polarity == -1) ? defaultPolaritySpecifier : '');
@@ -1860,7 +2203,7 @@ App.dynamic = exports = (function(_,DNA) {
 			out += '\n';
 			
 			out += _.map(library.strands, function(strand) {
-				var name = strand.name;
+				var name = strand.getQualifiedName();
 				var domains = _.clone(strand.getDomains());
 				if(strand.getAbsolutePolarity() == -1) {
 					domains = domains.reverse();
@@ -2228,36 +2571,40 @@ App.dynamic = exports = (function(_,DNA) {
 			'bridge.stem' : '#9900cc',
 		}
 		
+		function importObject(type,name) {
+			switch(type) {
+				case 'motif': 
+					if(standardMotifs[name]) {
+						return standardMotifs[name];
+					} else if (standardMotifs['m'+name]) {
+						return standardMotifs['m'+name];
+					} else {
+						throw new DynamlError({
+							type: 'undefined motif',
+							name: name,
+							message: "Couldn't find imported motif '<%= name %>'"
+						});
+					}
+					// TODO: import from external files
+			}
+		};
+		
+		function getColor (domain) {
+			if(domain.role && domain.type) {
+				return domainColors[[domain.role, domain.type].join('.')];
+			}
+			return domainColors[domain.role] || '#000';
+		}
+		
 		return {
 			compile: compile,
 			compileLibrary: compileLibrary,
 			parse: parse,
 			printStrands: printStrands, 
-			importObject : function(type,name) {
-				switch(type) {
-					case 'motif': 
-						if(this.standardMotifs[name]) {
-							return this.standardMotifs[name];
-						} else if (this.standardMotifs['m'+name]) {
-							return this.standardMotifs['m'+name];
-						} else {
-							throw new DynamlError({
-								type: 'undefined motif',
-								name: 'name',
-								message: "Couldn't find imported motif '<%= name %>'"
-							});
-						}
-						// TODO: import from external files
-				}
-			},
+			importObject : importObject,
 			standardMotifs : standardMotifs,
 			domainColors: domainColors,
-			getColor : function(domain) {
-				if(domain.role && domain.type) {
-					return domainColors[[domain.role, domain.type].join('.')];
-				}
-				return domainColors[domain.role] || '#000';
-			}
+			getColor : getColor,
 		}
 
 	})();

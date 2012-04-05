@@ -16,6 +16,7 @@ Ext.define('App.ui.ProtovisPanel', {
 	 */
 	zoom: 1,
 	bpadding: 20,
+	visPadding: 10,
 	/**
 	 * @cfg autoRender {Boolean} 
 	 * true to automatically render the visualization after the component 
@@ -71,10 +72,13 @@ Ext.define('App.ui.ProtovisPanel', {
 	 */
 	resizeVis: function(p,w,h) {
 		if(this.autoSize) {
-			this.vis.width(this.getBodyWidth()).height(this.getBodyHeight());
+			this.doAutoSize();
 		}
 		this.updateVis();
 		this.vis.render();
+	},
+	doAutoSize: function() {
+		this.vis.width(this.getBodyWidth()-this.visPadding).height(this.getBodyHeight()-this.visPadding).top(this.visPadding).left(this.visPadding);
 	},
 	/**
 	 * Renders the visualization. Do not override this method; override 
@@ -122,9 +126,10 @@ Ext.define('App.ui.ProtovisPanel', {
 			this.vis = new pv.Panel()
 			.canvas(this.body.dom);
 			if(this.autoSize) {
-				this.vis
-				.width(this.body.getWidth())
-				.height(this.body.getHeight());
+				this.doAutoSize();
+				// this.vis
+				// .width(this.body.getWidth())
+				// .height(this.body.getHeight());
 			}
 			if(this.pan) {
 				this.vis.event("mousedown", pv.Behavior.pan());

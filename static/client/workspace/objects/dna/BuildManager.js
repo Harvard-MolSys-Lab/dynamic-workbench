@@ -4,6 +4,7 @@
  */
 Ext.define("Workspace.objects.dna.BuildManager", {
 	extend : 'Workspace.objects.Object',
+	errorClsName: 'dynaml-error-message',
 	statics: {
 		dynaml: {
 			domainProperties: ['name', 'identity','role',],
@@ -13,6 +14,181 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 	constructor : function() {
 		this.callParent(arguments);
 		this.workspace.buildManager = this;
+		this.nodes = [];
+		this.workspace.on('create',this.onCreate,this);
+		this.addEvents('needsrebuild','beforerebuild','rebuild','error');
+		
+		this.on('needsrebuild',this.buildRealtime,this,{
+			buffer: 1000
+		});
+	},
+	// render: function() {
+		// this.errorEl = Ext.get(Ext.core.DomHelper.append(this.workspace.getContainerEl(),{
+	        // cls: this.errorClsName,
+	    // }));
+	    // this.errorEl.hide();
+	// },
+	// showError: function(message) {
+		// this.errorEl.alignTo(this.workspace.getEl(),'tl-tl');
+		// var size = this.workspace.getVisibleSize();
+		// this.errorEl.setWidth(size.width);
+		// this.errorEl.update(message);
+		// this.errorEl.slideIn('t', {duration: 300, easing:'easeOut'});
+	// },
+	onCreate: function(obj) {
+		if(obj && obj.isWType('Workspace.objects.dna.Node')) {
+			this.nodes.push(obj);
+			_.each(Workspace.objects.dna.BuildManager.dynaml.nodeProperties,function(prop) {
+				obj.on('change:'+prop,this.needsRebuild,this);
+			},this);
+			this.needsRebuild();
+		} else if (obj.isWType('Workspace.objects.dna.Complementarity')){
+			this.needsRebuild();
+		}
+	},
+	needsRebuild: function() {
+		this.fireEvent('needsrebuild');
+	},
+	buildRealtime: function() {
+		var dynaml = this.serializeDynaml();
+		this.lastDynaml = dynaml;
+			
+		/**
+		 * @event beforerebuild
+		 * Fires before a rebuild occurs
+		 * @param {Workspace.objects.dna.BuildManager} buildManager
+		 * @param {Object} dynaml
+		 */
+		this.fireEvent('beforerebuild',this,dynaml);
+		var lib;
+		try {			
+			lib = App.dynamic.Compiler.compileLibrary(dynaml);
+			this.lastLibrary = lib;
+			/**
+			 * @event rebuild
+			 * Fires upon successful rebuild of a system
+			 * @param {Workspace.objects.dna.BuildManager} buildManager
+			 * @param {App.dynamic.Library} library
+			 */
+			this.fireEvent('rebuild',this,lib);
+		} catch(e) {
+			if(e.nodes) {
+				_.each(e.nodes,function(node) {
+					var workspaceNode = this.findWorkspaceObject('node',node);
+					if(workspaceNode) {
+						workspaceNode.highlightError();
+					} 
+				},this);
+			}
+			if(e.ports) {
+				_.each(e.ports,function(port) {
+					var workspacePort = this.findWorkspaceObject('port',port);
+					if(workspacePort) {
+						workspacePort.highlightError();
+					}
+				},this);
+			}
+			//this.showError(e.message);
+			/**
+			 * @event error
+			 * Fires upon an error during a real-time build
+			 * @param {String} msg
+			 * @param {App.dynamic.DynamlError} e
+			 */
+			this.fireEvent('error',e.message,e);
+			this.lastError = e;
+		}
+		
+	},
+	/**
+	 * Attempts to locate an {@link Workspace.object.Object object} in the 
+	 * {@link #workspace workspace} corresponding to a name, config object, or
+	 * DyNAML object
+	 * @param {String} type Kind of object for which to search; one of: `node`, `port`, or `connection`
+	 * @param {App.dynamic.Node/App.dynamic.Domain/App.dynamic.Connection/Object/String} handle One of these many data type which could be used to identify a DyNAML object 
+	 */
+	findWorkspaceObject: function(type,obj) {
+		switch (type) {
+			case 'node':
+				var name;
+				if(obj instanceof App.dynamic.Node) {
+					name = obj.getName();
+				} else if (_.isObject(obj) && obj.name) {
+					name = obj.name;
+				} else if (_.isString(obj)) {
+					name = obj;
+				}
+				
+				return this.workspace.findObjectBy(function(obj) {
+					return obj.isWType('Workspace.objects.dna.Node') && (obj.get('name') == name);
+				});
+			case 'port':
+				return false;
+				var name, node;
+				if(obj instanceof App.dynamic.Domain) {
+					name = obj.getName();
+				} else if (_.isObject(obj) && obj.name) {
+					name = obj.name;
+				} else if (_.isString(obj)) {
+					name = obj;
+				}
+		}
+	},
+	getRealtime: function(type,name,property) {
+		if(this.lastLibrary) {
+			
+		switch (type) {
+			case 'strand':
+				var strand = this.lastLibrary.getStrand(name);
+				switch (property) {
+					case 'this':
+						return strand;
+					case 'domains':
+						return strand.getDomains();
+					case 'polarity':
+						return strand.getPolarity();
+					case 'absolutePolarity': 
+						return strand.getAbsolutePolarity();
+					case 'dynaml':
+						return (this.lastDynaml && this.lastDynaml.strands) ? _.find(this.lastDynaml.nodes,function(x) { return x.name == name }) : false
+						break;
+					default:
+						return strand[property]; 
+				}
+				break;
+			case 'node':
+				var node = this.lastLibrary.getNode(name);
+				switch (property) {
+					case 'this':
+						return node;
+					case 'domains':
+						return node.getDomains();
+					case 'strands':
+						return node.getStrands();
+					case 'polarity':
+						return node.getPolarity();
+					case 'dynaml':
+						return (this.lastDynaml && this.lastDynaml.nodes) ? _.find(this.lastDynaml.nodes,function(x) { return x.name == name }) : false
+						break;
+					default:
+						return node[property]; 
+				}
+				break;
+			case 'motif':
+				var motif = this.lastLibrary.getMotif(name);
+				switch (property) {
+					case 'this':
+						return motif;
+					
+					case 'dynaml':
+						return (this.lastDynaml && this.lastDynaml.motifs) ? _.find(this.lastDynaml.motifs,function(x) { return x.name == name }) : false
+						break;
+					default:
+						return node[property]; 
+				}
+				break;
+		}
+		} else { return null; }
 	},
 	nodeIndex: 0,
 	getNextNodeName: function() {
@@ -69,7 +245,9 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 					};
 				}),
 				domains : _.map(node.getChildren(), function(child, i) {
-					if(child.isWType('Workspace.objects.dna.InputPort') || child.isWType('Workspace.objects.dna.OutputPort') || child.isWType('Workspace.objects.dna.BridgePort')) {
+					if(child.isWType('Workspace.objects.dna.InputPort') || 
+						child.isWType('Workspace.objects.dna.OutputPort') || 
+						child.isWType('Workspace.objects.dna.BridgePort')) {
 						return _.extend(_.reduce(Workspace.objects.dna.BuildManager.dynaml.domainProperties, function(memo, property) {
 							if(child.has(property)) {
 								memo[property] = child.get(property);

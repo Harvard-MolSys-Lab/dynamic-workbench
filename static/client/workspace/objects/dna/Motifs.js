@@ -5,10 +5,14 @@ Ext.ns('Workspace.objects.dna');
  * @class Workspace.objects.dna.Motifs
  * @singleton
  */
-Workspace.objects.dna.Motifs = _.reduce(_.deepClone(App.dynamic.Compiler.standardMotifs),function(memo, value, key) {
-	memo[key] = new App.dynamic.Motif(value);
-	return memo;
-},{});
+Workspace.objects.dna.Motifs = function() {
+	var library = new App.dynamic.Library({});
+	return _.reduce(_.deepClone(App.dynamic.Compiler.standardMotifs),function(memo, value, key) {
+		value.library = library;
+		memo[key] = new App.dynamic.Motif(value);
+		return memo;
+	},{}) 
+}();
 // {
 	// '0': [],
 	// '1': ['init',], // initiator (2 segments)

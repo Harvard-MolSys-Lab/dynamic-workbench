@@ -24,6 +24,7 @@ Ext.define('App.ui.Canvas', {
 			workspaceData: {},
 			palettes: [],
 			inspectors: [],
+			bbarItems: [],
 		});
 
 		Ext.apply(this, {
@@ -58,7 +59,7 @@ Ext.define('App.ui.Canvas', {
 				ref: 'bodyPanel',
 				autoScroll: true,
 				bbar: {
-					items: ['->','Zoom:&nbsp;',{
+					items: this.bbarItems.concat(['->','Zoom:&nbsp;',{
 						/**
 						 * @property {Ext.slider.Single} zoomField
 						 */
@@ -79,7 +80,7 @@ Ext.define('App.ui.Canvas', {
 							title: 'Zoom',
 							text: 'Workspace zoom'
 						}
-					}]
+					}])
 				}
 			},{
 				// West region: Tree of objects

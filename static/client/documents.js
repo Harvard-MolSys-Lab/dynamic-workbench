@@ -137,7 +137,7 @@ Ext.define('App.Document', {
 				method : 'POST',
 				params : {
 					data : s,
-					node : me.getPath(),
+					node : me.getDocumentPath(),
 				},
 				success : function(response) {
 					Ext.bind(options.success,options.scope)(response.responseText, me, response);

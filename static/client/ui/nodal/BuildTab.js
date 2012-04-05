@@ -57,6 +57,14 @@ Ext.define('App.ui.nodal.BuildTab', {
 							},
 							handler: this.clean,
 							scope: this,
+						},{
+							text: 'Compile with Compiler v2b ',
+							handler: this.compileTerse,
+							scope: this,
+						},{
+							text: 'Compile locally ',
+							handler: this.compileLocal,
+							scope: this,
 						}]
 					},{
 						iconCls: 'compile',
@@ -74,6 +82,12 @@ Ext.define('App.ui.nodal.BuildTab', {
 							ref: 'txt',
 							disabled: true,
 							handler: _.bind(this.openFile,this,'txt'),
+						},{
+							text: 'DyNAML',
+							iconCls: 'dynaml',
+							ref: 'dynaml',
+							disabled: true,
+							handler: _.bind(this.openFile,this,'dynaml'),
 						},{
 							text: 'PIL',
 							iconCls: 'pil',
@@ -166,7 +180,7 @@ Ext.define('App.ui.nodal.BuildTab', {
 		}
 		var doc = this.getDoc(), basename = doc.getBasename();
 		if(doc) {
-			_.each(['txt','pil','svg','nupack','spur','domains'],function(ext) {
+			_.each(['txt','dynaml','pil','svg','nupack','spur','domains'],function(ext) {
 				if(doc.getSiblingByName(App.Path.repostfix(basename,ext))) {
 					this.sequenceMenu.enable();
 					this.serializeMenu.enable();
@@ -204,18 +218,36 @@ Ext.define('App.ui.nodal.BuildTab', {
 		console.log(data);
 	},
 	compile: function() {
-		try {			
-			var lib = this.compileDynamic();
-			console.log(lib); console.log(App.dynamic.Compiler.printStrands(lib)); console.log(lib.toNupackOutput());
-		} catch(e) {
-			console.log(e);
-		}
-		this.compileTerse();
+		// try {			
+			// var lib = this.compileDynamic();
+			// console.log(lib); console.log(App.dynamic.Compiler.printStrands(lib)); console.log(lib.toNupackOutput());
+		// } catch(e) {
+			// console.log(e);
+		// }
+		this.compileDynamicServer();
+		//this.compileTerse();
+	},
+	compileLocal: function() {
+		var lib = this.compileDynamic();
+		console.log(lib.toSVGOutput())
 	},
 	compileDynamic: function() {
 		var dynaml = this.serializeDynaml();
 		var lib = App.dynamic.Compiler.compileLibrary(dynaml);
 		return lib;
+	},
+	compileDynamicServer: function() {
+		var data = Ext.encode(this.serializeDynaml()),
+			node = this.ribbon.canvas.doc.getDocumentPath(); //App.path.repostfix([this.ribbon.canvas.doc.getDocumentPath(),'txt']);
+		App.runTask('Nodal',{
+			node:node,
+			data:data,
+			action: 'dynamic',
+		},_.bind(function() {
+			//this.enableMenus();
+			Ext.msg('Nodal Build','Build of system <strong>{0}</strong> completed.',this.getDoc().getBasename());
+			this.highlightOutput();
+		},this));
 	},
 	compileTerse: function() {
 		var data = this.serializeTerse(),

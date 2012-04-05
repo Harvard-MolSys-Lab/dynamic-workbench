@@ -328,7 +328,11 @@ Ext.define('Workspace', {
 	createObject: function(objectClass, config) {
 		// instantiate object
 		var obj = this.buildObject.apply(this, arguments);
-		this.fireEvent('instantiate', obj);
+		if(obj) {	
+			this.fireEvent('instantiate', obj);
+		} else {
+			throw {message: "Couldn't create object",data: objects[i]};
+		}
 
 		// initialize, render, and register object; fire create event
 		if (obj) {
@@ -494,6 +498,42 @@ Ext.define('Workspace', {
 	getSelectionWType: function() {
 		return this.selection.getCommonWType();
 	},
+	getAllObjects: function() {
+		return this.objects.getRange();
+	},
+	/**
+	 * Finds an object matching an arbitrary criteria; returns the first 
+	 * object for which `filter` returns true
+	 * @param {Function} filter passed with the `object` as the first parameter; return `true` to select the object, `false` to reject
+	 * @param {String} [type='all'] `selection` to query objects in the selection, `all` to query all objects in the workspace 
+	 * @returns {Workspace.object.Object[]}
+	 */
+	findObjectBy: function(f,type) {
+		switch(type) {
+			case 'selection':
+				return _.find(this.getSelection(),f);
+			case 'all':
+			default:
+				return _.find(this.getAllObjects(),f);
+		}
+	},
+	/**
+	 * Returns all objects matching an arbitrary criteria; returns an array of
+	 * objects for which `filter` returns true
+	 * @param {Function} filter passed with the `object` as the first parameter; return `true` to select the object, `false` to reject
+	 * @param {String} [type='all'] `selection` to query objects in the selection, `all` to query all objects in the workspace 
+	 * @returns {Workspace.object.Object[]}
+	 */
+	filterObjectsBy: function() {
+		switch(type) {
+			case 'selection':
+				return _.filter(this.getSelection(),f);
+			case 'all':
+			default:
+				return _.filter(this.getAllObjects(),f);
+		}
+	},
+	
 	/**
 	 * Returns this workspace's instances of the active tool
 	 * @return {Workspace.tools.BaseTool} activeTool

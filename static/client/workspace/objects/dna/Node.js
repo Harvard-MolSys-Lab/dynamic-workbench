@@ -49,6 +49,19 @@ Ext.define('Workspace.objects.dna.Node', {
 		}));
 
 	},
+	highlightError: function() {
+		if(!this.errorProxy) {
+			this.errorProxy = this.getHighlightProxy();
+			this.errorProxy.stroke = '#aa0000';
+		}
+		this.errorProxy.render(this.vectorElement);
+		this.errorProxy.attachTo(this);
+		this.errorProxy.show();
+	},
+	hideError: function() {
+		if(this.errorProxy)
+			this.errorProxy.hide();
+	},
 	constructor: function() {
 		this.shimConfig = {
 			cls: 'workspace-label-callout',
@@ -60,6 +73,15 @@ Ext.define('Workspace.objects.dna.Node', {
 		this.expose('motif',true,true,true,false);
 		this.expose('theta',true,true,true,false);
 
+		this.expose('computedPolarity',function() {
+			return this.getRealtime('polarity');
+		},false,false,false);
+		this.expose('structure',function() {
+			var obj = this.getLibraryObject();
+			return obj ? obj.getStructure().toDotParen() : '';
+		},false,false,false);
+		this.workspace.buildManager.on('rebuild',this.onRebuild,this);
+
 		if(!this.name) {
 			this.name = this.workspace.buildManager.getNextNodeName(); //Workspace.objects.dna.Node.nextName();
 		}
@@ -67,9 +89,25 @@ Ext.define('Workspace.objects.dna.Node', {
 			this.layout.doLayout();
 		},this);
 	},
+	onRebuild: function() {
+		this.change('computedPolarity',this.get('computedPolarity'));
+		this.change('structure',this.get('structure'));
+	},
 	addChild: function() {
 		this.callParent(arguments);
 		this.layout.doLayout();
+	},
+	getRealtime: function(prop) {
+		return this.workspace.buildManager.getRealtime('node',this.get('name'),prop);
+	},
+	getLibraryObject: function() { 
+		return this.workspace.buildManager.getRealtime('node',this.get('name'),'this');
+	},
+	destroy: function() {
+		if(this.errorProxy) {
+			this.errorProxy.destroy();
+			delete this.errorProxy();
+		}
 	}
 }, function() {
 	Workspace.objects.dna.Node.borrow(Workspace.objects.Ellipse,['getRadiusX','getRadiusY','getCenterX','getCenterY','updateX','updateY','updateWidth','updateHeight']);

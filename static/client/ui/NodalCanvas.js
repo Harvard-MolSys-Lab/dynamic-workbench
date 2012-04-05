@@ -5,11 +5,13 @@ Ext.define('App.ui.NodalCanvas',{
 	extend: 'App.ui.Canvas',
 	editorType: 'Nodal',
 	iconCls: 'nodal',
-	requires: ['App.ui.nodal.HomeTab','App.ui.nodal.BuildTab','Workspace.objects.dna.BuildManager','Workspace.objects.dna.Node','Workspace.objects.dna.Complementarity',
+	requires: ['App.ui.nodal.HomeTab','App.ui.nodal.BuildTab','App.ui.nodal.CommandTab','Workspace.objects.dna.BuildManager','Workspace.objects.dna.Node','Workspace.objects.dna.Complementarity',
 	'Workspace.tools.nodal.NodeTool','Workspace.tools.nodal.PortTool','Workspace.tools.nodal.ComplementarityTool',
 	'App.ui.nodal.NodeInspector','App.ui.nodal.PortInspector','App.ui.MotifPalette'],
 	border : false,
-
+	mixins: {
+		refHelper: 'App.ui.RefHelper',
+	},
 	constructor: function() {
 		Ext.applyIf(this,{
 			ribbonItems : [{
@@ -20,6 +22,10 @@ Ext.define('App.ui.NodalCanvas',{
 				xtype : 'nodal-buildtab',
 				title : 'Build',
 				border : false,
+			}, {
+				xtype: 'nodal-commandtab',
+				title: 'Command',
+				border: false,
 			}],
 		});
 		/**
@@ -35,19 +41,76 @@ Ext.define('App.ui.NodalCanvas',{
 		this.inspectors = [Ext.create('App.ui.nodal.NodeInspector',{
 			ref :'nodeInspector',
 		}),
+		
 		/**
 		 * @property {App.ui.nodal.PortInspector} portInspector
 		 */
 		Ext.create('App.ui.nodal.PortInspector',{
 			ref :'portInspector',
 		})];
+		
+		this.bbarItems = [{
+			iconCls: '',
+			ref: 'buildStatusButton',
+			handler:this.showBuildStatus,
+			scope: this,
+		}]
 		this.callParent(arguments);
+		this.mixins.refHelper.init.apply(this);
 	},
 	setupWorkspace: function() {
 		if(!this.workspace.buildManager) {
 			this.workspace.buildManager = this.workspace.createObject({wtype:'Workspace.objects.dna.BuildManager'});
 		}
-	}
+		this.workspace.buildManager.on('beforerebuild',this.beforeRebuild,this);
+		this.workspace.buildManager.on('rebuild',this.onRebuild,this);
+		this.workspace.buildManager.on('error',this.showError,this);
+	},
+	makeBuildStatusTip: function() {
+		if(!this.buildStatusTip) {
+			this.buildStatusTip = Ext.create('Ext.tip.ToolTip', {
+			    target: this.buildStatusButton.getEl(),
+			    renderTo: Ext.getBody(),
+			    anchor: 'top',
+			    cls: 'build-tip',
+			});
+		}
+	},
+	showBuildStatus: function() {
+		this.makeBuildStatusTip();
+		this.buildStatusTip.show();
+	},
+	updateBuildStatus: function(state,buttonMsg,msg) {
+		this.makeBuildStatusTip();
+		
+		this.buildStatusButton.state = state;
+		var icon, cls;
+		switch (state) {
+			case 'done':
+				cls = 'build-done-tip';
+				icon = 'tick'; 
+				break;
+			case 'building':
+				cls = 'build-building-tip';
+				icon = 'progress'; break;
+			case 'error':
+				cls = 'build-error-tip';
+				icon = 'error'; break;
+		}
+		this.buildStatusButton.setIconCls(icon);
+		this.buildStatusButton.setText(buttonMsg);
+		this.buildStatusTip.removeCls('build-done-tip').removeCls('build-building-tip').removeCls('build-error-tip').addCls(cls);
+		this.buildStatusTip.update(msg);
+	},
+	beforeRebuild: function() {
+		this.updateBuildStatus('building','Building system','Building system to check for errors...');
+	},
+	onRebuild: function() {
+		this.updateBuildStatus('done','Build completed','Build completed successfully.');
+	},
+	showError: function(msg,e) {
+		this.updateBuildStatus('error','Errors',msg);
+	},
 },function() {
 	Workspace.DDManager.addHandler('ext/motif', function(data,e) {
 		var pos = this.getAdjustedXY(e), tool;

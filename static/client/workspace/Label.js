@@ -53,7 +53,15 @@ Ext.define('Workspace.Label', {
 		this.onMove();
 	},
 	/**
-	 * onSave
+	 * Transforms the value of #object.#property to the value which is actually
+	 * displayed. Override to provide a custom formatting.
+	 * @param {Mixed} value Result of {@link #object}.{@link Machine.SerializableObject#get get}({@link #property})
+	 * @param {String} displayValue Value to be displayed
+	 */
+	format: function(val) {
+		return val;
+	},
+	/**
 	 * Invoked when the attached Ext.ux.LabelEditor finishes editing; updates the attached object
 	 * @private
 	 * @param {Ext.ux.LabelEditor} ed
@@ -93,6 +101,7 @@ Ext.define('Workspace.Label', {
 	onChange : function(prop, val) {
 		if(prop == this.property && !this.ignoreNext) {
 			if(this.getEl()) {
+				val = this.format(val);
 				this.getEl().update(val);
 				this.updateSize(val);
 			}

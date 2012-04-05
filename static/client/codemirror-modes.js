@@ -386,10 +386,10 @@ CodeMirror.defineMode("nupack", function(config) {
 				if(stream.eat('%')) {
 					stream.skipToEnd();
 					return 'comment';
-				} else 	if(stream.match('structure',true,true)) {
+				} else if(stream.match('structure',true,true)) {
 					state.value = 'structure-definition-left';
 					return 'keyword';
-				} else if(stream.match('sequence',true,true)) {
+				} else if(stream.match('sequence',true,true) || stream.match('domain',true,true)) {
 					state.value = 'sequence-definition-left';
 					return 'keyword';
 				} else if(stream.match('strand',true,true)) {

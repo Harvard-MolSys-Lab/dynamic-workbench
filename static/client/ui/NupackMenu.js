@@ -24,7 +24,10 @@ Ext.define('App.ui.NupackMenu', {
 		this.callParent(arguments);
 	},
 	openDesignWindow: function() {
-		var designWindow = Ext.create('App.ui.nupack.DesignWindow');
-		designWindow.show();
+		if(!this.designWindow) {		
+			this.designWindow = Ext.create('App.ui.nupack.DesignWindow');
+		}
+		this.designWindow.show();
+		this.fireEvent('designwindow',this,this.designWindow);
 	}
 });

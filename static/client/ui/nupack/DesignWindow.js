@@ -130,7 +130,28 @@ Ext.define('App.ui.nupack.DesignWindow',{
 				scope: this,
 			}]
 		});
+		//this.on('afterrender',this.afterrender,this);
 		this.callParent(arguments);
+	},
+	afterrender : function() {
+		var textarea = this.getEl().down('textarea').dom,
+			textareaCmp = this.down('textarea');
+		if(textarea && textareaCmp) {
+			var me = this;
+			this.codemirror = CodeMirror.fromTextArea(textarea, {
+				matchBrackets:      false,
+	            electricChars:      false,
+	            indentUnit:         false,
+	            smartIndent:        false,
+	            indentWithTabs:     true,
+	            lineNumbers:        true,
+	            lineWrapping:       true,
+	            firstLineNumber:    1,
+	            mode: 'nupack',
+				
+			});
+			this.codemirror.setValue(textareaCmp.getValue());
+		}
 	},
 	doSubmit: function() {
 		var form = this.down('form').getForm();
@@ -140,7 +161,10 @@ Ext.define('App.ui.nupack.DesignWindow',{
 			method: 'post',
 			enctype:'multipart/form-data',
 		})
-		
+	},
+	updateDesign: function(design) {
+		var designField = this.down('textareafield');
+		designField.setValue(design);
 	}
 })
 

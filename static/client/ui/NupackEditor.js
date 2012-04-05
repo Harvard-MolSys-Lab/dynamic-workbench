@@ -6,7 +6,8 @@ Ext.define('App.ui.NupackEditor', {
 	iconCls:'nupack',
 	editorType: 'NUPACK',
 	mode: 'nupack',
-	requires: ['App.ui.SequenceThreader'],
+	alias: 'widget.nupack',
+	requires: ['App.ui.SequenceThreader','App.ui.NupackMenu'],
 	/**
 	 * @cfg
 	 * True to show the #nupackButton
@@ -36,7 +37,14 @@ Ext.define('App.ui.NupackEditor', {
 				text: 'Open NUPACK',
 				iconCls: 'nupack-icon',
 				handler: App.ui.Launcher.makeLauncher('nupack'),
-				menu: new App.ui.NupackMenu({}),
+				menu: Ext.create('App.ui.NupackMenu',{
+					listeners : {
+						'designwindow': {
+							fn: this.populateDesignWindow,
+							scope: this,
+						}
+					}
+				}),
 			});
 		}
 		if(this.showEditButton) {
@@ -63,6 +71,9 @@ Ext.define('App.ui.NupackEditor', {
 			tbar: tbar
 		})
 		this.callParent(arguments);
+	},
+	populateDesignWindow: function(menu,designWindow) {
+		designWindow.updateDesign(this.getValue());
 	},
 	/**
 	 * Opens a {@link App.ui.SequenceThreader sequence threader}, allowing the 

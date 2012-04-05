@@ -30,6 +30,14 @@ Ext.grid.property.Store.override({
 	},
 });
 
+/*
+ * This patch is necessary in the 4.0.x branch, due to this bug: 
+ * http://www.sencha.com/forum/showthread.php?151211-Reloading-TreeStore-adds-all-records-to-store-getRemovedRecords&p=661157#post661157
+ * http://www.sencha.com/forum/showthread.php?154059-4.0.7-TreePanel-Error-when-reloading-the-treeStore
+ * 
+ * Without the fix, on tree node refresh, all nodes are deleted (including POST requests to the server which delete *actual files*).
+ * This is apparently fixed in 4.1.0, so should be reverted then.
+ */
 Ext.require('Ext.data.TreeStore');
 Ext.data.TreeStore.override({
     load: function(options) {

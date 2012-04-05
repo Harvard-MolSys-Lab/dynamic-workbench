@@ -372,7 +372,8 @@ Ext.define('App.TaskRunner.Task', {
 		opts || ( opts = {});
 		Ext.apply(opts, {
 			group : this.getGroupName(),
-			iconCls : this.iconCls
+			iconCls : this.iconCls,
+			silent: true,
 		});
 		App.log(msg, opts);
 	},

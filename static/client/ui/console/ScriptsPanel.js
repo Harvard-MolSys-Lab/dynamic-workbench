@@ -77,19 +77,31 @@ Ext.define('App.ui.console.ScriptsPanel', {
 		var s = this.scriptField.getValue();
 		this.executeInContext(s,App.ui.active(),this.trapBox.getValue());
 	},
-	executeInContext: function(s,ctx,trap) {
+	executeInContext: function(s,ctx,trap,params) {
+		var paramNames = [], paramValues = [];
 		if(trap) {
 			try {
-				var rt = new Function(s);
-				rt = rt.apply(ctx); //eval(s);
-				Ext.dump(rt === undefined? '(no return)' : rt);
+				
+				_.each(params,function(value,key) {
+					paramNames.push(key);
+					paramValues.push(value);
+				})
+				
+				var rt = Function.apply(window,paramNames.concat([s]));
+				rt = rt.apply(ctx,paramValues); //eval(s);
+				App.dump(rt === undefined? '(no return)' : rt);
 			} catch(e) {
-				Ext.log(e.message || e.descript,{iconCls: 'error'});
+				App.log(e.message || e.descript,{iconCls: 'error'});
 			}
 		} else {
-			var rt = new Function(s);
-				rt = rt.apply(ctx);
-			Ext.dump(rt === undefined? '(no return)' : rt);
+				_.each(params,function(value,key) {
+					paramNames.push(key);
+					paramValues.push(value);
+				})
+				
+				var rt = Function.apply(window,paramNames.concat([s]));
+				rt = rt.apply(ctx,paramValues);
+			App.dump(rt === undefined? '(no return)' : rt);
 		}
 	},
 	/**

@@ -43,6 +43,9 @@ Ext.apply(App, {
 				var to = typeof o[key];
 				if(to != "function" && to != "object") {
 					b.push(Ext.String.format("  {0}: {1},\n", key, o[key]));
+				} else {
+					if(_.isArray(o[key])) {to = 'array';}
+					b.push(Ext.String.format("  {0}: {1},\n", key, to));
 				}
 			}
 			var s = b.join("");

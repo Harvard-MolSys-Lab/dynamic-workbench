@@ -469,7 +469,7 @@ Ext.define('App.ui.DD', {
 			});
 		}, this);
 		this.callParent(arguments);
-		this.mixins.tips.init.apply(this, arguments);
+		this.mixins.tip.init.apply(this, arguments);
 		_.each(this.query('*[ref]'), function(cmp) {
 			this[cmp.ref] = cmp;
 		}, this);

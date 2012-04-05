@@ -171,10 +171,14 @@ Ext.define('App.ui.BoundObjectPanel', {
 	 */
 	bind : function(item) {
 		if(!this.boundObjects.containsKey(item.getId())) {
-			this.boundObjects.add(item.getId(), item);
-			if(this.boundObjects.length == 1) {
+			// this.boundObjects.add(item.getId(), item);
+			// if(this.boundObjects.length == 1) {
+				// this.updateFields(item);
+			// }
+			if(this.boundObjects.length == 0) {
 				this.updateFields(item);
 			}
+			this.boundObjects.add(item.getId(), item);
 			this.mon(item, 'change', this.updateFieldsHandler, this);
 			this.updateDynamicFields();
 		}

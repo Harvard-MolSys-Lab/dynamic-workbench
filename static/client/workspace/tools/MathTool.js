@@ -68,6 +68,7 @@ Ext.define('Workspace.tools.MathTool', {
 			})
 
 			this.proto.remove();
+			this.proto = false;
 			this.workspace.edit(obj);
 		}
 		e.stopEvent();

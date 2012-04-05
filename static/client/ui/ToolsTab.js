@@ -221,7 +221,9 @@ Ext.define('App.ui.ToolsTab', {
 			 iconCls: 'arrange-back'
 			 }]
 			 },*/
-			'->',{
+			//'->',
+			{xtype:'tbfill'},
+			{
 
 				// 'Workspace' group
 				xtype: 'buttongroup',
@@ -272,7 +274,16 @@ Ext.define('App.ui.ToolsTab', {
 		 * @event toolChange
 		 */
 		this.addEvents('toolChange');
+		if(!this.defaults) {
+			this.defaults = {};
+		}
+		Ext.applyIf(this.defaults,{
+			xtype: 'buttongroup',
+			headerPosition: 'bottom',
+			margins: '3 0 5 3',			
+		})
 		Ext.apply(this, this.generateConfig());
+		
 
 		App.ui.ToolsTab.superclass.initComponent.apply(this, arguments);
 

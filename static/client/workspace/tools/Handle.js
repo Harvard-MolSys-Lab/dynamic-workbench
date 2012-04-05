@@ -151,6 +151,7 @@ Ext.define('Workspace.tools.Handle', {
 		if(e.hasModifier()) {
 			
 		}
+		return pos;
 	},
 	dragEndHandler : function(e) {
 		if(this.dragging) {

@@ -1,10 +1,13 @@
 var program = require('commander'),
 	_ = require('underscore'),
 	DD = require('./dd'),
-	fs = require('fs');
+	fs = require('fs'),
+	path = require('path');
 	
 	
 program.usage('[options] <input file>')
+	.version('0.4.5')
+	.description('Command-line Domain Designer');
 
 /*
  * Rules and design parameters
@@ -28,19 +31,25 @@ var params = ["GCstr", "ATstr", "GTstr", "MBstr", "LLstr", "DHstr", "MAX_IMPORTA
  * Tell commander about all the flags we'd like to generate
  */
 var opts = _.reduce(rules,function(program,value,key) {
-	return program.option('--'+key,value[1]+' (default: '+value[0]+')',value[2]);
+	return program.option('--'+key+' <n>',value[1]+' ['+value[0]+']',value[2]);
 },program);
 
 opts = _.reduce(params,function(program,r) {
-	return program.option('--'+r,r);
+	return program.option('--'+r+' <n>','score parameter for "'+r+'"');
 },program);
 
-program.option('-b, --bored <n>','Stop when the score has not changed after <n> mutation attempts')
-	.option('-f, --flux <x>','Stop when the score flux is less than <x>')
-	.option('-d, --delta <x>','Stop when the score delta is less than <x>');
+program.option('-b, --bored <n>','stop when the score has not changed after <n> mutation attempts')
+	.option('-f, --flux <x>','stop when the score flux is less than <x>')
+	.option('-d, --delta <x>','stop when the score delta is less than <x>');
 	
-program.option('-i, --interactive','<true/false> True to print output as mutations occur',Boolean)
-program.option('-o, --output <file>','File to which to send output strands')
+program.option('-o, --output <file>','file to which to send output strands')
+program.option('--format <format>','which format to use when outputting files (dd/seq/ddjs) [seq]','seq')
+program.option('-d, --designs <n>','number of designs to produce. If < 1 and output files specified, design number will be appended to filename (e.g. design-1.dd)',1)
+program.option('-u, --try-unique <n>','if design produced is not unique, attempt to redesign <n> times',0)
+
+program.option('-i, --interactive','true to print output as mutations occur',Boolean)
+program.option('-q, --quiet','in interactive mode, true to print only score statistics as mutations occur (no sequences)',Boolean)
+
 
 var argv = opts.parse(process.argv);
 
@@ -70,7 +79,9 @@ if(program.bored) {
 var iterator;
 if(program.interactive) {
 	iterator = function(des) {
-		console.log(des.printDomains().join('\n'));
+		if(!program.quiet) {		
+			console.log(des.printDomains().join('\n'));
+		}
 		var out = [
 		'Score: '+des.getWorstScore(),
 		'Mutations: '+des.getMutationCount(),
@@ -91,12 +102,14 @@ if(program.interactive) {
  * Rebuild rules and params hashes and pass to DD
  */
 var dd = new DD();
-var rules = _.reduce(rules,function(rules,r) {
+var rules = _.reduce(rules,function(rules,value,r) {
 	if(argv[r]) {
 		rules[r] = argv[r];
 	}
 	return rules;
 },{});
+
+console.log(rules);
 
 var params = _.reduce(params,function(params,p) {
 	if(argv[p]) {
@@ -104,6 +117,9 @@ var params = _.reduce(params,function(params,p) {
 	}
 	return params;
 },{});
+
+
+console.log(params);
 
 dd.updateRules(rules);
 dd.updateParams(params);
@@ -114,17 +130,58 @@ dd.updateParams(params);
  */
 var file = _.first(program.args);
 var data = fs.readFileSync(file,'utf8');
-dd.loadFile(data);
 
 /*
- * Mutate
+ * Design
  */
-dd.evaluateAllScores();
-dd.mutateUntil(iterator);
-var outputFile = program.output,
-	outputData = dd.printDomains().join('\n');
+var designCount = program.designs,
+	designs = [], tryUnique = program.tryUnique;
+	
+for(var i=0;i<designCount;i++) {
+	var attempts = 0, unique = false;
+	do {
+		attempts++;
+		dd.loadFile(data);
+		dd.evaluateAllScores();
+		dd.mutateUntil(iterator);
+		var outputData;
+		switch(program.format) {
+			case 'dd':
+				outputData = dd.saveFile();
+				break;
+			case 'ddjs':
+				outputData = JSON.stringify(dd.saveState());
+				break;
+			case 'seq':
+			default:
+				outputData = dd.printDomains().join('\n');	
+		}
+		if(tryUnique && attempts < tryUnique) {
+			for(var j=0;j<designs.length;j++) {
+				unique = (outputData == designs[j]);
+				if(!unique) break;
+			}
+		} else {
+			unique = true;
+		}
+		
+	} while (!unique)
+	
+	designs.push(outputData);
+}
+var outputFile = program.output;
 if(outputFile) {
-	fs.writeFileSync(outputFile,outputData,0,'utf8')
+	if(designs.length == 1) {	
+		fs.writeFileSync(outputFile,outputData,0,'utf8')
+	} else {
+		var outputFileExt = path.extname(outputFile),
+			outputFileBase = path.join(path.dirname(outputFile), path.basename(outputFile,outputFileExt));
+			
+		for(var i=0;i<designs.length;i++) {
+			var n = i+1;
+			fs.writeFileSync(outputFileBase+'-'+n+outputFileExt,designs[i],0,'utf8')
+		}
+	}
 }
 console.log(outputData);
 

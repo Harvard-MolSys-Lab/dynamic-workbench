@@ -1,4 +1,6 @@
-var utils = require('../utils'), proc = require('child_process'), fs = require('fs'), _ = require('underscore'), async = require('async'), path = require('path'), winston = require('winston');
+var utils = require('../utils'), proc = require('child_process'), fs = require('fs'), 
+_ = require('underscore'), async = require('async'), path = require('path'), //
+winston = require('winston'), dynamic = require('../../static/common/dynamic');
 
 var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath, getCommand = utils.getCommand;
 
@@ -38,6 +40,8 @@ exports.start = function(req, res, params) {
 				function(cb) {fs.unlink(postfix(fullPath,'domains'),function(err,res) { cb(null,res);});},
 				function(cb) {fs.unlink(postfix(fullPath,'svg'),function(err,res) { cb(null,res);});},
 				function(cb) {fs.unlink(postfix(fullPath,'nupack'),function(err,res) { cb(null,res);});},
+				function(cb) {fs.unlink(postfix(fullPath,'dynaml'),function(err,res) { cb(null,res);});},
+
 			],function(err,results) {
 				if(err) {
 					utils.log({
@@ -53,37 +57,78 @@ exports.start = function(req, res, params) {
 				
 			})
 			break;
-			case 'all':
-			default:
-				fs.writeFile(inFileName, inFile, function(err) {
+		case 'legacy':
+		case 'all':
+		default:
+			fs.writeFile(inFileName, inFile, function(err) {
+				if(err) {
+					winston.log("error", "nodal: Couldn't write inFile. ", {
+						err : err,
+						inFileName : inFileName,
+						inFile : inFile,
+					});
+					sendError(res, 'Internal Server Error', 500)
+					return;
+				} else {
+					cmd = getCommand(commands['nodal'], ['-i', quote(inFileName), '-d', quote(postfix(fullPath, 'domains')), '-n', quote(postfix(fullPath, 'nupack')), '-s', quote(postfix(fullPath, 'svg'))]);
+					winston.log("info", cmd);
+					proc.exec(cmd, function(err, stdout, stderr) {
+						if(err) {
+							winston.log("error", "nodal: Execution error. ", {
+								cmd : cmd,
+								stderr : stderr,
+								stdout : stdout,
+							});
+						}
+						if(stderr) {
+							res.send("Build completed with errors. \n\n" + stderr);
+						} else {
+							res.send(stdout + "\n Build completed.");
+						}
+					})
+				}
+			});
+			break;
+		case 'dynamic':
+			try {
+				var data = params["data"];
+				var input = JSON.parse(data);
+				var lib = dynamic.Compiler.compile(data);
+				var nupackOut = lib.toNupackOutput(),
+					ddOut = lib.toDomainsOutput(),
+					pilOut = lib.toPilOutput(),
+					svgOut = lib.toSVGOutput();
+				async.parallel([function(cb) {
+					fs.writeFile(postfix(fullPath, 'domains'),ddOut,'utf8',cb);
+				},function(cb) {
+					fs.writeFile(postfix(fullPath, 'nupack'),nupackOut,'utf8',cb);
+				},function(cb) {
+					fs.writeFile(postfix(fullPath, 'svg'),svgOut,'utf8',cb);
+				},function(cb) {
+					fs.writeFile(postfix(fullPath, 'dynaml'),JSON.stringify(input,null,'\t'),'utf8',cb);
+				},function(cb) {
+					fs.writeFile(postfix(fullPath, 'pil'),pilOut,'utf8',cb);
+				},],function(err) {
 					if(err) {
-						winston.log("error", "nodal: Couldn't write inFile. ", {
-							err : err,
-							inFileName : inFileName,
-							inFile : inFile,
+						utils.log({
+							level: "error",
+							source: "nodal",
+							message: "Unknown error",
+							err: err,
+							data: data,
 						});
 						sendError(res, 'Internal Server Error', 500)
 						return;
 					} else {
-						
-							
-								cmd = getCommand(commands['nodal'], ['-i', quote(inFileName), '-d', quote(postfix(fullPath, 'domains')), '-n', quote(postfix(fullPath, 'nupack')), '-s', quote(postfix(fullPath, 'svg'))]);
-								winston.log("info", cmd);
-								proc.exec(cmd, function(err, stdout, stderr) {
-									if(err) {
-										winston.log("error", "nodal: Execution error. ", {
-											cmd : cmd,
-											stderr : stderr,
-											stdout : stdout,
-										});
-									}
-									if(stderr) {
-										res.send("Build completed with errors. \n\n" + stderr);
-									} else {
-										res.send(stdout + "\n Build completed.");
-									}
-								})
+						res.send("Build completed.");
 					}
-				});
-		}
+				})
+			} catch(e) {
+				if (e instanceof dynamic.DynamlError) {
+					res.send(e.serialize());
+					return;
+				}
+				res.send("Build completed with errors. \n\n" + e);
+			}
+	}
 };

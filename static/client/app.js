@@ -31,7 +31,7 @@ Ext.apply(App, {
 	 * @property
 	 * Semver-formatted version number
 	 */
-	version : '0.3.2a',
+	version : 'unknown',
 	
 	/**
 	 * @property

@@ -5,7 +5,7 @@
  * PRE-RELEASE CODE. DISTRIBUTION IS PROHIBITED.
  */
 
-var auth = require('./auth'), config = require('./config');
+var auth = require('./auth'), config = require('./config'), version = require('./version');
 var form = require('connect-form'), fs = require('fs'), path = require('path'), _ = require('underscore');
 var utils = require('./utils'), async = require('async'), rm = require("./rm-rf"), fileTypes = require('./file-types'), winston = require('winston');
 var md = require('markdown').markdown, validate = require('validator');
@@ -63,8 +63,9 @@ exports.configure = function(app, express) {
 
 	app.get('/config', restrict('json'), function(req, res) {
 		res.render('config.ejs', {
-			layout : false,
-			client : config.client
+			layout  : false,
+			client  : config.client,
+			version : version
 		});
 	});
 

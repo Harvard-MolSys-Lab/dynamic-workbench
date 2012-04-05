@@ -1416,8 +1416,8 @@ var DD = function() {
 
 	function saveFile() {
 
-		var out = ''
-		out += num_domain + '\n';
+		var out = "";
+		out += num_domain + "\n";
 
 		for( i = 0; i < num_domain; i++) {
 			for( j = 0; j < domain_length[i]; j++) {
@@ -1599,7 +1599,7 @@ var DD = function() {
 
 	/**
 	 * doRule_6at
-	 * Applies a penalty to domain <var>dom</var> if it contains >= 6 A or T nucleotides in a row
+	 * Applies a penalty to domain `dom` if it contains >= 6 A or T nucleotides in a row
 	 * @param {Number} dom Index of the domain in question
 	 */
 	function doRule_6at(dom) {
@@ -1625,7 +1625,12 @@ var DD = function() {
 
 		}
 	}
-
+	
+	/**
+	 * doRule_shannon
+	 * Rewards domain `i` if it has a high information entropy
+	 * @param {Number} i Index of the domain to be scored
+	 */
 	function doRule_shannon(i) {
 		if(rule_shannon == 1) {
 			p_g = 0;

@@ -1063,10 +1063,20 @@ exports.DNA = (function() {
 			_.extend(params, {
 				strandValue : 9,
 				hybridizationValue : 2,
-				radius : 300
+				radius : 300,
+				segments: {},
+				segmentLabels: false,
 			});
 
-			var nodes = [], links = [], hybridization = [], strandIndex = 0, node, n = 0, base = 0, theta = 0, dtheta = Math.PI / struct.length;
+			var nodes = [], links = [], hybridization = [], strandIndex = 0, node, n = 0, base = 0, theta = 0, dtheta = Math.PI / struct.length, currentSegment = null;
+
+			if(params.segmentLabels) {
+				var segmentIndicies = _.keys(params.segments);
+				var labels = {};
+				for(var i = 0; i<(segmentIndicies.length-1); i++) {
+					labels[Math.round((segmentIndicies[i]+segmentIndicies[i+1])/2)] = params.segments[segmentIndicies[i]];
+				}
+			}
 
 			for(var i = 0; i < struct.length; i++) {
 
@@ -1075,9 +1085,12 @@ exports.DNA = (function() {
 					n--;
 					base = 0;
 				} else {
+					if(params.segments[i]) { currentSegment = params.segments[i]; }
 					node = {
 						strand : strandIndex,
 						nodeName : (strands && strands[strandIndex]) ? strands[strandIndex][base] : false,
+						base: (strands && strands[strandIndex]) ? strands[strandIndex][base] : false,
+						segment: currentSegment,
 						//x: Math.sin(theta)*params.radius,
 						//y: Math.cos(theta)*params.radius,
 					};
@@ -1123,6 +1136,13 @@ exports.DNA = (function() {
 							});
 						}
 					}
+					// if(labels[n]) {
+						// links.push({
+							// source : n,
+							// target : 
+						// })
+					// }
+					
 					theta += dtheta;
 				}
 				n++;

@@ -7,6 +7,8 @@
  * @param {Object} config
  */
 Ext.define('Workspace.tools.IdeaTool', {
+	targetWType: 'Workspace.objects.IdeaObject',
+	
 	constructor: function(workspace, config) {
 		Ext.applyIf(config, {
 			keyMap: []
@@ -18,7 +20,7 @@ Ext.define('Workspace.tools.IdeaTool', {
 		this.selectorBand = false;
 		this.selectionBands = new Ext.util.MixedCollection();
 	},
-	requires: ['Workspace.tools.IdeaAdderTool',],
+	requires: ['Workspace.tools.IdeaAdderTool','Workspace.tools.SelectorBand','Workspace.tools.SelectionBand'],
 	extend:'Workspace.tools.BaseTool',
 	click: function(e, item) {
 
@@ -39,6 +41,7 @@ Ext.define('Workspace.tools.IdeaTool', {
 			x1: pos.x,
 			y1: pos.y
 		});
+		this.selectorBand.cacheRegions();
 
 		e.stopEvent();
 	},
@@ -66,7 +69,8 @@ Ext.define('Workspace.tools.IdeaTool', {
 		var children = this.workspace.getSelection();
 
 		if (children.length > 0) {
-			var idea = this.workspace.createObject(Workspace.IdeaObject, {
+			var idea = this.workspace.createObject({
+				wtype: this.targetWType,
 				children: children
 			});
 			idea.toBack();
@@ -85,10 +89,12 @@ Ext.define('Workspace.tools.IdeaTool', {
 
 				// Get items within the selectorBand, and select them
 				var containedItems = this.selectorBand.getItemsWithin();
-				// items currently within the band
-				for (var i = 0, l = containedItems.length; i < l; i++) {
-					containedItems[i].select();
-				}
+				this.workspace.setSelection(containedItems);
+				
+				// // items currently within the band
+				// for (var i = 0, l = containedItems.length; i < l; i++) {
+					// containedItems[i].select();
+				// }
 
 			}
 		}

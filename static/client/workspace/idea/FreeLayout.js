@@ -20,11 +20,7 @@ Ext.define('Workspace.idea.FreeLayout', {
 	},
 	doFirstLayout: function() {
 		var union = false, applyToChildren = false;
-		box = Workspace.Utils.getBox(this.getObjects().getRange());
-		box = Workspace.Utils.padBox(box, this.idea.padding);
-		if (union)
-			box = Workspace.Utils.boxUnion(box, this.idea.getBox())
-		this.idea.setBox(box, applyToChildren);
+		this.doLayout(false);
 	},
 	/*
 	 addNextChild: function() {

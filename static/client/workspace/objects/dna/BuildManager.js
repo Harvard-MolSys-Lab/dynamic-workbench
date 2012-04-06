@@ -21,6 +21,7 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 		this.on('needsrebuild',this.buildRealtime,this,{
 			buffer: 1000
 		});
+		
 	},
 	// render: function() {
 		// this.errorEl = Ext.get(Ext.core.DomHelper.append(this.workspace.getContainerEl(),{
@@ -192,14 +193,27 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 	},
 	nodeIndex: 0,
 	getNextNodeName: function() {
-		this.nodeIndex++;
-		return "n"+this.nodeIndex;
+		var nextName;
+		do {
+			this.nodeIndex++;
+			nextName = "n"+this.nodeIndex;
+		} while(!!this.workspace.findObjectBy(function(obj) { return obj.get('name') == nextName; }));
+		return nextName;
 	},
-	serializeDynaml : function() {
+	motifIndex: 0,
+	getNextMotifName: function() {
+		var nextName;
+		do {
+			this.motifIndex++;
+			nextName = "m"+this.motifIndex;
+		} while(!!this.workspace.findObjectBy(function(obj) { return obj.get('name') == nextName; }));
+		return nextName;
+	},
+	buildDynaml: function(objects) {
 		var workspace = this.workspace;
-		var imports = [], nodes = [], complements = {}, nodeNameMap = {};
+		var imports = [], nodes = [], motifs = [], complements = {}, nodeNameMap = {};
 
-		workspace.objects.each(function(obj) {
+		_.each(objects,function(obj) {
 			if(obj.isWType('Workspace.objects.dna.Node')) {
 				nodeNameMap[obj.get('name')] = obj;
 				nodes.push(obj);
@@ -223,14 +237,37 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 					complements[leftNodeId] = [];
 
 				complements[leftNodeId].push(obj);
+			} else if(obj.isWType('Workspace.objects.dna.Motif')) {
+				motifs.push(obj);
 			}
 		});
-		imports = _.chain(imports).uniq().map(function(name) {
+		
+		// Build a hash mapping motif names to Workspace.objects.dna.Motif objects
+		var motifMap = _.reduce(motifs,function(memo,motif) {
+			memo[motif.get('name')] = motif; return memo;
+		},{});
+		
+		// Remove motifs which we've defined in the workspace
+		imports = _.chain(imports).uniq().filter(function(name) {
+			return !motifMap[name];
+		}).map(function(name) {
+			// Convert to the type of import objects accepted by DyNAMiC
 			return {
 				type : 'motif',
 				name : name
 			};
 		}).value();
+		
+		// Build DyNAML objects for motifs
+		motifs = _.map(motifs,function(motif) {
+			if(motif.get('nodes')) {
+				var lib = this.buildDynaml(motif.get('nodes'));
+			} else if(motif.get('dynaml')) {
+				
+			}
+		},this);
+		
+		// Build DyNAML objects for nodes
 		nodes = _.map(nodes, function(node) {
 			var polarity = node.get('polarity');
 			return {
@@ -280,6 +317,9 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 			'import' : imports,
 			nodes : nodes,
 		}
+	},
+	serializeDynaml : function() {
+		return this.buildDynaml(this.workspace.getRootObjects());
 	},
 	serializeTerse : function() {
 		var workspace = this.workspace;

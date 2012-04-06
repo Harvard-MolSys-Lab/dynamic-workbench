@@ -73,11 +73,11 @@ Ext.define('Machine.core.Serializable', {
 	 * Alias for #isWType
 	 */
 	hasWType : function() {
-		this.isWType.apply(this,arguments);
+		return this.isWType.apply(this,arguments);
 	},
 	/**
 	 * Determines whether the class implements the passed wtype
-	 * @param {String/Ext.Class} wtype Type name or object to check
+	 * @param {String/Ext.Class/Machine.core.Serializable/String[]} wtype Type name or object to check. If an array of strings is passed, will return true if the object implements any of the wtypes.
 	 * @param {Boolean} shallow True to check only if this object implements the passed wtype (not subclasses; defaults to false)
 	 */
 	isWType : function(wtype, shallow) {
@@ -86,6 +86,18 @@ Ext.define('Machine.core.Serializable', {
 			wtype = wtype.wtype; //handle being passed the class, e.g. Ext.Component
 		} else if (Ext.isObject(wtype)) {
 			wtype = wtype.constructor.wtype; //handle being passed an instance
+		} else if (Ext.isArray(wtype)) {
+			var str = ('/' + this.getWTypes() + '/');
+			if(shallow) {
+				return _.reduce(wtype,function(memo,wt) {
+					return memo || this.constructor.wtype == wt;
+				});
+			} 
+			else {
+				return _.reduce(wtype,function(memo,wt) {
+					return memo || str.indexOf('/' + wt + '/') != -1;
+				});
+			}
 		}
 
 		return !shallow ? ('/' + this.getWTypes() + '/').indexOf('/' + wtype + '/') != -1 : this.constructor.wtype == wtype;

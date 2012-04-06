@@ -115,7 +115,16 @@ App.dynamic = module.exports = (function(_,DNA) {
 				config: config,
 			});
 		}
-
+		
+		// Compile recursively if necessary
+		if(config.nodes) {
+			var recursive = Library.fromMotif(config);
+			recursive = recursive.compile();
+			_.extend(this,recursive.toMotif());
+			delete config.nodes;
+			delete config.motifs;
+			delete config.imports;
+		}
 
 		// Apply configuration options with defaults to this object
 		_.copyTo(this, config);
@@ -135,6 +144,8 @@ App.dynamic = module.exports = (function(_,DNA) {
 			 */
 			isInitiator : false,
 		});
+		
+
 
 		this.isInitiator = this.isInitiator || this.type == 'initiator';
 				
@@ -752,6 +763,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 				// }
 // 				
 				// return out.join(' ')				
+		},
+		orphan: function() {
+			this.polarity = this.getAbsolutePolarity();
+			delete this.node;
+			return this;
 		},
 		serialize: function() {
 			var out = _.copy(this);
@@ -1418,72 +1434,6 @@ App.dynamic = module.exports = (function(_,DNA) {
 		},
 		
 		toNupackOutput: function() {
-			// #
-			// # design a 2-input AND gate (Seelig et al., Science, 2006)
-			// # design material, temperature, trials, and model options
-			// # see NUPACK User Guide for valid options for 
-			// # material, sodium, magnesium, and dangles
-			// #
-			// material = dna
-			// temperature[C] = 23.0 # optional units: C (default) or K
-			// trials = 3
-			// sodium[M] = 1.0       # optional units: M (default), mM, uM, nM, pM
-			// dangles = some
-			// 
-			// #
-			// # target structures
-			// #
-			// structure signal1 = U36
-			// structure signal2 = U36
-			// structure gate_full = D30(+D30(U6+))
-			// structure gate_step = D30(+U30)
-			// structure output = D36(+U24)
-			// structure waste = D36(+)
-			// 
-			// #
-			// # sequence domains
-			// #
-			// domain gate_toehold1 = N6
-			// domain gate_toehold2 = N6
-			// domain gate_duplex1 = N24
-			// domain gate_duplex2 = N30
-			// 
-			// #
-			// # strands (optional, used for threading sequence information 
-			// # and for displaying results)
-			// # 
-			// strand J = gate_toehold1* gate_duplex1* gate_toehold2
-			// strand M = gate_duplex2* gate_toehold2*
-			// strand G = gate_toehold2* gate_duplex1 gate_toehold1
-			// strand F = gate_duplex1* gate_toehold2 gate_duplex2
-			// strand E = gate_duplex2*
-			// 
-			// #
-			// # thread strand sequence information onto target structures
-			// # 
-			// signal1.seq = J
-			// signal2.seq = M
-			// gate_full.seq = E G F
-			// gate_step.seq = E F
-			// output.seq = M F
-			// waste.seq = J G
-			// 
-			// #
-			// # specify stop conditions for normalized ensemble defect
-			// # default: 1.0 percent for each target structure
-			// #
-			// signal1.stop[%] = 10.0   # optional units: % or frac 
-			// signal2.stop[%] = 10.0      # larger defect for unpaired structures   
-			// gate_full.stop[%] = 5.0 # smaller defect for mixed structures 
-			// gate_step.stop[%] = 5.0
-			// output.stop[%] = 5.0
-			// waste.stop[%] = 2.0
-			// 
-			// #
-			// # prevent sequence patterns
-			// #
-			// prevent = AAAA, CCCC, GGGG, UUUU, KKKKKK, MMMMMM, RRRRRR, SSSSSS, WWWWWW, YYYYYY
-			// 
 			
 			var library = this;
 
@@ -1707,7 +1657,34 @@ App.dynamic = module.exports = (function(_,DNA) {
 		toPilOutput: function() {
 			return '';
 		},
+		toMotif: function() {
+			var strands = _.map(this.strands,function(strand) {
+				var newStrand = _.copy(strand);
+				newStrand.domains = _.map(newStrand.domains || [],function(domain) {
+					if(domain.expose) {
+						_.extend(domain,domain.expose);
+						delete domain.expose;
+					} else {
+
+					}
+					if(domain.orphan) {
+						domain.orphan();
+					}
+					return domain;
+				});
+				return newStrand.serialize();
+			});
+			return {strands: strands};
+		}
 	};
+	
+	_.extend(Library,{
+		fromMotif: function(motif) {
+			var duplicate = _.copy(motif);
+			delete motif.library;
+			return new Library(duplicate);
+		}
+	});
 	
 	
 
@@ -2030,9 +2007,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 									return Math.abs(labels[id])
 								});
 								var segmentIdToRelabel = _.last(segments);
-								//Math.max(Math.abs(labels[leftSegmentId]), Math.abs(labels[rightSegmentId]));
 								var segmentIdToKeep = _.first(segments);
-								//Math.min(Math.abs(labels[leftSegmentId]), Math.abs(labels[rightSegmentId]));
 
 								var newLabel = null;
 
@@ -2587,7 +2562,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 					}
 					// TODO: import from external files
 			}
-		};
+		}
 		
 		function getColor (domain) {
 			if(domain.role && domain.type) {

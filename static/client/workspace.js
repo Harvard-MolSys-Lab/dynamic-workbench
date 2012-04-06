@@ -498,18 +498,30 @@ Ext.define('Workspace', {
 	getSelectionWType: function() {
 		return this.selection.getCommonWType();
 	},
+	/**
+	 * Gets all #objects in the workspace
+	 * @returns {Workspace.objects.Object[]}
+	 */
 	getAllObjects: function() {
 		return this.objects.getRange();
+	},
+	/**
+	 * Gets all #objects which do not have a {@link Workspace.objects.Object#parent parent}.
+	 * @param {String} [domain='all'] `selection` to query objects in the selection, `all` to query all objects in the workspace 
+	 * @returns {Workspace.objects.Object[]} rootObjects
+	 */
+	getRootObjects: function(domain) {
+		return this.filterObjectsBy(function(obj) { return !obj.hasParent(); },domain);
 	},
 	/**
 	 * Finds an object matching an arbitrary criteria; returns the first 
 	 * object for which `filter` returns true
 	 * @param {Function} filter passed with the `object` as the first parameter; return `true` to select the object, `false` to reject
-	 * @param {String} [type='all'] `selection` to query objects in the selection, `all` to query all objects in the workspace 
+	 * @param {String} [domain='all'] `selection` to query objects in the selection, `all` to query all objects in the workspace 
 	 * @returns {Workspace.object.Object[]}
 	 */
-	findObjectBy: function(f,type) {
-		switch(type) {
+	findObjectBy: function(f,domain) {
+		switch(domain) {
 			case 'selection':
 				return _.find(this.getSelection(),f);
 			case 'all':
@@ -521,11 +533,11 @@ Ext.define('Workspace', {
 	 * Returns all objects matching an arbitrary criteria; returns an array of
 	 * objects for which `filter` returns true
 	 * @param {Function} filter passed with the `object` as the first parameter; return `true` to select the object, `false` to reject
-	 * @param {String} [type='all'] `selection` to query objects in the selection, `all` to query all objects in the workspace 
+	 * @param {String} [domain='all'] `selection` to query objects in the selection, `all` to query all objects in the workspace 
 	 * @returns {Workspace.object.Object[]}
 	 */
-	filterObjectsBy: function() {
-		switch(type) {
+	filterObjectsBy: function(f,domain) {
+		switch(domain) {
 			case 'selection':
 				return _.filter(this.getSelection(),f);
 			case 'all':

@@ -65,9 +65,6 @@ Ext.define('Workspace.objects.Object2d', {
 		//'getWidth','updateWidth');
 		this.expose('height', true, true, true, false);
 		//,'getHeight','updateHeight');
-		// subscribe to property change events to fire resize event
-		this.on('change:width', this.updateWidth, this);
-		this.on('change:height', this.updateHeight, this);
 		
 		
 		if(this.showTitle) {			
@@ -100,6 +97,13 @@ Ext.define('Workspace.objects.Object2d', {
 	 */
 	height : 0,
 	proxified : false,
+	render: function() {
+		this.callParent(arguments);
+		
+		// subscribe to property change events to fire resize event
+		this.on('change:width', this.updateWidth, this);
+		this.on('change:height', this.updateHeight, this);
+	},
 
 	/**
 	 * getProxy

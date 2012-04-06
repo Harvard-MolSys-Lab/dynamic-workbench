@@ -89,9 +89,6 @@ Ext.define('Workspace.objects.Object', {
 			}
 			return m;
 		}, false, false, false);
-		// bind listeners to update position
-		this.on('change:x', this.updateX, this);
-		this.on('change:y', this.updateY, this);
 	},
 	editable : true,
 	extend : 'Machine.core.Serializable',
@@ -464,6 +461,9 @@ Ext.define('Workspace.objects.Object', {
 	 * Fires the {@link #event-render} event, updates #state.
 	 */
 	render : function() {
+		// bind listeners to update position
+		this.on('change:x', this.updateX, this);
+		this.on('change:y', this.updateY, this);
 		this.setState('rendered', true);
 		this.fireEvent('render');
 	},

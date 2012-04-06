@@ -7,6 +7,8 @@
  * @param {Object} config
  */
 Ext.define('Workspace.tools.PolyLineTool', {
+	targetWType: 'Workspace.objects.Path',//'Workspace.objects.SegmentedPath',
+	
 	constructor : function(workspace, config) {
 		this.workspace = workspace;
 		Ext.apply(this, config, {
@@ -102,7 +104,7 @@ Ext.define('Workspace.tools.PolyLineTool', {
 	},
 	buildObject : function() {
 		return {
-			wtype : 'Workspace.objects.SegmentedPath',
+			wtype : this.targetWType,
 			points : this.currentPoints,
 			//path: this.currentPath,
 			fillOpacity : 0.1

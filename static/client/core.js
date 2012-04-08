@@ -91,12 +91,12 @@ Ext.define('Machine.core.Serializable', {
 			if(shallow) {
 				return _.reduce(wtype,function(memo,wt) {
 					return memo || this.constructor.wtype == wt;
-				});
+				},false);
 			} 
 			else {
 				return _.reduce(wtype,function(memo,wt) {
 					return memo || str.indexOf('/' + wt + '/') != -1;
-				});
+				},false);
 			}
 		}
 

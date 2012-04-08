@@ -244,7 +244,7 @@ Ext.define('Workspace', {
 	 */
 	buildObject: function() {
 		var objectClass,
-		cfg;
+		cfg, obj;
 
 		// overloaded signature
 		if (arguments.length == 1) {
@@ -331,7 +331,7 @@ Ext.define('Workspace', {
 		if(obj) {	
 			this.fireEvent('instantiate', obj);
 		} else {
-			throw {message: "Couldn't create object",data: objects[i]};
+			throw {message: "Couldn't create object",data: {objectClass: objectClass, config: config}};
 		}
 
 		// initialize, render, and register object; fire create event

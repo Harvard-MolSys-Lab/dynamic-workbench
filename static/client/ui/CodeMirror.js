@@ -140,10 +140,18 @@ Ext.define('App.ui.CodeMirror', {
 	            gutter:             me.enableGutter,
 	            fixedGutter:        me.enableFixedGutter,
 	            theme:              me.theme,
-				onCursorActivity : Ext.bind(this.onCursorActivity, this)
+				onCursorActivity : 	Ext.bind(this.onCursorActivity, this),
+				onBlur:				Ext.bind(this.onBlur,this),
+				onFocus:			Ext.bind(this.onFocus,this),
 			},this));
-			this.codemirror.setValue(this.value);
+			this.codemirror.setValue(this.value || '');
 		}
+	},
+	onBlur: function() {
+		this.fireEvent('blur', this, this.editor);
+	},
+	onFocus: function() {
+		this.fireEvent('focus', this, this.editor);
 	},
 	/**
 	 * Fires the {@link #cursorchange} event
@@ -162,9 +170,9 @@ Ext.define('App.ui.CodeMirror', {
 	 */
 	setValue : function(v) {
 		if(this.rendered) {
-			this.codemirror.setValue(v);
+			this.codemirror.setValue(v || '');
 		} else {
-			this.value = v;
+			this.value = v || '';
 		}
 	},
 	/**

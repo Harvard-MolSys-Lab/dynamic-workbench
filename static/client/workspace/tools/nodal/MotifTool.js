@@ -6,6 +6,17 @@ Ext.define('Workspace.tools.nodal.MotifTool', {
 	},
 	requires : ['Workspace.objects.dna.Motif'],
 	extend : 'Workspace.tools.IdeaTool',
+	alternateAction: function(e,item,pos) {
+		var idea = this.workspace.createObject({
+			wtype : this.targetWType,
+			children : [],
+			x: pos.x,
+			y: pos.y,
+		});
+		idea.toBack();
+		idea.select();
+		this.workspace.changeTool('pointer');
+	},
 	buildIdeaFromSelection : function() {
 		var partition = _.groupBy(this.workspace.getSelection(), 'wtype');
 		var nodes = partition['Workspace.objects.dna.Node'], //

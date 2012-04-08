@@ -5,7 +5,11 @@ Ext.define('App.ui.NodalCanvas', {
 	extend : 'App.ui.Canvas',
 	editorType : 'Nodal',
 	iconCls : 'nodal',
-	requires : ['App.ui.nodal.HomeTab', 'App.ui.nodal.BuildTab', 'App.ui.nodal.CommandTab', 'Workspace.objects.dna.BuildManager', 'Workspace.objects.dna.Node', 'Workspace.objects.dna.Complementarity', 'Workspace.tools.nodal.NodeTool', 'Workspace.tools.nodal.PortTool', 'Workspace.tools.nodal.ComplementarityTool', 'Workspace.tools.nodal.MotifTool', 'Workspace.tools.nodal.ExposureTool', 'App.ui.nodal.NodeInspector', 'App.ui.nodal.PortInspector', 'App.ui.MotifPalette'],
+	requires : ['App.ui.nodal.HomeTab', 'App.ui.nodal.BuildTab', 'App.ui.nodal.CommandTab', //
+	'Workspace.objects.dna.BuildManager', 'Workspace.objects.dna.Node', 'Workspace.objects.dna.Complementarity', //
+	'Workspace.tools.nodal.NodeTool', 'Workspace.tools.nodal.PortTool', 'Workspace.tools.nodal.ComplementarityTool', //
+	'Workspace.tools.nodal.MotifTool', 'Workspace.tools.nodal.ExposureTool', //
+	'App.ui.nodal.NodeInspector', 'App.ui.nodal.PortInspector', 'App.ui.nodal.MotifInspector', 'App.ui.MotifPalette'],
 	border : false,
 	mixins : {
 		refHelper : 'App.ui.RefHelper',
@@ -54,8 +58,14 @@ Ext.define('App.ui.NodalCanvas', {
 		 */
 		Ext.create('App.ui.nodal.PortInspector', {
 			ref : 'portInspector',
+		}),
+		/**
+		 * @property {App.ui.nodal.MotifInspector} motifInspector
+		 */
+		Ext.create('App.ui.nodal.MotifInspector', {
+			ref : 'motifInspector'
 		})];
-
+		
 		this.bbarItems = [{
 			iconCls : '',
 			ref : 'buildStatusButton',
@@ -65,10 +75,10 @@ Ext.define('App.ui.NodalCanvas', {
 				text : 'Check for errors',
 				handler : this.forceRebuild,
 				scope : this,
-			},{
-				text: 'Show full results',
-				handler: this.showLibraryTreeWindow,
-				scope: this,
+			}, {
+				text : 'Show full results',
+				handler : this.showLibraryTreeWindow,
+				scope : this,
 			}]
 		}]
 		this.callParent(arguments);
@@ -93,7 +103,7 @@ Ext.define('App.ui.NodalCanvas', {
 			if(!this.libraryTreeWindow) {
 				this.libraryTreeWindow = Ext.create('App.ui.nodal.LibraryWindow', {
 					lastLibrary : this.workspace.buildManager.lastLibrary,
-					sourceDynaml: this.workspace.buildManager.lastDynaml
+					sourceDynaml : this.workspace.buildManager.lastDynaml
 				})
 			}
 			this.libraryTreeWindow.show();
@@ -143,7 +153,7 @@ Ext.define('App.ui.NodalCanvas', {
 	onRebuild : function() {
 		this.updateBuildStatus('done', 'Build completed', 'Build completed successfully.');
 		if(this.libraryTreeWindow) {
-			this.libraryTreeWindow.setLibrary(this.workspace.buildManager.lastLibrary,this.workspace.buildManager.lastDynaml);
+			this.libraryTreeWindow.setLibrary(this.workspace.buildManager.lastLibrary, this.workspace.buildManager.lastDynaml);
 		}
 	},
 	showError : function(msg, e) {
@@ -157,4 +167,4 @@ Ext.define('App.ui.NodalCanvas', {
 		this.workspace.getActiveTool().buildMotif(data.draggedRecord.get('spec'), pos.x, pos.y);
 		this.workspace.setActiveTool(tool);
 	});
-}); 
+});

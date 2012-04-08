@@ -20,11 +20,17 @@ Ext.define('Workspace.idea.BaseLayout', {
 	childrenResizable: true,
 	childrenMovable: true,
 	defaultChildType: 'Workspace.RichTextObject',
+	/**
+	 * Override to provide custom layout logic
+	 */
 	doLayout: function() {
-
+		
 	},
+	/**
+	 * Override to provide custom logic on the first layout
+	 */
 	doFirstLayout: function() {
-
+		this.doLayout();
 	},
 	addNextChild: function() {
 		this.idea.addChild(this.idea.workspace.createChild(this.defaultChildConfig))

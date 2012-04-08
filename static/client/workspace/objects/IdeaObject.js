@@ -24,6 +24,10 @@ Ext.define('Workspace.objects.IdeaObject', {
 	requires: ['Workspace.Label','Ext.util.MixedCollection'],
 	extend: 'Workspace.objects.Rectangle',
 	wtype: 'Workspace.objects.IdeaObject',
+	/**
+	 * @cfg {String} layout
+	 * An ltype which can be instantiated to a subclass of Workspace.idea.BaseLayout
+	 */
 	layout: 'Workspace.idea.FreeLayout',
 	showTitle: true,
 	name: 'New Idea',
@@ -42,13 +46,30 @@ Ext.define('Workspace.objects.IdeaObject', {
 		this.layout.doFirstLayout();
 		this.toBack();
 	},
+	/**
+	 * Initializes the #layout from the configrued ltype
+	 */
 	initLayout: function(ltype) {
+		/**
+		 * @property {Workspace.idea.BaseLayout} layout
+		 */
 		this.layout = Workspace.Layouts.create(ltype, {
 			idea: this
 		});
 		if(this.rendered) {
 			this.layout.doFirstLayout();
 		}
+	},
+	doLayout: function() {
+		if(this.layout && this.layout.doLayout) {
+			this.layout.doLayout();
+		}
+	},
+	buildChildren: function() {
+		this.suspendLayout = true;
+		this.callParent(arguments);
+		this.suspendLayout = false;
+		this.adjustSize();
 	},
 	/**
 	 * Adds a child to this idea

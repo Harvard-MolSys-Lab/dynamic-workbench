@@ -9,6 +9,7 @@ Ext.define('Workspace.objects.dna.Motif', {
 	name: false,
 	proxifyOnMove : true,
 	polarity: 0,
+	stroke: '#888',
 	requires: ['Workspace.objects.dna.MotifLayout',],
 	constructor: function() {
 		this.callParent(arguments);

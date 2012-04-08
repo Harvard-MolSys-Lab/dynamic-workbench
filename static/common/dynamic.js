@@ -110,7 +110,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 		if(!config.library) {
 			throw new DynamlError({
 				type: 'no library',
-				message: 'motif instantiated without library reference',
+				message: 'Motif <%= motif.getName() %> instantiated without library reference',
 				motif: this,
 				config: config,
 			});
@@ -124,6 +124,9 @@ App.dynamic = module.exports = (function(_,DNA) {
 			delete config.nodes;
 			delete config.motifs;
 			delete config.imports;
+			if(!this.structure) {
+				
+			}
 		}
 
 		// Apply configuration options with defaults to this object
@@ -169,7 +172,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			// TODO: deal with multiple structures
 			strandStructures = _.first(structures);
 		}
-		if(this.strands) {		
+		if(this.strands) {
 			this.strands = _.map(this.strands,function(strand,i) {
 				if(strand.name && strandStructures[strand.name]) {
 					strand.structure = strandStructures[strand.name];
@@ -917,7 +920,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			this.segmentLength = this.sequence.length;
 		}
 
-		if(this.name) {
+		if(this.name && !this.identity) {
 			_.extend(this, DNA.parseIdentifier(this.name));
 		}
 		this.id = Segment.getId();
@@ -1368,7 +1371,14 @@ App.dynamic = module.exports = (function(_,DNA) {
 	 * call the #compile method of this class, or use App.dynamic.Compiler
 	 */
 	function Library(config) {
+		
 		_.copyTo(this,config);
+		
+		// necessary to avoid weird bugs with the UI since these objects are modified
+		this.motifs = _.clone(this.motifs);
+		this.nodes = _.clone(this.nodes);
+		this['import'] = _.clone(this['import']);
+		
 		_.defaults(this, {
 			/**
 			 * @cfg {Object[]/App.dynamic.Motif[]} motifs
@@ -1414,7 +1424,18 @@ App.dynamic = module.exports = (function(_,DNA) {
 			return this.objects['segment'][name];
 		},
 		register: function(type,name,object) {
-			this.objects[type][name] = object;
+			if(!this.objects[type][name]) {
+				this.objects[type][name] = object;
+			} else {
+				throw new DynamlError({
+					type: 'duplicate object',
+					message: 'Attempt to define <%= kind %> <%= name %> twice in same library',
+					kind: type,
+					name: name,
+					original: this.objects[type][name],
+					second: object,
+				});
+			}
 		},
 		get: function(type,name) {
 			return this.objects[type][name];
@@ -1661,27 +1682,38 @@ App.dynamic = module.exports = (function(_,DNA) {
 			var strands = _.map(this.strands,function(strand) {
 				var newStrand = _.copy(strand);
 				newStrand.domains = _.map(newStrand.domains || [],function(domain) {
+					var newDomain = _.copy(domain);
 					if(domain.expose) {
-						_.extend(domain,domain.expose);
-						delete domain.expose;
+						_.extend(newDomain,domain.expose);
+						delete newDomain.expose;
 					} else {
-
+						domain.role = 'structural';
 					}
-					if(domain.orphan) {
-						domain.orphan();
+					if(newDomain.orphan) {
+						newDomain.orphan();
 					}
+					if(newDomain.strand) delete newDomain.strand;
+					if(newDomain.node) delete newDomain.node;
 					return domain;
 				});
-				return newStrand.serialize();
+				newStrand.polarity = strand.getAbsolutePolarity();
+				delete newStrand.node;
+				return newStrand; //.serialize();
 			});
 			return {strands: strands};
 		}
 	};
 	
 	_.extend(Library,{
+		/**
+		 * Returns a dummy Library for orphan motifs
+		 */
+		dummy: function() {
+			return new App.dynamic.Library({});
+		},
 		fromMotif: function(motif) {
 			var duplicate = _.copy(motif);
-			delete motif.library;
+			delete duplicate.library;
 			return new Library(duplicate);
 		}
 	});
@@ -2223,6 +2255,66 @@ App.dynamic = module.exports = (function(_,DNA) {
 			return out;
 		}
 		
+		function printStrandsFromArray(strands,options) {
+			options = options || {};
+			_.defaults(options,{
+				annotations: true,
+				originalSegmentNames : false,
+			});
+			var out = '';
+	
+			var defaultPolaritySpecifier = "*";
+			
+			function makeIdentifier(name, polarity) {
+				return name + ((polarity == -1) ? defaultPolaritySpecifier : '');
+			}
+			
+			out += _.map(strands, function(strand) {
+				var name = strand.getQualifiedName();
+				var domains = _.clone(strand.getDomains());
+				if(strand.getAbsolutePolarity() == -1) {
+					domains = domains.reverse();
+				}
+				
+				return _([			
+					// leader
+					options.annotations ? 'strand' : '', 
+					
+					name, 
+					
+					// strand polarity specifier
+					(options.annotations ? (strand.getAbsolutePolarity() == -1 ? '-' : '+') : ''),
+					
+					':',
+					
+					].concat(_.map(domains, function(domain) {
+					
+						var segments = _.clone(domain.getSegments());
+						if(strand.getAbsolutePolarity() == -1) {
+							segments = segments.reverse();
+						}
+						
+						return [
+							// opening domain grouping bracket
+							(options.annotations ? '[' : '')
+							
+							// segment body
+							].concat(_.map(segments,function(segment) {				
+								return options.originalSegmentNames ? segment.getQualifiedName() : segment.getIdentifier(); //makeIdentifier(segment.identity, segment.polarity);
+							}))
+							
+							// closing bracket
+							.concat([options.annotations ? ']'+(domain.polarity== -1 ? '-' : '+') : ''])
+							
+							// convert to string
+							.join(' ');
+						
+				}, ''))).compact().join(' ');
+			}).join('\n');
+	
+			return out;
+		}
+		
 		/**
 		 * @property {Object} standardMotifs
 		 * Hash containing configuration objects for each of the standard motifs, indexed by name.
@@ -2576,6 +2668,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			compileLibrary: compileLibrary,
 			parse: parse,
 			printStrands: printStrands, 
+			printStrandsFromArray: printStrandsFromArray,
 			importObject : importObject,
 			standardMotifs : standardMotifs,
 			domainColors: domainColors,

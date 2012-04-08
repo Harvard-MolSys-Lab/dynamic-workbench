@@ -94,10 +94,10 @@ Ext.define('Workspace.objects.dna.AbstractNode', {
 		if(this.errorProxy)
 			this.errorProxy.hide();
 	},
-	addChild: function() {
-		this.callParent(arguments);
-		this.layout.doLayout();
-	},
+	// addChild: function() {
+		// this.callParent(arguments);
+		// this.layout.doLayout();
+	// },
 	/**
 	 * @abstract
 	 * Gets the next name for this type of object from the 

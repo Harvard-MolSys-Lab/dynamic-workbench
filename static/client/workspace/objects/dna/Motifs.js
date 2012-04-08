@@ -6,7 +6,7 @@ Ext.ns('Workspace.objects.dna');
  * @singleton
  */
 Workspace.objects.dna.Motifs = function() {
-	var library = new App.dynamic.Library({});
+	var library = App.dynamic.Library.dummy();
 	return _.reduce(_.deepClone(App.dynamic.Compiler.standardMotifs),function(memo, value, key) {
 		value.library = library;
 		memo[key] = new App.dynamic.Motif(value);

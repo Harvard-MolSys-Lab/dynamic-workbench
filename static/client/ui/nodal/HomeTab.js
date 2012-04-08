@@ -105,6 +105,26 @@ Ext.define('App.ui.nodal.HomeTab', {
 						}
 					}]
 				},{
+					xtype: 'buttongroup',
+					title: 'Motif',
+					columns: 2,
+					items: [{
+						toolName: 'motif',
+						enableToggle: true,
+						toggleGroup: 'toolbox',
+						scale: 'medium',
+						rowspan: 2,
+						iconAlign: 'top',
+						iconCls: 'form-idea-24',
+						text: 'Create Motif',
+					},{
+						toolName: 'exposure',
+						enableToggle: true,
+						toggleGroup: 'toolbox',
+						iconCls: 'port-add',
+						text: "Expose port"
+					}]
+				},{
 
 					// 'Object' group
 					xtype: 'buttongroup',

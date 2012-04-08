@@ -17,8 +17,8 @@ Ext.define('Workspace.tools.nodal.NodeTool', {
 	/**
 	 * @inheritdoc Workspace.objects.dna.BuildManager#buildMotif
 	 */
-	buildMotif: function(name,x,y) {
-		return this.workspace.buildManager.buildMotif(name,x,y);
+	buildMotif: function(spec,x,y) {
+		return this.workspace.buildManager.buildMotif(spec,x,y);
 	},
 	/**
 	 * @inheritdoc Workspace.objects.dna.BuildManager#buildPort

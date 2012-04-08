@@ -3,7 +3,7 @@ Ext.define('App.ui.DynamlEditor', {
 	mode : 'javascript',
 	iconCls : 'dynaml',
 	editorType : 'DyNAML',
-	requires: ['App.ui.NupackEditor','App.ui.CodeMirror',],
+	requires: ['App.ui.nodal.LibraryWindow','App.ui.NupackEditor','App.ui.CodeMirror',],
 	trap: true,
 	initComponent : function() {
 		Ext.apply(this, {
@@ -73,45 +73,13 @@ Ext.define('App.ui.DynamlEditor', {
 	},
 	showLibraryTreeWindow : function() {
 		if(!this.libraryTreeWindow && this.lastLibrary) {
-			this.libraryTreeWindow = Ext.create('Ext.window.Window', {
-				title : 'Compiled library',
-				minimize: function() {
-					this.toggleCollapse();
-				},
-				minimizable: true,
-				maximizable: true,
-				bodyBorder: false,
-				border: false,
-				plain: true,
-				layout : 'fit',
-				items: [{
-					xtype: 'tabpanel',
-					plain: true,
-					items : [{
-						title: 'Tree',
-						xtype : 'objectbrowser',
-						data : this.lastLibrary,
-					},{
-						title: 'NUPACK',
-						xtype: 'codemirror',
-						mode: 'nupack',
-						value: this.lastLibrary.toNupackOutput()
-					},{
-						title: 'DD',
-						xtype: 'codemirror',
-						mode: 'nupack',
-						value: this.lastLibrary.toDomainsOutput()
-					},{
-						title: 'Strands',
-						xtype: 'codemirror',
-						value: this.printStrands(this.lastLibrary)
-					}],
-				}],
-				width : 400,
-				height : 400,
-			});
-			this.libraryTreeWindow.show();
+			this.libraryTreeWindow = Ext.create('App.ui.nodal.LibraryWindow',{
+				lastLibrary: this.lastLibrary
+			})
+		} else if(this.lastLibrary) {
+			this.libraryTreeWindow.setLibrary(this.lastLibrary);
 		}
+		this.libraryTreeWindow.show();
 	},
 	compile : function() {
 		return App.dynamic.Compiler.compile(this.getValue());

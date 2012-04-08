@@ -4,15 +4,17 @@
 Ext.define('App.ui.MotifPalette', {
 	extend : 'App.ui.Palette',
 	requires: ['Workspace.objects.dna.Motifs'],
-	tpl : '<tpl for=".">' + '<div class="motif-template">' +
+	tpl : '<tpl for=".">' + '<div class="motif-template">' +   
 	//'<img src="images/motifs/{number}.gif" />'+
 	'</div>' + '</tpl><div class="x-clear" />',
 	itemSelector : 'div.motif-template',
 	mimeType: 'ext/motif',
-	constructor: function() {
-		Ext.apply(this,{
-			store : Workspace.objects.dna.motifStore,
-		});
+	constructor: function(config) {
+		if(!config.store) {		
+			Ext.apply(this,{
+				store : Workspace.objects.dna.motifStore,
+			});
+		}
 		this.callParent(arguments);
 	},
 	onRefresh : function() {

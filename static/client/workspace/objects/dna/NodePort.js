@@ -8,6 +8,7 @@ Ext.define('Workspace.objects.dna.NodePort', {
 		this.expose('identity', true, true, true, false);
 		this.expose('type', true, true, true, false);
 		this.expose('polarity',true,true,true,false);
+		this.expose('exposure',true,true,true,false);
 		this.expose('computedPolarity', function() {
 			var obj = this.getLibraryObject();
 			return obj ? obj.getAbsolutePolarity() : 0;
@@ -53,7 +54,7 @@ Ext.define('Workspace.objects.dna.NodePort', {
 		return obj ? obj[prop] : false;
 	},
 	getLibraryObject : function() {
-		if(this.parent) {
+		if(this.parent && this.getParent().isWType('Workspace.objects.dna.Node')) {
 			var node = this.parent.getLibraryObject(), name = this.get('name');
 			if(node) {
 				var me = _.find(node.getDomains(), function(dom) {

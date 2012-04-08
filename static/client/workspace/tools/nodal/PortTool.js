@@ -9,6 +9,7 @@ Ext.define('Workspace.tools.nodal.PortTool', {
 	mixins: {
 		highlightable: 'Workspace.tools.Highlightable'
 	},
+	
 	click: function(e,item) {
 		var pos = this.getAdjustedXY(e), port;
 		if(item && this.accept(item)) {
@@ -29,9 +30,14 @@ Ext.define('Workspace.tools.nodal.PortTool', {
 		}
 	},
 	accept: function(item) {
-		return (item.isWType('Workspace.objects.dna.Node'));
+		return (item.isWType(['Workspace.objects.dna.Node','Workspace.objects.dna.Motif']));
 	},
-	
+	mouseover: function(e,item) {
+		this.mixins.highlightable.mouseover.apply(this,arguments);
+	},
+	mouseout: function(e,item) {
+		this.mixins.highlightable.mouseout.apply(this,arguments);
+	},
 	/**
 	 * @inheritdoc Workspace.objects.dna.BuildManager#buildPort
 	 */

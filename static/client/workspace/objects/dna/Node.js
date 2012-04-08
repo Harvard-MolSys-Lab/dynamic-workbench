@@ -29,8 +29,8 @@ Ext.define('Workspace.objects.dna.Node', {
 			return this.getRealtime('polarity');
 		},false,false,false);
 		this.expose('structure',function() {
-			var obj = this.getLibraryObject();
-			return obj ? obj.getStructure().toDotParen() : '';
+			var obj = this.getLibraryObject(), struct = obj ? obj.getStructure() : null;
+			return struct ? struct.toDotParen() : '';
 		},false,false,false);
 
 	},

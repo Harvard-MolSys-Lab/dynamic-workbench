@@ -4,6 +4,7 @@ Ext.define('Workspace.objects.dna.Complementarity', {
 	extend : 'Workspace.objects.Connection',
 	showLabel : false,
 	property : 'complementarity',
+	thetaProperty: 'rotation',
 	render : function() {
 		this.callParent();
 		// this.vectorElement.attr({

@@ -32,6 +32,10 @@ Ext.define('Workspace.objects.dna.Node', {
 			var obj = this.getLibraryObject(), struct = obj ? obj.getStructure() : null;
 			return struct ? struct.toDotParen() : '';
 		},false,false,false);
+		this.expose('annotatedStructure',function() {
+			var obj = this.getLibraryObject(), struct = obj ? obj.getAnnotatedStructure() : null;
+			return struct;
+		});
 
 	},
 	isReal: function() {

@@ -512,6 +512,15 @@ App.dynamic = module.exports = (function(_,DNA) {
 				return strand.getStructure();
 			}));
 		},
+		/**
+		 * Returns object like:
+		 * 	[{strand: {Strand}, structure:strand.getAnnotatedStructure()},...]
+		 */
+		getAnnotatedStructure: function() {
+			return _.map(this.getStrands(),function(strand) {
+				return {strand: strand, structure: strand.getAnnotatedStructure()};
+			});
+		},
 		getSegmentwiseStructure: function() {
 			return Structure.join(_.map(this.getStrands(),function(strand) {
 				return strand.getSegmentwiseStructure();
@@ -722,6 +731,17 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 */
 		getSegmentwiseStructure: function() {
 			return this.structure;	
+		},
+		getAnnotatedStructure: function() {
+			var n = -1, segs = this.getSegments();
+			return _.map(this.structure.toDotParen().split(''),function(ch) {
+				if(ch!='+') {
+					n++;
+					return {type: ch, segment: segs[n], length: segs[n].getLength()};
+				} else {
+					return {type: ch}
+				}
+			});
 		},
 		/**
 		 * Returns the structure of the strand, representing each base

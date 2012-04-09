@@ -4,7 +4,8 @@ Ext.define('App.ui.nodal.StrandPreview', {
 	built: false,
 	setValue : function(structure) {
 		var	strands = ['A'];
-		this.nodeLayout = DNA.generateAdjacency(structure,strands,true);
+		this.nodeLayout = DNA.generateAdjacency2(structure,{linkStrands:true});
+		//this.nodeLayout = DNA.generateAdjacency(structure,strands,true);
 		if(!this.built) {
 			this.buildVis();
 		} else {		
@@ -26,7 +27,8 @@ Ext.define('App.ui.nodal.StrandPreview', {
 		// Pair probability colors
 		probColors = pv.Scale.linear(0, .5, 1).range("rgba(0,0,180,1)", "rgba(180,180,0,1)", "rgba(180,0,0,1)");
 
-		this.force = forceVis.add(pv.Layout.Force).chargeConstant(-250).springConstant(0.95).dragConstant(0.4).bound(false);
+		this.force = forceVis.add(pv.Layout.Force) //
+			.chargeConstant(-250).springConstant(0.95).dragConstant(0.4).bound(false);
 		//.springLength(20)
 		
 		this.force.nodes(this.nodeLayout.nodes).links(this.nodeLayout.links);
@@ -38,12 +40,19 @@ Ext.define('App.ui.nodal.StrandPreview', {
 			return 10;
 			//return (d.linkDegree + 4) * Math.pow(this.scale, -1.5)
 		}).fillStyle(function(d) {
-			return !!d.fix ? "brown" : colors(d.segment)
+			return App.dynamic.Compiler.domainColors[d.role] || '#000'; 
+			//colors(d.role)
 		}).strokeStyle(function() {
 			return this.fillStyle().darker()
 		}).lineWidth(1).title(function(d) {
 			return d.nodeName
 		}).event("mousedown", pv.Behavior.drag()).event("drag", this.force);
+
+		this.force.label.add(pv.Label).text(function(d,l) {
+			return d.base;
+		});
+
+
 		this.built = true;
 	}
 

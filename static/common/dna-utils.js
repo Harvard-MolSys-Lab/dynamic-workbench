@@ -1154,6 +1154,128 @@ exports.DNA = (function() {
 				links : links
 			};
 		},
+		/**
+		 * Generates an adjacency network for use with Protovis network visualizations
+		 * @param {String} struct The target structure in dot-paren notation
+		 * @param {String[]} strands Array of sequences depicted in the structure
+		 * @param {Boolean} linkStrands true to generate strong links between adjacent bases in the same strand (e.g. for force-directed visualizations),
+		 * false to only link hybridized bases (defaults to false)
+		 */
+		generateAdjacency2 : function(strands,params) {
+			// var struct = "....(((...)))....";
+			
+			params || ( params = {});
+			_.defaults(params, {
+				strandValue : 9,
+				hybridizationValue : 2,
+				radius : 300,
+				segments: {},
+				segmentLabels: false,
+				linkStrands: false,
+			});
+			var linkStrands = params.linkStrands;
+
+			var nodes = [], links = [], hybridization = [], strandIndex = 0, node, n = 0, base = 0,
+			theta = 0, 
+			//dtheta = Math.PI / struct.length, 
+			currentSegment = null;
+
+			// if(params.segmentLabels) {
+				// var segmentIndicies = _.keys(params.segments);
+				// var labels = {};
+				// for(var i = 0; i<(segmentIndicies.length-1); i++) {
+					// labels[Math.round((segmentIndicies[i]+segmentIndicies[i+1])/2)] = params.segments[segmentIndicies[i]];
+				// }
+			// }
+			
+			var n = 0;
+			
+			// for each strand
+			for(var strandIndex=0; strandIndex < strands.length; strandIndex++) {
+				var strandSpec = strands[strandIndex],
+					strand = strandSpec.strand;
+				
+				if(strandSpec.structure) {
+					
+					// for each segment
+					for(var i=0; i<strandSpec.structure.length; i++) {
+						var segmentSpec = strandSpec.structure[i];
+						var segment = segmentSpec.segment;
+						var ch = segmentSpec.type;
+						var sequence = segment.getSequence();
+	
+						// for each base
+						for(var j=0; j<segmentSpec.length; j++) {
+							node = {
+								strand : strand,
+								segment: segment.getIdentifier(),
+								base: sequence[j],
+								domain: segment.getDomain().getName(),
+								role: segment.getDomain().role,
+								
+								//nodeName : (strands && strands[strandIndex]) ? strands[strandIndex][base] : false,
+								//base: (strands && strands[strandIndex]) ? strands[strandIndex][base] : false,
+								//segment: currentSegment,
+								//x: Math.sin(theta)*params.radius,
+								//y: Math.cos(theta)*params.radius,
+							};
+							
+							if(ch== '(') {
+								hybridization.push(n);
+							} else if(ch == ')') {
+								var link = {
+									source : hybridization.pop(),
+									target : n,
+									value : params.hybridizationValue,
+									type : 'wc'
+								};
+								// if(params.ppairs) {
+									// if(params.ppairs[link.source + 1] && params.ppairs[link.source+1][link.target + 1]) {
+										// link.probability = parseFloat(params.ppairs[link.source+1][link.target + 1]);
+										// node.probability = link.probability;
+										// if(nodes[link.source]) {
+											// nodes[link.source].probability = link.probability;
+										// }
+									// } else if(params.ppairs[link.target + 1] && params.ppairs[link.target+1][link.source + 1]) {
+										// link.probability = parseFloat(params.ppairs[link.target+1][link.source + 1]);
+										// node.probability = link.probability;
+										// if(nodes[link.target]) {
+											// nodes[link.target].probability = link.probability;
+										// }
+									// }
+									// if(link.probability) {
+// 
+									// }
+								// }
+								links.push(link);
+							}
+
+							nodes.push(node);
+							if(linkStrands) {
+								if(i+j>0) {
+									links.push({
+										source : n,
+										target : n - 1,
+										value : params.strandValue,
+										type : 'strand',
+									});
+								}
+							}
+							n++;
+
+						}
+					} 
+					
+				}
+			}
+
+			return {
+				nodes : nodes,
+				links : links
+			};
+		},
+		
+		
 		normalizeSystem : function(strands) {
 			// var list = [];
 			// _.each(strands, function(strand) {

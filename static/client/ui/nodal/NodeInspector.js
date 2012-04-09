@@ -52,7 +52,7 @@ Ext.define('App.ui.nodal.NodeInspector', {
 				objectBinding : 'motif',
 				anchor : '95%',
 			}, Ext.create('App.ui.nodal.StrandPreview', {
-				objectBinding : 'structure',
+				objectBinding : 'annotatedStructure',
 				items : [],
 				height: 150,
 				anchor : '95%',

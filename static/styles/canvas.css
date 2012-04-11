@@ -80,6 +80,30 @@ ul.dashboard-actions li a:hover {
 .dashboard-actions h2 {
 	border-bottom: solid 1px silver;
 }
+.attribution p {
+	margin: 5px;
+}
+.attribution ul {
+	margin: 5px;
+}
+.attribution ul, .attribution ul li {
+	list-style-type: disc;
+	margin-left: 10px;
+}
+
+.logos-attribution {
+	margin: 0px 5px 20px 5px;
+	float: right;
+}
+
+.logos-attribution img {
+	height: 48px;	
+}
+
+.attribution h1 span small {
+	font-size: smaller;
+	color: gray;
+}
 
 .round {
 	border: solid 1px silver;

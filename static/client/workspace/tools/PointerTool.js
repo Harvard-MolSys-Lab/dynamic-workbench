@@ -193,10 +193,11 @@ Ext.define('Workspace.tools.PointerTool', {
 
 					for (var i = 0, l = selection.length; i < l; i++) {
 						if (Ext.isFunction(selection[i].translate)) {
-							if(selection.proxified) {
+							if(selection[i].proxified) {
 								selection[i].getProxy().translate(dx, dy);
+							} else {							
+								selection[i].translate(dx, dy);
 							}
-							selection[i].translate(dx, dy);
 						}
 					}
 

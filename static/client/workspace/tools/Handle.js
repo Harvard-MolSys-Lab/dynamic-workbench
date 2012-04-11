@@ -78,6 +78,7 @@ Ext.define('Workspace.tools.Handle', {
 		this.workspace.un('mouseup', this.dragEndHandler, this);
 		this.workspace.un('mousemove', this.dragHandler, this);
 		this.handleShape.remove();
+		delete this.handleShape;
 	},
 	getAdjustedXY : function(e) {
 		return Workspace.tools.BaseTool.prototype.getAdjustedXY.call(this, e);

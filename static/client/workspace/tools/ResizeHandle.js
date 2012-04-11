@@ -88,7 +88,7 @@ Ext.define('Workspace.tools.ResizeHandle', {
 		this.callParent(arguments);
 		this.item.un('move', this.onItemMove, this);
 		this.item.un('resize', this.onItemMove, this);
-		this.proxy.on('move', this.onProxyMove, this);
-		this.proxy.on('resize', this.onProxyMove, this);
+		this.proxy.un('move', this.onProxyMove, this);
+		this.proxy.un('resize', this.onProxyMove, this);
 	}
 });

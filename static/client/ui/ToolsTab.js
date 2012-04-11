@@ -309,7 +309,9 @@ Ext.define('App.ui.ToolsTab', {
 			this.toolButtons.add(button.toolName, button);
 		},
 		this);
-
+		
+		//this.ribbon.workspace.on('toolchange',this.onToolChange);
+		
 		// not implemented
 		//		this.uploaderWindow = new Ext.Window({
 		//			title: 'Upload files',
@@ -383,7 +385,6 @@ Ext.define('App.ui.ToolsTab', {
 		this.fireEvent('action', action);
 	},
 	/**
-	 * orphanObjects
 	 * Generates a WorkspaceAction to decouple the bound objects from their parent(s)
 	 */
 	orphanObjects: function() {
@@ -439,7 +440,7 @@ Ext.define('App.ui.ToolsTab', {
 	setActiveTool: function(tool) {
 		if (!this.ignoreToolChange) {
 			this.tool = tool;
-			this.fireEvent('toolChange', tool);
+			this.fireEvent('toolchange', tool);
 		}
 	},
 	/**
@@ -449,11 +450,14 @@ Ext.define('App.ui.ToolsTab', {
 	onToolChange: function(tool) {
 		var button = this.toolButtons.get(tool);
 		if (button) {
+			
 			this.ignoreToolChange = true;
 			button.toggle(true);
 			this.tool = tool;
-			this.fireEvent('toolChange');
+			//sthis.fireEvent('toolchange',tool);
 			this.ignoreToolChange = false;
+			return true;
 		}
+		return false;
 	}
 });

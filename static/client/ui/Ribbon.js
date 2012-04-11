@@ -5,29 +5,29 @@
  */
 Ext.define('App.ui.Ribbon', {
 	extend : 'Ext.tab.Panel',
-	alias: 'widget.ribbon',
+	alias : 'widget.ribbon',
 	requires : ['App.ui.ToolsTab', 'App.ui.InsertTab', 'App.ui.FillStrokeTab', 'App.ui.GeometryTab', 'App.ui.MetaTab'],
-	
-    cls: 'ui-ribbonbar',
-    activeTab: 0,
-    plain: true,
-//    unstyled: true,
-    margin: '5 0 0 0',
-    autoHeight: true,
+
+	cls : 'ui-ribbonbar',
+	activeTab : 0,
+	plain : true,
+	//    unstyled: true,
+	margin : '5 0 0 0',
+	autoHeight : true,
 	// plain : true,
-	 border : false,
-	 bodyBorder : '0 1 1 1',
-	 bodyCls: 'noborder-top',
-	 autoHeight: true,
+	border : false,
+	bodyBorder : '0 1 1 1',
+	bodyCls : 'noborder-top',
+	autoHeight : true,
 	//tabPosition : 'bottom',
 	initComponent : function() {
-		
+
 		Ext.applyIf(this, {
 			activeTab : 0,
 			defaults : {
 				border : false,
-				bodyBorder: false,
-				bodyCls: 'tab-panel-body-toolbar'
+				bodyBorder : false,
+				bodyCls : 'tab-panel-body-toolbar'
 			},
 			tabBar : {
 				border : false,
@@ -58,9 +58,9 @@ Ext.define('App.ui.Ribbon', {
 				bodyBorder : false,
 			})
 		});
-		
+
 		this.selection = [];
-		
+
 		App.ui.Ribbon.superclass.initComponent.apply(this, arguments);
 
 		_.each(['toolsTab', 'insertTab', 'fillStroke', 'geometry', 'metaTab'], function(item) {
@@ -79,9 +79,10 @@ Ext.define('App.ui.Ribbon', {
 
 			// Allow the tools tabs to manage the workspace tool
 			if(item.getActiveTool) {
-				this.mon(item, 'toolChange', this.setActiveTool, this);
+				this.mon(item, 'toolchange', this.setActiveTool, this);
 				this.mon(item, 'save', this.saveWorkspace, this);
 			}
+
 			if(item.init) {
 				item.init();
 			}
@@ -102,11 +103,14 @@ Ext.define('App.ui.Ribbon', {
 
 		// bind ribbon to objects when selected in workspace
 		this.mon(this.workspace, 'select', this.onSelectionChange, this, {
-			buffer: 500,
+			buffer : 500,
 		});
 		this.mon(this.workspace, 'unselect', this.onSelectionChange, this, {
-			buffer: 500,
+			buffer : 500,
 		});
+		this.mon(this.workspace, 'toolchange', this.onToolChange, this, {
+			buffer : 500,
+		})
 
 	},
 	/**
@@ -114,7 +118,27 @@ Ext.define('App.ui.Ribbon', {
 	 * @param {String} tool Name of the {@link Workspace.tools.BaseTool} to switch to.
 	 */
 	setActiveTool : function(tool) {
+		this.ignoreToolChange = true;
 		this.workspace.setActiveTool(tool);
+		this.ignoreToolChange = false;
+	},
+	onToolChange : function(tool, oldTool) {
+		if(!this.ignoreToolChange) {
+			var activate = [];
+			this.items.each(function(item) {
+				if(item.onToolChange) {
+					if(item.onToolChange(tool, oldTool)) {
+						activate.push(item);
+					};
+				}
+			});
+			if(activate.length == 1) {
+				this.setActiveTab(activate[0]);
+			} else if (activate.length > 1) {
+				// meeeeh	
+				this.setActiveTab(activate[0]);
+			}
+		}
 	},
 	/**
 	 * Invokes the passed {@link Workspace.actions.Action} on the {@link #workspace}
@@ -128,32 +152,31 @@ Ext.define('App.ui.Ribbon', {
 	 * Handler which responds to a changed {@link #workspace workspace} {@link Workspace#selection}.
 	 */
 	onSelectionChange : function() {
-		var toBind = _.difference(this.workspace.getSelection(),this.selection),
-			toUnbind = _.difference(this.selection,this.workspace.getSelection());
-		
+		var toBind = _.difference(this.workspace.getSelection(), this.selection), toUnbind = _.difference(this.selection, this.workspace.getSelection());
+
 		this.bind(toBind);
 		this.unbind(toUnbind);
-		
+
 		// copy new items into this.selection
 		this.selection = this.workspace.getSelection();
 	},
-	
+
 	/**
 	 * Binds the ribbon to the passed items
 	 * @param {Workspace.objects.Object} item
 	 */
 	bind : function(items) {
-		if(!_.isArray(items)) {			
+		if(!_.isArray(items)) {
 			items = [items];
 		}
-		
+
 		// for each ribbon tab
 		this.items.each(function(tab) {
 			if(tab.bind && Ext.isFunction(tab.bind)) {
-				
+
 				// for each newly selected item
-				_.each(items,function(item) {
-					tab.bind(item);	
+				_.each(items, function(item) {
+					tab.bind(item);
 				});
 			}
 		});
@@ -164,14 +187,14 @@ Ext.define('App.ui.Ribbon', {
 	 * @param {Workspace.objects.Object} item
 	 */
 	unbind : function(items) {
-		if(!_.isArray(items)) {			
+		if(!_.isArray(items)) {
 			items = [items];
 		}
-		
+
 		this.items.each(function(tab) {
 			if(tab.unbind && Ext.isFunction(tab.unbind)) {
 				// for each newly unselected item
-				_.each(items,function(item) {				
+				_.each(items, function(item) {
 					tab.unbind(item);
 				});
 			}
@@ -182,29 +205,26 @@ Ext.define('App.ui.Ribbon', {
 	}
 });
 
-
-
-
 // /**
- // * @class App.lib.ux.Ribbon
- // * @extend Ext.tab.Panel
- // */
+// * @class App.lib.ux.Ribbon
+// * @extend Ext.tab.Panel
+// */
 // Ext.define('App.lib.ux.Ribbon', {
-    // extend: 'Ext.tab.Panel',
-    // alias: 'widget.appuxribbon',
-    // cls: 'ui-ribbonbar',
-    // activeTab: 0,
-    // plain: true,
-    // unstyled: true,
-    // margin: '5 0 0 0',
-    // autoHeight: true,
-// 
-    // addTab: function (config, focus) {
-        // var tab = this.add(config);
-        // if (focus === true) this.setActiveTab(tab);
-    // },
-// 
-    // initComponent: function () {
-        // this.callParent(arguments);
-    // }
+// extend: 'Ext.tab.Panel',
+// alias: 'widget.appuxribbon',
+// cls: 'ui-ribbonbar',
+// activeTab: 0,
+// plain: true,
+// unstyled: true,
+// margin: '5 0 0 0',
+// autoHeight: true,
+//
+// addTab: function (config, focus) {
+// var tab = this.add(config);
+// if (focus === true) this.setActiveTab(tab);
+// },
+//
+// initComponent: function () {
+// this.callParent(arguments);
+// }
 // });

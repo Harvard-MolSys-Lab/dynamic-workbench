@@ -554,13 +554,21 @@ Ext.define('Workspace', {
 		return this.tools[this.activeTool];
 	},
 	/**
-	 * Deactivates the current tool and activates the provided tool
+	 * Sets the active tool to the given toolName and fires the {@link #toolchange} event
 	 * @param {String} toolName The tool to activate
 	 */
 	setActiveTool: function(tool) {
+		var oldTool = this.activeTool;
 		this.getActiveTool().deactivate();
 		this.activeTool = tool;
 		this.getActiveTool().activate();
+		this.fireEvent('toolchange',tool,oldTool);
+	},
+	/**
+	 * Alias for #setActiveTool
+	 */
+	changeTool: function(tool) {
+		this.setActiveTool(tool);
 	},
 	/**
 	 * Reports whether the workspace contains the given tool
@@ -568,14 +576,6 @@ Ext.define('Workspace', {
 	 */
 	hasTool: function(tool) {
 		return (this.tools[tool] != false);
-	},
-	/**
-	 * Sets the active tool to the given toolName and fires the {@link #toolChange} event
-	 * @param {String} toolName
-	 */
-	changeTool: function(tool) {
-		this.setActiveTool(tool);
-		this.fireEvent('toolchange');
 	},
 	/**
 	 * Finds the {@link Workspace.objects.Object} on which an event occurred

@@ -40,7 +40,14 @@ Ext.define('App.ui.nodal.LibraryWindow', {
 						title : 'Strands',
 						xtype : 'codemirror',
 						mode : 'text',
+						name: 'strands',
 						value : this.printStrands(this.lastLibrary)
+					},{
+						title : 'Source',
+						xtype : 'codemirror',
+						mode : 'text',
+						name : 'source',
+						value : this.printStrands(this.lastLibrary,{annotations: true, originalSegmentNames: true})
 					}],
 				}],
 			});
@@ -88,10 +95,15 @@ Ext.define('App.ui.nodal.LibraryWindow', {
 			ddPanel.setValue(this.lastLibrary.toDomainsOutput());
 		}
 
-		var strands = this.down("codemirror[mode='text']");
+		var strands = this.down("codemirror[name='strands']");
 		if(strands) {
 			strands.setValue(this.printStrands(this.lastLibrary));
 		}
+		var source = this.down("codemirror[name='source']");
+		if(source) {
+			source.setValue(this.printStrands(this.lastLibrary,{annotations: true, originalSegmentNames: true}));
+		}
+		
 		
 		if(this.sourceDynaml) {
 			var sourcePanel = this.down("codemirror[mode='javascript']");

@@ -30,7 +30,11 @@ Ext.define('Workspace.objects.dna.Node', {
 		},false,false,false);
 		this.expose('structure',function() {
 			var obj = this.getLibraryObject(), struct = obj ? obj.getStructure() : null;
-			return struct ? struct.toDotParen() : '';
+			try {			
+				return struct ? struct.toDotParen() : '';
+			} catch (e) {
+				return '';
+			}
 		},false,false,false);
 		this.expose('annotatedStructure',function() {
 			var obj = this.getLibraryObject(), struct = obj ? obj.getAnnotatedStructure() : null;
@@ -55,12 +59,6 @@ Ext.define('Workspace.objects.dna.Node', {
 	getLibraryObject: function() { 
 		return this.workspace.buildManager.getRealtime('node',this.get('name'),'this');
 	},
-	destroy: function() {
-		if(this.errorProxy) {
-			this.errorProxy.destroy();
-			delete this.errorProxy();
-		}
-	}
 }, function() {
 	Workspace.reg('Workspace.objects.dna.Node',Workspace.objects.dna.Node);
 

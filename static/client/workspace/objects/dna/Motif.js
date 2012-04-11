@@ -121,12 +121,6 @@ Ext.define('Workspace.objects.dna.Motif', {
 	getLibraryObject: function() { 
 		return this.workspace.buildManager.getRealtime('motif',this.get('name'),'this');
 	},
-	destroy: function() {
-		if(this.errorProxy) {
-			this.errorProxy.destroy();
-			delete this.errorProxy();
-		}
-	}
 }, function() {
 	Workspace.reg('Workspace.objects.dna.Motif',Workspace.objects.dna.Motif);
 

@@ -9,7 +9,7 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 		dynaml: {
 			domainProperties: ['name', 'identity','role',],
 			nodeProperties: ['name','motif',],
-			motifProperties: ['name',],
+			motifProperties: ['name','dynaml'],
 		},
 	},
 	constructor : function() {
@@ -48,6 +48,10 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 			this.needsRebuild();
 		} else if (obj.isWType('Workspace.objects.dna.Motif')) {
 			this.needsRebuild();
+			
+			_.each(Workspace.objects.dna.BuildManager.dynaml.motifProperties,function(prop) {
+				obj.on('change:'+prop,this.needsRebuild,this);
+			},this);
 		}
 	},
 	needsRebuild: function() {
@@ -324,9 +328,9 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 		}).value();
 		
 		// Build DyNAML objects for motifs
-		motifs = _.map(motifs,function(motif) {
+		motifs = _.chain(motifs).map(function(motif) {
 			var nodes = motif.get('nodes');
-			if(nodes) {
+			if(nodes && nodes.length > 0) {
 				var lib = this.buildDynaml(motif.getChildren(),true);
 				return _.reduce(Workspace.objects.dna.BuildManager.dynaml.motifProperties, function(memo, property) {
 					if(motif.has(property)) {
@@ -335,9 +339,14 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 					return memo;					
 				},lib);
 			} else if(motif.get('dynaml')) {
-				
+				return _.reduce(Workspace.objects.dna.BuildManager.dynaml.motifProperties, function(memo, property) {
+					if(motif.has(property)) {
+						memo[property] = motif.get(property);
+					}
+					return memo;					
+				},JSON.parse(motif.get('dynaml')));
 			}
-		},this);
+		},this).compact().value();
 		
 		// Build DyNAML objects for nodes
 		nodes = _.map(nodes, function(node) {

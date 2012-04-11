@@ -145,6 +145,7 @@ Ext.define('Workspace.objects.dna.AbstractNode', {
 			this.errorProxy.destroy();
 			delete this.errorProxy();
 		}
+		this.callParent(arguments);
 	}
 }, function() {
 	Workspace.objects.dna.AbstractNode.borrow(Workspace.objects.Ellipse,['getRadiusX','getRadiusY','getCenterX','getCenterY','updateX','updateY','updateWidth','updateHeight']);

@@ -3,19 +3,21 @@
  */
 Ext.define('App.ui.MotifPalette', {
 	extend : 'App.ui.Palette',
-	requires: ['Workspace.objects.dna.Motifs'],
-	tpl : '<tpl for=".">' + '<div class="motif-template">' +   
+	requires : ['Workspace.objects.dna.Motifs'],
+	tpl : '<tpl for=".">' + '<div class="motif-template">' +
 	//'<img src="images/motifs/{number}.gif" />'+
 	'</div>' + '</tpl><div class="x-clear" />',
 	itemSelector : 'div.motif-template',
-	mimeType: 'ext/motif',
-	constructor: function(config) {
-		if(!config.store) {		
-			Ext.apply(this,{
+	mimeType : 'ext/motif',
+	constructor : function(config) {
+		if(!config.store) {
+			//Ext.apply(this,{
+			Ext.apply(config, {
 				store : Workspace.objects.dna.motifStore,
 			});
 		}
 		this.callParent(arguments);
+		this.view.on('itemupdate',this.redrawMotif,this);
 	},
 	onRefresh : function() {
 		this.drawMotifs();
@@ -26,9 +28,18 @@ Ext.define('App.ui.MotifPalette', {
 			this.papers = {};
 		}
 		_.each(store.getRange(), function(rec) {
-			var node = Ext.get(view.getNode(rec)), id = node.id, paper = this.papers[id] || (this.papers[id] = Raphael(node.dom, node.getWidth(), node.getHeight()));
-			this.drawMotif(paper, rec.get('spec'));
+			var node = Ext.get(view.getNode(rec));
+			this.redrawMotif(rec, null, node);
 		}, this);
+	},
+	redrawMotif : function(rec, index, node) {
+		var id = node.id, 
+			/* if index != null, that means this is coming from Ext's itemupdate event, so we definitely need to generate a new paper, 
+			 * since Ext just deleted it.
+			 */
+			paper = (this.papers[id] && index==null) || 
+			(this.papers[id] = Raphael(node.dom, node.getWidth(), node.getHeight()));
+		this.drawMotif(paper, rec.get('spec'));
 	},
 	drawMotif : function(paper, spec) {
 		var r = paper.width * 0.35, cx = paper.width / 2, cy = paper.height / 2;

@@ -205,16 +205,17 @@ App.dynamic = module.exports = (function(_,DNA) {
 
 		_.each(this.getDomains(), function(domain) {
 			if(!domain.polarity) {
-				throw new DynamlError({
-					type : 'unspecified motif domain polarity',
-					message : _.template('Domain <%= domain %> in motif <%= motif %> has no polarity specified. ' + //
-					 'Polarities are required for domains specified in motifs.', {
-						motif : this.name,
-						domain : domain.name,
-					}),
-					motifs : [this],
-					domain : domain,
-				});
+				domain.polarity = 1;
+				// throw new DynamlError({
+					// type : 'unspecified motif domain polarity',
+					// message : _.template('Domain <%= domain %> in motif <%= motif %> has no polarity specified. ' + //
+					 // 'Polarities are required for domains specified in motifs.', {
+						// motif : this.name,
+						// domain : domain.name,
+					// }),
+					// motifs : [this],
+					// domain : domain,
+				// });
 			}
 		}, this);
 		
@@ -843,7 +844,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 
 
 	Domain.prototype = {
-		role : "output",
+		role : "structural",
 		/**
 		 * Returns the absolute polarity of this domain
 		 * absolute polarity = (domain relative polarity) * (strand relative polarity) * (node polarity)
@@ -981,7 +982,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * with a polarity.
 		 */
 		getQualifiedName : function() {
-			return DNA.makeIdentity(DNA.normalizeIdentity(this.name), this.polarity);
+			return DNA.makeIdentifier(DNA.normalizeIdentity(this.name), this.polarity);
 		},
 		/**
 		 * Returns the identity of this segment
@@ -1118,9 +1119,9 @@ App.dynamic = module.exports = (function(_,DNA) {
 			if(this.type=='dot-paren') {
 				return new Structure(_.chain(this.spec.split('')).reverse().map(function(ch) { 
 					if(ch=='(') return ')' 
-					else if(ch==')') return '()'
+					else if(ch==')') return '('
 					else return ch
-				}).value());
+				}).value().join(''));
 			} else {
 				throw new DynamlError({
 					type: 'unimplemented',
@@ -1474,6 +1475,63 @@ App.dynamic = module.exports = (function(_,DNA) {
 			return Compiler.printStrands(this,config);
 		},
 		
+		// toNupackOutput: function() {
+// 			
+			// var library = this;
+// 
+			// var out = [];
+// 			
+			// // TODO: Add custom parameters
+			// // material = dna
+			// // temperature[C] = 23.0 # optional units: C (default) or K
+			// // trials = 3
+			// // sodium[M] = 1.0       # optional units: M (default), mM, uM, nM, pM
+			// // dangles = some
+// 			
+// 			
+			// // print domains (segments)
+			// // e.g.: domain x = N7
+// 			
+			// function nupackifyIdentity(id) {
+				// return 'd'+id;
+			// }
+// 			
+			// out.push(_.map(library.segments,function(segment) {
+				// return ['domain',nupackifyIdentity(segment.identity),'=',segment.getSequence()].join(' ');
+			// }).join('\n'));
+// 			
+			// // print strands ("optional?")
+			// // e.g.: strand J = gate_toehold1* gate_duplex1* gate_toehold2
+			// // TODO: new NUPACK requires these not to be numbers... poo; need to letter domains.
+// 			
+			// out.push(_.map(library.strands,function(strand) {
+				// return ['strand',strand.getQualifiedName(),'='].concat(_.map(strand.getSegments(),function(segment) {
+					// return nupackifyIdentity(segment.getIdentifier());
+				// })).join(' ');
+			// }).join('\n'));
+// 			
+			// // print structures
+			// // e.g.: structure gate_full = D30(+D30(U6+))
+			// // e.g.: structure haripin = Ux Hx Ux Ux
+// 			
+			// out.push(_.map(library.strands,function(strand) {
+				// var struct = strand.getStructure();
+				// if(strand.getAbsolutePolarity == -1) {
+					// struct = struct.reverse();
+				// }
+				// return ['structure',strand.getQualifiedName()+'_structure','=',struct.toDotParen()].join(' ');
+			// }).join('\n'));
+// 			
+			// // thread sequences onto structures 
+			// // e.g.: gate_full.seq = E G F
+// 			
+			// out.push(_.map(library.strands,function(strand) {
+				// return [strand.getQualifiedName()+'_structure.seq','=',strand.getQualifiedName()].join(' ');
+			// }).join('\n'));
+// 			
+			// return out.join('\n\n');
+// 			
+		// },
 		toNupackOutput: function() {
 			
 			var library = this;
@@ -1513,19 +1571,29 @@ App.dynamic = module.exports = (function(_,DNA) {
 			// e.g.: structure gate_full = D30(+D30(U6+))
 			// e.g.: structure haripin = Ux Hx Ux Ux
 			
-			out.push(_.map(library.strands,function(strand) {
-				var struct = strand.getStructure();
-				if(strand.getAbsolutePolarity == -1) {
-					struct = struct.reverse();
-				}
-				return ['structure',strand.getQualifiedName()+'_structure','=',struct.toDotParen()].join(' ');
+			out.push(_.map(library.nodes,function(node) {
+				
+				var structs = _.map(node.getStrands(),function(strand) { 
+					var struct = strand.getStructure();
+					if(strand.getAbsolutePolarity() == -1) {
+						struct = struct.reverse();
+					}
+					return struct;
+				});
+				
+				var concatamer = Structure.join(structs);
+				
+				return ['structure',node.getName()+'_structure','=',concatamer.toDotParen()].join(' ');
 			}).join('\n'));
 			
 			// thread sequences onto structures 
 			// e.g.: gate_full.seq = E G F
 			
-			out.push(_.map(library.strands,function(strand) {
-				return [strand.getQualifiedName()+'_structure.seq','=',strand.getQualifiedName()].join(' ');
+			out.push(_.map(library.nodes,function(node) {
+				var names = _.map(node.getStrands(),function(strand) {
+					return strand.getQualifiedName();
+				});
+				return [node.getName()+'_structure.seq','='].concat(names).join(' ');
 			}).join('\n'));
 			
 			return out.join('\n\n');

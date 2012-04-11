@@ -1,7 +1,7 @@
 Ext.define('App.ui.nodal.HomeTab', {
 	extend: 'App.ui.ToolsTab',
 	alias: 'widget.nodal-hometab',
-	requires: ['Workspace.DDManager'],
+	requires: ['Workspace.DDManager','Workspace.actions.UnwrapObjectsAction',],
 	generateConfig: function() {
 		return {
 			// dockedItems: [{
@@ -117,12 +117,35 @@ Ext.define('App.ui.nodal.HomeTab', {
 						iconAlign: 'top',
 						iconCls: 'form-idea-24',
 						text: 'Create Motif',
+						tooltip: {
+							title: 'Create Motif',
+							text: 'Click on the workspace to create an empty motif, or click and drag to group nodes into a motif. '+
+							'Your new motif will show up in the "Custom" tab of the motifs panel on the left; drag and drop it onto '+
+							'the workspace to create a new node of your motif. If you make an empty motif, you can enter custon DyNAML '+
+							'to define your motif. '
+						}
 					},{
 						toolName: 'exposure',
 						enableToggle: true,
 						toggleGroup: 'toolbox',
-						iconCls: 'port-add',
-						text: "Expose port"
+						iconCls: 'port-expose',
+						text: "Expose port",
+						tooltip: {
+							title: 'Expose Port',
+							text: 'Click and drag from a port within a motif to the motif itself to "expose" that port as an input, output, or '+
+							'bridge into the motif. When you create a node with your motif, you\'ll only be able to assign complementarities to '+
+							'ports which have been exposed. '
+						}
+					},{
+						iconCls: 'motif-destroy',
+						text: 'Unwrap motif',
+						tooltip: {
+							title: 'Destroy motif',
+							text: 'Unwraps and destroys the selected motif(s). If there are nodes within the motif, those nodes will be re-added to the '+
+							'workspace as regular nodes. If you wrote custom DyNAML within the motif, it will disappear, so be careful!'
+						},
+						handler: this.unwrapObjects,
+						scope: this,
 					}]
 				},{
 
@@ -210,6 +233,15 @@ Ext.define('App.ui.nodal.HomeTab', {
 				},]
 			// }]
 		}
+	},
+		/**
+	 * Generates a WorkspaceAction to decouple the bound objects from their parent(s)
+	 */
+	unwrapObjects: function() {
+		var action = new Workspace.actions.UnwrapObjectsAction({
+			subjects: this.boundObjects.getRange()
+		});
+		this.fireEvent('action', action);
 	},
 },function() {
 

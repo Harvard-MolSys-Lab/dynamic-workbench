@@ -40,10 +40,10 @@ Ext.define('App.ui.NodalCanvas', {
 		 */
 		this.palettes = [Ext.create('App.ui.MotifPalette', {
 			ref : 'palatte',
-			title : 'Standard Motifs',
+			title : 'Standard',
 		}), Ext.create('App.ui.MotifPalette', {
 			ref : 'customPalatte',
-			title : 'Custom Motifs',
+			title : 'Custom',
 			store : this.customMotifStore,
 		})];
 		/**

@@ -298,6 +298,11 @@ Ext.define('App.ui.SequenceEditor', {
 				tooltip: 'Perform various thermodynamic calculations on the selection',
 				menu: {
 					items:[{
+						text: 'Calculate Partition Function...',
+						handler: this.showPartitionWindow,
+						scope: this,
+						iconCls: 'nupack-icon',
+					},'-',{
 						text: 'MFE Complexes',
 						iconCls: 'nupack-icon',
 						menu: Ext.create('App.ui.CreateMenu',{
@@ -633,6 +638,15 @@ Ext.define('App.ui.SequenceEditor', {
 		var win = Ext.create('App.ui.SequenceThreader',{});
 		win.show();
 		win.setSequences(this.getSelection());
+	},
+	showPartitionWindow: function() {
+		if(!this.partitionWindow) {
+			this.partitionWindow = Ext.create('App.ui.nupack.PartitionWindow',{
+				renderTo: Ext.getBody(),
+			});
+		}
+		this.partitionWindow.updateStrands(this.getValue());
+		this.partitionWindow.show();
 	},
 	subsetsMfe: function(fullName) {
 		var strands = this.smartSelect(),

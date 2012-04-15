@@ -226,7 +226,7 @@ Ext.define('Workspace.objects.Connection', {
 				r: bb2.width / 2,
 			};
 			var theta1 = obj1.get(this.thetaProperty)*Math.PI/180, theta2 = obj2.get(this.thetaProperty)*Math.PI/180;
-			var l = 30;
+			var l = 40;
 			var path = ["M",c1.x+Math.cos(theta1)*c1.r, c1.y+Math.sin(theta1)*c1.r,
 				// first control point
 				'C',c1.x+Math.cos(theta1)*(c1.r+l), c1.y+Math.sin(theta1)*(c1.r+l),

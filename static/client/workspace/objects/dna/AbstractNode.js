@@ -34,7 +34,7 @@ Ext.define('Workspace.objects.dna.AbstractNode', {
 	destroyChildren: true,
 	isResizable: false,
 	polarity: 0,
-
+	portCounter: -1,
 	constructor: function() {
 		this.shimConfig = {
 			cls: 'workspace-label-callout',
@@ -45,8 +45,9 @@ Ext.define('Workspace.objects.dna.AbstractNode', {
 		
 		this.expose('polarity',true,true,true,false);
 		this.expose('theta',true,true,true,false);
-
-		this.workspace.buildManager.on('rebuild',this.onRebuild,this);
+		
+		if(this.workspace.buildManager)
+			this.workspace.buildManager.on('rebuild',this.onRebuild,this);
 
 		if(!this.name) {
 			this.name = this.nextName(); //Workspace.objects.dna.Node.nextName();
@@ -98,6 +99,19 @@ Ext.define('Workspace.objects.dna.AbstractNode', {
 		// this.callParent(arguments);
 		// this.layout.doLayout();
 	// },
+	nextPortName: function() {
+		var s = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+		var nextName;
+		var children = _.filter(this.getChidren,function(child) {
+			return child.isWType(['Workspace.objects.dna.InputPort','Workspace.objects.dna.OutputPort','Workspace.objects.dna.BridgePort']);
+		})
+		do {
+			this.portCounter++;
+			nextName = s[this.portCounter];
+		} while(!!_.find(children,function(obj) { return obj.get('name') == nextName; }));
+		return nextName;
+	},
+	
 	/**
 	 * @abstract
 	 * Gets the next name for this type of object from the 
@@ -126,7 +140,7 @@ Ext.define('Workspace.objects.dna.AbstractNode', {
 	 * @returns {Mixed} value
 	 */
 	getRealtime: function(prop) {
-
+		
 	},
 	/**
 	 * @abstract

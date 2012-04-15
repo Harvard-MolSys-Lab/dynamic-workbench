@@ -54,9 +54,11 @@ Ext.define('Workspace.objects.dna.Node', {
 		this.change('structure',this.get('structure'));
 	},
 	getRealtime: function(prop) {
+		if(this.workspace.buildManager)
 		return this.workspace.buildManager.getRealtime('node',this.get('name'),prop);
 	},
 	getLibraryObject: function() { 
+		if(this.workspace.buildManager)
 		return this.workspace.buildManager.getRealtime('node',this.get('name'),'this');
 	},
 }, function() {

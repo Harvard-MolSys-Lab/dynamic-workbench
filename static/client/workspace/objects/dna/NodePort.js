@@ -13,7 +13,8 @@ Ext.define('Workspace.objects.dna.NodePort', {
 			var obj = this.getLibraryObject();
 			return obj ? obj.getAbsolutePolarity() : 0;
 		}, false, false, false);
-		this.workspace.buildManager.on('rebuild', this.onRebuild, this);
+		if(this.workspace.buildManager)
+			this.workspace.buildManager.on('rebuild', this.onRebuild, this);
 
 	},
 	//	wtype: 'Workspace.objects.dna.NodePort',

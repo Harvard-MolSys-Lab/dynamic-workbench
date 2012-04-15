@@ -80,7 +80,6 @@ Ext.define('Workspace.Label', {
 		}
 	},
 	/**
-	 * updateSize
 	 * Invoked automatically to set the height of the shim
 	 * @private
 	 */
@@ -93,7 +92,6 @@ Ext.define('Workspace.Label', {
 		Workspace.Label.superclass.onMove.apply(this, arguments);
 	},
 	/**
-	 * onChange
 	 * Invoked when the attached object property changes; updates the attached element
 	 * @param {String} prop The property which changes
 	 * @param {Mixed} val The value which changes

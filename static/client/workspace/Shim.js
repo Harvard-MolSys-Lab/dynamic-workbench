@@ -112,7 +112,7 @@ Ext.define('Ext.ux.LabelEditor', {
 	extend : 'Ext.Editor',
 	alignment : "tl-tl",
 	hideEl : false,
-	cls : "x-small-editor",
+	//cls : "x-small-editor",
 	shim : false,
 	completeOnEnter : true,
 	cancelOnEsc : true,

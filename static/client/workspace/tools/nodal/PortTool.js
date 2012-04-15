@@ -13,14 +13,24 @@ Ext.define('Workspace.tools.nodal.PortTool', {
 	click: function(e,item) {
 		var pos = this.getAdjustedXY(e), port;
 		if(item && this.accept(item)) {
+			var name = item.nextPortName();
 			if(e.altKey) {
 				port = this.workspace.createObject({
+					name: name,
 					wtype: 'Workspace.objects.dna.OutputPort',
+					x: pos.x,
+					y: pos.y
+				});
+			} else if(e.shiftKey) {
+				port = this.workspace.createObject({
+					name: name,
+					wtype: 'Workspace.objects.dna.BridgePort',
 					x: pos.x,
 					y: pos.y
 				});
 			} else {
 				port = this.workspace.createObject({
+					name: name,
 					wtype: 'Workspace.objects.dna.InputPort',
 					x: pos.x,
 					y: pos.y

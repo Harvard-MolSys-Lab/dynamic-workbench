@@ -325,7 +325,9 @@ Ext.define('Workspace.objects.Object', {
 	 * @param {Number} y
 	 */
 	updateY : function(y) {
-		this.fireEvent('move', this.getX(), y);
+		// HOW DID THIS SURVIVE SO LONG???
+		// this.fireEvent('move', this.getX(), y);
+		this.fireEvent('move', y, this.getY());
 	},
 	/**
 	 * Returns the object's x,y position

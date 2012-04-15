@@ -118,8 +118,25 @@ App.dynamic = module.exports = (function(_,DNA) {
 		
 		// Compile recursively if necessary
 		if(config.nodes) {
+			
+			// // Import any external motifs
+			// // TODO: check if there are internal motifs with the same name; if so, that'll create a DynamlError now
+			// if(config.externalMotifs) {
+				// if(!config.motifs) {
+					// config.motifs = [];
+				// }
+				// config.motifs = config.externalMotifs.concat(config.motifs);
+			// }
+				
 			var recursive = Library.fromMotif(config);
-			recursive = recursive.compile();
+			try {
+				recursive = recursive.compile();
+			} catch (e) {
+				if(e.message) {
+					e.message = ["In motif",config.name,":\n",e.message].join(' ');
+				}
+				throw new DynamlError(e);
+			}
 			_.extend(this,recursive.toMotif());
 			delete config.nodes;
 			delete config.motifs;
@@ -127,6 +144,8 @@ App.dynamic = module.exports = (function(_,DNA) {
 			if(!this.structure) {
 				
 			}
+		} else {
+			delete config.externalMotifs;
 		}
 
 		// Apply configuration options with defaults to this object
@@ -384,9 +403,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 		this.strands = _.map(this.strands,function(strand,i) {
 			
 			// See if additional strand properties for this strand were specified by the node
-			if(nodeStrandProperties[strand.name]) {
-				strand = _.copyWith(strand,nodeStrandProperties[strand.name]);
-			}
+			strand = _.copyWith(strand,nodeStrandProperties[strand.name] || {});
+			// (must always copy else assigning to strand screws things up)
+			
+			// if(nodeStrandProperties[strand.name]) {
+			// }
 
 			// See if additional domain properties for this strand were specified by the node			
 			strand.domains = _.map(strand.domains, function(domain) {
@@ -1623,6 +1644,9 @@ App.dynamic = module.exports = (function(_,DNA) {
 				}
 			}
 			
+			var pi = Math.PI;
+			var atan2 = Math.atan2;
+			
 			var x = 0,
 			y = 0,
 			H=300,
@@ -1631,7 +1655,10 @@ App.dynamic = module.exports = (function(_,DNA) {
 			R = Math.round(Math.sqrt(this.strands.length)),
 			C = Math.ceil(this.strands.length/R);
 			
-			fid.write('<?xml version="1.0" standalone="no"?>\n<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"\nviewBox = "0 0 ' + repr(H*C) + ' ' + repr(V*R) + '" version = "1.1">\n<defs><path id="arrow" d="M -7 -7 L 0 0 L -7 7"/>\n</defs>\n')
+			fid.write('<?xml version="1.0" standalone="no"?>\n<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n'+
+			'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"\nviewBox = "0 0 ' + repr(H*C) + ' ' + repr(V*R) + '" version = "1.1">\n'+
+			'<defs><path id="arrow" d="M -7 -7 L 0 0 L -7 7"/>\n</defs>\n'+
+			'<style type="text/css">text { font-family: tahoma, helvetica, arial; }</style>')
 
 			for(var svgi = 0; svgi < this.strands.length; svgi++) {
 				var strand = this.strands[svgi];
@@ -1657,11 +1684,13 @@ App.dynamic = module.exports = (function(_,DNA) {
 
 				    var b = a;
 				    while(structure[b]=='(') { b++ } // number of last hybridized segment
+					b--;
 
 				    c = structure.indexOf(')');  // number of first hybridized segment after wraparound
 				    
 				    var d = c; // number of last hybridized segment after wraparound
 				    while(structure[d]==')') { d++ }
+				    d--;
 				    
 				    var segmentLengths = strand.getSegmentLengths();
 				    
@@ -1672,37 +1701,36 @@ App.dynamic = module.exports = (function(_,DNA) {
 				    var len1 = sum(segmentLengths.slice(0,a)),  // length of the initial toehold, in bases
 				    len2 = sum(segmentLengths.slice(a,b+1)),  // length of the duplex region, in bases
 				    len3 = sum(segmentLengths.slice(b+1,c)),  // length of the hairpin loop, in bases
-				    len4 = sum(segmentLengths.slice(d));  // length of the trailing end, in bases
+				    len4 = sum(segmentLengths.slice(d+1));  // length of the trailing end, in bases
 
 
 				    fid.write('<g stroke = "black" stroke-width = "1" fill = "none">\n')
-				    for(var svgj = 0; svgj < segments.length; svgj++) { // draw cross-lines for paired bases
+				    for(var svgj = 0; svgj < len2; /*segments.length;*/ svgj++) { // draw cross-lines for paired bases
 			      		fid.write('<line x1 = "{0}" y1 = "{1}" x2 = "{2}" y2 = "{3}"/>\n'.format(x+H*.3+H*.3*svgj/len2,y+V*.45,x+H*.3+H*.3*svgj/len2,y+V*.5))
 				      }
 			    	fid.write('</g>\n')
 			    	fid.write('<g stroke = "black" stroke-width = "2" fill = "none">\n<path d = "M {0} {1} a {2} {3} 0 1 1 {4} {5} L {6} {7}" stroke="black"/>\n'.format(x+H*.6,y+V*.45,H*.085,V*.25,0,V*.05,x+H*.3,y+V*.5))  // loop and bottom line
 			    	fid.write('<line x1 = "{0}" y1 = "{1}" x2 = "{2}" y2 = "{3}" stroke = "rgb(241,139,17)"/>\n'.format(x+H*.15,y+V*.45,x+H*.6,y+V*.45))  // yellow top line
 			    	if (len4>0)
-			      		fid.write('<path d = "M {0} {1} L {2} {3}" stroke = "black"/>\n'.format(x+H*.45,y+V*.5,x+H*.15,y+V*.5))  // trailing end
+			      		fid.write('<path d = "M {0} {1} L {2} {3}" stroke = "black"/>\n'.format(x+H*.3,y+V*.5,x+H*.15,y+V*.8))  // trailing end
 			    	if (strand.getPolarity() == -1) {
-			    		
 			      		fid.write('<use x="{0}" y="{1}" stroke="rgb(241,139,17)" xlink:href="#arrow" transform="rotate(180,{2},{3})"/>\n'.format(x+H*.15,y+V*.45,x+H*.15,y+V*.45))  // yellow top arrow
 			    	} else {
 			    	
 				      if (len4>0)
-				        fid.write('<use x="{0}" y="{1}" stroke="rgb(0,159,47)" xlink:href="#arrow" transform="rotate({2},{3},{4})"/>\n'.format(x+H*.15,y+V*.8,90+180/pi*atan2(V*.3,H*.15),x+H*.15,y+V*.8))  // bottom arrow
+				        fid.write('<use x="{0}" y="{1}" xlink:href="#arrow" transform="rotate({2},{3},{4})"/>\n'.format(x+H*.15,y+V*.8,90+180/pi*atan2(V*.3,H*.15),x+H*.15,y+V*.8))  // bottom arrow
 				      else
 				        fid.write('<use x="{0}" y="{1}" xlink:href="#arrow" transform="rotate(180,{2},{3})"/>\n'.format(x+H*.3,y+V*.5,x+H*.3,y+V*.5))
 				    }
 				    fid.write('</g>\n<g stroke="none" fill="black" font-size="16">\n')
+				    
+				    
+				    
 				    labelx = []
 				    labely = []
 				    
 				    
 				   
-				    
-				   
-				    
 				    function repr(x) {
 				    	return x;
 				    }
@@ -1713,34 +1741,35 @@ App.dynamic = module.exports = (function(_,DNA) {
 				    
 				    var cos = Math.cos, sin = Math.sin, pi = Math.PI;
 				    
-				    for (svgj in range(a)) {
-				    	
+				    for (var svgj = 0; svgj < a; svgj++) {
 				      labelx.push(H*(.15 + .15*(svgj+.5)/a))
 				      labely.push(V*.4)
 				    }  // toehold
-				    for (svgj in range(b+1-a)) {
+				    for (svgj = 0; svgj < b+1-a; svgj++) {
 				    	
 				      labelx.push(H*(.3 + .3*(svgj+.5)/(b+1-a)))
 				      labely.push(V*.4)
 				    }  // duplex region
-				    for (svgj in range(c-(b+1))) {
+				    for (svgj = 0; svgj < c-(b+1); svgj++) {
 				    	
-				      labelx.push(H*(.75 - .1*cos(2*pi*(svgj+.5)/(c-(b+1)))))
-				      labely.push(V*(.45 + .25*sin(2*pi*(svgj+.5)/(c-(b+1)))))
+				      labelx.push(H*(.75 - .05*cos(2*pi*(svgj+.5)/(c-(b+1)))))
+				      labely.push(V*(.45 - .25*sin(2*pi*(svgj+.5)/(c-(b+1)))))
 				    }  // hairpin loop
-				    for (svgj in range(b+1-a)) {
+				    for (svgj = 0; svgj < b+1-a; svgj++) {
 				    	
 				      labelx.push(H*(.6 - .3*(svgj+.5)/(b+1-a)))
 				      labely.push(V*.6)
 				    }  // duplex region again
-				    for (svgj in range(d+1-c)) {
+				    for (svgj = 0; svgj < d+1-c; svgj++) {
 				    	
 				      labelx.push(H*(.3 - .15*(svgj+.5)/(d+1-c)))
-				      labely.push(V*(.6 -.2*(svgj+.5)/(d+1-c)))
+				      labely.push(V*(.6 + .3*(svgj+.5)/(d+1-c)))
 				    }  // trailing end
-				    for (svgj in range(segments.length)) {
+				    
+				    for (var svgj = 0; svgj < segments.length; svgj++) {
 				      var segment = segments[svgj];
-				      svgk = segment.getIdentifier();
+				      
+				      var s = segment.getIdentifier();
 				      // if (svgk>0)
 				        // s = repr(svgk)
 				      // else
@@ -1751,7 +1780,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 					
 
 				}
-			  fid.write('<text x="{0}" y="{1}" font-size="20" stroke-width="1" fill="black" stroke="none">{2}</text>\n'.format(x+H*.8, y+V*.5, strand.getQualifiedName()))
+			  fid.write('<text x="{0}" y="{1}" style="font-size: 18px; font-weight: bold;" stroke="none">{2}</text>\n'.format(x+H*.45, y+V*.9, strand.getQualifiedName()))
 			  y += V
 			  if (y>=V*R) {			  	
 			    y=0
@@ -1895,12 +1924,14 @@ App.dynamic = module.exports = (function(_,DNA) {
 				}
 
 				// Instantiate motifs to Motif objects
-				library.motifs = _.map(library.motifs, function(motif) {
+				library.motifs = _.reduce(library.motifs, function(memo,motif) {
 					motif = _.copyWith(motif,{
 						library: library,
+						//externalMotifs: memo,
 					});
-					return new Motif(motif);
-				});
+					memo.push(new Motif(motif))
+					return memo;
+				},[]);
 				
 				// Instantiate nodes to Node objects
 				library.nodes = _.map(library.nodes, function(node) {
@@ -2062,7 +2093,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 								message : _.template('Complementarity statement in node <%= sourceNode %> implies domain <%= targetNode %>.<%= targetPort %> ' + //
 								'should have <%= expected %> segments, but instead it has <%= encountered %> segments', {
 									sourceNode : complement.sourceNode.getName(),
-									targetNode : complement.targetPort.getName(),
+									targetNode : complement.targetNode.getName(),
 									targetPort : complement.targetPort.getName(),
 									expected : sourceSegments.length,
 									encountered : targetSegments.length,
@@ -2605,7 +2636,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			},{
 				name: 'm8',
 				type: 'hairpin',
-				structure: '.((.))',
+				structure: '.((.))..',
 			    domains: [{
 			    	name: 'A',
 			    	role: 'input',
@@ -2631,6 +2662,8 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	polarity: '+',
 			    	segments: [
 				      	{name: 'b*', role: ''},
+				      	{name: 'e', role: ''},
+				      	{name: 'f', role: ''},
 			    	]
 			    }]
 			},{

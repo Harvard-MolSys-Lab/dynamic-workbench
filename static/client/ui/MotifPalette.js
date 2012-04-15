@@ -28,11 +28,12 @@ Ext.define('App.ui.MotifPalette', {
 			this.papers = {};
 		}
 		_.each(store.getRange(), function(rec) {
-			var node = Ext.get(view.getNode(rec));
+			var node = view.getNode(rec);
 			this.redrawMotif(rec, null, node);
 		}, this);
 	},
 	redrawMotif : function(rec, index, node) {
+		node = Ext.get(node);
 		var id = node.id, 
 			/* if index != null, that means this is coming from Ext's itemupdate event, so we definitely need to generate a new paper, 
 			 * since Ext just deleted it.

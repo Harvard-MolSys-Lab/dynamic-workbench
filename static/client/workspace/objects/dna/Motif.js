@@ -13,32 +13,37 @@ Ext.define('Workspace.objects.dna.Motif', {
 	requires: ['Workspace.objects.dna.MotifLayout',],
 	constructor: function() {
 		this.callParent(arguments);
-		this.workspace.buildManager.on('rebuild',this.onRebuild,this);
-		this.expose('dynaml',true,true,true,false);
 		this.expose('nodes',function() {
 			return _.filter(this.getChildren(),function(child) { return child.hasWType('Workspace.objects.dna.Node')});
 		},false,false,false);
 		
+		if(this.workspace.buildManager)
+			this.workspace.buildManager.on('rebuild',this.onRebuild,this);
+		this.expose('dynaml',true,true,true,false);
+
 		this.on('change:dynaml',this.syncDynaml,this);
 	},
 	render: function() {
 		this.callParent(arguments);
-		this.addShim(new Workspace.ConnectionLabel({
-			cls: 'workspace-label-plain workspace-label-small',
-			offsets:[0,2],
-			//offsets: [11,26],
-			property: 'name',
-			editable: true
-		}));
+		// this.addShim(new Workspace.ConnectionLabel({
+			// cls: 'workspace-label-plain workspace-label-small',
+			// offsets:[0,2],
+			// //offsets: [11,26],
+			// property: 'name',
+			// editable: true
+		// }));
 
 	},
 	syncDynaml: function() {
 		var dynaml = this.get('dynaml');
 		var groups;
-		
 		if(dynaml) {
-			if(_.isString(dynaml)) {
-				dynaml = JSON.parse(dynaml);
+			try {
+				if(_.isString(dynaml)) {
+					dynaml = JSON.parse(dynaml);
+				}
+			} catch(e) {
+				return console.log(e);
 			}
 			dynaml.library = App.dynamic.Library.dummy();
 			var dynamlMotif = new App.dynamic.Motif(dynaml);
@@ -116,9 +121,11 @@ Ext.define('Workspace.objects.dna.Motif', {
 		
 	},
 	getRealtime: function(prop) {
+		if(this.workspace.buildManager)
 		return this.workspace.buildManager.getRealtime('motif',this.get('name'),prop);
 	},
 	getLibraryObject: function() { 
+		if(this.workspace.buildManager)
 		return this.workspace.buildManager.getRealtime('motif',this.get('name'),'this');
 	},
 }, function() {

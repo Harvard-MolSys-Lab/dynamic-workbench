@@ -58,6 +58,8 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 		this.fireEvent('needsrebuild');
 	},
 	buildRealtime: function() {
+		try {			
+			
 		var dynaml = this.serializeDynaml();
 		this.lastDynaml = JSON.parse(JSON.stringify(dynaml));
 		
@@ -70,7 +72,6 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 		 */
 		this.fireEvent('beforerebuild',this,dynaml);
 		var lib;
-		try {			
 			lib = App.dynamic.Compiler.compileLibrary(dynaml);
 			this.lastLibrary = lib;
 			/**
@@ -87,6 +88,13 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 			}).compact().value();
 			
 			this.syncCustomMotifStore(customMotifs);
+			
+			// Hide error proxies
+			_.each(this.workspace.getAllObjects(),function(obj) {
+				if(obj.isWType('Workspace.objects.dna.Node')) {
+					obj.hideError();
+				}
+			})
 			
 		} catch(e) {
 			if(e.nodes) {
@@ -339,12 +347,18 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 					return memo;					
 				},lib);
 			} else if(motif.get('dynaml')) {
+				var dyn;
+				try {				
+					dyn = jsonlint.parse(motif.get('dynaml'));
+				} catch (e) {
+					throw { message: ["In motif",motif.get('name'),":\n",e.message].join(' ')}
+				}
 				return _.reduce(Workspace.objects.dna.BuildManager.dynaml.motifProperties, function(memo, property) {
 					if(motif.has(property)) {
 						memo[property] = motif.get(property);
 					}
 					return memo;					
-				},JSON.parse(motif.get('dynaml')));
+				},dyn);
 			}
 		},this).compact().value();
 		

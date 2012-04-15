@@ -16,6 +16,9 @@ Ext.define('Workspace.ConnectionLabel', {
 		});
 		Workspace.ConnectionLabel.superclass.constructor.apply(this,arguments);
 	},
+	render: function() {
+		this.callParent(arguments);
+	},
 	/**
 	 * onMove
 	 * Invoked when the element moves; repositions the shim
@@ -28,8 +31,12 @@ Ext.define('Workspace.ConnectionLabel', {
 				var el = this.getEl();
 				//el.alignTo(Ext.fly(oEl),this.position,this.offsets,this.animate);
 				el.position('absolute');
+				this.updateSize(this.object.get(this.property));
 				el.setLeftTop((this.object.getX() + this.object.getWidth() / 2 - el.getWidth() / 2)+this.offsets[0], (this.object.getY() + this.object.getHeight() / 2 - el.getHeight() / 2)+this.offsets[1]);
 			}
 		}
 	},
+	updateSize: function() {
+		this.callParent(arguments);
+	}
 });

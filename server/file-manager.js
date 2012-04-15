@@ -20,7 +20,9 @@ function logError() {
 }
 
 function fileRecord(file, node, stat, cb) {
-	var ext = path.extname(file), type, id = path.join(node, file), trigger, out, transform;
+	var ext = path.extname(file), type, 
+	id = path.join(node, file), 
+	trigger, out, transform;
 
 	if(ext != '') {
 		type = ext.substring(1);
@@ -59,6 +61,13 @@ exports.configure = function(app, express) {
 			icons : fileTypes.icons
 		});
 		//res.send("App.triggers = " + JSON.stringify(fileTypes.triggers) + ";App.icons=" + JSON.stringify(fileTypes.icons) + ";");
+	});
+
+	app.get('/attribution', restrict('json'), function(req, res) {
+		res.render('attribution.ejs', {
+			layout  : false,
+			version : version
+		});
 	});
 
 	app.get('/config', restrict('json'), function(req, res) {
@@ -253,7 +262,7 @@ exports.configure = function(app, express) {
 						});
 					} else {
 						fs.stat(newPath, function(err, stat) {
-							fileRecord(path.basename(newPath), path.dirname(newPath), null, function(err, outRec) {
+							fileRecord(path.basename(newPath), path.relative(config.files.path,path.dirname(newPath)), null, function(err, outRec) {
 								if(outRec) {
 									outRec.id = node;
 									res.send([outRec]);

@@ -1,6 +1,6 @@
 if(!App)
 	var App = {
-		name : 'InfoMachine2'
+		name : 'DyNAMiC Workbench'
 	};
 
 function msg(message) {
@@ -22,10 +22,18 @@ Ext.onReady(function() {
 	var success = function(form, action) {
 		var result = action.result;
 		//.result[0];
-		if(!result.success) {
-			Ext.Msg.alert('Login Failed.', 'Check your email and password');
-		} else if(result.message) {
+		// if(!result.success) {
+			// Ext.Msg.alert('Login Failed.', 'Check your email and password');
+		// } else if(result.message) {
+			// Ext.Msg.alert('Login Message', result.message);
+		// } else {
+			// location.reload(true);
+		// }
+		
+		if(result.message) {
 			Ext.Msg.alert('Login Message', result.message);
+		} else if(!result.success) {
+			Ext.Msg.alert('Login Failed.', 'Check your email and password');
 		} else {
 			location.reload(true);
 		}
@@ -46,7 +54,7 @@ Ext.onReady(function() {
 			margins : '5 5 0 5'
 		}, {
 			region : 'center',
-			layout: 'anchor',
+			layout : 'anchor',
 			frame : true,
 			margins : '0 5 5 5',
 			xtype : 'form',
@@ -69,13 +77,13 @@ Ext.onReady(function() {
 				allowBlank : false,
 				blankText : "We need your password too.",
 				value : Ext.util.Cookies.get('infomachine-password') || '',
-			},{
-				anchor: '-5',
-				name: 'remember',
-				xtype: 'checkbox',
-				checked: Ext.util.Cookies.get('infomachine-remember') || false,
-                boxLabel: 'Remember Me',
-                tooltip: 'Check to remember your username and password.'
+			}, {
+				anchor : '-5',
+				name : 'remember',
+				xtype : 'checkbox',
+				checked : Ext.util.Cookies.get('infomachine-remember') || false,
+				boxLabel : 'Remember Me',
+				tooltip : 'Check to remember your username and password.'
 			}],
 			buttons : [{
 				text : "Login",
@@ -84,9 +92,9 @@ Ext.onReady(function() {
 				handler : function() {
 					var remember = loginWindow.down('[name=remember]');
 					if(remember.checked) {
-						Ext.util.Cookies.set('infomachine-email',loginWindow.down('[name=email]').getValue());
-						Ext.util.Cookies.set('infomachine-password',loginWindow.down('[name=password]').getValue());
-						Ext.util.Cookies.set('infomachine-remember',true);
+						Ext.util.Cookies.set('infomachine-email', loginWindow.down('[name=email]').getValue());
+						Ext.util.Cookies.set('infomachine-password', loginWindow.down('[name=password]').getValue());
+						Ext.util.Cookies.set('infomachine-remember', true);
 					}
 					loginWindow.down('form').submit({
 						url : '/login',
@@ -99,94 +107,174 @@ Ext.onReady(function() {
 			}]
 		}]
 	});
-	regWindow = new Ext.Window({
-		width : 300,
-		height : 330,
+	Ext.define('App.RegWindow', {
+		extend : 'Ext.Window',
+		constructor : function() {
+			Ext.apply(this, {
+				items : [{
+					html : 'Welcome to ' + App.name + '. From this page you can: <ul>'+
+					'<li>Sign up to be an alpha tester, and an administrator will approve your account shortly; you will get ' +
+					'an email when your account is ready.</li>'+
+					'<li>If you already have an invitation code, you can make an account right now.</li></ul><a href="javascript:showLogin()">Already have an account?</a>',
+					frame : true,
+					region : 'north',
+					split : true,
+					margins : '5 5 0 5'
+				}, {
+					ref : 'form',
+					region : 'center',
+					frame : true,
+					margins : '0 5 5 5',
+					xtype : 'form',
+					defaults : {
+						xtype : 'textfield',
+						anchor : '100%'
+					},
+					items : [{
+						name : 'name',
+						fieldLabel : 'Name',
+						allowBlank : false,
+						tooltip : {
+							anchor: 'left',
+							text : "We need your name to identify you."
+						}
+					}, {
+						name : 'institution',
+						fieldLabel : 'Institution',
+						allowBlank : true,
+						tooltip : {
+							anchor: 'left',
+							text: "Please enter the academic institution with which you're most closely affiliated, e.g. 'Harvard University', or 'Caltech'"
+						}
+					}, {
+						style : 'margin-top:15px;',
+						name : 'email',
+						fieldLabel : 'E-mail',
+						allowBlank : false,
+						blankText : "We need your email address to identify you to other members of your team"
+					}, {
+						name : 'password',
+						id : 'pass1',
+						fieldLabel : 'Password',
+						inputType : 'password',
+						allowBlank : false,
+						tooltip : {
+							anchor: 'left',
+							text:  "Please enter a password to use when you log in."
+						}
+					}, {
+						name : 'password2',
+						fieldLabel : 'Re-type',
+						inputType : 'password',
+						allowBlank : false,
+						vtype : 'password',
+						initialPassField : 'pass1',
+						blankText : "Whoops; your password here doesn't match the one you typed above"
+					}, {
+						style : 'margin-top:15px;',
+						name : 'invite',
+						fieldLabel : 'Invite Code',
+						allowBlank : true,
+						tooltip : {
+							anchor: 'left',
+							text : "If you have an invitation code for automatic account creation, enter it here. " + "If not, don't worry about it. An administrator will approve your account shortly."
+						}
+					},{
+						name: 'reference',
+						fieldLabel: 'How did you hear about '+App.name+'?',
+						xtype: 'textarea',
+						labelAlign: 'top',
+						height: 100,
+					}],
+					buttons : [{
+						text : "Sign Up",
+						iconCls : 'key',
+						formBind : true,
+						handler : function() {
+							regWindow.down('form').submit({
+								url : '/register',
+								waitMsg : 'Creating your account...',
+								success : function(form, action) {
+									var result = action.result;
+									//.result[0];
+									
+									if(result.message) {
+										Ext.Msg.alert('Account Creation Message', result.message);
+									} else if(!result.success) {
+										Ext.Msg.alert('Account Creation Failed.', result.message);
+									} else {
+										alert('hello!'); // location.reload(true);
+									}
+								},
+								failure : function(form, action) {
+									var result = action.result;
+									//.result[0];
+									if(!result.success) {
+										Ext.Msg.alert('Account Creation Failed.', result.message);
+									} else {
+										location.reload(true);
+									}
+								}
+							});
+						}
+					}],
+				}]
+			})
+
+			this.callParent(arguments);
+			this.tips || (this.tips = []);
+			Ext.each(this.query('*[tooltip]'), function(field) {
+				field.on('afterrender', this.buildTip, this);
+			}, this);
+			this.on('destroy', this.destroyTips, this);
+		},
+		/**
+		 * Constructs a tooltip for the given field using the field's tooltip configuration parameter.
+		 */
+		buildTip : function(field) {
+			var t = field.tooltip;
+
+			/* Don't try to make tooltips for fields without them, don't make a tooltip for a
+			 * field which already has one, and don't try to make one for components like
+			 * buttons which support them natively.
+			 */
+			if(!field.tooltip || field.tip || field.setTooltip) {
+				return;
+			}
+			if(Ext.isString(t)) {
+				t = {
+					text : t
+				};
+			}
+			if(t.text && !t.html) {
+				t.html = t.text;
+			}
+			t.target = field.getEl();
+			var tip = new Ext.ToolTip(t);
+			this.tips || (this.tips = []);
+			this.tips.push(tip);
+			field.tip = tip;
+		},
+		/**
+		 * Destroys all tooltips for this components' children.
+		 */
+		destroyTips : function() {
+			Ext.each(this.tips, function(tip) {
+				if(tip && tip.destroy) {
+					tip.destroy();
+				}
+			})
+		},
+		closable : false,
+		width : 350,
+		height : 450,
 		modal : true,
 		layout : 'border',
 		title : "Register for an Account",
 		iconCls : 'lock',
-		items : [{
-			html : 'Welcome to ' + App.name + '. Want to create an account? You\'ll need an ' + 'invite code. <a href="javascript:showLogin()">Already have an account?</a>',
-			frame : true,
-			region : 'north',
-			split : true,
-			margins : '5 5 0 5'
-		}, {
-			ref : 'form',
-			region : 'center',
-			frame : true,
-			margins : '0 5 5 5',
-			xtype : 'form',
-			defaults : {
-				xtype : 'textfield',
-				anchor : '100%'
-			},
-			items : [{
-				name : 'name',
-				fieldLabel : 'Name',
-				allowBlank : false,
-				blankText : "We need your name to identify you."
-			}, {
-				style : 'margin-top:15px;',
-				name : 'email',
-				fieldLabel : 'E-mail',
-				allowBlank : false,
-				blankText : "We need your email address to identify you to other members of your team"
-			}, {
-				name : 'password',
-				id : 'pass1',
-				fieldLabel : 'Password',
-				inputType : 'password',
-				allowBlank : false,
-				blankText : "Uh... we need your password too."
-			}, {
-				name : 'password2',
-				fieldLabel : 'Re-type',
-				inputType : 'password',
-				allowBlank : false,
-				vtype : 'password',
-				initialPassField : 'pass1',
-				blankText : "Whoops; your password here doesn't match the one you typed above"
-			}, {
-				style : 'margin-top:15px;',
-				name : 'invite',
-				fieldLabel : 'Invite Code',
-				allowBlank : false,
-				blankText : "Enter the invitation code."
-			}],
-			buttons : [{
-				text : "Sign Up",
-				iconCls : 'key',
-				formBind : true,
-				handler : function() {
-					regWindow.down('form').submit({
-						url : '/register',
-						waitMsg : 'Creating your account...',
-						success : function(form, action) {
-							var result = action.result;
-							//.result[0];
-							if(!result.success) {
-								Ext.Msg.alert('Account Creation Failed.', result.message);
-							} else {
-								location.reload(true);
-							}
-						},
-						failure : function(form, action) {
-							var result = action.result;
-							//.result[0];
-							if(!result.success) {
-								Ext.Msg.alert('Account Creation Failed.', result.message);
-							} else {
-								location.reload(true);
-							}
-						}
-					});
-				}
-			}],
-			closable : false,
-		}]
+
 	});
+	regWindow = new App.RegWindow();
 	loginWindow.show();
 
 });

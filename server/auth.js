@@ -22,6 +22,14 @@ var UserSchema = new Schema({
 	},
 	password : String,
 	salt : String,
+	institution: {
+		type: String,
+		'default': 'none',
+	},
+	active : {
+		type: Boolean,
+		'default': false,
+	},
 	admin : {
 		type : Boolean,
 		'default' : false
@@ -66,9 +74,16 @@ function authenticate(email, pass, fn) {
 		// apply the same algorithm to the POSTed password, applying
 		// the hash against the pass / salt, if there is a match we
 		// found the user
-
-		if(user.password == hash(pass, user.salt))
-			return fn(null, user);
+		
+		if(user.active) {
+			if(user.password == hash(pass, user.salt))
+				return fn(null, user);
+		} else {
+			return fn({userMessage: "Your account is not yet active. If you signed up to be an alpha tester, "+
+			"you'll need to wait for an administrator to approve your account before you can login. "+
+			"This could take a while depending on how many people sign up; email us if you think it's "+
+			"taking too long."},null);
+		}
 		// Otherwise password is invalid
 		fn(new Error('invalid password'));
 	});
@@ -95,9 +110,31 @@ function restrictJson(req, res, next) {
 	}
 }
 
+function restrictJsonAdmin(req,res,next) {
+	if(req.session.user && req.session.user.admin) {
+		next();
+	} else {
+		res.send({
+			success : false,
+			message : 'You must log in to view this page.'
+		});
+	}
+}
+function restrictHtmlAdmin(req,res,next) {
+	if(req.session.user && req.session.user.admin) {
+		next();
+	} else {
+		req.flash('info', 'You must log in to view this page.');
+		res.redirect('/login');
+	}
+}
+
 restrictors = {
 	html : restrictHtml,
 	json : restrictJson,
+	admin: restrictHtmlAdmin,
+	htmlAdmin: restrictHtmlAdmin,
+	jsonAdmin: restrictJsonAdmin,
 }
 
 function restrict(type) {
@@ -180,7 +217,7 @@ exports.configure = function(app, express) {
 			} else {
 				res.send({
 					success : false,
-					message : 'Authentication failed, please check your username and password.'
+					message: err.userMessage ? err.userMessage : 'Authentication failed, please check your username and password.'
 				});
 				// req.session.error = 'Authentication failed, please check your ' + ' username and password.' + ' (use "tj" and "foobar")';
 				// res.redirect('back');
@@ -192,13 +229,47 @@ exports.configure = function(app, express) {
 			layout : false,
 		}));
 	});
+	app.get('/admin',restrict('htmlAdmin'),function(req,res) {
+		res.render('admin.jade', {
+			layout : false,
+			message: '',
+		});
+	})
+	app.get('/users/read',restrict('jsonAdmin'),function(req,res) {
+		User.find({},['active', 'admin','name','email','instititution'],function(err,docs) {
+			if(err) {
+				res.send({});
+				return;
+			}
+			res.send(JSON.stringify(docs));
+		})
+	});
+	app.post('/users/update',restrict('jsonAdmin'),function(req,res) {
+		var user = {
+			name : sanitize(req.param('name')).xss(),
+			email : sanitize(req.param('email')).xss(),
+			institution: sanitize(req.param('institution')).xss(),
+			active : !!req.param('active'),
+			admin: !!req.param('admin'),		
+		};
+		
+		var id = req.param('_id');
+		User.update({'_id': id},user,function() {
+			res.send(_.extend(user,{'_id': id}));
+		});
+		
+	})
+	
 	app.post('/register', function(req, res) {
-		var salt = createSalt(), invite = req.param('invite'),          // invitation code
+		var salt = createSalt(), 
+		invite = req.param('invite'),          // invitation code
 		user = {
 			name : sanitize(req.param('name')).xss(),
 			email : sanitize(req.param('email')).xss(),
+			institution: sanitize(req.param('institution')).xss(),
 			salt : salt,
 			password : sanitize(req.param('password')).xss(),
+			active : app.set('invite') && app.set('invite') == invite
 		};
 
 		// validate for various parameters
@@ -218,7 +289,7 @@ exports.configure = function(app, express) {
 		user = new User(user);
 
 		// check invitation code
-		if(app.set('invite') && app.set('invite') == invite) {
+		if(true) {
 			user.save(function(err) {
 				if(err) {
 					winston.log("error", "Account creation error: couldn't save user to database.", {
@@ -241,36 +312,44 @@ exports.configure = function(app, express) {
 							});
 							return;
 						}
-						authenticate(req.param('email'), req.param('password'), function(err, user) {
-							if(user) {
-								login(req, user, function(err) {
-									if(err) {
-										res.send({
-											success : false,
-											message : 'Account created, but authentication failed.'
-										});
-										winston.log("error", "Account created, but authentication failed.", {
-											err : err
-										});
-									} else {
-										res.send({
-											success : true,
-											message : 'Account created.'
-										});
-									}
-								})
-							} else {
-								res.send({
-									success : false,
-									message : 'Account created, but authentication failed.'
-								});
-								winston.log("error", "Account created, but authentication failed.", {
-									err : err
-								});
-								// req.session.error = 'Authentication failed, please check your ' + ' username and password.' + ' (use "tj" and "foobar")';
-								// res.redirect('back');
-							}
-						});
+						if(user.active) {
+							
+							authenticate(req.param('email'), req.param('password'), function(err, user) {
+								if(user) {
+									login(req, user, function(err) {
+										if(err) {
+											res.send({
+												success : false,
+												message : 'Account created, but authentication failed.'
+											});
+											winston.log("error", "Account created, but authentication failed.", {
+												err : err
+											});
+										} else {
+											res.send({
+												success : true,
+												message : 'Account created.'
+											});
+										}
+									})
+								} else {
+									res.send({
+										success : false,
+										message : 'Account created, but authentication failed.'
+									});
+									winston.log("error", "Account created, but authentication failed.", {
+										err : err
+									});
+									// req.session.error = 'Authentication failed, please check your ' + ' username and password.' + ' (use "tj" and "foobar")';
+									// res.redirect('back');
+								}
+							});
+						} else {
+							res.send({
+								success: true,
+								message: "Thanks for signing up to be an alpha tester! We'll contact you shortly when Workbench is ready!",
+							})
+						}
 					})
 				}
 			});

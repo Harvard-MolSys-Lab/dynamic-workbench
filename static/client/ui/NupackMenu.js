@@ -2,7 +2,7 @@
  * Simple menu allowing the user to open a tab containing the Caltech [NUPACK web server](http://www.nupack.org/)
  */
 Ext.define('App.ui.NupackMenu', {
-	require: ['App.ui.nupack.DesignWindow','App.ui.nupack.PartitionWindow',],
+	requires: ['App.ui.nupack.DesignWindow','App.ui.nupack.PartitionWindow',],
 	extend: 'Ext.menu.Menu',
 	initComponent: function() {
 		Ext.apply(this, {

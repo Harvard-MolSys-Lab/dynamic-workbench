@@ -151,6 +151,10 @@ App.ui.buildInterface = function() {
 						iconCls : 'help',
 						handler : App.ui.Launcher.makeLauncher('help'),
 					}]
+				}, {
+					text : 'Help',
+					iconCls : 'help',
+					handler : App.ui.Launcher.makeLauncher('help'),	
 				}, '->', {
 					scale : 'small',
 					iconCls : 'system',

@@ -1,12 +1,13 @@
 Ext.define('App.ui.DynamlEditor', {
 	extend : 'App.ui.TextEditor',
-	mode : 'javascript',
+	
 	iconCls : 'dynaml',
 	editorType : 'DyNAML',
 	requires: ['App.ui.nodal.LibraryWindow','App.ui.NupackEditor','App.ui.CodeMirror',],
 	trap: true,
 	initComponent : function() {
 		Ext.apply(this, {
+			mode : {name:'javascript', json:true},
 			tbar : [{
 				xtype: 'splitbutton',
 				text : 'Compile',
@@ -82,6 +83,8 @@ Ext.define('App.ui.DynamlEditor', {
 		this.libraryTreeWindow.show();
 	},
 	compile : function() {
+		var val = this.getValue();
+		var json = jsonlint.parse(val);  
 		return App.dynamic.Compiler.compile(this.getValue());
 	},
 	printStrands : function(lib, options) {

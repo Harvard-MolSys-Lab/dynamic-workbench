@@ -19,6 +19,7 @@ libPath + '/ChemDoodleWeb/install/ChemDoodleWeb',libPath + '/ChemDoodleWeb/insta
 
 var libs = ['jquery-1.5.1.min', 'underscore', 'string', 'color-field-1.0.0/color-field', //
 'raphael-'+raphaelVersion+'/raphael-min', 'raphael-'+raphaelVersion+'//plugins/raphael.primitives', //
+'zaach-jsonlint/web/jsonlint',//
 'CodeMirror-'+codeMirrorVersion+'/lib/codemirror', 'CodeMirror-'+codeMirrorVersion+'/lib/util/runmode', 
 'CodeMirror-'+codeMirrorVersion+'/lib/util/formatting', //
 'valums-file-uploader/client/fileuploader', // 

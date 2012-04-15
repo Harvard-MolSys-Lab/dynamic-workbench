@@ -461,7 +461,7 @@ Ext.define('App.ui.DD', {
 		this.on('afterrender', function() {
 			this.targetColumnTip = Ext.create('Ext.tip.ToolTip', {
 				target : this.grid.getEl(),
-				delegate : ".x-grid-cell", //'.x-grid-checkheader',
+				delegate : ".x-grid-checkheader", //'.x-grid-checkheader',
 				title : 'Target Domain',
 				html : "Select one or more domains to specifically target them for mutations. " + "If you check multiple domains, the worst among them will be selected for mutation " + "If you don\'t target any specific domains, the worst domain among the entire ensemble " + "will be targeted by default.",
 				anchor : "top",

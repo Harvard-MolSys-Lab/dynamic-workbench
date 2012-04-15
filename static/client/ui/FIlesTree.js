@@ -11,6 +11,65 @@ Ext.define('App.ui.FilesTree', {
 	newFileNumber: 0,
 	loaders: 0,
 	useArrows: true,
+	
+	/*
+	 * Add stateful collapse/expand
+	 * Credit: http://www.sencha.com/forum/showthread.php?40852-Stateful-TreePanel&highlight=refresh+tree
+	 */
+	getState: function() { 
+            var nodes = [], state = this.callParent(); 
+        var getPath = function(node, field, separator) { 
+            field = field || node.idProperty; 
+            separator = separator || '/'; 
+            var path = [node.get(field)], parent = node.parentNode; 
+            while (parent) { 
+                path.unshift(parent.get(field)); 
+                parent = parent.parentNode; 
+            } 
+            return separator + path.join(separator); 
+        }; 
+
+        this.getRootNode().eachChild(function(child) { 
+            // function to store state of tree recursively 
+            var storeTreeState = function(node, expandedNodes) { 
+                if (node.isExpanded() && node.childNodes.length > 0) { 
+                    expandedNodes.push(getPath(node, 'text')); 
+                    node.eachChild(function(child) { 
+                        storeTreeState(child, expandedNodes); 
+                    }); 
+                } 
+            }; 
+            storeTreeState(child, nodes); 
+        }); 
+
+        Ext.apply(state, { 
+            expandedNodes: nodes 
+        }); 
+
+        return state; 
+
+    }, 
+
+    applyState: function(state) { 
+        var nodes = state.expandedNodes || [], 
+            len = nodes.length; 
+
+        this.collapseAll(); 
+
+        for (var i = 0; i < len; i++) { 
+
+            if (typeof nodes[i] != 'undefined') { 
+
+                this.expandPath(nodes[i], 'text'); 
+
+            } 
+
+        } 
+
+        this.callParent(arguments); 
+
+    },
+	
 	/**
 	 * @cfg {Boolean}
 	 * True to show a context menu on right click to allow the user to open, rename, and create new files; 
@@ -19,6 +78,13 @@ Ext.define('App.ui.FilesTree', {
 	createContextMenu: true,
 	allowDrop : true,
 	initComponent: function() {
+		Ext.apply(this, { 
+
+            stateful: true, 
+            stateId: this.id + '-state', 
+            stateEvents: ['itemcollapse','itemexpand'] 
+
+        }); 
 		Ext.apply(this, {
 			// tbar: [{
 				// xtype: 'textfield',
@@ -354,6 +420,8 @@ Ext.define('App.ui.FilesTree', {
 			leaf: !App.Path.isFolder(name),
 		});
 		rec.appendChild(newRec);
+		//hack?
+		newRec.phantom = true;
 		this.getStore().sync();
 		rec.expand();
 		return newRec;

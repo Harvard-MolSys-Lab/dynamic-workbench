@@ -41,6 +41,7 @@ exports.start = function(req, res, params) {
 				function(cb) {fs.unlink(postfix(fullPath,'svg'),function(err,res) { cb(null,res);});},
 				function(cb) {fs.unlink(postfix(fullPath,'nupack'),function(err,res) { cb(null,res);});},
 				function(cb) {fs.unlink(postfix(fullPath,'dynaml'),function(err,res) { cb(null,res);});},
+				function(cb) {fs.unlink(postfix(fullPath,'pil'),function(err,res) { cb(null,res);});},
 
 			],function(err,results) {
 				if(err) {
@@ -117,10 +118,14 @@ exports.start = function(req, res, params) {
 							err: err,
 							data: data,
 						});
-						sendError(res, 'Internal Server Error', 500)
+						if(err.serialize) {						
+							sendError(res, JSON.stringify(err.serialize()), 500)
+						} else {
+							sendError(res, JSON.stringify({message: 'Unknown error'}), 500);
+						}
 						return;
 					} else {
-						res.send("Build completed.");
+						res.send(JSON.stringify({message:"Build completed."}));
 					}
 				})
 			} catch(e) {

@@ -17,7 +17,7 @@ Ext.define('App.ui.ObjectProperties', {
 			border : false,
 			bodyBorder : false,
 			source : {},
-			title : 'All Properites'
+			title : 'All Properties'
 		});
 		
 		this.selection = [];

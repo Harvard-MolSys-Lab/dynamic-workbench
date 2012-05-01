@@ -271,10 +271,10 @@ ul.dashboard-actions li a:hover {
 	background-image: url(/images/icons/fugue/flask.png) !important;
 }
 .node-add {
-	background-image: url(/images/icons/etc/node-add.png) !important;
+	background-image: url(/images/icons/etc/node-add-2.png) !important;
 }
 .port-add {
-	background-image: url(/images/icons/etc/port-add.png) !important;
+	background-image: url(/images/icons/etc/port-add-2.png) !important;
 }
 .compile {
 	background-image: url(/images/icons/fugue/compile.png) !important;
@@ -332,6 +332,13 @@ ul.dashboard-actions li a:hover {
 }
 .idea-form-24 {
 	background-image: url(/images/icons/etc/form-idea.png) !important;
+}
+
+.form-idea-24, .wrap-motif-24 {
+	background-image: url(/images/icons/etc/wrap-motif.png) !important;
+}
+.port-expose {
+	background-image: url(/images/icons/fugue/arrow-step-out.png) !important;
 }
 .undo-24 {
 	background-image: url(/images/icons/icons-24/arrow-180.png) !important;

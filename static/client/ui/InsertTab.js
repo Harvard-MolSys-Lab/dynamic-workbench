@@ -5,10 +5,12 @@
  */
 Ext.define('App.ui.InsertTab', {
 	extend:'App.ui.ToolsTab',
-	requires: ['Workspace.tools.LineTool','Workspace.tools.RectTool','Workspace.tools.EllipseTool','Workspace.tools.PolyLineTool','Workspace.tools.PolygonTool','Workspace.tools.TextTool','Workspace.tools.MathTool'],
+	requires: ['Workspace.tools.LineTool','Workspace.tools.RectTool','Workspace.tools.EllipseTool', //
+	'Workspace.tools.PolyLineTool','Workspace.tools.PolygonTool','Workspace.tools.TextTool',
+	'Workspace.tools.MathTool','Workspace.tools.CodeTool','Workspace.tools.ChemTool' ],
 	generateConfig: function() {
 		return {
-			tbar:[{
+			items:[{
 				// 'Insert' group
 				xtype: 'buttongroup',
 				title: 'Insert',
@@ -80,7 +82,25 @@ Ext.define('App.ui.InsertTab', {
 						title: 'Equations',
 						text: 'Insert mathematical equations. Click and drag to draw an equation box.'
 					}
-				},]
+				},{
+					iconCls: 'code-icon',
+					toggleGroup: 'toolbox',
+					enableToggle: true,
+					toolName: 'code',
+					tooltip: {
+						title: 'Code',
+						text: 'Insert syntax-highlighted source code. Click and drag to draw an source code textbox.'
+					}
+				},{
+					iconCls: 'chem-icon',
+					toggleGroup: 'toolbox',
+					enableToggle: true,
+					toolName: 'chem',
+					tooltip: {
+						title: 'Organic Structures',
+						text: 'Insert a box to draw organic structures. Click and drag to draw a structure box.'
+					}
+				}]
 				/*{
 				 iconCls: 'curve',
 				 toggleGroup: 'toolbox',

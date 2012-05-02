@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='App-ui-FilesTree'>/**
+</span> * Displays a tree of files in the user's home directory
+ */
+Ext.define('App.ui.FilesTree', {
+	extend: 'Ext.tree.Panel',
+	requires: ['App.ui.files.DragDropManager','App.ui.files.FileUploader','App.ui.CreateMenu','App.ui.Launcher',],
+<span id='App-ui-FilesTree-cfg-title'>	/**
+</span>	 * @cfg
+	 */
+	title: 'Files',
+	newFileNumber: 0,
+	loaders: 0,
+	useArrows: true,
+	
+	/*
+	 * Add stateful collapse/expand
+	 * Credit: http://www.sencha.com/forum/showthread.php?40852-Stateful-TreePanel&amp;highlight=refresh+tree
+	 */
+	getState: function() { 
+            var nodes = [], state = this.callParent(); 
+        var getPath = function(node, field, separator) { 
+            field = field || node.idProperty; 
+            separator = separator || '/'; 
+            var path = [node.get(field)], parent = node.parentNode; 
+            while (parent) { 
+                path.unshift(parent.get(field)); 
+                parent = parent.parentNode; 
+            } 
+            return separator + path.join(separator); 
+        }; 
+
+        this.getRootNode().eachChild(function(child) { 
+            // function to store state of tree recursively 
+            var storeTreeState = function(node, expandedNodes) { 
+                if (node.isExpanded() &amp;&amp; node.childNodes.length &gt; 0) { 
+                    expandedNodes.push(getPath(node, 'text')); 
+                    node.eachChild(function(child) { 
+                        storeTreeState(child, expandedNodes); 
+                    }); 
+                } 
+            }; 
+            storeTreeState(child, nodes); 
+        }); 
+
+        Ext.apply(state, { 
+            expandedNodes: nodes 
+        }); 
+
+        return state; 
+
+    }, 
+
+    applyState: function(state) { 
+        var nodes = state.expandedNodes || [], 
+            len = nodes.length; 
+
+        this.collapseAll(); 
+
+        for (var i = 0; i &lt; len; i++) { 
+
+            if (typeof nodes[i] != 'undefined') { 
+
+                this.expandPath(nodes[i], 'text'); 
+
+            } 
+
+        } 
+
+        this.callParent(arguments); 
+
+    },
+	
+<span id='App-ui-FilesTree-cfg-createContextMenu'>	/**
+</span>	 * @cfg {Boolean}
+	 * True to show a context menu on right click to allow the user to open, rename, and create new files; 
+	 * set to false to allow custom behavior (e.g. for embedding the {@link App.ui.FilesTree} in a menu)
+	 */
+	createContextMenu: true,
+	allowDrop : true,
+	initComponent: function() {
+		Ext.apply(this, { 
+
+            stateful: true, 
+            stateId: this.id + '-state', 
+            stateEvents: ['itemcollapse','itemexpand'] 
+
+        }); 
+		Ext.apply(this, {
+			// tbar: [{
+				// xtype: 'textfield',
+				// emptyText: 'Search...',
+				// // fieldLabel: 'Filter',
+                // // labelAlign: 'right',
+                // // labelWidth: 35,
+                // listeners: {
+                    // scope : this,
+                    // buffer: 50,
+                    // change: this.filter
+                // }
+			// }],
+			/*
+			columns: [{
+				xtype:'treecolumn',
+				header: 'File',
+				field: {
+					xtype: 'textfield',
+					allowBlank: false
+				},
+				dataIndex: 'text',
+				sortable: true,
+				resizable: false,
+				flex: 1
+			}],
+			*/
+			viewConfig: this.allowDrop ? {
+				plugins: [{
+					ptype: 'treeviewdragdrop',
+				},],
+				listeners: {
+					drop: {
+						fn: function() {
+							this.getStore().sync();
+						},
+						scope: this
+					}
+				}
+			} : {},
+			store: App.DocumentStore,
+			listeners:  {
+				beforeitemcontextmenu: (this.createContextMenu ? {
+					fn: this.showContextMenu,
+					scope: this,
+				} : {}),
+				itemdblclick: {
+					fn: this.click,
+					scope: this
+				},
+			},
+		});
+		this.callParent(arguments);
+		
+		// Builds the context menu (TODO: move to separate class)
+		if(this.createContextMenu) {
+<span id='App-ui-FilesTree-property-contextMenu'>			/**
+</span>			 * @property {Ext.menu.Menu}
+			 */
+			this.contextMenu = Ext.create('Ext.menu.Menu', {
+				floating: true,
+				shadow: 'sides',
+				items:[{
+					text: 'Open',
+					iconCls: 'folder-open',
+					handler: function() {
+						this.open(this.currentRecord);
+					},
+					scope: this,
+				},{
+					text: 'Refresh',
+					iconCls: 'refresh',
+					handler: function() {
+						this.refreshDocument(this.currentRecord);
+					},
+					scope:this,
+				},{
+					text: 'Download',
+					iconCls: 'download',
+					handler: function() {
+						this.download(this.currentRecord)
+					},
+					scope:this,
+					enableIf: function(rec) {
+						return (rec.isLeaf());
+					}
+				},{
+					text: 'Create',
+					iconCls: 'plus-button',
+					menu: Ext.create('App.ui.CreateMenu',{}),
+				},{
+					text: 'Delete',
+					iconCls: 'delete-button',
+					handler: function() {
+						Ext.MessageBox.show({
+							title:'Confirm file deletion',
+							msg:'Are you sure you want to delete '+this.currentRecord.get('text')+' ?',
+							buttons: Ext.MessageBox.YES+Ext.MessageBox.NO,
+							closable: false,
+							fn: function(btn) {
+								if(btn=='yes') {
+									this.deleteSelectedDocument()
+								}
+							},
+							icon: Ext.MessageBox.WARNING,
+							scope:this
+						});
+					},
+					scope: this,
+				},'-',{
+					text: 'Rename:',
+					canActivate: false,
+					iconCls: 'rename',
+					enableIf: function(rec) {
+						return (rec.get('preventRename') != true) &amp;&amp; (!rec.isRoot());
+					}
+				},{
+					xtype: 'textfield',
+					allowBlank: false,
+					itemId: 'filename',
+<span id='App-ui-FilesTree-property-fileNameField'>					/**
+</span>					 * @property {Ext.form.field.Text} fileNameField
+					 */
+					ref: 'fileNameField',
+					indent: true,
+					enableIf: function(rec) {
+						return (rec.get('preventRename') != true) &amp;&amp; (!rec.isRoot());
+					}
+				}],
+				renderTo: Ext.getBody(),
+				setFileName: function(filename) {
+					var fileNameField = this.fileNameField;
+					fileNameField.originalValue = filename;
+					fileNameField.setValue(filename);
+				},
+			});
+			_.each(this.contextMenu.query('*[ref]'), function(cmp) {
+				this[cmp.ref] = cmp;
+			},this);
+			this.contextMenu.fileNameField = this.fileNameField;
+	
+			this.fileNameField.on('blur', function() {
+				var v;
+				if(this.fileNameField.isDirty()) {
+					v = this.fileNameField.getValue();
+					this.currentRecord.set('text',v);
+					//this.currentRecord.save();
+					this.getStore().sync();
+					this.fileNameField.originalValue = v;
+					this.fileNameField.checkDirty();
+	
+				}
+			},this);
+			this.on('afterrender',this.afterrender,this)
+		}
+	},
+<span id='App-ui-FilesTree-method-afterrender'>	/**
+</span>	 * Initializes the #ddManager
+	 */
+	afterrender: function() {
+<span id='App-ui-FilesTree-property-ddManager'>		/**
+</span>		 * @property {App.ui.files.DragDropManager} ddManager
+		 * Manages uploading of files dropped into the browser
+		 */
+		this.ddManager = Ext.create('App.ui.files.DragDropManager',{
+			filesTree: this
+		});
+		this.ddManager.render();
+	},
+<span id='App-ui-FilesTree-method-filter'>	/**
+</span>     * @private
+     * Called whenever the user types in the Filter textfield. Filters the DataView's store
+     */
+    filter: function(field, newValue) {
+        var store = this.getStore();
+        
+        store.suspendEvents();
+        store.clearFilter();
+        this.getSelectionModel().clearSelections();
+        store.resumeEvents();
+        store.filter({
+            property: 'name',
+            anyMatch: true,
+            value   : newValue
+        });
+    },
+	
+<span id='App-ui-FilesTree-method-showContextMenu'>	/**
+</span>	 * Shows the context menu attached to a particular record.
+	 */
+	showContextMenu: function(tree,rec,dom,i,e) {
+		this.currentRecord = rec;
+		var ctx = this.contextMenu;
+		ctx.setFileName(rec.get('text'));
+		_.each(ctx.query('*[enableIf]'),function(cmp) {
+			if(_.isFunction(cmp.enableIf)) {
+				if(cmp.enableIf(rec)) {
+					cmp.enable();
+				} else {
+					cmp.disable();
+				}
+			}
+		});
+		ctx.showAt(e.getXY());
+		//ctx.show();//dom);
+		//ctx.alignTo(Ext.get(dom),'tl-bl',[5,0]);
+		e.stopEvent();
+		return false;
+	},
+<span id='App-ui-FilesTree-method-refreshDocument'>	/**
+</span>	 * Reloads the file heirarchy underneath the provided {@link App.Document}
+	 * @param {App.Document} rec The record under which to refresh
+	 * @param {Function} callback Function to execute when operation completed.  Will be called with the following parameters:
+     * - records : Array of Ext.data.Model objects.
+     * - operation : The Ext.data.Operation itself.
+     * - success : True when operation completed successfully.
+     */
+	refreshDocument: function(rec, callback, scope) {
+		if(rec) {
+			//hackity hack
+			// rec.collapse();
+			// rec.set('loaded',false);
+			// // this.getView().on('itemupdate', function() {
+			// // rec.expand();
+			// // },this, {
+			// // single: true
+			// // })
+			// this.getView().refreshNode(rec.index);
+			// _.delay(_.bind(App.ui.Launcher.renewAll,App.ui.Launcher),1000);
+			scope = scope || window;
+			var cb = callback ? function() {
+				callback.apply(scope,arguments);
+				this.renewAll();
+			} : this.renewAll;
+			
+			this.store.load({
+				node: rec,
+				callback: cb,
+				scope: this,
+			});
+
+		}
+	},
+	renewAll: function() {
+		// App.ui.Launcher.renewAll();
+	},
+<span id='App-ui-FilesTree-method-download'>	/**
+</span>	 * Downloads the requested file
+	 */
+	download: function(rec) {
+		if(rec) {
+			rec.download();
+		}
+	},
+<span id='App-ui-FilesTree-method-deleteSelectedDocument'>	/**
+</span>	 * Deletes the selected document
+	 */
+	deleteSelectedDocument: function() {
+		//var rec = this.getSelectionModel().getLastSelected();
+		var rec = this.currentRecord;
+		this.deleteDocument(rec);
+	},
+<span id='App-ui-FilesTree-method-deleteDocument'>	/**
+</span>	 * Deletes the provided {@link App.Document}
+	 * @param {App.Document} rec
+	 */
+	deleteDocument: function(rec) {
+		if(rec) {
+			rec.remove(false);
+			this.getStore().sync();
+		}
+	},
+<span id='App-ui-FilesTree-method-click'>	/**
+</span>	 * Called when the user clicks on a cell
+	 * @param {Ext.tree.Panel} tree
+	 * @param {App.Document} rec
+	 * @param {Mixed} item
+	 * @param {Number} i Index of the selected record
+	 * @param {Event} e
+	 */
+	click: function(tree,rec,item,i,e) {
+		this.open(rec);
+	},
+<span id='App-ui-FilesTree-method-open'>	/**
+</span>	 * Opens the provided {@link App.Document} using {@link App.ui.Launcher#launch}
+	 * @param {App.Document} rec The document to open
+	 */
+	open: function(rec) {
+		if(rec) {
+			if(!App.ui.Launcher.launchDocument(rec) &amp;&amp; !rec.isLeaf()) {
+				this.getView().expand(rec);
+			}
+		}
+	},
+<span id='App-ui-FilesTree-method-openSelection'>	/**
+</span>	 * Opens the last selected document
+	 */
+	openSelection: function() {
+		this.open(this.getSelectionModel().getLastSelected());
+	},
+<span id='App-ui-FilesTree-method-selectNode'>	/**
+</span>	 * Selects a node based on a file path
+	 */
+	selectNode : function(node) {
+		this.selectPath(node);
+		// var rec = this.getStore().findRecord('node',node);
+		// if(rec) {
+			// this.getSelectionModel().
+		// }
+	},
+<span id='App-ui-FilesTree-method-newFileUnderSelection'>	/**
+</span>	 * Creates a new document underneath the last selected record with the passed name
+	 * @param {String} name of the new file 
+	 */
+	newFileUnderSelection: function(name) {
+		var rec = this.getSelectionModel().getLastSelected();
+		return this.newFile(rec,name);
+	},
+<span id='App-ui-FilesTree-method-newFile'>	/**
+</span>	 * Create a new document underneath the passed `rec`, if `rec` is a folder; else creates a 
+	 * sibling to `rec`. 
+	 * @param {App.Document} rec
+	 * @param {String} name 
+	 */
+	newFile: function(rec,name) {
+		(rec) || (rec = this.getRootNode());
+		if(rec.isLeaf() &amp;&amp; rec.parentNode) {
+			rec = rec.parentNode;
+		}
+		var newRec = Ext.create('App.Document', {
+			node: App.Path.join([rec.get('node'),name]),
+			text: name,
+			leaf: !App.Path.isFolder(name),
+		});
+		rec.appendChild(newRec);
+		//hack?
+		newRec.phantom = true;
+		this.getStore().sync();
+		rec.expand();
+		return newRec;
+	},
+	newFileName: function() {
+		this.newFileNumber++;
+		return 'Untitled-'+this.newFileNumber;
+	},
+});</pre>
+</body>
+</html>

@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/* ***************************************************************************
+ * InfoMachine
+ *
+ * Copyright (c) 2010-2011 Casey Grun
+ * ***************************************************************************
+ * ~/client/app.js
+ *
+ * Defines App namespace, various utility functions
+ * ***************************************************************************/
+
+<span id='App'>/**
+</span> * @class App
+ * Manages user data and contains several utility methods
+ * @singleton
+ */
+App = new Ext.util.Observable();
+Ext.apply(App, {
+	
+<span id='App-property-name'>	/**
+</span>	 * @property
+	 */
+	name : 'DyNAMiC Workbench',
+	
+<span id='App-property-nameFormatted'>	/**
+</span>	 * @property
+	 * HTML-formatted version of the name
+	 */
+	nameFormatted : '&lt;b&gt;DyNAMiC&lt;/b&gt; Workbench',
+	
+<span id='App-property-version'>	/**
+</span>	 * @property
+	 * Semver-formatted version number
+	 */
+	version : 'unknown',
+	
+<span id='App-property-isPreRelease'>	/**
+</span>	 * @property
+	 * Identifies the app as release- or pre-release.
+	 */
+	isPreRelease : true,
+	
+<span id='App-method-getFullTitle'>	/**
+</span>	 * Returns the full title of the application
+	 */
+	getFullTitle : function() {
+		return App.name + ' (' + App.version + ')'
+	},
+	
+<span id='App-method-getFullTitleFormatted'>	/**
+</span>	 * Returns a formatted HTML version of the full title of the application
+	 */
+	getFullTitleFormatted : function() {
+		return '&lt;span class=&quot;app-title&quot;&gt;&lt;span&gt;' + App.nameFormatted + '&lt;/span&gt; (' + App.version + ')&lt;/span&gt;'
+	},
+	
+<span id='App-method-nextId'>	/**
+</span>	 * Generates a random UUID
+	 */
+	nextId : function() {
+		// if the time isn't unique enough, the addition
+		// of random chars should be
+		var t = String(new Date().getTime()).substr(4);
+		var s = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+		for(var i = 0; i &lt; 4; i++) {
+			t += s.charAt(Math.floor(Math.random() * 26));
+		}
+		return t;
+	}
+});
+
+<span id='App-method-loadData'>/**
+</span> * @method loadData
+ * Used for bootstrapping loading of saved workspace data. This method is invoked automatically by
+ * controller code; do not call directly.
+ * @deprecated
+ */
+App.loadData = function(data) {
+	App._data = data;
+}
+<span id='App-method-getLoadedData'>/**
+</span> * @method getLoadedData
+ * Retrieves loaded workspace data
+ * @deprecated
+ */
+App.getLoadedData = function() {
+	return App._data;
+}
+<span id='App-method-getDefaultWorkspace'>/**
+</span> * @method getDefaultWorkspace
+ * @deprecated
+ */
+App.getDefaultWorkspace = function() {
+	return App.defaultWorkspace;
+}
+<span id='App-Endpoints'>/**
+</span> * @class App.Endpoints
+ * Allows configuration of AJAX callback URLs. Code making AJAX requests should call {@link #getEndpoint} with the
+ * appropriate endpoint name to discover the URL.
+ * PHP code in the view will automatically configure relevant endpoints by calling {@link #setEndpoint} immediately
+ * after this file is loaded
+ * @singleton
+ */
+App.Endpoints = App.endpoints = function() {
+	var endpoints = {};
+	return {
+<span id='App-Endpoints-method-getEndpoint'>		/**
+</span>		 * Returns the endpoint of the given name
+		 * @param {String} name Name of the endpoint
+		 */
+		getEndpoint : function(name) {
+			return App.baseUrl + '/' + endpoints[name];
+		},
+<span id='App-Endpoints-method-setEndpoint'>		/**
+</span>		 * Sets the endpoint with the given name
+		 * @param {String} name
+		 * @param {String} value The URL of the endpoint
+		 */
+		setEndpoint : function(name, value) {
+			endpoints[name] = value;
+		}
+	}
+}();
+<span id='App-property-getEndpoint'>/**
+</span> * @inheritdocs App.endpoints#getEndpoint
+ * @member App
+ */
+App.getEndpoint = App.endpoints.getEndpoint;
+<span id='App-property-setEndpoint'>/**
+</span> * @inheritdocs App.endpoints#setEndpoint
+ * @member App
+ */
+ App.setEndpoint = App.endpoints.setEndpoint;
+
+<span id='App-Ribbon'>/**
+</span> * @class App.Ribbon
+ * Allows configuration of ribbon toolbar
+ * @singleton
+ * @deprecated
+ */
+App.Ribbon = App.ribbon = function() {
+	var ribbon = false;
+	return {
+		getRibbonItems : function() {
+			return ribbon;
+		},
+		setRibbonItems : function(r) {
+			ribbon = r;
+		},
+	}
+}();
+<span id='App-property-getRibbonItems'>/**
+</span> * @member App
+ * @deprecated
+ */
+App.getRibbonItems = App.ribbon.getRibbonItems;
+<span id='App-property-setRibbonItems'>/**
+</span> * @member App
+ * @deprecated
+ */
+App.setRibbonItems = App.ribbon.setRibbonItems;
+
+<span id='App-Path'>/**
+</span> * @class App.Path
+ * Contains utilities for working with paths
+ * @singleton
+ */
+App.Path = App.path = {
+<span id='App-Path-method-addExt'>	/**
+</span>	 * Appends the given extension to a filename, if it is not already included.
+	 * @param {String} name
+	 * @param {String} ext The extension
+	 */
+	addExt : function(name, ext) {
+		if(_.last(name.split('.')) != ext) {
+			return name + '.' + ext;
+		} else {
+			return name;
+		}
+	},
+<span id='App-Path-method-isFolder'>	/**
+</span>	 * Determines whether the given filename represents a folder
+	 */
+	isFolder : function(name) {
+		return (name &amp;&amp; !!App.Path.extname(name));
+	},
+<span id='App-Path-method-join'>	/**
+</span>	 * Joins several file paths.
+	 * 		App.Path.join(['hello','world','file.txt']); // -&gt; 'hello/world/file.txt'
+	 */
+	join : function() {
+		if(arguments.length &gt; 1) {
+			paths = arguments;
+		} else {
+			paths = arguments[0];
+		}
+		return _.flatten(_.map(paths, function(p) {
+		return p.split('/')
+		})).join('/');
+	},
+<span id='App-Path-method-extname'>	/**
+</span>	 * Returns the file extension of the path
+	 * @param {String} path
+	 */
+	extname: function(path) {
+		return _.last(App.Path.basename(path).split('.'));
+	},
+<span id='App-Path-method-basename'>	/**
+</span>	 * Returns the last portion of the path (the portion following the final &lt;var&gt;/&lt;/var&gt;)
+	 */
+	basename : function(path) {
+		var a = path.split('/');
+		return a.length &gt; 0 ? _.last(a) : path;
+	},
+<span id='App-Path-method-pop'>	/**
+</span>	 * Returns the last portion of the path, with a minimum length
+	 * @param {String} path
+	 * @param {Number} minLength
+	 */
+	pop : function(path, minLength) {Ext.isDefined(minLength) || ( minLength = 1);
+		var a = path.split('/');
+		return (a.length) &gt; minLength ? a.slice(0,a.length-1).join('/') : path;
+	},
+<span id='App-Path-method-sameDirectory'>	/**
+</span>	 * Returns &lt;var&gt;newPath&lt;/var&gt; such that it is in the same directory as the file &lt;var&gt;oldPath&lt;/var&gt;
+	 * @param {String} oldPath
+	 * @param {String} newPath
+	 */
+	sameDirectory : function(oldPath, newPath) {
+		return App.Path.join(App.Path.pop(oldPath), newPath);
+	},
+<span id='App-Path-method-repostfix'>	/**
+</span>	 * Returns a file in the same directory as &lt;var&gt;oldPath&lt;/var&gt;, but with &lt;var&gt;ext&lt;/var&gt;
+	 * @param {String} oldPath
+	 * @param {String} ext
+	 */
+	repostfix : function(oldPath, ext) {
+		if(App.path.basename(oldPath).indexOf('.')!=-1) {
+			oldPath = oldPath.split('.');
+			oldPath.pop();
+			return oldPath.concat([ext]).join('.');
+		} else {
+			return [oldPath,ext].join('.');
+		}
+	},
+}
+
+<span id='App-User'>/**
+</span> * @class App.User
+ * Contains data about the currently logged-in user
+ * @singleton
+ */
+App.User = {
+<span id='App-User-property-id'>	/**
+</span>	 * @property {Number}
+	 * The user's ID
+	 */
+	id : -1,
+<span id='App-User-property-name'>	/**
+</span>	 * @property {String}
+	 * The user's name
+	 */
+	name : false,
+<span id='App-User-property-email'>	/**
+</span>	 * @property {String}
+	 * The user's email address
+	 */
+	email : false,
+<span id='App-User-method-isLoggedIn'>	/**
+</span>	 * Returns true if a user is logged in
+	 * @return {Boolean}
+	 */
+	isLoggedIn : function() {
+		return App.User.id != -1;
+	},
+<span id='App-User-method-setUser'>	/**
+</span>	 * Loads data about the logged-in user. This method is invoked automatically by controller code; do not call
+	 * directly.
+	 * @param {Object} data Data blob with the keys &lt;code&gt;id&lt;/code&gt;, &lt;code&gt;name&lt;/code&gt;, and &lt;code&gt;email&lt;/code&gt;
+	 */
+	setUser : function(data) {
+		if(data.id) {
+			App.User.id = data.id;
+			App.User.name = data.name;
+			App.User.email = data.email;
+		}
+	}
+};
+
+<span id='App-TaskRunner'>/**
+</span> * @class App.TaskRunner
+ * Runs tasks on the server
+ */
+Ext.define('App.TaskRunner', {
+	statics : {
+<span id='App-TaskRunner-method-loadTools'>		/**
+</span>		 * Defines subclasses of {@link App.TaskRunner.Task} as members of {@link App.TaskRunner}. Called by server code
+		 * in order to make configured server tools available on the client.
+		 */
+		loadTools : function(tasks) {
+			_.each(tasks, function(def) {
+				var name = _.compact(def.route.split('/'));
+				name[name.length - 1] = _.last(name).capitalize();
+				name = name.join('.');
+				//def.route.replace(/\//g,'.');
+				Ext.define('App.TaskRunner.' + name, Ext.apply(def, {
+					extend : 'App.TaskRunner.Task'
+				}, {
+					iconCls : 'app',
+				}));
+			});
+		},
+		
+<span id='App-TaskRunner-method-run'>		/**
+</span>		 * Runs a task using the given serverTool
+		 * @param {String} serverTool Name of a member of App.TaskRunner; must be configred by server code calling {@link #loadTools}
+		 * @param {Array} args Arguments to pass to the tool
+		 * @param {Function} callback Function to call upon completion
+		 */
+		run : function(serverTool, args, callback) {
+			if(Ext.ClassManager.get(['App.TaskRunner',serverTool].join('.'))) {
+				var startDate = new Date(), target = 'local', task = Ext.create('App.TaskRunner.' + serverTool, {
+					tool : serverTool,
+					startDate : startDate,
+					target : target,
+				});
+				this.taskStore.add(task);
+				task.start(args, callback);
+			}
+		},
+		register : function(serverTool, config) {
+			this.serverTools[serverTool] = config;
+		},
+	},
+});
+
+<span id='App-method-runTask'>/**
+</span> * @member App
+ * Shortcut for {@link App.TaskRunner#run}
+ */
+App.runTask = function() {
+	App.TaskRunner.run.apply(App.TaskRunner, arguments);
+}
+<span id='App-TaskRunner-Task'>/**
+</span> * @class App.TaskRunner.Task
+ * Represents a Task running on the server
+ */
+Ext.define('App.TaskRunner.Task', {
+	extend : 'Ext.data.Model',
+	endpoint : '',
+	iconCls : '',
+	timeout : 6000 * 60 * 1000,
+	fields : [{
+		name : 'tool',
+		type : 'string',
+	}, {
+		name : 'startDate',
+		type : 'date',
+	}, {
+		name : 'endDate',
+		type : 'date'
+	}, {
+		name : 'target',
+		type : 'string',
+	}],
+	callback : function() {
+		return;
+	},
+<span id='App-TaskRunner-Task-method-log'>	/**
+</span>	 * Logs the given message in a custom console group, named by {@link #getGroupName}
+	 */
+	log : function(msg, opts) {
+		opts || ( opts = {});
+		Ext.apply(opts, {
+			group : this.getGroupName(),
+			iconCls : this.iconCls,
+			silent: true,
+		});
+		App.log(msg, opts);
+	},
+<span id='App-TaskRunner-Task-method-start'>	/**
+</span>	 * Starts the task running on the server
+	 */
+	start : function(args, callback) {
+		this.arguments = (args || {});
+		this.callback = (callback || this.callback);
+		this.onStart();
+		this.log('Starting \&quot;' + this.name + '\&quot; task at ' + this.get('startDate') + ' on \&quot;' + this.get('target') + '\&quot;', {});
+		var req = Ext.Ajax.request({
+			url : this.endpoint,  //'/canvas/index.php/workspaces/save',
+			method : 'POST',
+			params : args,
+			timeout : this.timeout,
+			success : function(res) {
+				this.end(res.responseText, args, true);
+			},
+			failure : function(res) {
+				this.end(res.responseText, args, false);
+				if(res.timedout == 0) {
+					this.log('Error running task on tool: &quot;' + this.name + '&quot;. Timeout at ' + this.timeout + 'ms (' + (this.timeout / 1000) + 's)');
+				} else {
+					this.log('Error running task on tool: &quot;' + this.name + '&quot;. ' + res.responseText);
+				}
+			},
+			scope : this
+		});
+		Ext.Ajax.clearTimeout(req);
+	},
+<span id='App-TaskRunner-Task-method-onStart'>	/**
+</span>	 * Override this callback to provide custom logic on start of the task
+	 */
+	onStart : function() {
+
+	},
+<span id='App-TaskRunner-Task-method-end'>	/**
+</span>	 * Called upon task completion
+	 */
+	end : function(text, args, success) {
+		this.onEnd(text, args, success);
+		if(Ext.isFunction(this.callback)) {
+			this.callback(text, this.arguments, success);
+		}
+	},
+<span id='App-TaskRunner-Task-method-getNameTimestamp'>	/**
+</span>	 * Returns the name of the tool concatenated with the start date
+	 */
+	getNameTimestamp: function() {
+		return this.get('tool')+': '+this.get('startDate')+'';
+	},
+<span id='App-TaskRunner-Task-method-getGroupName'>	/**
+</span>	 * Returns the name to display as the title of the group in the {@link Ext.debug.LogPanel}
+	 */
+	getGroupName : function() {
+		return this.getNameTimestamp() + ' (' + (this.arguments.node ? this.arguments.node : 'no path') + ')'
+	},
+	onEnd : function(out, st, args) {
+		this.log(out);
+		if(this.arguments &amp;&amp; this.arguments.node) {
+			var path = App.Path.pop(this.arguments.node);
+			App.ui.filesTree.refreshDocument(App.DocumentStore.tree.getNodeById(path))
+		}
+	},
+});
+
+// Ext.define('App.TaskRunner.Pepper', {
+// extend : 'App.TaskRunner.Task',
+// name : 'Pepper Compiler',
+// iconCls : 'pepper',
+// endpoint : '/pepper',
+// });
+// Ext.define('App.TaskRunner.NupackAnalysis', {
+// extend : 'App.TaskRunner.Task',
+// name : 'NUPACK Complex Analysis',
+// iconCls : 'nupack-icon',
+// endpoint : '/nupack/analysis',
+// });
+// Ext.define('App.TaskRunner.NupackPairwise', {
+// extend : 'App.TaskRunner.Task',
+// name : 'NUPACK Pairwise Analysis',
+// iconCls : 'nupack-icon',
+// endpoint : '/nupack/pairwise',
+// });
+// Ext.define('App.TaskRunner.NupackSubsets', {
+// extend : 'App.TaskRunner.Task',
+// name : 'NUPACK Subsets Analysis',
+// iconCls : 'nupack-icon',
+// endpoint : '/nupack/subsets',
+// });
+// Ext.define('App.TaskRunner.Spurious', {
+// extend : 'App.TaskRunner.Task',
+// name : 'SpuriousC Design',
+// iconCls : 'seq',
+// endpoint : '/spurious',
+// });
+
+App.TaskRunner.taskStore = Ext.create('Ext.data.Store', {
+	model : 'App.TaskRunner.Task',
+	proxy : {
+		type : 'memory',
+		reader : 'json'
+	},
+	data : []
+});
+
+<span id='App-Stylesheet'>/**
+</span> * @class App.Stylesheet
+ * Contains various centrally configured visual information which can't be described in CSS (e.g. vector graphic
+ * style properties for elements of the UI rendered by Raphael).
+ * @singleton
+ */
+// TODO: move to external file
+App.Stylesheet = {
+	Highlight : {
+		strokeWidth : 10,
+		fill : '#FF9',
+		stroke : '#FF9',
+		opacity : 0.7,
+		padding : 0
+	},
+	Draw : {
+		fill : '#fff',
+		'fill-opacity' : 0.5,
+		stroke : '#000',
+		'stroke-width' : '1px',
+		'stroke-dasharray' : '--',
+	},
+	Proxy : {
+<span id='App-Stylesheet-cfg-strokeWidth'>		/**
+</span>		 * @cfg {Number} strokeWidth
+		 * Width of the vector stroke
+		 */
+		strokeWidth : 0.5,  //'0.5px',
+<span id='App-Stylesheet-cfg-stroke'>		/**
+</span>		 * @cfg {String} stroke
+		 * Color of the vector stroke
+		 */
+		stroke : '#99BBE8',
+<span id='App-Stylesheet-cfg-fill'>		/**
+</span>		 * @cfg {String} fill
+		 * Color of the fill
+		 */
+		fill : '#99BBE8',
+<span id='App-Stylesheet-cfg-fillOpacity'>		/**
+</span>		 * @cfg {Number} fillOpacity
+		 * Opacity of the fill
+		 */
+		fillOpacity : 0.5,
+<span id='App-Stylesheet-cfg-opacity'>		/**
+</span>		 * @cfg {Number} opacity
+		 */
+		opacity : 0.5,
+	}
+
+}
+
+<span id='App-method-gluer'>/**
+</span> * @method gluer
+ * @param {Object} o1: {source, eventName, handler}
+ * @param {Object} o2: {source, eventName, handler}
+ * @member App
+ */
+App.gluer = function(o1, o2) {
+	this.id = App.getId();
+	this.o1 = o1;
+	this.o2 = o2;
+	this.o1.source.on(o1.eventName, this.onO1, this);
+	this.o2.source.on(o2.eventName, this.onO2, this);
+	this.o1.source.on('destroy', this.destroy, this);
+	this.o2.source.on('destroy', this.destroy, this);
+	this.ignore = false;
+}
+Ext.extend(App.gluer, {
+	onO1 : function() {
+		if(!this.ignore) {
+			this.ignore = true;
+			this.o2.handler.apply(this.o2.source, arguments);
+			this.ignore = false;
+		}
+	},
+	onO2 : function() {
+		if(!this.ignore) {
+			this.ignore = true;
+			this.o1.handler.apply(this.o1.source, arguments);
+			this.ignore = false;
+		}
+	},
+	destroy : function() {
+		this.o1.source.un(o1.eventName, this.onO1, this);
+		this.o2.source.un(o2.eventName, this.onO2, this);
+		this.o1.source.un('destroy', this.destroy, this);
+		this.o2.source.un('destroy', this.destroy, this);
+		App.unglue(this.id, false)
+	}
+});
+
+<span id='App-method-glue'>/**
+</span> * @method glue
+ * 
+ *     App.glue({
+ *       source: toolButton,
+ *       eventName: 'toggle',
+ *       handler: function(toggleState) {  }
+ *     })
+ * 
+ *	@member App
+ */
+App.glue = function() {
+	var gluers = {};
+	App.unglue = function(id, destroy) {
+		destroy = destroy || false;
+		if(destroy &amp;&amp; gluers[id]) {
+			gluers[id].destroy();
+		} delete
+		gluers[id];
+	};
+	return function(o1, o2) {
+		var g = new App.gluer(o1, o2);
+		gluers[g.id] = g;
+	};
+}();
+<span id='App-method-mixin'>/**
+</span> * @method mixin
+ * @param {Function} target Class to which properties will be copied
+ * @param {Function} source Class from which properties will be copied
+ * @member App
+ */
+App.mixin = function(target, source) {
+	Ext.override(target, source.prototype);
+}
+
+
+<span id='App-Registry'>/**
+</span> * @class App.Registry
+ * Allows creation of named type registries (e.g. classes can be registered)
+ */
+App.Registry = function(tname) {
+	this.tname = tname;
+	var types = {};
+	Ext.apply(this, {
+<span id='App-Registry-method-register'>		/**
+</span>		 * register
+		 * Registers the passed &lt;var&gt;wtype&lt;/var&gt; with a constructor so that objects deserialized with
+		 * {@link Workspace.Components#deserialize}, {@link Workspace.Components#create}, {@link Workspace#createObject}, etc.
+		 * may have their constructor automatically detected, similar to Ext's xtypes
+		 * @param {String} typeName The canonical name of this type
+		 * @param {Function} type The constructor function
+		 */
+		register : function(typeName, type) {
+			types[typeName] = type;
+			type.prototype[this.tname] = typeName;
+			type[this.tname] = typeName;
+		},
+<span id='App-Registry-method-getType'>		/**
+</span>		 * getType
+		 * Returns the class corresponding to the passed wtype
+		 * @param {String} typeName The mneumonic name of the type to lookup
+		 */
+		getType : function(typeName) {
+			return types[typeName];
+		},
+		hasType : function(typeName) {
+			return (this.getType(typeName) != false)
+		},
+<span id='App-Registry-method-create'>		/**
+</span>		 * create
+		 * Instantiates an object of the passed class or configured wtype.
+		 * @param {String} typeName
+		 * @param {Object} config
+		 */
+		create : function(typeName, config) {
+			if(this.hasType(typeName)) {
+				var t = this.getType(typeName);
+				return new t(config);
+			}
+		},
+	});
+};
+</pre>
+</body>
+</html>

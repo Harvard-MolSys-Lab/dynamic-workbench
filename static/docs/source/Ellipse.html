@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">////////////////////////////////////////////////////////////////////////////////////////////////
+<span id='Workspace-objects-Ellipse'>/**
+</span> * @class Workspace.objects.Ellipse
+ * Represents a workspace object rendered by an ellipse
+ * @extends Workspace.objects.VectorObject
+ */
+Ext.define('Workspace.objects.Ellipse', {
+	constructor: function(workspace, config) {
+		Workspace.objects.Ellipse.superclass.constructor.call(this, workspace, config);
+
+	},
+	extend: 'Workspace.objects.VectorObject',
+	alias: 'Workspace.VectorEllipseObject',
+	wtype: 'Workspace.objects.Ellipse',
+	name: 'New Ellipse',
+	iconCls: 'ellipse',
+	shape: 'ellipse',
+	isResizable: true,
+	x: 0,
+	y: 0,
+	width: 0,
+	height: 0,
+
+	render: function() {
+		this.arguments = [this.get('x') + this.getRadiusX(), this.get('y') + this.getRadiusY(), this.getRadiusX(), this.getRadiusY()];
+		//[(this.x-(this.width/2)),(this.y-(this.height/2)),(this.width/2),(this.height/2)];
+		Workspace.objects.Ellipse.superclass.render.call(this);
+	},
+<span id='Workspace-objects-Ellipse-method-getRadiusX'>	/**
+</span>	 * getRadiusX
+	 * @return {Number} rx
+	 */
+	getRadiusX: function() {
+		return (this.getWidth() / 2);
+	},
+<span id='Workspace-objects-Ellipse-method-getRadiusY'>	/**
+</span>	 * getRadiusY
+	 * @return {Number} ry
+	 */
+	getRadiusY: function() {
+		return (this.getHeight() / 2);
+	},
+<span id='Workspace-objects-Ellipse-method-getCenterX'>	/**
+</span>	 * getCenterX
+	 * @return {Number} cx
+	 */
+	getCenterX: function() {
+		return (this.getX() + this.getRadiusX());
+	},
+<span id='Workspace-objects-Ellipse-method-getCenterY'>	/**
+</span>	 * getCenterY
+	 * @return {Number} cy
+	 */
+	getCenterY: function() {
+		return (this.getY() + this.getRadiusY());
+	},
+	updateX: function(x) {
+		Workspace.objects.VectorObject.superclass.updateX.apply(this, arguments);
+		this.vectorElement.attr({
+			cx: x + this.getRadiusX()
+		})
+	},
+	updateY: function(y) {
+		Workspace.objects.VectorObject.superclass.updateY.apply(this, arguments);
+		this.vectorElement.attr({
+			cy: y + this.getRadiusY()
+		})
+	},
+	updateWidth: function(w) {
+		this.vectorElement.attr({
+			rx: this.getRadiusX()
+		});
+		this.updateX(this.getX());
+	},
+	updateHeight: function(w) {
+		this.vectorElement.attr({
+			ry: this.getRadiusY()
+		})
+		this.updateY(this.getY());
+	}
+}, function() {
+	Workspace.reg('Workspace.objects.Ellipse', Workspace.objects.Ellipse);
+});</pre>
+</body>
+</html>

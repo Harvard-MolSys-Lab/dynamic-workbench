@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">////////////////////////////////////////////////////////////////////////////////////////////////
+
+Ext.define('Workspace.objects.secondary.Complementarity', {
+	extend : 'Workspace.objects.Connection',
+	showLabel : false,
+	property : 'complementarity',
+	render : function() {
+		this.callParent();
+		// this.vectorElement.attr({
+			// &quot;arrow-end&quot; : &quot;classic-wide-long&quot;,
+		// });
+		this.set('strokeWidth',1.5);
+		this.set('stroke',&quot;#aaa&quot;);
+		this.set('arrowEnd',&quot;classic-wide-long&quot;);
+	},
+	strokeWidth : 1.5,
+	arrowEnd:&quot;classic-wide-long&quot;,
+	stroke:&quot;#999&quot;,
+	acceptLeft : function(item) {
+		return (item.getId &amp;&amp; item.isWType('Workspace.objects.secondary.Domain'));
+	},
+	acceptRight : function(item) {
+		return (item.getId &amp;&amp; item.isWType('Workspace.objects.secondary.Domain'));
+	},
+	canConnect : function(left, right) {
+		return true;
+	},
+}, function() {
+	Workspace.reg('Workspace.objects.secondary.Complementarity', Workspace.objects.secondary.Complementarity);
+});
+</pre>
+</body>
+</html>

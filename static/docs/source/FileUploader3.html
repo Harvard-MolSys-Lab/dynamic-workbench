@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">////////////////////////////////////////////////////////////////////////////////////////////////
+
+<span id='Workspace-FileUploader'>/**
+</span> * @class Workspace.FileUploader
+ * Manages uploading a file and building an appropriate embedded object
+ */
+Ext.define('Workspace.FileUploader', {
+	alias: 'WorkspaceFileUploader',
+	extend: 'App.ui.FileUploader',
+	showThrobber: function() {
+		this.throbber = this.workspace.addElement({
+			tag: 'div',
+			cls: 'file-upload-throbber'
+		});
+		this.throbber.setLeftTop(this.position.x,this.position.y);
+	},
+	hideThrobber: function() {
+		if(this.throbber) {
+			this.throbber.hide();
+		}
+	},
+},function() {
+	Workspace.FileUploader.addHandler(['jpg','png','gif'], function(fileName) {
+		this.workspace.createObject({
+			wtype: 'Workspace.objects.ImageObject',
+			url: fileName,
+			x: this.position.x,
+			y: this.position.y
+		});
+		this.hideThrobber();
+	});
+	Workspace.FileUploader.addHandler(['pdf','doc','docx','ppt','pptx','xls','xlsx'], function(fileName) {
+		this.workspace.createObject({
+			wtype: 'Workspace.objects.PDFEmbedObject',
+			url: fileName,
+			x: this.position.x,
+			y: this.position.y
+		});
+		this.hideThrobber();
+	});
+
+});
+</pre>
+</body>
+</html>

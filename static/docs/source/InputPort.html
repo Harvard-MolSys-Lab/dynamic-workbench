@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">////////////////////////////////////////////////////////////////////////////////////////////////
+
+Ext.define('Workspace.objects.dna.InputPort', {
+	extend:'Workspace.objects.Path',
+	mixins: {
+		port: 'Workspace.objects.dna.NodePort'
+	},
+	constructor: function() {
+		this.callParent(arguments);
+		this.mixins.port.constructor.apply(this,arguments);
+	},
+	wtype: 'Workspace.objects.dna.InputPort',
+	role: 'input',
+	width: 12,
+	height: 12,
+	polarity: 1,
+	shape: 'triangle',
+	stroke: 'orange',
+	strokeWidth: 2,
+	dtheta: 30,
+	name: 'Input Port',
+	path: false,
+	render: function() {
+		this.arguments = [this.get('x') + this.getRadiusX(), this.get('y') + this.getRadiusY(), this.getRadiusX()]; //, this.getRadiusY()];
+		Workspace.objects.Path.superclass.render.call(this);
+		this.path = this.vectorElement.attr('path');
+		this.updateDimensions();
+		this.mixins.port.render.apply(this,arguments);
+	},
+}, function() {
+	Workspace.reg('Workspace.objects.dna.InputPort',Workspace.objects.dna.InputPort);
+});
+//Ext.copyTo(Workspace.objects.dna.InputPort.prototype,Workspace.VectorPathObject.prototype,['getHighlightProxy','updateHighlightProxy','updatePath','updateDimensions','translate','setPosition',])
+</pre>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Workspace-objects-Path'>/**
+</span> * Represents a workspace object rendered by an SVG/VML `path` element.
+ * 
+ * # Updating paths
+ * Path data may be updated in two ways: the #points property can be #set,
+ * triggering {@link #interpolate interpolation} of the points into an SVG path 
+ * string; or, the #path property can be updated directly, providing an SVG 
+ * path string or Raphael array.
+ * 
+ * When #points or #interpolator are {@link #event-change changed}, #buildPath is 
+ * called automatically. #buildPath calls #interpolate, which in turn invokes
+ * the configured #interpolator with the value of #points. This generates an 
+ * SVG path string or Raphael path array. The value of the #path property is 
+ * then {@link #set} to the result returned by #interpolate. 
+ * 
+ * When #path is #set, either manually or by #buildPath, #updatePath is called,
+ * which updates the #vectorElement with the appropriate SVG path string. #updatePath 
+ * also recalculates the object's dimensions.
+ * 
+ * @extends Workspace.objects.VectorObject
+ */
+Ext.define('Workspace.objects.Path', {
+	extend : 'Workspace.objects.VectorObject',
+	constructor : function(config) {
+		this.callParent(arguments);
+		this.expose('path', true, true, true, false);
+		this.expose('points', true, true, true, false);
+		this.expose('interpolator', true, true, true, false);
+	},
+	requires : ['Workspace.objects.Interpolators'],
+	alias : 'Workspace.VectorPathObject',
+	wtype : 'Workspace.objects.Path',
+	editor : 'vector',
+	name : 'New Path',
+	iconCls : 'path',
+	shape : 'path',
+<span id='Workspace-objects-Path-cfg-interpolator'>	/**
+</span>	 * @cfg {String} interpolator
+	 * Name of a {@link Workspace.objects.Interpolators interpolator} which can 
+	 * generate an SVG path string from an array of #points.
+	 */
+	interpolator : 'linear',
+	isResizable : false,
+<span id='Workspace-objects-Path-property-path'>	/**
+</span>	 * @property {Array[]}
+	 * Array of SVG path commands which form an SVG path string. 
+	 */
+	path : [],
+<span id='Workspace-objects-Path-property-points'>	/**
+</span>	 * @property {Array[]}
+	 * Array of points which define the path. Each point is an array containing 
+	 * at least two numbers (x and y coordinates). Different 
+	 * {@link #interpolator interpolators} may handle points with more than two 
+	 * coordinates.
+	 */
+	points : [],
+<span id='Workspace-objects-Path-property-fillOpacity'>	/**
+</span>	 * @inheritdoc
+	 */
+	fillOpacity : 0,
+	render : function() {
+		if(!this.path || (this.points &amp;&amp; this.points.length &gt; 0)) {
+			this.buildPath(this.points);
+		}
+		this.arguments = [this.path];
+		this.callParent(arguments);
+		this.on('change:interpolator', this.buildPath, this)
+		this.on('change:path', this.updatePath, this);
+		this.on('change:points', this.buildPath, this);
+		this.updateDimensions();
+	},
+<span id='Workspace-objects-Path-method-getHighlightProxy'>	/**
+</span>	 * Constructs a highlight {@link Workspace.Proxy} configured to follow this 
+	 * object. Automatically invoked by {@link #highlight}; should not be 
+	 * called directly.
+	 * @private
+	 * @return {Workspace.Proxy} proxy
+	 */
+	getHighlightProxy : function() {
+		return Ext.create('Workspace.Proxy',Ext.applyIf({
+			path : this.path,
+			shape : this.shape,
+			strokeWidth : this.strokeWidth + App.Stylesheet.Highlight.strokeWidth,
+			workspace : this.workspace,
+		}, App.Stylesheet.Highlight));
+	},
+	updateHighlightProxy : function() {
+		if(this.highlightProxy)
+			this.highlightProxy.path = this.path;
+	},
+<span id='Workspace-objects-Path-method-buildPath'>	/**
+</span>	 * Called when {@link #points} changes; builds the SVG path string.
+	 */
+	buildPath : function() {
+		this.set('path', this.interpolate(this.get('points')));
+	},
+<span id='Workspace-objects-Path-method-interpolate'>	/**
+</span>	 * Generates an SVG path string with the configured {@link #interpolator}
+	 */
+	interpolate : function(points) {
+		if(points) {
+			var interpolator = this.get('interpolator');
+			if(_.isFunction(interpolator)) {
+				return ['M',points[0][0],',',points[0][1],' ',interpolator.call(this,points)].join('');
+			} else {
+				return ['M',points[0][0],',',points[0][1],' ',Workspace.objects.Interpolators[this.get('interpolator')](points)].join('');
+			}
+		} else {
+			return ''
+		}
+	},
+<span id='Workspace-objects-Path-method-updatePath'>	/**
+</span>	 * Sets this object's path to the passed path specification and recalculates its dimensions
+	 * @param {Array} path Raphael path specification (e.g. [['M',x,y],['L',x,y]...])
+	 */
+	updatePath : function(path) {
+		this.path = path;
+		this.vectorElement.attr({
+			path : path
+		});
+		this.updateDimensions();
+		this.updateHighlightProxy();
+	},
+<span id='Workspace-objects-Path-method-updateDimensions'>	/**
+</span>=	 * Sets this object's x, y, width, and height properties to match that of the bounding box of the object's path.
+	 * Automatically invoked by updatePath and render()
+	 * @private
+	 */
+	updateDimensions : function() {
+		var box = this.vectorElement.getBBox(true);
+		this.set('x', box.x);
+		this.set('y', box.y);
+		this.set('height', box.height);
+		this.set('width', box.width);
+	},
+<span id='Workspace-objects-Path-method-appendPoint'>	/**
+</span>	 * appendPoint
+	 * Adds a new point to this object's path
+	 * @param {Array} point Raphael path point specification (e.g. ['M',x,y])
+	 */
+	appendPoint : function(point) {
+		this.path.push(point);
+		this.updatePath(this.path);
+	},
+	translate : function(dx, dy) {
+		var i;
+		if(this.points &amp;&amp; this.points.length &gt; 0) {
+			var points = this.points;
+			for(i = 0; i&lt;points.length;i++) {
+				points[i][0]+=dx;
+				points[i][1]+=dy;
+			}
+			this.set('points',points);
+		} else {
+			this.path = Raphael.pathToRelative(this.path);
+	            this.path[0][1] = this.path[0][1]+dx;
+	            this.path[0][2] = this.path[0][2]+dy;
+			this.updatePath(this.path);
+		}
+		/*
+		 this.x = this.getX();
+		 this.y = this.getY();
+		 */
+		this.fireEvent('move', this.getX(), this.getY());
+	},
+<span id='Workspace-objects-Path-method-setPosition'>	/**
+</span>	 * sets the position of this path by calculating the delta and translating the path
+	 * @param {Object} x
+	 * @param {Object} y
+	 */
+	setPosition : function(x, y) {
+		var delta = this.getDelta(x, y);
+		this.translate(delta.dx, delta.dy);
+	},
+	setDimensions : function(w, h) {
+
+	}
+}, function() {
+	Workspace.reg('Workspace.objects.Path', Workspace.objects.Path);
+});
+</pre>
+</body>
+</html>

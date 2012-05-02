@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='App-ui-BasePicker'>/**
+</span> * Allows selection of a subset of DNA bases (A, T, C, G). Used in {@link App.ui.DD DD}.
+ */
+Ext.define('App.ui.BasePicker',{
+	alias: 'widget.basepicker',
+	extend: 'Ext.ux.form.field.BoxSelect',
+	displayField: 'base',
+	valueField: 'value',
+	multiSelect: true,
+	queryMode: 'local',
+	constructor:function() {
+		this.store = Ext.create('Ext.data.Store',{
+			fields: [
+           {name: 'base', type: 'string'},
+           {name: 'value', type: 'int'},
+        ],
+        data:[
+     		{base:'G',value:8},
+        	{base:'A',value:4},
+     		{base:'T',value:2},
+     		{base:'C',value:1},   
+        ]});
+		this.callParent(arguments);
+	},
+<span id='App-ui-BasePicker-method-getAggregate'>	/**
+</span>	 * Returns a DD base bitmask
+	 */
+	getAggregate: function() {
+		var v = this.getValue();
+		//v = v.split(this.delimiter);
+		return _.reduce(v, function(memo, num){ return memo + parseInt(num); }, 0);
+	},
+<span id='App-ui-BasePicker-method-setAggregate'>	/**
+</span>	 * Allows population with a DD base bitmask, as follows:
+	 * 
+	 *     8 4 2 1
+	 *     G A T C
+	 */
+	setAggregate: function(v) {
+		v = parseInt(v);
+		var x = [
+			 (v &amp; 8), (v &amp; 4), (v &amp; 2), (v &amp; 1) , 
+		];
+		x = _.compact(x);
+		this.setValue(x);
+		
+	}
+})
+</pre>
+</body>
+</html>

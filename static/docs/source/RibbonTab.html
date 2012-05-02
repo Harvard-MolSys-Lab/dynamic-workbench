@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='App-ui-RibbonTab'>/**
+</span> * @class App.ui.RibbonTab
+ * @extend Ext.tab.Tab
+ */
+Ext.define('App.ui.RibbonTab', {
+    extend: 'Ext.panel.Panel',
+    alias: 'widget.appuxribbontab',
+    layout: 'hbox',
+    title: 'Untitled',
+
+    defaults: {
+        xtype: 'buttongroup',
+        headerPosition: 'bottom',
+        margins: '3 0 3 3'
+    },
+
+    initComponent: function () {
+        this.callParent(arguments);
+
+        this.on('added', function (o, c, i) {
+            Ext.each(this.items.items, function (btnGroups) {
+                Ext.each(btnGroups.items.items, function (item) {
+                    if (item.scale !== 'small') {
+                        var text = String(item.text);
+
+                        if (text.indexOf('\n') != -1) { // has \n ?
+                            text = text.replace('\n', '&lt;br/&gt;');
+                        } else if (text.indexOf(' ') != -1) {
+                            text = text.replace(/[ +]/gi, '&lt;br/&gt;');
+                        } else {
+                            if (!item.menu || item.arrowAlign !== 'bottom')
+                                item.cls = 'x-btn-as-arrow';
+                        }
+
+                        if (item.setText)
+                            item.setText(text);
+                    }
+                });
+            });
+        });
+
+        this.on('render', function () {
+            this.doLayout(true);
+        });
+    }
+});</pre>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define('App.ui.files.FileUploader',{
+	extend: 'App.ui.FileUploader',
+},function() {
+	App.ui.files.FileUploader.addHandler(['jpg','png','gif','txt','pdf','svg','txt','seq','nupack','nodal','workspace','html','js','xml'], function(fileName) {
+		App.ui.filesTree.refreshDocument(this.record);
+		this.filesTree.loaders--;
+		this.filesTree.setLoading((this.filesTree.loaders &gt; 0));
+		Ext.msg('File',&quot;{0} uploaded successfully.&quot;,fileName);
+	});
+	App.ui.files.FileUploader.addHandler(['exe','sh','run',''], function(fileName) {
+		Ext.MsgBox.alert(&quot;Not Permitted&quot;,&quot;Uploading this type of file is not allowed for security reasons.&quot;);
+	});
+});</pre>
+</body>
+</html>

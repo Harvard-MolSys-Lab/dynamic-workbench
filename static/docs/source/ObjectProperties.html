@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='App-ui-ObjectProperties'>/**
+</span> * Allows creation and editing object properties
+ * @extends App.ui.BoundObjectPanel
+ */
+
+Ext.define('App.ui.ObjectProperties', {
+	extend : 'App.ui.BoundObjectPanel',
+<span id='App-ui-ObjectProperties-property-enableBoundFields'>	/**
+</span>	 * @inheritdoc
+	 */
+	enableBoundFields : false,
+	constructor : function() {
+		App.ui.ObjectProperties.superclass.constructor.apply(this, arguments);
+	},
+	initComponent : function() {
+		this.grid = Ext.create('Ext.grid.property.Grid', {
+			border : false,
+			bodyBorder : false,
+			source : {},
+			title : 'All Properties'
+		});
+		
+		this.selection = [];
+		
+<span id='App-ui-ObjectProperties-property-workspace'>		/**
+</span>		 * @property {Workspace} workspace
+		 * The attached {@link Workspace}.
+		 */
+		
+<span id='App-ui-ObjectProperties-property-items'>		/**
+</span>		 * @property {Workspace.objects.Object[]}
+		 */
+		this.items = this.items || [];
+		this.items.push(this.grid);
+
+		Ext.apply(this, {
+			title : 'Selected Object',
+			layout : 'accordion',
+		});
+		this.callParent(arguments);
+		// App.ui.ObjectProperties.superclass.initComponent.apply(this,arguments);
+		this.grid.on('propertychange', this.onPropertyChange, this);
+		this.boundObjectPanels = Ext.create('Ext.util.MixedCollection');
+		this.boundObjectPanels.addAll(this.query('component[bind]'));
+		this.boundObjectPanels.each(function(item) {
+			this.mon(item, 'action', this.doAction, this);
+
+			if(item.init) {
+				item.init();
+			}
+		}, this);
+	},
+<span id='App-ui-ObjectProperties-method-doAction'>	/**
+</span>	 * Invokes the passed {@link Workspace.actions.Action} on the {@link #workspace}
+	 * @param {Workspace.actions.Action} action
+	 */
+	doAction : function(action) {
+		var undoAction = action.getUndo();
+		this.workspace.doAction(action);
+	},
+<span id='App-ui-ObjectProperties-method-onSelectionChange'>	/**
+</span>	 * Called when the {@link Workspace#selection selection} of the {@link #workspace attached workspace} changes.
+	 */
+	onSelectionChange : function() {
+		var toBind = _.difference(this.workspace.getSelection(),this.selection),
+			toUnbind = _.difference(this.selection,this.workspace.getSelection());
+		
+		_.each(toBind,function(item) {
+			this.bind(item);
+		});
+		_.each(toUnbind,function(item) {
+			this.unbind(item);
+		});
+				
+		// copy new items into this.selection
+		this.selection = this.workspace.getSelection();
+	},
+	
+	bind : function(obj) {
+		this.unbind();
+		this.boundObject = obj;
+		this.boundObject.on('change', this.onObjectChange, this);
+		this.grid.setSource(obj.getReadableHash());
+		this.callParent(arguments);
+		this.boundObjectPanels.each(function(panel) {
+			panel.bind(obj);
+		});
+	},
+	unbind : function(obj) {
+		if(this.boundObject) {
+			if((obj == this.boundObject) || (!obj)) {
+				this.boundObject.un('change', this.onObjectChange, this);
+				this.grid.setSource({});
+				this.boundObject = false
+			}
+		}
+		this.callParent(arguments);
+		this.boundObjectPanels.each(function(panel) {
+			panel.unbind(obj);
+		});
+	},
+	onObjectChange : function(prop, val) {
+		if(!this.ignore)
+			this.grid.setProperty(prop, val, true);
+	},
+	onPropertyChange : function(src, prop, value) {
+		if(this.boundObject) {
+			this.ignore = true;
+			this.boundObject.set(prop, value);
+			this.ignore = true;
+		}
+	},
+<span id='App-ui-ObjectProperties-method-attachTo'>	/**
+</span>	 * Attaches to a particular {@link Workspace}.
+	 * @param {Workspace} workspace
+	 */
+	attachTo : function(workspace) {
+		this.workspace = workspace;
+
+		// bind ribbon to objects when selected in workspace
+		this.mon(this.workspace, 'select', this.bind, this, {
+			buffer: 200,
+		});
+		this.mon(this.workspace, 'unselect', this.unbind, this, {
+			buffer: 200,
+		});
+
+	},
+})</pre>
+</body>
+</html>

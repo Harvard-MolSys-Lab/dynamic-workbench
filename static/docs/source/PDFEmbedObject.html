@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">
+////////////////////////////////////////////////////////////////////////////////////////////////
+/*
+ * @class Workspace.objects.PDFEmbedObject
+ * Represents a workspace object containing an iframe
+ * @extends Workspace.objects.IFrameObject
+ */
+// Workspace.objects.PDFEmbedObject = {};
+Ext.define('Workspace.objects.PDFEmbedObject', {
+	constructor: function(workspace, config) {
+		Workspace.objects.PDFEmbedObject.superclass.constructor.call(this, workspace, config);
+	},
+	extend: 'Workspace.objects.IFrameObject',
+	wtype: 'Workspace.objects.PDFEmbedObject',
+	name: 'New PDF',
+	iconCls: 'pdf',
+	url: 'http://labs.google.com/papers/bigtable-osdi06.pdf',
+<span id='global-method-getFullUrl'>	/**
+</span>	 * Returns the URL to the Google Docs PDF embedding suite
+	 * @param {Object} value
+	 */
+	getFullUrl: function(value) {
+		value = value || this.get('url');
+		if(!Ext.isChrome) {
+			return 'http://docs.google.com/viewer?embedded=true&amp;url=' + encodeURIComponent(value);
+		} else {
+			return value;
+		}
+	},
+	setUrl: function(value) {
+		this.getIFrameEl().set({
+			src: this.getFullUrl(value)
+		});
+	}
+}, function() {
+	Workspace.reg('Workspace.objects.PDFEmbedObject', Workspace.objects.PDFEmbedObject);
+});</pre>
+</body>
+</html>

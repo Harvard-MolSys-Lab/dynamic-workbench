@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">////////////////////////////////////////////////////////////////////////////////////////////////
+
+Ext.define('Workspace.objects.dna.BridgePort', {
+	extend:'Workspace.objects.Rectangle',
+	mixins: {
+		port: 'Workspace.objects.dna.NodePort'
+	},
+	wtype: 'Workspace.objects.dna.BridgePort',
+	width: 8,
+	height: 8,
+	polarity: 1,
+	shape: 'square',
+	stroke: 'purple',
+	strokeWidth: 2,
+	name: 'Bridge Port',
+	role: 'bridge',
+	isResizable: false,
+
+	path: false,
+	constructor: function() {
+		Workspace.objects.dna.BridgePort.superclass.constructor.apply(this,arguments);
+		this.mixins.port.constructor.apply(this,arguments);
+		this.expose('complementarity',true,true,true,false);
+	},
+	render: function() {
+		this.arguments = [this.get('x') + this.getRadiusX(), this.get('y') + this.getRadiusY(), this.getRadiusX()]; //, this.getRadiusY()];
+		Workspace.objects.Rectangle.superclass.render.call(this);
+		this.mixins.port.render.apply(this,arguments);
+		//		this.path = this.vectorElement.attr('path');
+		//		this.updateDimensions();
+	},
+	initialize: function() {
+		if(this.complementarity) {
+			this.set('complementarity', Workspace.Components.realize(this.complementarity));
+		}
+		this.callParent(arguments);
+	},
+}, function() {
+	Workspace.reg('Workspace.objects.dna.BridgePort',Workspace.objects.dna.BridgePort);
+});</pre>
+</body>
+</html>

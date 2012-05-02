@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">////////////////////////////////////////////////////////////////////////////////////////////////
+<span id='Workspace-tools-MathQuillTool'>/**
+</span> * @class Workspace.tools.MathQuillTool
+ * Allows LaTeX equations to be edited inline with MathQuill
+ * @extends WorkspceTool
+ * @param {Object} workspace
+ * @param {Object} config
+ */
+Ext.define('Workspace.tools.MathQuillTool', {
+	constructor: function(workspace, config) {
+		Workspace.tools.MathQuillTool.superclass.constructor.call(this, workspace, config);
+	},
+	extend: 'Workspace.tools.BaseTool',
+	click: function(e, item) {
+
+	},
+	dblclick: function(e, item) {
+		if (!item || (item &amp;&amp; item.getId &amp;&amp; item.getId() != this.item.getId())) {
+			this.workspace.endEdit();
+		}
+	},
+	mousedown: function(e, item) {
+
+	},
+	mouseup: function(e, item) {
+
+	},
+	mousemove: function(e, item) {
+
+	},
+	attach: function(item) {
+		if (item &amp;&amp; item.element) {
+			// save reference to the attached item and the Aloha.Editable object
+			this.item = item;
+			this.item.activate();
+			return true;
+		}
+		return false;
+	},
+	detach: function() {
+		if (this.item) {
+			this.item.deactivate();
+
+			// rebuild events because somehow between aloha and contentEditable they usually get clobbered
+			if (this.item.buildEvents) {
+				this.item.buildEvents();
+			}
+			this.item = false;
+		}
+	},
+	activate: function() {
+		Workspace.tools.MathQuillTool.superclass.activate.call(this);
+	},
+	deactivate: function() {
+		Workspace.tools.MathQuillTool.superclass.deactivate.call(this);
+		this.detach();
+	}
+}, function() {
+	Workspace.Tools.register('mathquill', Workspace.tools.MathQuillTool);
+});</pre>
+</body>
+</html>

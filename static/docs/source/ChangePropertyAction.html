@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Workspace-actions-ChangePropertyAction-cfg-values'><span id='Workspace-actions-ChangePropertyAction-cfg-subjects'><span id='Workspace-actions-ChangePropertyAction'>/**
+</span></span></span> * @class Workspace.actions.ChangePropertyAction
+ * An action which encapsulates a change in one or more properties of a group of {@link Workspace.objects.Object}s
+ * @extends Workspace.actions.Action
+ * @cfg {Workspace.objects.Object[]} subjects The objects to modify
+ * @cfg {Object} values The properties to modify
+ */
+Ext.define('Workspace.actions.ChangePropertyAction', {
+	extend: 'Workspace.actions.Action',
+	constructor: function(config) {
+		Workspace.actions.ChangePropertyAction.superclass.constructor.apply(this, arguments);
+		Ext.applyIf(this, {
+			scope: this
+		})
+	},
+	wtype: 'ChangePropertyAction',
+	handler: function() {
+		for (var i = 0, l = this.subjects.length, subject; i &lt; l; i++) {
+			subject = this.subjects[i];
+			for (var key in this.values) {
+				subject.set(key, this.values[key]);
+			}
+		}
+	},
+	getUndo: function() {
+		var undoData = {};
+		for (var i = 0, l = this.subjects.length, subject; i &lt; l; i++) {
+			subject = this.subjects[i];
+			for (var key in this.values) {
+				undoData[key] = subject.get(key);
+			}
+		}
+		return new Workspace.actions.ChangePropertyAction({
+			subjects: this.subjects.concat([]),
+			values: undoData,
+			text: 'Undo &quot;' + this.text + '&quot;',
+			iconCls: this.iconCls,
+		});
+	},
+	serialize: function() {
+		return {
+			wtype: this.wtype,
+			subjects: Workspace.Components.serialize(this.subjects),
+			values: Workspace.Components.serialize(this.values)
+		}
+	}
+});</pre>
+</body>
+</html>

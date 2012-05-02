@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Workspace-idea-FreeLayout'>/**
+</span> * @class Workspace.idea.FreeLayout
+ * Allows arbitrary arrangement of children within
+ * @abstract
+ * @extends Workspace.idea.BaseLayout
+ */
+Ext.define('Workspace.idea.FreeLayout', {
+	constructor: function(config) {
+		Workspace.idea.FreeLayout.superclass.constructor.apply(this,arguments);
+	},
+	extend: 'Workspace.idea.BaseLayout',
+	doLayout: function(applyToChildren) {
+		var union = false; //(union !== false);
+		applyToChildren = (applyToChildren !== false);
+		box = Workspace.Utils.getBox(this.getObjects().getRange());
+		box = Workspace.Utils.padBox(box, this.idea.padding);
+		if (union)
+			box = Workspace.Utils.boxUnion(box, this.idea.getBox())
+		this.idea.setBox(box, applyToChildren);
+	},
+	doFirstLayout: function() {
+		var union = false, applyToChildren = false;
+		this.doLayout(false);
+	},
+	/*
+	 addNextChild: function() {
+
+	 }*/
+},function() {	
+	Workspace.Layouts.register('Workspace.idea.FreeLayout',Workspace.idea.FreeLayout);
+});</pre>
+</body>
+</html>

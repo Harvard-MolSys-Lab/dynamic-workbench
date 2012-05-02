@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">////////////////////////////////////////////////////////////////////////////////////////////////
+
+Ext.define('Workspace.tools.nodal.ExposureTool', {
+	extend:'Workspace.tools.ConnectorTool',
+	requires: ['Workspace.objects.dna.Exposure',],
+	parameters: {
+		&quot;arrow-end&quot;: 'classic-wide-long',
+		&quot;stroke-dasharray&quot;: '.',
+		&quot;stroke&quot;:&quot;#aaa&quot;,
+		&quot;stroke-width&quot;:1.5,
+	},
+	acceptLeft: function() {
+		return Workspace.objects.dna.Exposure.prototype.acceptLeft.apply(this,arguments);
+	},
+	acceptRight: function() {
+		return Workspace.objects.dna.Exposure.prototype.acceptRight.apply(this,arguments);
+	},
+	canConnect: function() {
+		return Workspace.objects.dna.Exposure.prototype.canConnect.apply(this,arguments);
+	},
+	onConnect: function(conn,left,right) {
+		
+	},
+	targetWType: 'Workspace.objects.dna.Exposure'
+}, function() {
+	Workspace.Tools.register('exposure',Workspace.tools.nodal.ExposureTool);
+});
+
+</pre>
+</body>
+</html>

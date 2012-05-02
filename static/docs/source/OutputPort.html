@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">////////////////////////////////////////////////////////////////////////////////////////////////
+
+Ext.define('Workspace.objects.dna.OutputPort', {
+	extend: 'Workspace.objects.Ellipse',
+	mixins: {
+		port: 'Workspace.objects.dna.NodePort'
+	},
+	wtype: 'Workspace.objects.dna.OutputPort',
+	shape: 'ellipse',
+	stroke: '#33ccff',
+	strokeWidth: 2,
+	name: 'Output Port',
+	role: 'output',
+	width: 8,
+	height: 8,
+	polarity: 1,
+	isResizable: false,
+	constructor: function() {
+		this.callParent(arguments);
+		this.mixins.port.constructor.apply(this,arguments);
+		//Workspace.objects.dna.OutputPort.superclass.constructor.apply(this,arguments);
+		this.expose('complementarity',true,true,true,false);
+	},
+	initialize: function() {
+		if(this.complementarity) {
+			this.set('complementarity', Workspace.Components.realize(this.complementarity));
+		}
+		this.callParent(arguments);
+	},
+	render: function() {
+		this.callParent(arguments);
+		this.mixins.port.render.apply(this,arguments);
+	},
+}, function() {
+	Workspace.reg('Workspace.objects.dna.OutputPort',Workspace.objects.dna.OutputPort);
+});</pre>
+</body>
+</html>

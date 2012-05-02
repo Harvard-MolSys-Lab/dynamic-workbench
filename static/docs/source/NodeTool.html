@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Workspace-tools-nodal-NodeTool'>/**
+</span> * Allows the creation of arbitrary nodes. Generally used to allow creation of 
+ * nodes of particular motifs by the {@link App.ui.MotifPallette}.
+ */
+Ext.define('Workspace.tools.nodal.NodeTool', {
+	extend:'Workspace.tools.BaseTool',
+	defaultMotif: '0',
+	statics: {
+		
+	},
+	requires: ['Workspace.objects.dna.Node','Workspace.tools.nodal.PortTool'],
+	click: function(e,item) {
+		var pos = this.getAdjustedXY(e);
+		this.buildMotif(this.defaultMotif,pos.x,pos.y);
+	},
+	
+<span id='Workspace-tools-nodal-NodeTool-method-buildMotif'>	/**
+</span>	 * @inheritdoc Workspace.objects.dna.BuildManager#buildMotif
+	 */
+	buildMotif: function(spec,x,y) {
+		return this.workspace.buildManager.buildMotif(spec,x,y);
+	},
+<span id='Workspace-tools-nodal-NodeTool-method-buildPort'>	/**
+</span>	 * @inheritdoc Workspace.objects.dna.BuildManager#buildPort
+	 */
+	buildPort: function(config) {
+		return this.workspace.buildManager.buildPort(config);
+	}
+}, function() {
+	Workspace.Tools.register('node', Workspace.tools.nodal.NodeTool);
+});</pre>
+</body>
+</html>

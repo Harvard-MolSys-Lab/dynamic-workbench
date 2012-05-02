@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">////////////////////////////////////////////////////////////////////////////////////////////////
+
+Ext.define('Workspace.objects.dna.NodeLayout', {
+	extend:'Workspace.idea.BaseLayout',
+	doLayout: function() {
+		if(!this.ignore) {
+			var count = this.getObjects().getCount(),
+			theta = this.idea.get('theta'),
+			dtheta = 360 / count,
+			cx = this.idea.getCenterX(),
+			cy = this.idea.getCenterY(),
+			rx = this.idea.getRadiusX(),
+			ry = this.idea.getRadiusY();
+			this.ignore = true;
+			this.getObjects().each( function(child) {
+				// bit of a hack;
+				// TODO: Make sure doLayout isn't applied before children are rendered
+				if(child.is('rendered')) {
+					child.setPosition(
+					parseInt(cx + Math.cos(Raphael.rad(theta)) * rx - child.getWidth()) + this.paddingTop, // HACK
+					parseInt(cy + Math.sin(Raphael.rad(theta)) * ry - child.getHeight()) + this.paddingLeft
+					);
+					child.set('rotation',theta+(child.dtheta ? child.dtheta : 0 ));
+					theta = (theta + dtheta) % (360);
+				}
+			},this);
+			this.ignore = false;
+		}
+	},
+	childrenMovable: false,
+	paddingTop: 5,
+	paddingLeft: 5,
+}, function() {
+	Workspace.Layouts.register('Workspace.objects.dna.NodeLayout',Workspace.objects.dna.NodeLayout);
+});
+////////////////////////////////////////////////////////////////////////////////////////////////</pre>
+</body>
+</html>

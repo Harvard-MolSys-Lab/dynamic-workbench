@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>InfoMachine2 Documentation</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="fragment" content="!">
+
+  <link rel="shortcut icon" type="image/ico" href="favicon.ico" />
+  <link rel="stylesheet" href="resources/css/app.css" type="text/css" />
+  <link rel="stylesheet" href="resources/prettify/prettify.css" type="text/css" />
+  <!--[if IE]>
+    <link rel="stylesheet" href="resources/css/ie.css" type="text/css" />
+    <link rel="stylesheet" href="resources/css/welcome_ie6.css" type="text/css" />
+  <![endif]-->
+
+  <!-- Async script to not block while loading TypeKit fonts -->
+  <script type="text/javascript">
+  (function() {
+    var TypekitConfig = {
+      kitId: 'uxj6dew'
+    };
+    var tk = document.createElement('script');
+    tk.src = '//use.typekit.com/' + TypekitConfig.kitId + '.js';
+    tk.type = 'text/javascript';
+    tk.async = 'true';
+    tk.onload = tk.onreadystatechange = function() {
+      var rs = this.readyState;
+      if (rs && rs != 'complete' && rs != 'loaded') return;
+      try { Typekit.load(TypekitConfig); } catch (e) {}
+    };
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(tk, s);
+  })();
+  </script>
+
+  <script type="text/javascript" src="extjs/ext-all.js"></script>
+  <script type="text/javascript" src="data.js"></script>
+  <script type="text/javascript" src="app.js"></script>
+  <script type="text/javascript" src="resources/prettify/prettify.js"></script>
+
+  
+
+</head>
+<body id="ext-body">
+
+  <div id="loading"><span class="title"></span><span class="logo"></span></div>
+
+  <form id="history-form" class="x-hide-display">
+      <input type="hidden" id="x-history-field" />
+      <iframe id="x-history-frame"></iframe>
+  </form>
+
+  <div id="header-content">InfoMachine2 Documentation</div>
+  
+          <div id='categories-content' style='display:none'>
+            <div class='section'>
+<h1>Applications</h1>
+<div class='left-column'>
+<h3>Text Editors</h3>
+<div class='links'>
+<a href="#!/api/App.ui.JavascriptEditor" rel="App.ui.JavascriptEditor" class="docClass">App.ui.JavascriptEditor</a>
+<a href="#!/api/App.ui.NupackEditor" rel="App.ui.NupackEditor" class="docClass">App.ui.NupackEditor</a>
+<a href="#!/api/App.ui.Pepper" rel="App.ui.Pepper" class="docClass">App.ui.Pepper</a>
+<a href="#!/api/App.ui.SequenceEditor" rel="App.ui.SequenceEditor" class="docClass">App.ui.SequenceEditor</a>
+<a href="#!/api/App.ui.TextEditor" rel="App.ui.TextEditor" class="docClass">App.ui.TextEditor</a>
+</div>
+</div>
+<div class='middle-column'>
+<h3>Canvases</h3>
+<div class='links'>
+<a href="#!/api/App.ui.Canvas" rel="App.ui.Canvas" class="docClass">App.ui.Canvas</a>
+<a href="#!/api/App.ui.NodalCanvas" rel="App.ui.NodalCanvas" class="docClass">App.ui.NodalCanvas</a>
+</div>
+<h3>DD</h3>
+<div class='links'>
+<a href="#!/api/App.ui.DD" rel="App.ui.DD" class="docClass">App.ui.DD</a>
+<a href="#!/api/App.ui.dd.RulesWindow" rel="App.ui.dd.RulesWindow" class="docClass">App.ui.dd.RulesWindow</a>
+<a href="#!/api/App.ui.dd.ScoreParametersWindow" rel="App.ui.dd.ScoreParametersWindow" class="docClass">App.ui.dd.ScoreParametersWindow</a>
+</div>
+</div>
+<div class='right-column'>
+<h3>Other</h3>
+<div class='links'>
+<a href="#!/api/App.ui.Browser" rel="App.ui.Browser" class="docClass">App.ui.Browser</a>
+<a href="#!/api/App.ui.Dashboard" rel="App.ui.Dashboard" class="docClass">App.ui.Dashboard</a>
+<a href="#!/api/App.ui.DD" rel="App.ui.DD" class="docClass">App.ui.DD</a>
+<a href="#!/api/App.ui.Help" rel="App.ui.Help" class="docClass">App.ui.Help</a>
+<a href="#!/api/App.ui.NupackResults" rel="App.ui.NupackResults" class="docClass">App.ui.NupackResults</a>
+</div>
+</div>
+<div style='clear:both'></div>
+</div>
+<div class='section'>
+<h1>Canvas</h1>
+<div class='left-column'>
+<h3>Interface</h3>
+<div class='links'>
+<a href="#!/api/App.ui.BoundObjectPanel" rel="App.ui.BoundObjectPanel" class="docClass">App.ui.BoundObjectPanel</a>
+<a href="#!/api/App.ui.FillStrokeTab" rel="App.ui.FillStrokeTab" class="docClass">App.ui.FillStrokeTab</a>
+<a href="#!/api/App.ui.GeometryTab" rel="App.ui.GeometryTab" class="docClass">App.ui.GeometryTab</a>
+<a href="#!/api/App.ui.InsertTab" rel="App.ui.InsertTab" class="docClass">App.ui.InsertTab</a>
+<a href="#!/api/App.ui.MetaTab" rel="App.ui.MetaTab" class="docClass">App.ui.MetaTab</a>
+<a href="#!/api/App.ui.MotifPalette" rel="App.ui.MotifPalette" class="docClass">App.ui.MotifPalette</a>
+<a href="#!/api/App.ui.ObjectProperties" rel="App.ui.ObjectProperties" class="docClass">App.ui.ObjectProperties</a>
+<a href="#!/api/App.ui.ObjectTree" rel="App.ui.ObjectTree" class="docClass">App.ui.ObjectTree</a>
+<a href="#!/api/App.ui.Ribbon" rel="App.ui.Ribbon" class="docClass">App.ui.Ribbon</a>
+<a href="#!/api/App.ui.ToolsTab" rel="App.ui.ToolsTab" class="docClass">App.ui.ToolsTab</a>
+</div>
+<h3>Objects</h3>
+<div class='links'>
+<a href="#!/api/Workspace.objects.ChemStructureObject" rel="Workspace.objects.ChemStructureObject" class="docClass">Workspace.objects.ChemStructureObject</a>
+<a href="#!/api/Workspace.objects.CodeObject" rel="Workspace.objects.CodeObject" class="docClass">Workspace.objects.CodeObject</a>
+<a href="#!/api/Workspace.objects.Connection" rel="Workspace.objects.Connection" class="docClass">Workspace.objects.Connection</a>
+<a href="#!/api/Workspace.objects.ElementObject" rel="Workspace.objects.ElementObject" class="docClass">Workspace.objects.ElementObject</a>
+<a href="#!/api/Workspace.objects.Ellipse" rel="Workspace.objects.Ellipse" class="docClass">Workspace.objects.Ellipse</a>
+<a href="#!/api/Workspace.objects.EmbedObject" rel="Workspace.objects.EmbedObject" class="docClass">Workspace.objects.EmbedObject</a>
+<a href="#!/api/Workspace.objects.IdeaObject" rel="Workspace.objects.IdeaObject" class="docClass">Workspace.objects.IdeaObject</a>
+<a href="#!/api/Workspace.objects.ImageObject" rel="Workspace.objects.ImageObject" class="docClass">Workspace.objects.ImageObject</a>
+<a href="#!/api/Workspace.objects.Interpolators" rel="Workspace.objects.Interpolators" class="docClass">Workspace.objects.Interpolators</a>
+<a href="#!/api/Workspace.objects.MathEquationObject" rel="Workspace.objects.MathEquationObject" class="docClass">Workspace.objects.MathEquationObject</a>
+<a href="#!/api/Workspace.objects.Object" rel="Workspace.objects.Object" class="docClass">Workspace.objects.Object</a>
+<a href="#!/api/Workspace.objects.Object2d" rel="Workspace.objects.Object2d" class="docClass">Workspace.objects.Object2d</a>
+<a href="#!/api/Workspace.objects.ObjectCollection" rel="Workspace.objects.ObjectCollection" class="docClass">Workspace.objects.ObjectCollection</a>
+<a href="#!/api/Workspace.objects.Path" rel="Workspace.objects.Path" class="docClass">Workspace.objects.Path</a>
+<a href="#!/api/Workspace.objects.Rectangle" rel="Workspace.objects.Rectangle" class="docClass">Workspace.objects.Rectangle</a>
+<a href="#!/api/Workspace.objects.RichTextObject" rel="Workspace.objects.RichTextObject" class="docClass">Workspace.objects.RichTextObject</a>
+<a href="#!/api/Workspace.objects.VectorObject" rel="Workspace.objects.VectorObject" class="docClass">Workspace.objects.VectorObject</a>
+<a href="#!/api/Workspace.objects.dna.AbstractNode" rel="Workspace.objects.dna.AbstractNode" class="docClass">Workspace.objects.dna.AbstractNode</a>
+<a href="#!/api/Workspace.objects.dna.BuildManager" rel="Workspace.objects.dna.BuildManager" class="docClass">Workspace.objects.dna.BuildManager</a>
+<a href="#!/api/Workspace.objects.dna.Domain" rel="Workspace.objects.dna.Domain" class="docClass">Workspace.objects.dna.Domain</a>
+<a href="#!/api/Workspace.objects.dna.Motif" rel="Workspace.objects.dna.Motif" class="docClass">Workspace.objects.dna.Motif</a>
+<a href="#!/api/Workspace.objects.dna.Motifs" rel="Workspace.objects.dna.Motifs" class="docClass">Workspace.objects.dna.Motifs</a>
+<a href="#!/api/Workspace.objects.dna.Node" rel="Workspace.objects.dna.Node" class="docClass">Workspace.objects.dna.Node</a>
+<a href="#!/api/Workspace.objects.dna.Ports" rel="Workspace.objects.dna.Ports" class="docClass">Workspace.objects.dna.Ports</a>
+<a href="#!/api/Workspace.objects.dna.Strand" rel="Workspace.objects.dna.Strand" class="docClass">Workspace.objects.dna.Strand</a>
+<a href="#!/api/Workspace.objects.dna.StrandLayout" rel="Workspace.objects.dna.StrandLayout" class="docClass">Workspace.objects.dna.StrandLayout</a>
+<a href="#!/api/Workspace.objects.secondary.ComplementarityManager" rel="Workspace.objects.secondary.ComplementarityManager" class="docClass">Workspace.objects.secondary.ComplementarityManager</a>
+<a href="#!/api/Workspace.objects.secondary.Strand" rel="Workspace.objects.secondary.Strand" class="docClass">Workspace.objects.secondary.Strand</a>
+</div>
+</div>
+<div class='middle-column'>
+<h3>Tools</h3>
+<div class='links'>
+<a href="#!/api/Workspace.tools.AlohaTool" rel="Workspace.tools.AlohaTool" class="docClass">Workspace.tools.AlohaTool</a>
+<a href="#!/api/Workspace.tools.BaseTool" rel="Workspace.tools.BaseTool" class="docClass">Workspace.tools.BaseTool</a>
+<a href="#!/api/Workspace.tools.ChemDrawTool" rel="Workspace.tools.ChemDrawTool" class="docClass">Workspace.tools.ChemDrawTool</a>
+<a href="#!/api/Workspace.tools.ChemTool" rel="Workspace.tools.ChemTool" class="docClass">Workspace.tools.ChemTool</a>
+<a href="#!/api/Workspace.tools.CodeMirrorTool" rel="Workspace.tools.CodeMirrorTool" class="docClass">Workspace.tools.CodeMirrorTool</a>
+<a href="#!/api/Workspace.tools.CodeTool" rel="Workspace.tools.CodeTool" class="docClass">Workspace.tools.CodeTool</a>
+<a href="#!/api/Workspace.tools.ConnectorHandle" rel="Workspace.tools.ConnectorHandle" class="docClass">Workspace.tools.ConnectorHandle</a>
+<a href="#!/api/Workspace.tools.ConnectorTool" rel="Workspace.tools.ConnectorTool" class="docClass">Workspace.tools.ConnectorTool</a>
+<a href="#!/api/Workspace.tools.EllipseTool" rel="Workspace.tools.EllipseTool" class="docClass">Workspace.tools.EllipseTool</a>
+<a href="#!/api/Workspace.tools.Handle" rel="Workspace.tools.Handle" class="docClass">Workspace.tools.Handle</a>
+<a href="#!/api/Workspace.tools.IdeaTool" rel="Workspace.tools.IdeaTool" class="docClass">Workspace.tools.IdeaTool</a>
+<a href="#!/api/Workspace.tools.LineTool" rel="Workspace.tools.LineTool" class="docClass">Workspace.tools.LineTool</a>
+<a href="#!/api/Workspace.tools.MathQuillTool" rel="Workspace.tools.MathQuillTool" class="docClass">Workspace.tools.MathQuillTool</a>
+<a href="#!/api/Workspace.tools.MathTool" rel="Workspace.tools.MathTool" class="docClass">Workspace.tools.MathTool</a>
+<a href="#!/api/Workspace.tools.PencilTool" rel="Workspace.tools.PencilTool" class="docClass">Workspace.tools.PencilTool</a>
+<a href="#!/api/Workspace.tools.PointerTool" rel="Workspace.tools.PointerTool" class="docClass">Workspace.tools.PointerTool</a>
+<a href="#!/api/Workspace.tools.PolyLineTool" rel="Workspace.tools.PolyLineTool" class="docClass">Workspace.tools.PolyLineTool</a>
+<a href="#!/api/Workspace.tools.PolygonTool" rel="Workspace.tools.PolygonTool" class="docClass">Workspace.tools.PolygonTool</a>
+<a href="#!/api/Workspace.tools.RectTool" rel="Workspace.tools.RectTool" class="docClass">Workspace.tools.RectTool</a>
+<a href="#!/api/Workspace.tools.ResizeHandle" rel="Workspace.tools.ResizeHandle" class="docClass">Workspace.tools.ResizeHandle</a>
+<a href="#!/api/Workspace.tools.SelectionBand" rel="Workspace.tools.SelectionBand" class="docClass">Workspace.tools.SelectionBand</a>
+<a href="#!/api/Workspace.tools.SelectorBand" rel="Workspace.tools.SelectorBand" class="docClass">Workspace.tools.SelectorBand</a>
+<a href="#!/api/Workspace.tools.Strand" rel="Workspace.tools.Strand" class="docClass">Workspace.tools.Strand</a>
+<a href="#!/api/Workspace.tools.TextTool" rel="Workspace.tools.TextTool" class="docClass">Workspace.tools.TextTool</a>
+<a href="#!/api/Workspace.tools.ToolManager" rel="Workspace.tools.ToolManager" class="docClass">Workspace.tools.ToolManager</a>
+<a href="#!/api/Workspace.tools.VectorHandle" rel="Workspace.tools.VectorHandle" class="docClass">Workspace.tools.VectorHandle</a>
+<a href="#!/api/Workspace.tools.VectorTool" rel="Workspace.tools.VectorTool" class="docClass">Workspace.tools.VectorTool</a>
+<a href="#!/api/Workspace.tools.nodal.NodeTool" rel="Workspace.tools.nodal.NodeTool" class="docClass">Workspace.tools.nodal.NodeTool</a>
+<a href="#!/api/Workspace.tools.nodal.PortTool" rel="Workspace.tools.nodal.PortTool" class="docClass">Workspace.tools.nodal.PortTool</a>
+<a href="#!/api/Workspace.tools.secondary.StrandTool" rel="Workspace.tools.secondary.StrandTool" class="docClass">Workspace.tools.secondary.StrandTool</a>
+</div>
+</div>
+<div class='right-column'>
+<h3>Actions</h3>
+<div class='links'>
+<a href="#!/api/Workspace.actions.Action" rel="Workspace.actions.Action" class="docClass">Workspace.actions.Action</a>
+<a href="#!/api/Workspace.actions.AdoptObjectAction" rel="Workspace.actions.AdoptObjectAction" class="docClass">Workspace.actions.AdoptObjectAction</a>
+<a href="#!/api/Workspace.actions.ChangePropertyAction" rel="Workspace.actions.ChangePropertyAction" class="docClass">Workspace.actions.ChangePropertyAction</a>
+<a href="#!/api/Workspace.actions.CreateObjectAction" rel="Workspace.actions.CreateObjectAction" class="docClass">Workspace.actions.CreateObjectAction</a>
+<a href="#!/api/Workspace.actions.DeleteObjectAction" rel="Workspace.actions.DeleteObjectAction" class="docClass">Workspace.actions.DeleteObjectAction</a>
+<a href="#!/api/Workspace.actions.DuplicateObjectAction" rel="Workspace.actions.DuplicateObjectAction" class="docClass">Workspace.actions.DuplicateObjectAction</a>
+<a href="#!/api/Workspace.actions.ExpandAction" rel="Workspace.actions.ExpandAction" class="docClass">Workspace.actions.ExpandAction</a>
+<a href="#!/api/Workspace.actions.FormIdeaAction" rel="Workspace.actions.FormIdeaAction" class="docClass">Workspace.actions.FormIdeaAction</a>
+<a href="#!/api/Workspace.actions.OrphanObjectAction" rel="Workspace.actions.OrphanObjectAction" class="docClass">Workspace.actions.OrphanObjectAction</a>
+<a href="#!/api/Workspace.actions.UnwrapObjectsAction" rel="Workspace.actions.UnwrapObjectsAction" class="docClass">Workspace.actions.UnwrapObjectsAction</a>
+</div>
+<h3>Layout</h3>
+<div class='links'>
+<a href="#!/api/Workspace.idea.BaseLayout" rel="Workspace.idea.BaseLayout" class="docClass">Workspace.idea.BaseLayout</a>
+<a href="#!/api/Workspace.idea.CircleLayout" rel="Workspace.idea.CircleLayout" class="docClass">Workspace.idea.CircleLayout</a>
+<a href="#!/api/Workspace.idea.FreeLayout" rel="Workspace.idea.FreeLayout" class="docClass">Workspace.idea.FreeLayout</a>
+<a href="#!/api/Workspace.idea.VListLayout" rel="Workspace.idea.VListLayout" class="docClass">Workspace.idea.VListLayout</a>
+</div>
+<h3>Misc</h3>
+<div class='links'>
+<a href="#!/api/Workspace.Components" rel="Workspace.Components" class="docClass">Workspace.Components</a>
+<a href="#!/api/Workspace.Utils" rel="Workspace.Utils" class="docClass">Workspace.Utils</a>
+<a href="#!/api/Workspace.Lens" rel="Workspace.Lens" class="docClass">Workspace.Lens</a>
+<a href="#!/api/Workspace.ConnectionLabel" rel="Workspace.ConnectionLabel" class="docClass">Workspace.ConnectionLabel</a>
+<a href="#!/api/Workspace.DDManager" rel="Workspace.DDManager" class="docClass">Workspace.DDManager</a>
+<a href="#!/api/Workspace.FileUploader" rel="Workspace.FileUploader" class="docClass">Workspace.FileUploader</a>
+<a href="#!/api/Workspace.Label" rel="Workspace.Label" class="docClass">Workspace.Label</a>
+<a href="#!/api/Workspace.Proxy" rel="Workspace.Proxy" class="docClass">Workspace.Proxy</a>
+<a href="#!/api/Workspace.Shim" rel="Workspace.Shim" class="docClass">Workspace.Shim</a>
+</div>
+</div>
+<div style='clear:both'></div>
+</div>
+<div class='section'>
+<h1>Common</h1>
+<div class='left-column'>
+<h3>DyNAMiC</h3>
+<div class='links'>
+<a href="#!/api/App.dynamic.Compiler" rel="App.dynamic.Compiler" class="docClass">App.dynamic.Compiler</a>
+<a href="#!/api/App.dynamic.Complement" rel="App.dynamic.Complement" class="docClass">App.dynamic.Complement</a>
+<a href="#!/api/App.dynamic.Domain" rel="App.dynamic.Domain" class="docClass">App.dynamic.Domain</a>
+<a href="#!/api/App.dynamic.DynamlError" rel="App.dynamic.DynamlError" class="docClass">App.dynamic.DynamlError</a>
+<a href="#!/api/App.dynamic.Library" rel="App.dynamic.Library" class="docClass">App.dynamic.Library</a>
+<a href="#!/api/App.dynamic.Motif" rel="App.dynamic.Motif" class="docClass">App.dynamic.Motif</a>
+<a href="#!/api/App.dynamic.Node" rel="App.dynamic.Node" class="docClass">App.dynamic.Node</a>
+<a href="#!/api/App.dynamic.Segment" rel="App.dynamic.Segment" class="docClass">App.dynamic.Segment</a>
+<a href="#!/api/App.dynamic.Strand" rel="App.dynamic.Strand" class="docClass">App.dynamic.Strand</a>
+<a href="#!/api/App.dynamic.Structure" rel="App.dynamic.Structure" class="docClass">App.dynamic.Structure</a>
+</div>
+</div>
+<div class='middle-column'>
+<h3>DNA Utilities</h3>
+<div class='links'>
+<a href="#!/api/DNA" rel="DNA" class="docClass">DNA</a>
+</div>
+</div>
+<div class='right-column'>
+</div>
+<div style='clear:both'></div>
+</div>
+<div class='section'>
+<h1>General</h1>
+<div class='left-column'>
+<h3>Application Management</h3>
+<div class='links'>
+<a href="#!/api/App.ui.Application" rel="App.ui.Application" class="docClass">App.ui.Application</a>
+<a href="#!/api/App.ui.Launcher" rel="App.ui.Launcher" class="docClass">App.ui.Launcher</a>
+<a href="#!/api/App.Endpoints" rel="App.Endpoints" class="docClass">App.Endpoints</a>
+<a href="#!/api/App.Path" rel="App.Path" class="docClass">App.Path</a>
+<a href="#!/api/App.TaskRunner" rel="App.TaskRunner" class="docClass">App.TaskRunner</a>
+<a href="#!/api/App.TaskRunner.Task" rel="App.TaskRunner.Task" class="docClass">App.TaskRunner.Task</a>
+</div>
+<h3>Files</h3>
+<div class='links'>
+<a href="#!/api/App.ui.DragDropManager" rel="App.ui.DragDropManager" class="docClass">App.ui.DragDropManager</a>
+<a href="#!/api/App.ui.FilesTree" rel="App.ui.FilesTree" class="docClass">App.ui.FilesTree</a>
+<a href="#!/api/App.ui.FileUploader" rel="App.ui.FileUploader" class="docClass">App.ui.FileUploader</a>
+</div>
+</div>
+<div class='middle-column'>
+<h3>Widgets</h3>
+<div class='links'>
+<a href="#!/api/App.ui.BasePicker" rel="App.ui.BasePicker" class="docClass">App.ui.BasePicker</a>
+<a href="#!/api/App.ui.CodeMirror" rel="App.ui.CodeMirror" class="docClass">App.ui.CodeMirror</a>
+<a href="#!/api/App.ui.CompareMenu" rel="App.ui.CompareMenu" class="docClass">App.ui.CompareMenu</a>
+<a href="#!/api/App.ui.CreateMenu" rel="App.ui.CreateMenu" class="docClass">App.ui.CreateMenu</a>
+<a href="#!/api/App.ui.NupackMenu" rel="App.ui.NupackMenu" class="docClass">App.ui.NupackMenu</a>
+<a href="#!/api/App.ui.ProtovisPanel" rel="App.ui.ProtovisPanel" class="docClass">App.ui.ProtovisPanel</a>
+<a href="#!/api/App.ui.SaveButton" rel="App.ui.SaveButton" class="docClass">App.ui.SaveButton</a>
+<a href="#!/api/App.ui.SequenceThreader" rel="App.ui.SequenceThreader" class="docClass">App.ui.SequenceThreader</a>
+</div>
+</div>
+<div class='right-column'>
+<h3>Console</h3>
+<div class='links'>
+<a href="#!/api/App.ui.console.LogPanel" rel="App.ui.console.LogPanel" class="docClass">App.ui.console.LogPanel</a>
+<a href="#!/api/App.ui.console.ScriptsPanel" rel="App.ui.console.ScriptsPanel" class="docClass">App.ui.console.ScriptsPanel</a>
+</div>
+<h3>Helpers</h3>
+<div class='links'>
+<a href="#!/api/App.ui.RefHelper" rel="App.ui.RefHelper" class="docClass">App.ui.RefHelper</a>
+<a href="#!/api/App.ui.TipHelper" rel="App.ui.TipHelper" class="docClass">App.ui.TipHelper</a>
+</div>
+</div>
+<div style='clear:both'></div>
+</div>
+        </div>
+
+  
+  <div id='footer-content' style='display: none'>Generated with <a href='https://github.com/senchalabs/jsduck'>JSDuck</a> 3.3.0.</div>
+
+  
+
+</body>
+</html>

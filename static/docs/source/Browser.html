@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='App-ui-Browser'>/**
+</span> * Opens an {@link App.ui.Application application} tab containing an iframe with the configured #url
+ */
+Ext.define('App.ui.Browser', {
+	extend: 'Ext.panel.Panel',
+	mixins: {
+		app: 'App.ui.Application',
+	},
+	constructor: function() {
+		this.mixins.app.constructor.apply(this,arguments);
+		this.callParent(arguments);
+	},
+	initComponent: function() {
+<span id='App-ui-Browser-property-url'>		/**
+</span>		 * @property url
+		 * URL to open in this tab
+		 */
+		Ext.apply(this, {
+			html: '&lt;iframe src=&quot;'+this.url+'&quot; style=&quot;width:100%;height:100%;border:none;&quot;&gt;&lt;/iframe&gt;'
+		});
+		this.callParent(arguments);
+	}
+});</pre>
+</body>
+</html>

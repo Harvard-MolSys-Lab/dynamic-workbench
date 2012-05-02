@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='App-ui-Application'>/**
+</span> * Mixin which provides shared helper methods to client-side applications within the interface
+ *
+ */
+Ext.define('App.ui.Application', {
+<span id='App-ui-Application-cfg-autoHideLoadingMask'>	/**
+</span>	 * @cfg
+	 * Whether to automatically hide the Loading mask on {@link #doLoad}; set to &lt;var&gt;false&lt;/var&gt;
+	 * in order to provide custom logic to show or hide the loading mask
+	 */
+	autoHideLoadingMask : true,
+<span id='App-ui-Application-cfg-autoHideSavingMask'>	/**
+</span>	 * @cfg
+	 * Whether to automatically hide the Saving mask on {@link #doSave}; set to &lt;var&gt;false&lt;/var&gt;
+	 * in order to provide custom logic to show or hide the saving mask
+	 */
+	autoHideSavingMask : true,
+<span id='App-ui-Application-cfg-loadingMsg'>	/**
+</span>	 * @cfg
+	 * Message to display when the application pane is masked while loading a file
+	 */
+	loadingMsg : 'Loading File...',
+<span id='App-ui-Application-cfg-savingMsg'>	/**
+</span>	 * @cfg
+	 * Message to display when the application pane is masked while loading a file
+	 */
+	savingMsg : 'Saving File...',
+<span id='App-ui-Application-method-constructor'>	/**
+</span>	 * @constructor
+	 */
+	constructor : function(config) {
+		this.bindDocument( config ? (config.document ? config.document : null) : null, true);
+	},
+<span id='App-ui-Application-method-renew'>	/**
+</span>	 * Re-fetches the {@link App.Document document} from App.DocumentStore
+	 */
+	renew : function() {
+		if(this.doc) {
+			var oldId = this.doc.id;
+			var newDoc = App.DocumentStore.getRootNode().findChildBy(function(child) {
+				return (child.id == oldId)
+			}, true);
+			if(newDoc) {
+				this.unbindDocument();
+				this.bindDocument(newDoc);
+			}
+		}
+	},
+<span id='App-ui-Application-method-bindDocument'>	/**
+</span>	 * Attaches a {@link App.Document} to this Application, which can be saved by the user.
+	 */
+	bindDocument : function(doc, silent) {
+		silent || ( silent = false);
+<span id='App-ui-Application-property-doc'>		/**
+</span>		 * @property {App.Document} doc
+		 * Alias for {@link #document}.
+		 */
+<span id='App-ui-Application-property-document'>		/**
+</span>		 * @property {App.Document} document
+		 * The currently open {@link App.Document}.
+		 */
+		this.doc = this.document = doc
+
+		if(this.doc) {
+			this.doc.on('edit', this.updateTitle, this);
+			this.updateTitle();
+			if(!silent) {
+<span id='App-ui-Application-event-binddocument'>				/**
+</span>				 * @event binddocument
+				 * Fires upon {@link #bindDocument binding} of a {@link App.Document document}
+				 * to this application.
+				 * @param {App.ui.Application} application
+				 * @param {App.Document} document
+				 */
+				this.fireEvent('binddocument', this, doc);
+			}
+		}
+	},
+	unbindDocument : function() {
+		this.doc.un('edit', this.updateTitle, this);
+
+		this.doc = this.document = null;
+<span id='App-ui-Application-event-unbinddocument'>		/**
+</span>		 * @event unbinddocument
+		 * Fires upon {@link #unbindDocument unbinding} of a {@link App.Document document}
+		 * to this application.
+		 * @param {App.ui.Application} application
+		 * @param {App.Document} document
+		 */
+		this.fireEvent('unbinddocument', this, this.doc);
+
+	},
+<span id='App-ui-Application-method-updateTitle'>	/**
+</span>	 * Updates title of the Application panel to display the name of the {@link App.Document} being edited
+	 */
+	updateTitle : function() {
+		var title = this.editorType;
+		if(this.doc) {
+			title = this.doc.getBasename() + ' (' + title + ')';
+		}
+		try {
+			this.setTitle(title);
+		} catch (e) {
+		}
+	},
+<span id='App-ui-Application-method-getPath'>	/**
+</span>	 * Returns the path to the currently open doc
+	 */
+	getPath : function() {
+		return this.doc ? this.doc.getDocumentPath() : false;
+	},
+<span id='App-ui-Application-method-getDocumentPath'>	/**
+</span>	 * Alias for #getPath, by analogy to App.Document#getDocumentPath
+	 */
+	getDocumentPath : function() {
+		return this.getPath();
+	},
+<span id='App-ui-Application-method-loadFile'>	/**
+</span>	 * Loads the file body for this.{@link #document}. Calls {@link #doLoad} or {@link #doLoadFail} as an internal callback, which
+	 * in turn call {@link #onLoad}. These methods handle displaying a loading mask as well.
+	 */
+	loadFile : function() {
+		this.loadingMask = new Ext.LoadMask(this.body, {
+			msg : this.loadingMsg,
+		});
+		if(this.doc) {
+			this.doc.loadBody({
+				success : this.doLoad,
+				failure : this.doLoadFail,
+				scope : this
+			});
+		} else {
+			this.data = '';
+			this.onLoad();
+		}
+	},
+<span id='App-ui-Application-method-doLoad'>	/**
+</span>	 * Internal callback from {@link #loadFile} which calls user-specified {@link #onLoad}
+	 */
+	doLoad : function(text) {
+		this.data = text;
+		this.onLoad();
+		if(this.autoHideLoadingMask)
+			this.loadingMask.hide();
+	},
+<span id='App-ui-Application-method-doLoadFail'>	/**
+</span>	 * Internal callback to inform the user of failed load
+	 */
+	doLoadFail : function(e) {
+		if(this.autoHideLoadingMask)
+			this.loadingMask.hide();
+		console.log('File load failed.', e);
+		App.log('File load failed.', {
+			silent : true,
+			error : true,
+		});
+		Ext.msg('File', 'Couldn\'t load file &lt;strong&gt;{0}&lt;/strong&gt;. Message: {1}', this.document.get('text'), e.message || 'none');
+	},
+<span id='App-ui-Application-method-onLoad'>	/**
+</span>	 * Callback from {@link #doLoad} and {@link #doLoadFail}. Override this callback to provide
+	 * custom logic on {@link App.Document} load
+	 */
+	onLoad : function() {
+	},
+<span id='App-ui-Application-method-save'>	/**
+</span>	 * Alias for {@link #saveFile}.
+	 */
+	save : function() {
+		return this.saveFile.apply(this, arguments);
+	},
+<span id='App-ui-Application-method-saveFile'>	/**
+</span>	 * Saves the file body for this.{@link #document}. Retrieves application state with {@link #getSaveData}.
+	 * Calls {@link #doSave} or {@link #doSaveFail} as internal callbacks, which
+	 * in turn call {@link #onSave}. These methods handle displaying a saving mask as well.
+	 */
+	saveFile : function() {
+		this.savingMask || (this.savingMask = new Ext.LoadMask(this.body, {
+			msg : this.savingMsg
+		}));
+		this.savingMask.show();
+		//this.statusBar.setBusy();
+		var o = this.getSaveData();
+		this._lastSave = o;
+		if(Ext.isObject(o)) {
+			o = Ext.encode(o);
+		}
+		this.doc.saveBody(o, {
+			success : this.doSave,
+			failure : this.doSaveFail,
+			scope : this
+		});
+
+	},
+<span id='App-ui-Application-method-doSave'>	/**
+</span>	 * Internal callback from {@link #save} to restore the UI after successful save
+	 */
+	doSave : function() {
+		if(this.autoHideSavingMask)
+			this.savingMask.hide();
+		this.onSave();
+		//console.log('File Saved.', this._lastSave);
+		App.log('File saved to server.', {
+			silent : true,
+			iconCls : 'save',
+		});
+		Ext.msg('File', '&lt;strong&gt;{0}&lt;/strong&gt; saved to server.', this.document.get('text'));
+	},
+<span id='App-ui-Application-method-doSaveFail'>	/**
+</span>	 * Internal callback from {@link #save} to inform the user of failed save
+	 */
+	doSaveFail : function(e) {
+		if(this.autoHideSavingMask)
+			this.savingMask.hide();
+		App.log('File save failed.', {
+			silent : true,
+			error : true,
+		});
+		Ext.msg('File', 'Couldn\'t save file &lt;strong&gt;{0}&lt;/strong&gt;. Message: {1}', this.document.get('text'), e.message || 'none');
+	},
+<span id='App-ui-Application-method-onSave'>	/**
+</span>	 * Callback form {@link #doSave} or {@link #doSaveFail}. Override this method to
+	 * provide application-specific behavior after a save.
+	 */
+	onSave : function() {
+
+	},
+<span id='App-ui-Application-method-getSaveData'>	/**
+</span>	 * Override this method to return state data to be saved to the {@link #document} file.
+	 */
+	getSaveData : function() {
+		return '';
+	},
+});
+</pre>
+</body>
+</html>

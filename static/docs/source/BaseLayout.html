@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">////////////////////////////////////////////////////////////////////////////////////////////////
+<span id='Workspace-idea-BaseLayout'>/**
+</span> * @class Workspace.idea.BaseLayout
+ * Calculates position of the children of a {@link Workspace.objects.IdeaObject}
+ * @abstract
+ * @extends Ext.util.Observable
+ */
+Ext.define('Workspace.idea.BaseLayout', {
+	constructor: function(config) {
+		Workspace.idea.BaseLayout.superclass.constructor.apply(this,arguments);
+		Ext.apply(this,config);
+		this.defaultChildConfig = {
+			wtype: this.defaultChildType,
+			width: 100,
+			height: 100
+		};
+	},
+	extend: 'Ext.util.Observable',
+	resizable: true,
+	childrenResizable: true,
+	childrenMovable: true,
+	defaultChildType: 'Workspace.RichTextObject',
+<span id='Workspace-idea-BaseLayout-method-doLayout'>	/**
+</span>	 * Override to provide custom layout logic
+	 */
+	doLayout: function() {
+		
+	},
+<span id='Workspace-idea-BaseLayout-method-doFirstLayout'>	/**
+</span>	 * Override to provide custom logic on the first layout
+	 */
+	doFirstLayout: function() {
+		this.doLayout();
+	},
+	addNextChild: function() {
+		this.idea.addChild(this.idea.workspace.createChild(this.defaultChildConfig))
+	},
+	destroy: function() {
+		this.fireEvent('destroy',this);
+		delete this.idea;
+	},
+	getObjects: function() {
+		if(this.idea) {
+			return this.idea.children;
+		} else if(this.objects) {
+			return this.objects;
+		}
+	}
+});
+</pre>
+</body>
+</html>

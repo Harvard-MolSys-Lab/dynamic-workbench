@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define('App.ui.files.DragDropManager', {
+	constructor : function() {
+		this.callParent(arguments);
+		if(this.filesTree &amp;&amp; this.filesTree.getEl()) {
+			this.element = this.filesTree.getEl();
+		}
+	},
+	requires: ['App.ui.files.FileUploader'],
+	extend : 'App.ui.DragDropManager',
+	fileHandler : function(files, e) {
+		var el = Ext.get(e.target).up('.x-grid-row'), rec;
+		if(el) {
+			rec = this.filesTree.getView().getRecord(el);
+			if(rec) {
+				rec = rec.getFolder();
+				uh = this.getUploadHandler();
+				Ext.each(files, function(file) {
+					var id = uh.add(file), uploader = Ext.create('App.ui.files.FileUploader', {
+						filesTree : this.filesTree,
+						record : rec,
+						manager : this,
+						fileId : id,
+					});
+					this.fileUploaders[id] = uploader;
+					uh.upload(id, {
+						userfile : App.Path.join([rec.getPath(), uh.getName(id)])
+						 //App.Path.join([App.Path.pop(rec.getPath(), 1), uh.getName(id)])
+					});
+					this.filesTree.loaders++;
+					this.filesTree.setLoading((this.filesTree.loaders &gt; 0));
+				}, this);
+			}
+		}
+	}
+},function() {});
+</pre>
+</body>
+</html>

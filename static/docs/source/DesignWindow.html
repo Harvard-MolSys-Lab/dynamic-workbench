@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define('App.ui.nupack.DesignWindow',{
+	extend:'Ext.window.Window',
+	width: 400,
+	height: 400,
+	layout: 'fit',
+	title: &quot;NUPACK Multiobjective Designer&quot;,
+	plain: true,
+	bodyBorder: false,
+	border: false,
+	closeAction: 'hide',
+	initComponent: function() {
+		Ext.apply(this,{
+			layout: 'border',
+			items: [{
+					xtype: 'codemirror',
+					mode: 'nupack',
+					
+					//height: 100,
+					title: 'Design',
+					//margin: '0 0 5 0',
+					fieldLabel: 'Design',
+					// name: 'design_job[target_structure]',
+					labelAlign: 'top',
+					region: 'center',
+					//frame: true,
+				},{
+					split: true,
+					region: 'south',
+					height: 200,
+					xtype:'form',
+					frame: true,
+					defaults: {
+						xtype: 'textfield',
+						anchor: '100%',
+					},
+					items: [{
+						name      : 'design_job[nucleic_acid_type]',
+						value     : 'DNA',
+					},/*{
+			            xtype      : 'fieldcontainer',
+			            fieldLabel : 'Nucleic Acid',
+			            defaultType: 'radiofield',
+			            defaults: {
+			                flex: 1
+			            },
+			            layout: 'hbox',
+			            items: [
+			                {
+			                    boxLabel  : 'DNA',
+			                    checked   : true,
+			                    name      : 'design_job[nucleic_acid_type]',
+			                    inputValue: 'DNA',
+			                    id        : 'radio1'
+			                }, {
+			                    boxLabel  : 'RNA',
+			                    name      : 'design_job[nucleic_acid_type]',
+			                    inputValue: 'RNA',
+			                },
+			            ]
+			        },*/{
+						name: 'design_job[temperature]',
+						xtype: 'numberfield',
+						value: 20.0,
+						fieldLabel : 'Temperature (°C)',
+					},{
+						name: 'design_job[number_of_trials]',
+						xtype: 'numberfield',
+						fieldLabel : 'Designs',
+						value: 1,
+					},{
+						name: 'design_job[rna_parameter_file]',
+						xtype: 'combobox',
+						fieldLabel : 'RNA Parameters:',
+						value: &quot;rna1995&quot;,
+						store: Ext.create('Ext.data.Store', {
+						    fields: ['view', 'value'],
+						    data : [
+						        {&quot;view&quot;:&quot;Serra and Turner, 1995&quot;, &quot;value&quot;:&quot;rna1995&quot;},
+						        {&quot;view&quot;:&quot;Mathews et al., 1999&quot;, &quot;value&quot;:&quot;rna1999&quot;},
+						    ],
+						}),
+						queryMode: 'local',
+					    displayField: 'view',
+					    valueField: 'value',
+					},{
+						name: 'design_job[dna_parameter_file]',
+						value: &quot;dna1998&quot;,
+						xtype: 'hidden'
+					},{
+						name: 'design_job[dangle_level]',
+						xtype: 'combobox',
+						fieldLabel : 'Dangles',
+						value: 1,
+						store: Ext.create('Ext.data.Store', {
+						    fields: ['view', 'value'],
+						    data : [
+						        {&quot;view&quot;:&quot;None&quot;, &quot;value&quot;:0},
+						        {&quot;view&quot;:&quot;Some&quot;, &quot;value&quot;:1},
+						        {&quot;view&quot;:&quot;All&quot;, &quot;value&quot;:2}
+						    ],
+						}),
+						queryMode: 'local',
+					    displayField: 'view',
+					    valueField: 'value',
+					},{
+			            xtype      : 'fieldcontainer',
+			            fieldLabel : 'Salts',
+			            defaultType: 'numberfield',
+			            defaults: {
+			                flex: 1,
+			                labelWidth: 30,
+			            },
+			            layout: 'hbox',
+			            items: [
+			                {
+								name: 'design_job[na_salt]',
+								fieldLabel : 'Na&lt;sup&gt;+&lt;/sup&gt;',
+								value: 1.0,
+								margins: '0 5 0 0',
+							},{
+								fieldLabel : 'Mg&lt;sup&gt;2+&lt;/sup&gt;',
+								name: 'design_job[mg_salt]',
+								value: 0.0
+							}
+			            ]
+			        },{
+						name: 'design_job[dotplot_target]',
+						xtype: 'hidden',
+						value: '',
+					},{
+						name: 'design_job[email_address]',
+						fieldLabel: 'Email'
+					},{
+						name: 'commit',
+						value:'Design',
+						xtype:'hidden',
+					},{
+						name: 'preview_token',
+						value:'',
+						xtype:'hidden',
+					}]
+			}],
+			buttons: [{
+				text: 'Design',
+				handler: this.doSubmit,
+				scope: this,
+			}]
+		});
+		//this.on('afterrender',this.afterrender,this);
+		this.callParent(arguments);
+	},
+	// afterrender : function() {
+		// var textarea = this.getEl().down('textarea').dom,
+			// textareaCmp = this.down('textarea');
+		// if(textarea &amp;&amp; textareaCmp) {
+			// var me = this;
+			// this.codemirror = CodeMirror.fromTextArea(textarea, {
+				// matchBrackets:      false,
+	            // electricChars:      false,
+	            // indentUnit:         false,
+	            // smartIndent:        false,
+	            // indentWithTabs:     true,
+	            // lineNumbers:        true,
+	            // lineWrapping:       true,
+	            // firstLineNumber:    1,
+	            // mode: 'nupack',
+// 				
+			// });
+			// this.codemirror.setValue(textareaCmp.getValue());
+		// }
+	// },
+	doSubmit: function() {
+		var codemirror = this.down('codemirror');
+		var targetStructure = codemirror.getValue();
+		
+		var form = this.down('form').getForm();
+		form.doAction('standardsubmit',{
+			target: '_blank',
+			url: 'http://www.nupack.org/design/new',
+			method: 'post',
+			enctype:'multipart/form-data',
+			params: {
+				'design_job[target_structure]':targetStructure,
+			}
+		})
+	},
+	updateDesign: function(design) {
+		var designField = this.down('codemirror');
+		designField.setValue(design);
+	}
+})
+
+/*
+&lt;form target=&quot;_blank&quot; action=&quot;http://www.nupack.org/design/new&quot; method=&quot;post&quot; enctype=&quot;multipart/form-data&quot; id=&quot;&lt;%= id %&gt;&quot;&gt;
+&lt;textarea name=&quot;design_job[target_structure]&quot;&gt;&lt;%= target_structure %&gt;&lt;/textarea&gt;&lt;/label&gt;
+&lt;input type=&quot;text&quot; name=&quot;preview_token&quot; value=&quot;&quot;&gt;&lt;/input&gt;
+&lt;input type=&quot;text&quot; name=&quot;design_job[nucleic_acid_type]&quot; value=&quot;&lt;%= nucleic_acid_type %&gt;&quot;&gt;&lt;/input&gt;
+&lt;input type=&quot;text&quot; name=&quot;design_job[temperature]&quot; value=&quot;&lt;%= temperature %&gt;&quot;&gt;&lt;/input&gt;
+&lt;input type=&quot;text&quot; name=&quot;design_job[number_of_trials]&quot; value=&quot;&lt;%= number_of_trials %&gt;&quot;&gt;&lt;/input&gt;
+&lt;input type=&quot;text&quot; name=&quot;design_job[rna_parameter_file]&quot; value=&quot;&lt;%= rna_parameter_file %&gt;&quot;&gt;&lt;/input&gt;
+&lt;input type=&quot;text&quot; name=&quot;design_job[dna_parameter_file]&quot; value=&quot;&lt;%= dna_parameter_file %&gt;&quot;&gt;&lt;/input&gt;
+&lt;input type=&quot;text&quot; name=&quot;design_job[dangle_level]&quot; value=&quot;&lt;%= dangle_level %&gt;&quot;&gt;&lt;/input&gt;
+&lt;input type=&quot;text&quot; name=&quot;design_job[na_salt]&quot; value=&quot;&lt;%= na_salt %&gt;&quot;&gt;&lt;/input&gt;
+&lt;input type=&quot;text&quot; name=&quot;design_job[mg_salt]&quot; value=&quot;&lt;%= mg_salt %&gt;&quot;&gt;&lt;/input&gt;
+&lt;input type=&quot;text&quot; name=&quot;design_job[dotplot_target]&quot; value=&quot;&lt;%= dotplot_target %&gt;&quot;&gt;&lt;/input&gt;
+&lt;input type=&quot;text&quot; name=&quot;design_job[email_address]&quot; value=&quot;&lt;%= email_address %&gt;&quot;&gt;&lt;/input&gt;
+&lt;input type=&quot;text&quot; name=&quot;commit&quot; value=&quot;Design&quot;&gt;&lt;/input&gt;
+&lt;input type=&quot;submit&quot; name=&quot;&quot; /&gt;
+&lt;/form&gt;
+ */</pre>
+</body>
+</html>

@@ -8,7 +8,8 @@
       				"App.ui.JavascriptEditor",
       				"App.ui.NupackEditor",
       				"App.ui.Pepper",
-      				"App.ui.SequenceEditor"
+      				"App.ui.SequenceEditor",
+      				"App.ui.TextEditor"
       			]
       		},{
       			"name": "Canvases",
@@ -16,6 +17,12 @@
       				"App.ui.Canvas",
       				"App.ui.NodalCanvas",
       				"App.ui.SecondaryCanvas"
+      			]
+      		},{
+      			"name":"DD",
+      			"classes":[
+      				"App.ui.DD",
+      				"App.ui.dd.*"
       			]
       		},{
       			"name": "Other",
@@ -69,6 +76,9 @@
 	      	},{
 	      		"name": "Misc",
 	      		"classes": [
+	      			"Workspace.Components",
+	      			"Workspace.Utils",
+	      			"Workspace.Lens",
 	      			"Workspace.ConnectionLabel",
 	      			"Workspace.DDManager",
 	      			"Workspace.FileUploader",
@@ -79,6 +89,22 @@
 	      	}
       	]
       }, {
+      	"name":"Common",
+      	"groups":[
+      		{
+      			"name":"DyNAMiC",
+		      	"classes":[
+		      		"App.dynamic.*"
+		      	]
+      		},
+      		{
+      			"name":"DNA Utilities",
+      			"classes":[
+		      		"DNA"
+		      	]
+      		}
+      	]
+      }, {
           "name": "General",
           "groups": [
               {
@@ -86,7 +112,11 @@
                   "classes": [
                       "App.ui.Application",
                       "App.ui.Launcher",
-                      "App.ui.TabPanel"
+                      "App.ui.TabPanel",
+                      "App.Endpoints",
+                      "App.Path",
+                      "App.TaskRunner",
+                      "App.TaskRunner.Task"
                   ]
               }, {
                   "name": "Files",
@@ -108,6 +138,11 @@
               		"App.ui.SequenceStats",
               		"App.ui.SequenceThreader",
               		"App.ui.StatMenu"
+              	]
+              },{
+              	"name":"Console",
+              	"classes":[
+              		"App.ui.console.*"
               	]
               },{
               	"name":"Helpers",

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='App-ui-Dashboard'>/**
+</span> * Displays a dashboard allowing common actions to be performed when the IDE opens.
+ */
+Ext.define('App.ui.Dashboard', {
+	extend: 'Ext.panel.Panel',
+	initComponent: function() {
+
+		Ext.apply(this, {
+			title: 'Dashboard',
+			bodyStyle:'padding:10px',
+			iconCls: 'dash',
+			autoLoad: {
+				url: 'html/dashboard.html',
+				callback: this.initDashboard,
+				scope: this
+			}
+		});
+
+		App.on('userNameChanged', function(name,email) {
+			Ext.get('fp-user-name').update(App.User.name+' ('+App.User.email+')');
+		});
+		this.callParent();
+	},
+<span id='App-ui-Dashboard-method-initDashboard'>	/**
+</span>	 * Perform custom personization actions upon initialization of the dashboard. 
+	 */
+	initDashboard: function() {
+		if(App.User.isLoggedIn()) {
+			Ext.get('fp-user-name').update(App.User.name+' ('+App.User.email+')');
+		}
+	}
+});</pre>
+</body>
+</html>

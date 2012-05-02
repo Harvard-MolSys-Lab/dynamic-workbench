@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='App-ui-console-ScriptsPanel'>/**
+</span> * Console code entry window. Allows execution of arbitrary javascript within the context of the currently active
+ * {@link App.ui.Application}. That is, &lt;code&gt;this&lt;/code&gt; will refer to the active app. 
+ */
+Ext.define('App.ui.console.ScriptsPanel', {
+	extend: 'Ext.panel.Panel',
+	requires: ['App.ui.CodeMirror',],
+	id:'x-debug-scripts',
+	region: 'east',
+	minWidth: 200,
+	split: true,
+	width: 350,
+	border: false,
+	layout:'fit',
+	bodyBorder: false,
+	padding: '0 0 5 0',
+	cls: 'noborder-top',
+	//	style:'border-width:0 0 0 1px;',
+
+	initComponent : function() {
+		
+<span id='App-ui-console-ScriptsPanel-property-scriptField'>		/**
+</span>		 * @property {App.ui.CodeMirror} scriptField
+		 * Field into which code is entered
+		 */
+		this.scriptField = Ext.create('App.ui.CodeMirror',{
+			style:'border-width:0;',
+			mode: 'javascript',
+			tbar: false,
+			onKeyEvent: Ext.bind(function(editor, e) {
+				if(e.keyCode==13 &amp;&amp; e.shiftKey &amp;&amp; e.type=='keydown') {
+					e.stop();
+					this.evalScript();
+					return false;
+				}
+			},this)
+		});
+		
+<span id='App-ui-console-ScriptsPanel-property-trapBox'>		/**
+</span>		 * @property {Ext.form.Checkbox} trapBox
+		 * Checked to trap errors, unchecked to allow them to bubble to the browser console
+		 */
+		this.trapBox = Ext.create('Ext.form.Checkbox',{
+			id: 'console-trap',
+			boxLabel: 'Trap Errors',
+			checked: true
+		});
+
+		this.toolbar = Ext.create('Ext.Toolbar',{
+			dock: 'top',
+			items:[{
+				text: 'Run',
+				iconCls: 'run',
+				scope: this,
+				handler: this.evalScript
+			},{
+				text: 'Clear',
+				iconCls: 'cross',
+				scope: this,
+				handler: this.clear
+			},
+			'-&gt;',
+			this.trapBox,
+			' ', ' '
+			]
+		});
+
+		this.items = [this.scriptField];
+		this.dockedItems = [this.toolbar];
+
+		this.callParent(arguments);
+	},
+<span id='App-ui-console-ScriptsPanel-method-evalScript'>	/**
+</span>	 * Evaluates the script in {@link #scriptField}
+	 */
+	evalScript : function() {
+		var s = this.scriptField.getValue();
+		this.executeInContext(s,App.ui.active(),this.trapBox.getValue());
+	},
+	executeInContext: function(s,ctx,trap,params) {
+		var paramNames = [], paramValues = [];
+		if(trap) {
+			try {
+				
+				_.each(params,function(value,key) {
+					paramNames.push(key);
+					paramValues.push(value);
+				})
+				
+				var rt = Function.apply(window,paramNames.concat([s]));
+				rt = rt.apply(ctx,paramValues); //eval(s);
+				App.dump(rt === undefined? '(no return)' : rt);
+			} catch(e) {
+				App.log(e.message || e.descript,{iconCls: 'error'});
+			}
+		} else {
+				_.each(params,function(value,key) {
+					paramNames.push(key);
+					paramValues.push(value);
+				})
+				
+				var rt = Function.apply(window,paramNames.concat([s]));
+				rt = rt.apply(ctx,paramValues);
+			App.dump(rt === undefined? '(no return)' : rt);
+		}
+	},
+<span id='App-ui-console-ScriptsPanel-method-clear'>	/**
+</span>	 * Clears the script entry field
+	 */
+	clear : function() {
+		this.scriptField.setValue('');
+		this.scriptField.focus();
+	}
+});
+</pre>
+</body>
+</html>

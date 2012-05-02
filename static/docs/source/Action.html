@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">
+
+<span id='Workspace-actions-Action'>/**
+</span> * @class Workspace.actions.Action
+ * Encapsulates a single, un-doable change to the workspace.
+ * @abstract
+ * @extends Ext.Action
+ */
+Ext.define('Workspace.actions.Action', {
+	alias: 'WorkspaceAction',
+	extend:'Ext.Action',
+	constructor: function(config) {
+		Workspace.actions.Action.superclass.constructor.apply(this, arguments);
+		Ext.apply(this,config);
+	},
+<span id='Workspace-actions-Action-cfg-handler'>	/**
+</span>	 * @cfg handler
+	 * The function to invoke on execution
+	 */
+	handler: function() {
+	},
+<span id='Workspace-actions-Action-method-getUndo'>	/**
+</span>	 * getUndo
+	 * Gets the action which can be invoked to undo this action. This method must be called before (preferrably immediately before)
+	 * the action is invoked
+	 * @return {Workspace.actions.Action}
+	 */
+	getUndo: function() {
+	},
+<span id='Workspace-actions-Action-method-serialize'>	/**
+</span>	 * Serialized
+	 * Returns a serialized version of this action
+	 */
+	serialize: function() {
+	},
+<span id='Workspace-actions-Action-method-attachTo'>	/**
+</span>	 * attachTo
+	 * Attaches this action to the given workspace
+	 * @param {Workspace} workspace
+	 */
+	attachTo: function(workspace) {
+		this.workspace = workspace;
+	},
+<span id='Workspace-actions-Action-method-execute'>	/**
+</span>	 * execute
+	 * Performs the action on the attached workspace.
+	 */
+	execute: function() {
+		if (this.handler) {
+			this.handler.apply(this.scope);
+		} else {
+			Workspace.actions.Action.superclass.execute.apply(this, arguments);
+		}
+	}
+});
+</pre>
+</body>
+</html>

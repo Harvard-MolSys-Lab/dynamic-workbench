@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">// CodeMirror.defineMode(&quot;nupack&quot;, function(config) {
+	// var sequenceMode = CodeMirror.getMode(config,'sequence');
+	// return {
+		// startState: function() {
+			// return {value:''};
+		// },
+		// token: function(stream,state) {
+			// stream.eatSpace();
+			// if(state.value=='') {
+				// if(stream.eat('%')) {
+					// stream.skipToEnd();
+					// return 'nupack-comment';
+				// } else 	if(stream.match('structure',true,true)) {
+					// state.value = 'structure-definition-left';
+					// return 'nupack-keyword';
+				// } else if(stream.match('sequence',true,true)) {
+					// state.value = 'sequence-definition-left';
+					// return 'nupack-keyword';
+				// } else {
+					// state.value='structure-name';
+				// }
+			// } else if(state.value=='structure-definition') {
+				// if(stream.eat('[')) {
+					// state.value = 'structure-definition-param';
+					// return 'pepper-param';
+				// } else {
+					// state.value = 'structure-definition-left';
+					// return '';
+				// }
+			// } else if(state.value=='structure-definition-param') {
+			// stream.eatWhile(function(c) {return (c!=']')});
+			// return 'pepper-param';
+			// } else if(state.value=='structure-definition-left') {
+				// stream.eatWhile(/\S/);
+				// state.value = 'structure-definition-assign';
+				// return 'nupack-structure';
+			// } else if(state.value=='structure-definition-assign') {
+				// stream.eatWhile(/[\S=]/);
+				// state.value = 'structure-definition-right';
+				// return '';
+			// } else if(state.value=='structure-definition-right') {
+				// //stream.eatWhile(/[HhUu\d]/);
+				// // if(stream.eol()) {
+					// // state.value='';
+					// // return 'nupack-huplus'
+				// // }
+				// stream.skipToEnd();
+				// state.value='';
+				// return 'nupack-huplus';
+			// } else if(state.value=='sequence-definition-left') {
+				// stream.eatWhile(/\S/);
+				// state.value = 'sequence-definition-assign';
+				// return 'nupack-sequence';
+			// } else if(state.value=='sequence-definition-assign') {
+				// stream.eatWhile(/[\S=]/);
+				// state.value = 'sequence-definition-right';
+				// return '';
+			// } else if(state.value=='sequence-definition-right') {
+				// var token;
+				// if(stream.eat(':')) {
+					// token = 'param'
+				// } else {
+					// token = sequenceMode.token(stream);
+				// }
+				// if(stream.eol()) {
+					// state.value='';
+				// }
+				// return token;
+			// } else if(state.value=='structure-name') {
+				// stream.eatWhile(/\S/);
+				// state.value = 'structure-assign';
+				// return 'nupack-structure';
+			// } else if(state.value=='structure-assign') {
+				// if(stream.eat(':')) {
+					// state.value = 'structure-thread'
+					// return '';
+				// } else if(stream.eat('&lt;')) {
+					// state.value = 'structure-objection';
+					// return '';
+				// } else {
+					// stream.skipToEnd();
+					// state.value = '';
+					// return 'nupack-error';
+				// }
+			// } else if(state.value=='structure-thread') {
+				// stream.skipToEnd();
+				// state.value='';
+				// return 'nupack-sequence';
+			// } else if(state.value=='param') {
+				// stream.skipToEnd();
+				// state.value='';
+				// return 'nupack-param';
+			// }
+		// }
+	// };
+// });
+CodeMirror.defineMode(&quot;pepper&quot;, function(config, parserConfig) {
+	var indentUnit = config.indentUnit, keywords = (function() {
+		function makeKeywords(str) {
+			var obj = {}, words = str.split(&quot; &quot;);
+			for (var i = 0; i &lt; words.length; ++i)
+				obj[words[i]] = true;
+			return obj;
+		}
+
+		var pilKeywords = &quot;declare import component system sequence strand structure kinetic equal noninteracting&quot;;
+		return makeKeywords(pilKeywords);
+	})(),
+	cpp = parserConfig.useCPP, multiLineStrings = parserConfig.multiLineStrings, $vars = parserConfig.$vars;
+	var isOperatorChar = /[+\-*&amp;%=&lt;&gt;!?|]/,
+		dotParen = /[\.\(\)+]/;
+
+	function chain(stream, state, f) {
+		state.tokenize = f;
+		return f(stream, state);
+	}
+
+	var type;
+	function ret(tp, style) {
+		type = tp;
+		return style;
+	}
+
+	function tokenBase(stream, state) {
+		var ch = stream.next();
+		if (ch == '&quot;' || ch == &quot;'&quot;)
+			return chain(stream, state, tokenString(ch));
+		// else if (/[\[\]{}\(\),;\:\.]/.test(ch))
+			// return ret(ch);
+		else if (ch == &quot;#&quot;) {
+			stream.skipToEnd();
+			return ret(&quot;comment&quot;, &quot;comment&quot;);
+		} else if (/\d/.test(ch)) {
+			stream.eatWhile(/[\w\.]/)
+			return ret(&quot;number&quot;, &quot;number&quot;);
+		} else if (ch == &quot;/&quot;) {
+			if (stream.eat(&quot;*&quot;)) {
+				return chain(stream, state, tokenComment);
+			} else if (stream.eat(&quot;/&quot;)) {
+				stream.skipToEnd();
+				return ret(&quot;comment&quot;, &quot;comment&quot;);
+			} else {
+				stream.eatWhile(isOperatorChar);
+				return ret(&quot;operator&quot;,&quot;operator&quot;);
+			}
+		} else if (isOperatorChar.test(ch)) {
+			stream.eatWhile(isOperatorChar);
+			return ret(&quot;operator&quot;);
+		} else if (dotParen.test(ch)) {
+			stream.eatWhile(dotParen);
+			return ret(&quot;word&quot;,&quot;pepper-dotParen&quot;);
+		} else if ($vars &amp;&amp; ch == &quot;$&quot;) {
+			stream.eatWhile(/[\w\$_]/);
+			return ret(&quot;word&quot;, &quot;variable&quot;);
+		} else {
+			stream.eatWhile(/[\w\$_]/);
+			if (keywords &amp;&amp; keywords[stream.current()])
+				return ret(&quot;keyword&quot;, &quot;keyword&quot;);
+			return ret(&quot;word&quot;, &quot;word&quot;);
+		}
+	}
+
+	function tokenString(quote) {
+		return function(stream, state) {
+			var escaped = false, next, end = false;
+			while ((next = stream.next()) != null) {
+				if (next == quote &amp;&amp; !escaped) {
+					end = true;
+					break;
+				}
+				escaped = !escaped &amp;&amp; next == &quot;\\&quot;;
+			}
+			if (end || !(escaped || multiLineStrings))
+				state.tokenize = tokenBase;
+			return ret(&quot;string&quot;, &quot;string&quot;);
+		};
+	}
+
+	function tokenComment(stream, state) {
+		var maybeEnd = false, ch;
+		while (ch = stream.next()) {
+			if (ch == &quot;/&quot; &amp;&amp; maybeEnd) {
+				state.tokenize = tokenBase;
+				break;
+			}
+			maybeEnd = (ch == &quot;*&quot;);
+		}
+		return ret(&quot;comment&quot;, &quot;comment&quot;);
+	}
+
+	function Context(indented, column, type, align, prev) {
+		this.indented = indented;
+		this.column = column;
+		this.type = type;
+		this.align = align;
+		this.prev = prev;
+	}
+
+	function pushContext(state, col, type) {
+		return state.context = new Context(state.indented, col, type, null, state.context);
+	}
+
+	function popContext(state) {
+		return state.context = state.context.prev;
+	}
+
+	// Interface
+
+	return {
+		startState: function(basecolumn) {
+			return {
+				tokenize: tokenBase,
+				context: new Context((basecolumn || 0) - indentUnit, 0, &quot;top&quot;, false),
+				indented: 0,
+				startOfLine: true
+			};
+		},
+		token: function(stream, state) {
+			var ctx = state.context;
+			if (stream.sol()) {
+				if (ctx.align == null)
+					ctx.align = false;
+				state.indented = stream.indentation();
+				state.startOfLine = true;
+			}
+			if (stream.eatSpace())
+				return null;
+			var style = state.tokenize(stream, state);
+			if (type == &quot;comment&quot;)
+				return style;
+			if (ctx.align == null)
+				ctx.align = true;
+
+			if ((type == &quot;;&quot; || type == &quot;:&quot;) &amp;&amp; ctx.type == &quot;statement&quot;)
+				popContext(state);
+			else if (type == &quot;{&quot;)
+				pushContext(state, stream.column(), &quot;}&quot;);
+			else if (type == &quot;[&quot;)
+				pushContext(state, stream.column(), &quot;]&quot;);
+			else if (type == &quot;(&quot;)
+				pushContext(state, stream.column(), &quot;)&quot;);
+			else if (type == &quot;}&quot;) {
+				if (ctx.type == &quot;statement&quot;)
+					ctx = popContext(state);
+				if (ctx.type == &quot;}&quot;)
+					ctx = popContext(state);
+				if (ctx.type == &quot;statement&quot;)
+					ctx = popContext(state);
+			} else if (type == ctx.type)
+				popContext(state);
+			else if (ctx.type == &quot;}&quot;)
+				pushContext(state, stream.column(), &quot;statement&quot;);
+			state.startOfLine = false;
+			return style;
+		},
+		indent: function(state, textAfter) {
+			if (state.tokenize != tokenBase)
+				return 0;
+			var firstChar = textAfter &amp;&amp; textAfter.charAt(0), ctx = state.context, closing = firstChar == ctx.type;
+			if (ctx.type == &quot;statement&quot;)
+				return ctx.indented + (firstChar == &quot;{&quot; ? 0 : indentUnit);
+			else if (ctx.align)
+				return ctx.column + (closing ? 0 : 1);
+			else
+				return ctx.indented + (closing ? 0 : indentUnit);
+		},
+		electricChars: &quot;{}[]()&quot;
+	};
+});
+
+CodeMirror.defineMode(&quot;sequence&quot;, function() {
+	return {
+		token: function(stream) {
+			if(stream.sol()) {
+				if(stream.match(/^[\w\s-]+:\s+/)) {
+					return 'sequence-name';
+				}
+			}
+			
+			// var urlRegex = new RegExp(&quot;\b(https?|ftp|file)://[-A-Z0-9+&amp;@#/%?=~_|!:,.;]*[A-Z0-9+&amp;@#/%=~_|]&quot;);
+			// if(stream.match(urlRegex)) {
+				// return 'sequence-link';
+			// }
+			
+			var ch = stream.next();
+			switch(ch) {
+				case '%':
+				case '#':
+					stream.skipToEnd();
+					return &quot;sequence-comment&quot;;
+				case '&gt;':
+					stream.skipToEnd();
+					return 'sequence-name';
+				case 'a':
+					return 'sequence-a';
+				case 'A':
+					return 'sequence-a';
+				case 'u':
+					return 'sequence-u';
+				case 'U':
+					return 'sequence-u';
+				case 't':
+					return 'sequence-t';
+				case 'T':
+					return 'sequence-t';
+				case 'c':
+					return 'sequence-c';
+				case 'C':
+					return 'sequence-c';
+				case 'g':
+					return 'sequence-g';
+				case 'G':
+					return 'sequence-g';
+				case 'n':
+				case 'N':
+						return 'sequence-n';
+				
+			}
+			if(ch.match(/\d/)) {
+				return 'number';
+			}
+
+		}
+	};
+});
+
+
+CodeMirror.defineMode(&quot;dd-sequence&quot;, function() {
+	return {
+		token: function(stream) {
+			var ch = stream.next();
+			switch(ch) {
+				case '%':
+				case '#':
+					stream.skipToEnd();
+					return &quot;sequence-comment&quot;;
+				case '&gt;':
+					stream.skipToEnd();
+					return 'sequence-name';
+				case 'a':
+					return 'sequence-a';
+				case 'A':
+					return 'sequence-a-lock';
+				case 'u':
+					return 'sequence-u';
+				case 'U':
+					return 'sequence-u-lock';
+				case 't':
+					return 'sequence-t';
+				case 'T':
+					return 'sequence-t-lock';
+				case 'c':
+					return 'sequence-c';
+				case 'C':
+					return 'sequence-c-lock';
+				case 'g':
+					return 'sequence-g';
+				case 'G':
+					return 'sequence-g-lock';
+				case 'n':
+				case 'N':
+						return 'sequence-n';
+				
+			}
+			if(ch.match(/\d/)) {
+				return 'number';
+			}
+
+		}
+	};
+});
+
+CodeMirror.defineMode(&quot;nupack&quot;, function(config) {
+	var sequenceMode = CodeMirror.getMode(config,'sequence');
+	return {
+		startState: function() {
+			return {value:''};
+		},
+		token: function(stream,state) {
+			if(stream.eatSpace()) {
+				return '';
+			}
+			
+			// Beginning of line
+			if(state.value=='') {
+				if(stream.eat('%')) {
+					stream.skipToEnd();
+					return 'comment';
+				} else if(stream.match('structure',true,true)) {
+					state.value = 'structure-definition-left';
+					return 'keyword';
+				} else if(stream.match('sequence',true,true) || stream.match('domain',true,true)) {
+					state.value = 'sequence-definition-left';
+					return 'keyword';
+				} else if(stream.match('strand',true,true)) {
+					state.value='structure-name';
+					return 'keyword';
+				} else {
+					state.value='structure-name';
+				}
+				
+			// structure (name) = (spec in HU+)
+			} else if(state.value=='structure-definition-left') {
+				stream.eatWhile(/\S/);
+				state.value = 'structure-definition-assign';
+				return 'nupack-structure';
+			} else if(state.value=='structure-definition-assign') {
+				stream.eatWhile(/[\S=]/);
+				state.value = 'structure-definition-right';
+				return 'operator';
+			} else if(state.value=='structure-definition-right') {
+				//stream.eatWhile(/[HhUu\d]/);
+				// if(stream.eol()) {
+					// state.value='';
+					// return 'nupack-huplus'
+				// }
+				stream.skipToEnd();
+				state.value='';
+				return 'nupack-huplus';
+				
+			// sequence (name) = (spec)
+			// sequence (name) : (spec)
+			// domain (name) = (spec)
+			// domain (name) : (spec)
+			} else if(state.value=='sequence-definition-left') {
+				stream.eatWhile(/\S/);
+				state.value = 'sequence-definition-assign';
+				return 'string';
+			} else if(state.value=='sequence-definition-assign') {
+				stream.eatWhile(/[\S=]/);
+				state.value = 'sequence-definition-right';
+				return 'operator';
+			} else if(state.value=='sequence-definition-right') {
+				var token = sequenceMode.token(stream);
+				if(stream.eol()) {
+					state.value='';
+				}
+				return token;
+			} else if(state.value=='structure-name') {
+				stream.eatWhile(/\S/);
+				state.value = 'structure-assign';
+				return 'variable';
+			} else if(state.value=='structure-assign') {
+				if(stream.eat('=') || stream.eat(':')) {
+					state.value = 'structure-thread'
+					return 'operator';
+				} else if(stream.eat('&lt;')) {
+					state.value = 'structure-objection';
+					return 'operator';
+				} else {
+					stream.skipToEnd();
+					state.value = '';
+					return 'nupack-error';
+				}
+			} else if(state.value=='structure-thread') {
+				stream.skipToEnd();
+				state.value='';
+				return 'string';
+			} else if(state.value=='structure-objection') {
+				stream.skipToEnd();
+				state.value='';
+				return 'qualifier';
+			}
+		}
+	};
+});
+
+	
+CodeMirror.tokenize = function(string,modespec,callback) {
+	var mode = CodeMirror.getMode({indentUnit: 2}, modespec);
+	var lines = CodeMirror.splitLines(string), state = CodeMirror.startState(mode), stream, out = [];
+	for (var i = 0, e = lines.length; i &lt; e; ++i) {
+		out[i] = [];
+		stream = new CodeMirror.StringStream(lines[i]);
+		while (!stream.eol()) {
+			var style = mode.token(stream, state);
+			if(!!style) {
+				out[i].push([style,stream.current()]);
+			}
+			stream.start = stream.pos;
+		}
+	}
+	return out;
+}
+</pre>
+</body>
+</html>

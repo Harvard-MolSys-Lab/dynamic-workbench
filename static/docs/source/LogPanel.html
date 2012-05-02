@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">
+<span id='App-ui-console-LogPanel'>/**
+</span> * Displays console output. Can also show &quot;sub-console&quot; windows for things like {@link App.TaskRunner.Task}s 
+ * which display several related outputs. 
+ */
+Ext.define('App.ui.console.LogPanel', {
+	extend: 'Ext.panel.Panel',
+	autoScroll: true,
+	region: 'center',
+	border: '0 1 0 0',
+	bodyBorder: false,
+	padding: '0 0 5 0',
+	cls: 'noborder-top',
+	bodyCls: 'noborder-top',
+	html: '&lt;div class=&quot;logBody&quot;&gt;&lt;/div&gt;',
+	getLogBody: function() {
+		return this.body.down('.logBody');
+	},
+	initComponent: function() {
+		this.groups = {};
+		this.logLevels = {
+			info: 'console-info',
+			warn: 'console-warn',
+			error: 'console-error',
+		};
+		this.callParent(arguments);
+	},
+	dump : function(o) {
+		if( typeof o == 'string' || typeof o == 'number' || typeof o == 'undefined' || Ext.isDate(o)) {
+			return o;
+		} else if(!o) {
+			return &quot;null&quot;;
+		} else if( typeof o != &quot;object&quot;) {
+			return 'Unknown return type';
+		} else if(Ext.isArray(o)) {
+			return '[' + o.join(',') + ']';
+		} else {
+			var b = [&quot;{\n&quot;];
+			for(var key in o) {
+				var to = typeof o[key];
+				if(to != &quot;function&quot; &amp;&amp; to != &quot;object&quot;) {
+					b.push(Ext.String.format(&quot;  {0}: {1},\n&quot;, key, o[key]));
+				}
+			}
+			var s = b.join(&quot;&quot;);
+			if(s.length &gt; 3) {
+				s = s.substr(0, s.length - 2);
+			}
+			return s + &quot;\n}&quot;;
+		}
+	},
+<span id='App-ui-console-LogPanel-method-log'>	/**
+</span>	 * Logs args to the console
+	 * @param {Mixed} args
+	 * @param {Object} options Hash containing the following parameters:
+	 * @param {Object} [options.silent=false] {Boolean} True to prevent the console from automatically showing if closed, false to automatically
+	 *    show the console after this message (defaults to false)
+	 * @param {Object} [options.iconCls=''] {String} CSS class for an icon to display next to this message
+	 * @param {Object} [options.group=null] {Mixed} String title or panel config object for a &quot;sub-console&quot; to be created to display this message.
+	 *    If the &lt;var&gt;group&lt;/var&gt; name exists, this message is directed to that sub-console; else it is created. The 
+	 *    resulting {@link Ext.panel.Panel} can be accessed by {@link #getGroupPanel}. 
+	 * @param {Object} [options.level=info] {String} One of `info`, `warn`, or `error`. Styles the message to reflect the level of severity.
+	 */
+	log : function(args,options) {
+		var markup = '',
+		target,
+		bd = this.body.dom;
+		
+		_.defaults(options,{
+			silent: false,
+			iconCls: '',
+			level: 'info'
+		})
+		if(args &amp;&amp; args!='') {
+			if(!_.isString(args)) {
+				args = this.dump(args);
+			}
+			
+			markup = [  '&lt;div class=&quot;console-message ', options.iconCls, ' ', this.logLevels[options.level], '&quot;&gt;',
+			Ext.util.Format.htmlEncode(args).replace(/\n/g, '&lt;br/&gt;').replace(/\s/g, '&amp;#160;'),
+			'&lt;/div&gt;'].join('');
+		}
+		if(options.group) {
+			var groupName = Ext.isObject(options.group) ? options.group.name : options.group;
+			if(!this.groups[groupName]) {
+				var cfg = Ext.isObject(options.group) ? options.group : {
+					title: options.group
+				};
+				Ext.apply(cfg, {
+					renderTo: this.getLogBody(),
+					margin: '5 5 5 20',
+					collapsible: true,
+					layout: 'auto',
+					minHeight: 100,
+					height: 100,
+					resizable: {handles: 's'},
+					autoScroll: true,
+					// bodyStyle: {
+						// height: 'auto',
+						// display: 'block',
+					// },
+					// style: {
+						// 'height': 'auto',
+						// display: 'block',
+					// }
+				});
+				this.groups[groupName] = Ext.create('Ext.panel.Panel',cfg);
+			}
+			target = this.groups[groupName].body;
+		} else {
+			target = this.getLogBody();
+		}
+
+		target.insertHtml('beforeend', markup);
+		//target.setHeight('auto');
+		bd.scrollTop = bd.scrollHeight;
+	},
+<span id='App-ui-console-LogPanel-method-getGroupPanel'>	/**
+</span>	 * Gets the &quot;sub-console&quot; (group panel) for the given name. Panels are created by passing a &lt;var&gt;group&lt;/var&gt;
+	 * option to {@link #log}.
+	 */
+	getGroupPanel: function(groupName) {
+		return this.groups[groupName];
+	},
+<span id='App-ui-console-LogPanel-method-clear'>	/**
+</span>	 * Clears the console
+	 */
+	clear : function() {
+		_.each(this.groups,function(group,name) {
+			group.destroy();
+		});
+		this.groups = {};
+		this.body.update('');
+		this.body.dom.scrollTop = 0;
+	}
+});
+
+
+</pre>
+</body>
+</html>

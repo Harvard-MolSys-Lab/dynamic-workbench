@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define('App.ui.nodal.NodeInspector', {
+	requires : ['App.ui.nodal.StrandPreview'],
+	extend : 'Ext.form.Panel',
+	title : 'Node',
+	bodyPadding : 5,
+	enableBoundFields : true,
+	initComponent : function() {
+
+		Ext.apply(this, {
+			defaults : {
+				xtype : 'textfield',
+			},
+			fieldDefaults : {
+				labelWidth : 100,
+			},
+			items : [{
+				objectBinding : 'name',
+				anchor : &quot;100%&quot;,
+			}, {
+				xtype : 'sliderfield',
+				fieldLabel : 'Rotation',
+				minValue : 0,
+				maxValue : 360,
+				width : 100,
+				increment : 15,
+				anchor : '95%',
+				objectBinding : 'theta',
+				tipText : function(thumb) {
+					return String(thumb.value) + '°';
+				}
+			}, {
+				xtype: 'numberfield',
+				fieldLabel: 'Polarity',
+				objectBinding : 'polarity',
+				minValue: -1,
+				maxValue: 1,
+				step: 1,
+				anchor : '95%',
+			},{
+				xtype : 'combo',
+				store : Workspace.objects.dna.motifStore,
+				queryMode : 'local',
+				displayField : 'number',
+				valueField : 'number',
+				forceSelection : false,//true,
+				listConfig : {
+					getInnerTpl : function() {
+						return '&lt;div class=&quot;search-item&quot;&gt;&lt;img src=&quot;images/motifs/{number}.gif&quot; /&gt;&lt;/div&gt;';
+					}
+				},
+				fieldLabel : 'Motif',
+				objectBinding : 'motif',
+				anchor : '95%',
+			}, Ext.create('App.ui.nodal.StrandPreview', {
+				objectBinding : 'annotatedStructure',
+				items : [],
+				height: 150,
+				anchor : '95%',
+			})
+			// {
+			// xtype : 'panel',
+			// layout : 'fit',
+			// border: '1 1 1 1',
+			// objectBinding: 'motif',
+			// height: 300,
+			// anchor : '95%',
+			// items : [],
+			// }
+			],
+			showIf : function(wtype) {
+				return (wtype == 'Workspace.objects.dna.Node');
+			},
+		})
+		this.callParent(arguments);
+		this.mixins.boundObjectPanel.initialize.apply(this, arguments);
+	},
+	mixins : {
+		boundObjectPanel : 'App.ui.BoundObjectPanel'
+	},
+
+})</pre>
+</body>
+</html>

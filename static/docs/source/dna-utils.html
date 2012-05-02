@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">if( typeof require === 'function') {
+	_ = require('underscore')
+} else {
+	exports = {};
+}
+<span id='DNA'>/**
+</span> * @class DNA
+ * Provides a wealth of utility methods of dealing with all kinds of things DNA
+ * This class is available client-side as `DNA` or server-side as
+ * `require('static/lib/dna-utils').DNA`.
+ */
+exports.DNA = (function() {
+	//Written by Paul Stothard, University of Alberta, Canada
+
+	//This class performs alignments in linear space, by recursively dividing
+	//the alignment. Once subalignments of acceptable size are obtained, they
+	//are solved using the quadratic space implementation in align_pair_quad.js.
+
+	//To use this class: (see pairwise_dna.js for example)
+	//var alignment = new AlignPairLinear();
+	//alignment.initializeMatrix(sequenceArrayM, sequenceArrayN, scoreSet);
+	//alignment.fillMatrix();
+	//alignment.align();
+	//var alignedSequenceStringM = alignment.getAlignedM();
+	//var alignedSequenceStringN = alignment.getAlignedN();
+
+	//------------------------------------ AlignPairLinear class
+	var AlignPairLinear = (function() {
+		//AlignPairLinear class align() method
+		function align() {
+			if(this.M.length == 0) {
+
+				for(var j = 1; j &lt;= this.N.length; j++) {
+					this.alignedM.push(&quot;-&quot;);
+					this.alignedN.push(this.N[j - 1]);
+					this.score = this.score + this.scoreSet.gap;
+				}
+			} else if(this.N.length == 0) {
+				for(var j = 1; j &lt;= this.M.length; j++) {
+					this.alignedN.push(&quot;-&quot;);
+					this.alignedM.push(this.M[j - 1]);
+					this.score = this.score + this.scoreSet.gap;
+				}
+
+			} else if((this.M.length == 0) &amp;&amp; (this.N.length == 0)) {
+				//do nothing
+			} else {
+				this.path(0, 0, this.M.length, this.N.length);
+			}
+		}
+
+		//AlignPairLinear class recursive method path()
+		function path(i1, j1, i2, j2) {
+
+			//alert (&quot;i1, j1, : i2, j2 &quot; + i1 +&quot;, &quot; + j1 + &quot;, &quot; + i2 + &quot;, &quot; + j2);
+
+			if((i1 + 1 == i2) || (j1 == j2)) {
+				//align using quadratic space alignment
+				var subM = new Array();
+				var subN = new Array();
+
+				for(var i = i1 + 1; i &lt;= i2; i++) {
+					subM.push(this.M[i - 1]);
+				}
+
+				for(var j = j1 + 1; j &lt;= j2; j++) {
+					subN.push(this.N[j - 1]);
+				}
+
+				var alignment = new AlignPairQuad();
+				subScoreSet = new ScoreSet();
+				if(j1 == j2) {
+
+					if(j1 == 0) {
+						subScoreSet.setScoreSetParam(this.scoreSet.scoringMatrix, this.scoreSet.beginGap, this.scoreSet.beginGap, this.scoreSet.beginGap);
+					} else if(j1 == this.N.length) {
+						subScoreSet.setScoreSetParam(this.scoreSet.scoringMatrix, this.scoreSet.endGap, this.scoreSet.endGap, this.scoreSet.endGap);
+					} else {
+						subScoreSet.setScoreSetParam(this.scoreSet.scoringMatrix, this.scoreSet.gap, this.scoreSet.gap, this.scoreSet.gap);
+					}
+				} else {
+
+					subScoreSet.setScoreSetParam(this.scoreSet.scoringMatrix, this.scoreSet.gap, this.scoreSet.beginGap, this.scoreSet.endGap);
+					subScoreSet.useBeginGapTop = false;
+					subScoreSet.useBeginGapLeft = false;
+					subScoreSet.useEndGapBottom = false;
+					subScoreSet.useEndGapRight = false;
+
+					if(i1 == 0) {
+						subScoreSet.useBeginGapTop = true;
+					}
+
+					if(j1 == 0) {
+						subScoreSet.useBeginGapLeft = true;
+					}
+
+					if(j2 == this.N.length) {
+						subScoreSet.useEndGapRight = true;
+					}
+
+					if(i2 == this.M.length) {
+						subScoreSet.useEndGapBottom = true;
+					}
+				}
+
+				alignment.initializeMatrix(subM, subN, subScoreSet);
+				alignment.fillMatrix();
+				alignment.align();
+				//alignment.dumpMatrix();
+				this.alignedM.push(alignment.getAlignedM());
+				this.alignedN.push(alignment.getAlignedN());
+
+				this.score = this.score + alignment.score;
+			} else {
+				var middle = Math.floor((i1 + i2) / 2);
+
+				//linear-space computation of alignment score to middle row
+				//forward pass
+
+				//gaps along top
+
+				this.Sn[j1] = 0;
+
+				if(i1 == 0) {
+					for(var j = j1 + 1; j &lt;= j2; j++) {
+						this.Sn[j] = this.Sn[j - 1] - this.scoreSet.beginGap;
+					}
+				} else {
+					for(var j = j1 + 1; j &lt;= j2; j++) {
+						this.Sn[j] = this.Sn[j - 1] - this.scoreSet.gap;
+					}
+				}
+
+				//now continue down rows to middle row
+				var diag;
+				var left;
+				//for (var i = i1 + 1; i &lt;= i2; i++) {
+				for(var i = i1 + 1; i &lt;= middle; i++) {
+					diag = this.Sn[j1]; left;
+					if(j1 == 0) {
+						left = this.Sn[j1] - this.scoreSet.beginGap;
+					} else {
+						left = this.Sn[j1] - this.scoreSet.gap;
+					}
+
+					this.Sn[j1] = left;
+
+					//we need three values to set the score: diag, left, and above to fill in the row
+					for(var j = j1 + 1; j &lt;= j2; j++) {
+						//above will be in the this.Sn array, which is holding a mixture of the previous row and the new row
+						//var above = this.Sn[j];
+
+						//pick max of three and store in next left
+						if((j == this.N.length) &amp;&amp; (i == this.M.length)) {
+							left = Math.max(this.Sn[j] - this.scoreSet.endGap, Math.max((left - this.scoreSet.endGap), diag + this.scoreSet.getScore(this.M[i - 1], this.N[j - 1])));
+						} else if(i == this.M.length) {
+							left = Math.max(this.Sn[j] - this.scoreSet.gap, Math.max((left - this.scoreSet.endGap), diag + this.scoreSet.getScore(this.M[i - 1], this.N[j - 1])));
+						} else if(j == this.N.length) {
+							left = Math.max(this.Sn[j] - this.scoreSet.endGap, Math.max((left - this.scoreSet.gap), diag + this.scoreSet.getScore(this.M[i - 1], this.N[j - 1])));
+						} else {
+							left = Math.max(this.Sn[j] - this.scoreSet.gap, Math.max((left - this.scoreSet.gap), diag + this.scoreSet.getScore(this.M[i - 1], this.N[j - 1])));
+						}
+						diag = this.Sn[j];
+
+						//prepares this.Sn for use in next iteration of i loop
+						this.Sn[j] = left;
+
+					}
+				}
+
+				//linear-space computation of alignment score to middle row
+				//reverse pass
+
+				//gaps along bottom
+
+				this.Sp[j2] = 0;
+
+				if(i2 == this.M.length) {
+					for(var j = j2 - 1; j &gt;= j1; j--) {
+						this.Sp[j] = this.Sp[j + 1] - this.scoreSet.endGap;
+					}
+				} else {
+					for(var j = j2 - 1; j &gt;= j1; j--) {
+						this.Sp[j] = this.Sp[j + 1] - this.scoreSet.gap;
+					}
+				}
+
+				//now continue up rows to middle row
+				var right;
+				//for (var i = i2 - 1; i &gt;= i1; i--) {
+				for(var i = i2 - 1; i &gt;= middle; i--) {
+					diag = this.Sp[j2];
+					if(j2 == this.N.length) {
+						right = this.Sp[j2] - this.scoreSet.endGap;
+					} else {
+						right = this.Sp[j2] - this.scoreSet.gap;
+					}
+
+					this.Sp[j2] = right;
+
+					//we need three values to set the score: diag, right, and below to fill in the row
+					for(var j = j2 - 1; j &gt;= j1; j--) {
+						//below will be in the this.Sp array, which is holding a mixture of the previous row and the new row
+						//var below = this.Sp[j];
+
+						//pick max of three and store in next right
+						if((j == 0) &amp;&amp; (i == 0)) {
+							right = Math.max(this.Sp[j] - this.scoreSet.beginGap, Math.max((right - this.scoreSet.beginGap), diag + this.scoreSet.getScore(this.M[i + 1 - 1], this.N[j + 1 - 1])));
+						} else if(j == 0) {
+							right = Math.max(this.Sp[j] - this.scoreSet.beginGap, Math.max((right - this.scoreSet.gap), diag + this.scoreSet.getScore(this.M[i + 1 - 1], this.N[j + 1 - 1])));
+						} else if(i == 0) {
+							right = Math.max(this.Sp[j] - this.scoreSet.gap, Math.max((right - this.scoreSet.beginGap), diag + this.scoreSet.getScore(this.M[i + 1 - 1], this.N[j + 1 - 1])));
+						} else {
+							right = Math.max(this.Sp[j] - this.scoreSet.gap, Math.max((right - this.scoreSet.gap), diag + this.scoreSet.getScore(this.M[i + 1 - 1], this.N[j + 1 - 1])));
+						}
+						diag = this.Sp[j];
+						this.Sp[j] = right;
+					}
+
+				}
+
+				//now find the value of j that maximizes this.Sn[j] + this.Sp[j]
+				//this point will be in the maximum scoring path in the final alignment.
+				//once we have this point we can divide the problem into two new problems,
+
+				var maxValue = this.Sn[j1] + this.Sp[j1];
+				var maxJ = j1;
+
+				for(var j = j1 + 1; j &lt;= j2; j++) {
+					if(this.Sn[j] + this.Sp[j] &gt;= maxValue) {
+						maxValue = this.Sn[j] + this.Sp[j];
+						maxJ = j;
+					}
+				}
+
+				this.path(i1, j1, middle, maxJ);
+				this.path(middle, maxJ, i2, j2);
+
+			}
+		}
+
+		//AlignPairLinear class getAlignedM() method
+		function getAlignedM() {
+			return this.alignedM.join(&quot;&quot;);
+		}
+
+		//AlignPairLinear class getAlignedN() method
+		function getAlignedN() {
+			return this.alignedN.join(&quot;&quot;);
+		}
+
+		//AlignPairLinear class setAlignParam method
+		function setAlignParam(M, N, scoreSet) {
+			this.M = M;
+			this.N = N;
+			this.alignedM = new Array();
+			this.alignedN = new Array();
+			this.scoreSet = scoreSet;
+			this.Sn = new Array(this.N.length);
+			this.Sp = new Array(this.N.length);
+			this.score = 0;
+		}
+
+		//AlignPairLinear class
+		function AlignPairLinear() {
+			this.M
+			this.N
+			this.alignedM
+			this.alignedN
+			this.scoreSet
+			this.Sn
+			this.Sp
+			this.score
+		}
+
+		//create and throw away a prototype object
+		new AlignPairLinear();
+
+		//define object methods
+		AlignPairLinear.prototype.align = align;
+		AlignPairLinear.prototype.path = path;
+		AlignPairLinear.prototype.setAlignParam = setAlignParam;
+		AlignPairLinear.prototype.getAlignedM = getAlignedM;
+		AlignPairLinear.prototype.getAlignedN = getAlignedN;
+		return AlignPairLinear;
+	})();
+	//Written by Paul Stothard, University of Alberta, Canada
+
+	//This class should be used for small alignments,
+	//since it uses O(nm) memory, where n and m are the sequence lengths.
+	//For larger alignments use the linear space algorithm implemented
+	//in align_pair_linear.js
+
+	//To use this class: (see pairwise_dna.js for example)
+	//var alignment = new AlignPairQuad();
+	//alignment.initializeMatrix(sequenceArrayM, sequenceArrayN, scoreSet);
+	//alignment.fillMatrix();
+	//alignment.align();
+	//var alignedSequenceStringM = alignment.getAlignedM();
+	//var alignedSequenceStringN = alignment.getAlignedN();
+
+	//------------------------------------ Node class
+	//Node class
+	function Node() {
+		this.value
+		this.tracebackI
+		this.tracebackJ
+	}
+
+	//------------------------------------
+
+	//------------------------------------ AlignPairQuad class
+	var AlignPairQuad = (function() {
+		//AlignPairQuad class initializeMatrix method
+		function initializeMatrix(sequenceOne, sequenceTwo, scoreSet) {
+
+			this.scoreSet = scoreSet;
+
+			this.M = sequenceOne;
+			this.N = sequenceTwo;
+			this.score = 0;
+
+			//create an two-dimensional array of nodes
+			this.nodes = new Array(this.M.length + 1);
+
+			//row i
+			for(var i = 0; i &lt; this.nodes.length; i++) {
+				this.nodes[i] = new Array(this.N.length + 1);
+				//column j
+				for(var j = 0; j &lt; this.nodes[i].length; j++) {
+					this.nodes[i][j] = new Node();
+				}
+			}
+
+			this.nodes[0][0].value = 0;
+
+			//i rows
+			for(var i = 1; i &lt; this.nodes.length; i++) {
+				if(this.scoreSet.useBeginGapLeft) {
+					this.nodes[i][0].value = this.nodes[i - 1][0].value - this.scoreSet.beginGap;
+				} else {
+					this.nodes[i][0].value = this.nodes[i - 1][0].value - this.scoreSet.gap;
+				}
+				this.nodes[i][0].tracebackI = i - 1;
+				this.nodes[i][0].tracebackJ = 0;
+			}
+
+			//j columns
+			for(var j = 1; j &lt; this.nodes[0].length; j++) {
+				if(this.scoreSet.useBeginGapTop) {
+					this.nodes[0][j].value = this.nodes[0][j - 1].value - this.scoreSet.beginGap;
+				} else {
+					this.nodes[0][j].value = this.nodes[0][j - 1].value - this.scoreSet.gap;
+				}
+				this.nodes[0][j].tracebackI = 0;
+				this.nodes[0][j].tracebackJ = j - 1;
+			}
+
+		}
+
+		//AlignPairQuad class dumpMatrix method
+		function dumpMatrix() {
+			outputWindow.document.write(&quot;Dynamic programming matrix i=&quot; + this.nodes.length + &quot; and j=&quot; + this.nodes[0].length);
+			outputWindow.document.write(&quot;\n&quot;);
+			for(var i = 0; i &lt; this.nodes.length; i++) {
+				for(var j = 0; j &lt; this.nodes[i].length; j++) {
+					var traceI = this.nodes[i][j].tracebackI;
+					var traceJ = this.nodes[i][j].tracebackJ;
+
+					if(traceI == undefined) {
+						traceI = &quot;u&quot;;
+					}
+					if(traceJ == undefined) {
+						traceJ = &quot;u&quot;;
+					}
+					var output = &quot;(&quot; + i + &quot;,&quot; + j + &quot;)[&quot; + traceI + &quot;,&quot; + traceJ + &quot;]=&quot; + this.nodes[i][j].value;
+					outputWindow.document.write(rightNum(output, &quot;&quot;, 20, &quot; &quot;));
+				}
+				outputWindow.document.write(&quot;\n&quot;);
+			}
+			outputWindow.document.write(&quot;\n&quot;);
+
+		}
+
+		//AlignPairQuad class fillMatrix method
+		function fillMatrix() {
+
+			//i rows
+			for(var i = 1; i &lt; this.nodes.length; i++) {
+				//j columns
+				for(var j = 1; j &lt; this.nodes[0].length; j++) {
+
+					var a;
+					var b;
+					var c;
+
+					//handle end gaps here
+
+					if((i == this.nodes.length - 1) &amp;&amp; (j == this.nodes[0].length - 1)) {
+						if(this.scoreSet.useEndGapRight) {
+							a = this.nodes[i - 1][j].value - this.scoreSet.endGap;
+						} else {
+							a = this.nodes[i - 1][j].value - this.scoreSet.gap;
+						}
+
+						if(this.scoreSet.useEndGapBottom) {
+							b = this.nodes[i][j - 1].value - this.scoreSet.endGap;
+						} else {
+							b = this.nodes[i][j - 1].value - this.scoreSet.gap;
+						}
+					} else if(i == this.nodes.length - 1) {
+						a = this.nodes[i - 1][j].value - this.scoreSet.gap;
+						if(this.scoreSet.useEndGapBottom) {
+							b = this.nodes[i][j - 1].value - this.scoreSet.endGap;
+						} else {
+							b = this.nodes[i][j - 1].value - this.scoreSet.gap;
+						}
+					} else if(j == this.nodes[0].length - 1) {
+						if(this.scoreSet.useEndGapRight) {
+							a = this.nodes[i - 1][j].value - this.scoreSet.endGap;
+						} else {
+							a = this.nodes[i - 1][j].value - this.scoreSet.gap;
+						}
+						b = this.nodes[i][j - 1].value - this.scoreSet.gap;
+					} else {
+						a = this.nodes[i - 1][j].value - this.scoreSet.gap;
+						b = this.nodes[i][j - 1].value - this.scoreSet.gap;
+					}
+					c = this.nodes[i - 1][j - 1].value + this.scoreSet.getScore(this.M[i - 1], this.N[j - 1]);
+
+					if((a &gt;= b) &amp;&amp; (a &gt;= c)) {
+						this.nodes[i][j].value = a;
+						this.nodes[i][j].tracebackI = i - 1;
+						this.nodes[i][j].tracebackJ = j;
+					} else if((b &gt;= c) &amp;&amp; (b &gt;= a)) {
+						this.nodes[i][j].value = b;
+						this.nodes[i][j].tracebackI = i;
+						this.nodes[i][j].tracebackJ = j - 1;
+					} else {
+						this.nodes[i][j].value = c;
+						this.nodes[i][j].tracebackI = i - 1;
+						this.nodes[i][j].tracebackJ = j - 1;
+					}
+				}
+			}
+			this.score = this.nodes[this.nodes.length - 1][this.nodes[0].length - 1].value;
+
+		}
+
+		//AlignPairQuad class align() method
+		function align() {
+			this.alignedM = new Array();
+			this.alignedN = new Array();
+
+			var currentI = this.nodes.length - 1;
+			var currentJ = this.nodes[0].length - 1;
+
+			var currentNode = this.nodes[this.nodes.length - 1][this.nodes[0].length - 1];
+
+			while((currentNode.tracebackI != undefined) &amp;&amp; (currentNode.tracebackJ != undefined)) {
+
+				if((currentNode.tracebackI == currentI - 1) &amp;&amp; (currentNode.tracebackJ == currentJ - 1)) {
+					this.alignedM.push(this.M.pop());
+					this.alignedN.push(this.N.pop());
+				} else if(currentNode.tracebackJ == currentJ - 1) {
+					this.alignedM.push(&quot;-&quot;);
+					this.alignedN.push(this.N.pop());
+				} else {
+					this.alignedM.push(this.M.pop());
+					this.alignedN.push(&quot;-&quot;);
+				}
+				currentI = currentNode.tracebackI;
+				currentJ = currentNode.tracebackJ;
+				currentNode = this.nodes[currentNode.tracebackI][currentNode.tracebackJ];
+
+			}
+
+			this.alignedM = this.alignedM.reverse();
+			this.alignedN = this.alignedN.reverse();
+		}
+
+		//AlignPairQuad class getAlignedM() method
+		function getAlignedM() {
+			return this.alignedM.join(&quot;&quot;);
+		}
+
+		//AlignPairQuad class getAlignedN() method
+		function getAlignedN() {
+			return this.alignedN.join(&quot;&quot;);
+		}
+
+		//AlignPairQuad class
+		function AlignPairQuad() {
+			this.M
+			this.N
+			this.scoreSet
+			this.nodes
+			this.alignedM
+			this.alignedN
+			this.score
+		}
+
+		//create and throw away a prototype object
+		new AlignPairQuad();
+
+		//define object methods
+		AlignPairQuad.prototype.initializeMatrix = initializeMatrix;
+		AlignPairQuad.prototype.fillMatrix = fillMatrix;
+		AlignPairQuad.prototype.align = align;
+		AlignPairQuad.prototype.getAlignedM = getAlignedM;
+		AlignPairQuad.prototype.getAlignedN = getAlignedN;
+		AlignPairQuad.prototype.dumpMatrix = dumpMatrix;
+
+		return AlignPairQuad;
+	})();
+	//------------------------------------ ScoreSet class
+	var ScoreSet = (function() {
+		//ScoreSet getScore
+		function getScore(r1, r2) {
+			return this.scoringMatrix.scoringMatrix_getScore(r1, r2);
+		}
+
+		//ScoreSet setScoreSetParam
+		function setScoreSetParam(scoringMatrix, gapPenalty, beginGapPenalty, endGapPenalty) {
+			this.scoringMatrix = scoringMatrix;
+			this.gap = gapPenalty;
+			this.beginGap = beginGapPenalty;
+			this.endGap = endGapPenalty;
+		}
+
+		//ScoreSet class
+		function ScoreSet() {
+			this.scoringMatrix
+			this.gap
+			this.beginGap
+			this.endGap
+			this.useBeginGapTop = true;
+			this.useBeginGapLeft = true;
+			this.useEndGapBottom = true;
+			this.useEndGapRight = true;
+		}
+
+		//create and throw away a prototype object
+		new ScoreSet();
+
+		//define object methods
+		ScoreSet.prototype.getScore = getScore;
+		ScoreSet.prototype.setScoreSetParam = setScoreSetParam;
+
+		return ScoreSet;
+	})();
+	//------------------------------------
+
+	//------------------------------------ ScoringMatrix abstract class
+	//ScoringMatrix getScore method
+	function scoringMatrix_getScore(r1, r2) {
+		r1 = r1.toLowerCase();
+		r2 = r2.toLowerCase();
+		if(r1 == r2) {
+			return this.match;
+		} else {
+			return this.mismatch;
+		}
+	}
+
+	//ScoringMatrix class
+	function ScoringMatrix() {
+		this.mismatch
+		this.match
+	}
+
+	//create and throw away a prototype object
+	new ScoringMatrix();
+
+	//define object methods
+	ScoringMatrix.prototype.scoringMatrix_getScore = scoringMatrix_getScore;
+
+	//------------------------------------ Identity class extends ScoringMatrix Class
+	//Identity class setMismatch method
+	function setMismatch(mismatchScore) {
+		this.mismatch = mismatchScore;
+	}
+
+	//Identity class setMatch method
+	function setMatch(matchScore) {
+		this.match = matchScore;
+	}
+
+	//Identity class
+	function Identity() {
+	}
+
+
+	Identity.prototype = new ScoringMatrix();
+	Identity.prototype.setMismatch = setMismatch;
+	Identity.prototype.setMatch = setMatch;
+
+	function addReturns(sequence) {
+		sequence = sequence.replace(/(.{60})/g, function(str, p1, offset, s) {
+			return p1 + &quot;\n&quot;;
+		});
+		return sequence;
+	}
+
+<span id='DNA-method-complement'>	/**
+</span>	 * Returns the Watson-Crick complement of a sequence of DNA
+	 * @param {String} sequence
+	 * @returns {String} complement
+	 * @author Paul Stothard, University of Alberta, Canada
+	 */
+	function complement(dnaSequence) {
+		//there is no tr operator
+		//should write a tr method to replace this
+		dnaSequence = dnaSequence.replace(/g/g, &quot;1&quot;);
+		dnaSequence = dnaSequence.replace(/c/g, &quot;2&quot;);
+		dnaSequence = dnaSequence.replace(/1/g, &quot;c&quot;);
+		dnaSequence = dnaSequence.replace(/2/g, &quot;g&quot;);
+		dnaSequence = dnaSequence.replace(/G/g, &quot;1&quot;);
+		dnaSequence = dnaSequence.replace(/C/g, &quot;2&quot;);
+		dnaSequence = dnaSequence.replace(/1/g, &quot;C&quot;);
+		dnaSequence = dnaSequence.replace(/2/g, &quot;G&quot;);
+		dnaSequence = dnaSequence.replace(/a/g, &quot;1&quot;);
+		dnaSequence = dnaSequence.replace(/t/g, &quot;2&quot;);
+		dnaSequence = dnaSequence.replace(/1/g, &quot;t&quot;);
+		dnaSequence = dnaSequence.replace(/2/g, &quot;a&quot;);
+		dnaSequence = dnaSequence.replace(/A/g, &quot;1&quot;);
+		dnaSequence = dnaSequence.replace(/T/g, &quot;2&quot;);
+		dnaSequence = dnaSequence.replace(/1/g, &quot;T&quot;);
+		dnaSequence = dnaSequence.replace(/2/g, &quot;A&quot;);
+		dnaSequence = dnaSequence.replace(/u/g, &quot;a&quot;);
+		dnaSequence = dnaSequence.replace(/U/g, &quot;A&quot;);
+		dnaSequence = dnaSequence.replace(/r/g, &quot;1&quot;);
+		dnaSequence = dnaSequence.replace(/y/g, &quot;2&quot;);
+		dnaSequence = dnaSequence.replace(/1/g, &quot;y&quot;);
+		dnaSequence = dnaSequence.replace(/2/g, &quot;r&quot;);
+		dnaSequence = dnaSequence.replace(/R/g, &quot;1&quot;);
+		dnaSequence = dnaSequence.replace(/Y/g, &quot;2&quot;);
+		dnaSequence = dnaSequence.replace(/1/g, &quot;Y&quot;);
+		dnaSequence = dnaSequence.replace(/2/g, &quot;R&quot;);
+		dnaSequence = dnaSequence.replace(/k/g, &quot;1&quot;);
+		dnaSequence = dnaSequence.replace(/m/g, &quot;2&quot;);
+		dnaSequence = dnaSequence.replace(/1/g, &quot;m&quot;);
+		dnaSequence = dnaSequence.replace(/2/g, &quot;k&quot;);
+		dnaSequence = dnaSequence.replace(/K/g, &quot;1&quot;);
+		dnaSequence = dnaSequence.replace(/M/g, &quot;2&quot;);
+		dnaSequence = dnaSequence.replace(/1/g, &quot;M&quot;);
+		dnaSequence = dnaSequence.replace(/2/g, &quot;K&quot;);
+		dnaSequence = dnaSequence.replace(/b/g, &quot;1&quot;);
+		dnaSequence = dnaSequence.replace(/v/g, &quot;2&quot;);
+		dnaSequence = dnaSequence.replace(/1/g, &quot;v&quot;);
+		dnaSequence = dnaSequence.replace(/2/g, &quot;b&quot;);
+		dnaSequence = dnaSequence.replace(/B/g, &quot;1&quot;);
+		dnaSequence = dnaSequence.replace(/V/g, &quot;2&quot;);
+		dnaSequence = dnaSequence.replace(/1/g, &quot;V&quot;);
+		dnaSequence = dnaSequence.replace(/2/g, &quot;B&quot;);
+		dnaSequence = dnaSequence.replace(/d/g, &quot;1&quot;);
+		dnaSequence = dnaSequence.replace(/h/g, &quot;2&quot;);
+		dnaSequence = dnaSequence.replace(/1/g, &quot;h&quot;);
+		dnaSequence = dnaSequence.replace(/2/g, &quot;d&quot;);
+		dnaSequence = dnaSequence.replace(/D/g, &quot;1&quot;);
+		dnaSequence = dnaSequence.replace(/H/g, &quot;2&quot;);
+		dnaSequence = dnaSequence.replace(/1/g, &quot;H&quot;);
+		dnaSequence = dnaSequence.replace(/2/g, &quot;D&quot;);
+
+		return dnaSequence;
+	}
+
+<span id='DNA-method-reverse'>	/**
+</span>	 * Reverses the linear order of a sequence of DNA
+	 * @param {String} sequence
+	 * @returns {String} complement
+	 * @author Paul Stothard, University of Alberta, Canada
+	 */
+	function reverse(dnaSequence) {
+		var tempDnaArray = new Array();
+		if(dnaSequence.search(/./) != -1) {
+			tempDnaArray = dnaSequence.match(/./g);
+			tempDnaArray = tempDnaArray.reverse();
+			dnaSequence = tempDnaArray.join(&quot;&quot;);
+		}
+		return dnaSequence;
+	}
+
+<span id='DNA-method-reverseComplement'>	/**
+</span>	 * Returns the #reverse #complement of a sequence of DNA
+	 * @param {String} sequence
+	 * @returns {String} complement
+	 */
+	function reverseComplement(dna) {
+		return reverse(complement(dna));
+	}
+
+<span id='DNA-method-parseComplement'>	/**
+</span>	 * Parses a string containing a numerical identifier and an optional
+	 * polarity specifier into an integer segment label reflecting both
+	 * identity and polarity
+	 *
+	 *     parseComplement(&quot;5*&quot;) // =&gt; -5
+	 *     parseComplement(&quot;2'&quot;)  // =&gt; -2
+	 *     parseComplement(&quot;2&quot;)  // =&gt; 2
+	 *
+	 * @param {String} identifier
+	 * @return {Number} label
+	 */
+	function parseComplement(identifier) {
+		identifier = identifier.trim();
+		if(identifier.length &gt; 1) {
+			if(identifier[identifier.length - 1] == '*' || identifier[identifier.length - 1] == &quot;'&quot;) {
+				return -1 * parseInt(identifier.substr(0, identifier.length - 1));
+			}
+		}
+		return parseInt(identifier);
+	}
+
+<span id='DNA-method-parseStrandSpec'>	/**
+</span>	 * Parses a string strand specification. A strand specification should be
+	 * a list of {@link #parseComplement numerical identifiers}, separated by
+	 * a delimiter. Returns an array of integer segment labels
+	 *
+	 *    parseStrandSpec(&quot;1 2 3* 4 5*&quot;,&quot; &quot;) // =&gt; [1, 2, -3, 4, -5]
+	 *
+	 * @param {String} spec
+	 * @param {String} [delimiter=' ']
+	 * @return {Number[]} segments
+	 */
+	function parseStrandSpec(spec, delimiter) {
+		delimiter || ( delimiter = ' ');
+		var list = spec.split(delimiter), out = [];
+		for(var i = 0; i &lt; list.length; i++) {
+			out.push(parseComplement(list[i]));
+		}
+		return out;
+	}
+
+<span id='DNA-method-amax'>	/**
+</span>	 * Returns the number of greatest magnitude in a list, regardless of sign (ie: max(abs(list)))
+	 * @param {Number[]} list
+	 */
+	function amax(list) {
+		return Math.abs(_.max(list, Math.abs));
+	}
+
+<span id='DNA-method-mapUnique'>	/**
+</span>	 * Produces a mapping of a sparse, ordered list of keys to a contiguous ordered list of numbers
+	 * e.g. ['a', 'c', 'd'] -&gt; {'a': 0, 'c':1, 'd':2}
+	 * @param {Array} list
+	 * @param {Number} [offset=0] Amount to add to each element in the new list. (e.g. set to 1 to produce a 1-indexed mapping.)
+	 */
+	function mapUnique(list, offset) {
+		offset || ( offset = 0);
+		var out = {};
+		list = _.uniq(list, true);
+		_.each(list, function(el, i) {
+			out[el] = i + offset;
+		});
+		return out;
+	}
+
+<span id='DNA-method-absUnique'>	/**
+</span>	 * Returns the unique elements of the list of integers, by absolute value
+	 */
+	function absUnique(list) {
+		return _.uniq(_.map(list, Math.abs));
+	}
+
+<span id='DNA-method-sign'>	/**
+</span>	 * Alias for #signum
+	 */
+	function sign(i) {
+		return ((i &gt; 0) ? 1 : ((i &lt; 0) ? -1 : 0));
+	}
+
+	function tablify(table) {
+		var list = table.split('\n'), out = [];
+		_.each(list, function(row) {
+			out.push(row.split('\t'));
+		});
+		return out;
+	}
+
+	function indexTable(table) {
+		var out = {};
+		_.each(table, function(row) {
+			if(row.length &gt; 1) {
+				out[row[0]] || (out[row[0]] = {});
+				out[row[0]][row[1]] = (row.length &gt; 3 ? row.slice(2) : row[2]);
+			}
+		});
+		return out;
+	}
+
+	function indexBy(field1, field2, table) {
+		var out = {};
+		_.each(table, function(row) {
+			out[row[field1]] || (out[row[field1]] = {});
+			out[row[field1]][row[field2]] = row;
+		});
+		return out;
+	}
+
+	function stripNupackHeaders(string) {
+		var arr = string.split('\n');
+		while(arr[0] &amp;&amp; arr[0][0] == '%') {
+			arr.shift();
+		}
+		return arr.join('\n');
+		//return string.substr(string.indexOf('\n\n% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %\n'));
+	};
+
+	function nupackBlocks(string) {
+		return _.each(string.split('% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %'), function(i) {
+		});
+	};
+
+	// Exports
+	return {
+		mapUnique : mapUnique,
+		absUnique : absUnique,
+		amax : amax,
+		
+		parseComplement : parseComplement,
+		parseStrandSpec : parseStrandSpec,
+		
+		stripNupackHeaders : stripNupackHeaders,
+		indexTable : indexTable,
+		indexBy : indexBy,
+		tablify : tablify,
+		addReturns : addReturns,
+		reverse : reverse,
+		complement : complement,
+		reverseComplement : reverseComplement,
+
+		//Written by Paul Stothard, University of Alberta, Canada
+		// good defaults for last few args: 2, -1, -2, 0, 0
+		pairwiseAlign : function(newDnaOne, newDnaTwo, matchScore, mismatchScore, gapPenalty, beginGapPenalty, endGapPenalty) {
+			matchScore || ( matchScore = 2);
+			mismatchScore || ( mismatchScore = -1);
+			gapPenalty || ( gapPenalty = -2);
+			beginGapPenalty || ( beginGapPenalty = 0);
+			endGapPenalty || ( endGapPenalty = 0);
+
+			//can use one or both.
+			//can compare scores (should be identical)
+			var useLinearSpace = true;
+			var useQuadraticSpace = false;
+
+			var matrix = new Identity();
+			matrix.setMatch(matchScore);
+			matrix.setMismatch(mismatchScore);
+
+			var scoreSet = new ScoreSet();
+			scoreSet.setScoreSetParam(matrix, gapPenalty, beginGapPenalty, endGapPenalty);
+
+			var alignment;
+
+			if(useLinearSpace) {
+				alignment = new AlignPairLinear();
+				alignment.setAlignParam(newDnaOne, newDnaTwo, scoreSet);
+				alignment.align();
+
+				return {
+					sequences : [alignment.getAlignedM(), alignment.getAlignedN()],
+					score : alignment.score
+				};
+			}
+
+			if(useQuadraticSpace) {
+				alignment = new AlignPairQuad();
+				alignment.initializeMatrix(newDnaOne, newDnaTwo, scoreSet);
+				alignment.fillMatrix();
+				//alignment.dumpMatrix();
+				alignment.align();
+
+				return {
+					sequences : [alignment.getAlignedM(), alignment.getAlignedN()],
+					score : alignment.score
+				};
+			}
+		},
+		sequenceStats : function(sequence) {
+			/* arrayOFItems are regular expressions. A number included with each regular expression serves
+			 * as an adjustment for the percentage calculation. Any additional text will appear next to the
+			 *  pattern when the results are given.
+			 */
+			var list = {
+				&quot;g&quot; : [&quot;/g/&quot;, 1, 1],
+				&quot;a&quot; : [&quot;/a/&quot;, 1, 1],
+				&quot;t&quot; : [&quot;/t/&quot;, 1, 1],
+				&quot;c&quot; : [&quot;/c/&quot;, 1, 1],
+				&quot;n&quot; : [&quot;/n/&quot;, 1],
+				&quot;u&quot; : [&quot;/u/&quot;, 1, 1],
+				&quot;r&quot; : [&quot;/r/&quot;, 1],
+				&quot;y&quot; : [&quot;/y/&quot;, 1],
+				&quot;s&quot; : [&quot;/s/&quot;, 1],
+				&quot;w&quot; : [&quot;/w/&quot;, 1],
+				&quot;k&quot; : [&quot;/k/&quot;, 1],
+				&quot;m&quot; : [&quot;/m/&quot;, 1],
+				&quot;b&quot; : [&quot;/b/&quot;, 1],
+				&quot;d&quot; : [&quot;/d/&quot;, 1],
+				&quot;h&quot; : [&quot;/h/&quot;, 1],
+				&quot;v&quot; : [&quot;/v/&quot;, 1],
+				&quot;gg&quot; : [&quot;/g(?=g)/&quot;, 2],
+				&quot;ga&quot; : [&quot;/g(?=a)/&quot;, 2],
+				&quot;gt&quot; : [&quot;/g(?=t)/&quot;, 2],
+				&quot;gc&quot; : [&quot;/g(?=c)/&quot;, 2],
+				&quot;gn&quot; : [&quot;/g(?=n)/&quot;, 2],
+				&quot;ag&quot; : [&quot;/a(?=g)/&quot;, 2],
+				&quot;aa&quot; : [&quot;/a(?=a)/&quot;, 2],
+				&quot;at&quot; : [&quot;/a(?=t)/&quot;, 2],
+				&quot;ac&quot; : [&quot;/a(?=c)/&quot;, 2],
+				&quot;an&quot; : [&quot;/a(?=n)/&quot;, 2],
+				&quot;tg&quot; : [&quot;/t(?=g)/&quot;, 2],
+				&quot;ta&quot; : [&quot;/t(?=a)/&quot;, 2],
+				&quot;tt&quot; : [&quot;/t(?=t)/&quot;, 2],
+				&quot;tc&quot; : [&quot;/t(?=c)/&quot;, 2],
+				&quot;tn&quot; : [&quot;/t(?=n)/&quot;, 2],
+				&quot;cg&quot; : [&quot;/c(?=g)/&quot;, 2],
+				&quot;ca&quot; : [&quot;/c(?=a)/&quot;, 2],
+				&quot;ct&quot; : [&quot;/c(?=t)/&quot;, 2],
+				&quot;cc&quot; : [&quot;/c(?=c)/&quot;, 2],
+				&quot;cn&quot; : [&quot;/c(?=n)/&quot;, 2],
+				&quot;ng&quot; : [&quot;/n(?=g)/&quot;, 2],
+				&quot;na&quot; : [&quot;/n(?=a)/&quot;, 2],
+				&quot;nt&quot; : [&quot;/n(?=t)/&quot;, 2],
+				&quot;nc&quot; : [&quot;/n(?=c)/&quot;, 2],
+				&quot;nn&quot; : [&quot;/n(?=n)/&quot;, 2],
+				&quot;g,c&quot; : [&quot;/g|c/&quot;, 1],
+				&quot;a,t&quot; : [&quot;/a|t/&quot;, 1],
+				&quot;r,y,s,w,k&quot; : [&quot;/r|y|s|w|k/&quot;, 1],
+				&quot;b,h,d,v,n&quot; : [&quot;/b|h|d|v|n/&quot;, 1],
+				&quot;r,y,s,w,k,m,b,d,h,v,n&quot; : [&quot;/r|y|s|w|k|m|b|d|h|v|n/&quot;, 1]
+			};
+			var originalLength = sequence.length, full = [], abbr = [];
+			for(var name in list) {
+				var tempNumber = 0;
+				var matchExp = list[name][0]
+				matchExp = eval(matchExp + 'gi');
+				if(sequence.search(matchExp) != -1) {
+					tempNumber = ((sequence.match(matchExp)).length);
+				}
+				var percentage = 0, atcguPercent = 0;
+				if((originalLength + 1 - parseFloat(list[name][1])) &gt; 0) {
+					percentage = (tempNumber / (originalLength + 1 - list[name][1]));
+				}
+				full.push({
+					name : name,
+					count : tempNumber,
+					percent : percentage.toFixed(2),
+				});
+				if('a c g t u'.indexOf(name) != -1 &amp;&amp; tempNumber &gt; 0) {
+					abbr.push({
+						name : name,
+						count : tempNumber,
+						percent : percentage.toFixed(2),
+					});
+				}
+			}
+			return {
+				full : full,
+				abbr : abbr
+			};
+		},
+<span id='DNA-method-levenshtein'>		/**
+</span>		 * Calculates the Levenshtein distance between two strings
+		 * @param {String} s1
+		 * @param {String} s2
+		 * @return {Number} distance
+		 * @author http://kevin.vanzonneveld.net
+		 */
+		levenshtein : function(s1, s2) {
+			// http://kevin.vanzonneveld.net
+			// +            original by: Carlos R. L. Rodrigues (http://www.jsfromhell.com)
+			// +            bugfixed by: Onno Marsman
+			// +             revised by: Andrea Giammarchi (http://webreflection.blogspot.com)
+			// + reimplemented by: Brett Zamir (http://brett-zamir.me)
+			// + reimplemented by: Alexander M Beedie
+			// *                example 1: levenshtein('Kevin van Zonneveld', 'Kevin van Sommeveld');
+			// *                returns 1: 3
+			if(s1 == s2) {
+				return 0;
+			}
+
+			var s1_len = s1.length;
+			var s2_len = s2.length;
+			if(s1_len === 0) {
+				return s2_len;
+			}
+			if(s2_len === 0) {
+				return s1_len;
+			}
+
+			// BEGIN STATIC
+			var split = false;
+			try {
+				split = !('0')[0];
+			} catch (e) {
+				split = true;
+				// Earlier IE may not support access by string index
+			}
+			// END STATIC
+			if(split) {
+				s1 = s1.split('');
+				s2 = s2.split('');
+			}
+
+			var v0 = new Array(s1_len + 1);
+			var v1 = new Array(s1_len + 1);
+
+			var s1_idx = 0, s2_idx = 0, cost = 0;
+			for( s1_idx = 0; s1_idx &lt; s1_len + 1; s1_idx++) {
+				v0[s1_idx] = s1_idx;
+			}
+			var char_s1 = '', char_s2 = '';
+			for( s2_idx = 1; s2_idx &lt;= s2_len; s2_idx++) {
+				v1[0] = s2_idx;
+				char_s2 = s2[s2_idx - 1];
+
+				for( s1_idx = 0; s1_idx &lt; s1_len; s1_idx++) {
+					char_s1 = s1[s1_idx];
+					cost = (char_s1 == char_s2) ? 0 : 1;
+					var m_min = v0[s1_idx + 1] + 1;
+					var b = v1[s1_idx] + 1;
+					var c = v0[s1_idx] + cost;
+					if(b &lt; m_min) {
+						m_min = b;
+					}
+					if(c &lt; m_min) {
+						m_min = c;
+					}
+					v1[s1_idx + 1] = m_min;
+				}
+				var v_tmp = v0;
+				v0 = v1;
+				v1 = v_tmp;
+			}
+			return v0[s1_len];
+		},
+<span id='DNA-method-hamming'>		/**
+</span>		 * Returns the Hamming distance between two strings
+		 * @param {String} s1
+		 * @param {String} s2
+		 * @return {Number} distance
+		 */
+		hamming : function(s1, s2) {
+			//sum(ch1 != ch2 for ch1, ch2 in zip(s1, s2))
+			return _.reduce(_.map(_.zip(s1.split(''), s2.split('')), function(ch1, ch2) {
+				return ch1 != ch2;
+			}), function(memo, num) {
+				return memo + num;
+			});
+		},
+<span id='DNA-method-generateAdjacency'>		/**
+</span>		 * Generates an adjacency network for use with Protovis network visualizations
+		 * @param {String} struct The target structure in dot-paren notation
+		 * @param {String[]} strands Array of sequences depicted in the structure
+		 * @param {Boolean} linkStrands true to generate strong links between adjacent bases in the same strand (e.g. for force-directed visualizations),
+		 * false to only link hybridized bases (defaults to false)
+		 */
+		generateAdjacency : function(struct, strands, linkStrands, params) {
+			// var struct = &quot;....(((...)))....&quot;;
+			linkStrands = linkStrands || false;
+			params || ( params = {});
+			_.extend(params, {
+				strandValue : 9,
+				hybridizationValue : 2,
+				radius : 300,
+				segments: {},
+				segmentLabels: false,
+			});
+
+			var nodes = [], links = [], hybridization = [], strandIndex = 0, node, n = 0, base = 0, theta = 0, dtheta = Math.PI / struct.length, currentSegment = null;
+
+			if(params.segmentLabels) {
+				var segmentIndicies = _.keys(params.segments);
+				var labels = {};
+				for(var i = 0; i&lt;(segmentIndicies.length-1); i++) {
+					labels[Math.round((segmentIndicies[i]+segmentIndicies[i+1])/2)] = params.segments[segmentIndicies[i]];
+				}
+			}
+
+			for(var i = 0; i &lt; struct.length; i++) {
+
+				if(struct[i] == '+') {
+					strandIndex++;
+					n--;
+					base = 0;
+				} else {
+					if(params.segments[i]) { currentSegment = params.segments[i]; }
+					node = {
+						strand : strandIndex,
+						nodeName : (strands &amp;&amp; strands[strandIndex]) ? strands[strandIndex][base] : false,
+						base: (strands &amp;&amp; strands[strandIndex]) ? strands[strandIndex][base] : false,
+						segment: currentSegment,
+						//x: Math.sin(theta)*params.radius,
+						//y: Math.cos(theta)*params.radius,
+					};
+
+					if(struct[i] == '(') {
+						hybridization.push(n);
+					} else if(struct[i] == ')') {
+						var link = {
+							source : hybridization.pop(),
+							target : n,
+							value : params.hybridizationValue,
+							type : 'wc'
+						};
+						if(params.ppairs) {
+							if(params.ppairs[link.source + 1] &amp;&amp; params.ppairs[link.source+1][link.target + 1]) {
+								link.probability = parseFloat(params.ppairs[link.source+1][link.target + 1]);
+								node.probability = link.probability;
+								if(nodes[link.source]) {
+									nodes[link.source].probability = link.probability;
+								}
+							} else if(params.ppairs[link.target + 1] &amp;&amp; params.ppairs[link.target+1][link.source + 1]) {
+								link.probability = parseFloat(params.ppairs[link.target+1][link.source + 1]);
+								node.probability = link.probability;
+								if(nodes[link.target]) {
+									nodes[link.target].probability = link.probability;
+								}
+							}
+							if(link.probability) {
+
+							}
+						}
+						links.push(link);
+					}
+
+					nodes.push(node);
+					if(linkStrands) {
+						if(n &gt; 0 &amp;&amp; (struct[i - 1] != '+')) {
+							links.push({
+								source : n,
+								target : n - 1,
+								value : params.strandValue,
+								type : 'strand',
+							});
+						}
+					}
+					// if(labels[n]) {
+						// links.push({
+							// source : n,
+							// target : 
+						// })
+					// }
+					
+					theta += dtheta;
+				}
+				n++;
+				base++;
+			}
+
+			return {
+				nodes : nodes,
+				links : links
+			};
+		},
+<span id='DNA-method-generateAdjacency2'>		/**
+</span>		 * Generates an adjacency network for use with Protovis network visualizations
+		 * @param {String} struct The target structure in dot-paren notation
+		 * @param {String[]} strands Array of sequences depicted in the structure
+		 * @param {Boolean} linkStrands true to generate strong links between adjacent bases in the same strand (e.g. for force-directed visualizations),
+		 * false to only link hybridized bases (defaults to false)
+		 */
+		generateAdjacency2 : function(strands,params) {
+			// var struct = &quot;....(((...)))....&quot;;
+			
+			params || ( params = {});
+			_.defaults(params, {
+				strandValue : 9,
+				hybridizationValue : 2,
+				radius : 300,
+				segments: {},
+				segmentLabels: false,
+				linkStrands: false,
+			});
+			var linkStrands = params.linkStrands;
+
+			var nodes = [], links = [], hybridization = [], strandIndex = 0, node, n = 0, base = 0,
+			theta = 0, 
+			//dtheta = Math.PI / struct.length, 
+			currentSegment = null;
+
+			// if(params.segmentLabels) {
+				// var segmentIndicies = _.keys(params.segments);
+				// var labels = {};
+				// for(var i = 0; i&lt;(segmentIndicies.length-1); i++) {
+					// labels[Math.round((segmentIndicies[i]+segmentIndicies[i+1])/2)] = params.segments[segmentIndicies[i]];
+				// }
+			// }
+			
+			var n = 0;
+			
+			// for each strand
+			for(var strandIndex=0; strandIndex &lt; strands.length; strandIndex++) {
+				var strandSpec = strands[strandIndex],
+					strand = strandSpec.strand;
+				
+				if(strandSpec.structure) {
+					
+					// for each segment
+					for(var i=0; i&lt;strandSpec.structure.length; i++) {
+						var segmentSpec = strandSpec.structure[i];
+						var segment = segmentSpec.segment;
+						var ch = segmentSpec.type;
+						var sequence = segment.getSequence();
+	
+						// for each base
+						for(var j=0; j&lt;segmentSpec.length; j++) {
+							node = {
+								strand : strand,
+								segment: segment.getIdentifier(),
+								base: sequence[j],
+								domain: segment.getDomain().getName(),
+								role: segment.getDomain().role,
+								
+								//nodeName : (strands &amp;&amp; strands[strandIndex]) ? strands[strandIndex][base] : false,
+								//base: (strands &amp;&amp; strands[strandIndex]) ? strands[strandIndex][base] : false,
+								//segment: currentSegment,
+								//x: Math.sin(theta)*params.radius,
+								//y: Math.cos(theta)*params.radius,
+							};
+							
+							if(ch== '(') {
+								hybridization.push(n);
+							} else if(ch == ')') {
+								var link = {
+									source : hybridization.pop(),
+									target : n,
+									value : params.hybridizationValue,
+									type : 'wc'
+								};
+								// if(params.ppairs) {
+									// if(params.ppairs[link.source + 1] &amp;&amp; params.ppairs[link.source+1][link.target + 1]) {
+										// link.probability = parseFloat(params.ppairs[link.source+1][link.target + 1]);
+										// node.probability = link.probability;
+										// if(nodes[link.source]) {
+											// nodes[link.source].probability = link.probability;
+										// }
+									// } else if(params.ppairs[link.target + 1] &amp;&amp; params.ppairs[link.target+1][link.source + 1]) {
+										// link.probability = parseFloat(params.ppairs[link.target+1][link.source + 1]);
+										// node.probability = link.probability;
+										// if(nodes[link.target]) {
+											// nodes[link.target].probability = link.probability;
+										// }
+									// }
+									// if(link.probability) {
+// 
+									// }
+								// }
+								links.push(link);
+							}
+
+							nodes.push(node);
+							if(linkStrands) {
+								if(i+j&gt;0) {
+									links.push({
+										source : n,
+										target : n - 1,
+										value : params.strandValue,
+										type : 'strand',
+									});
+								}
+							}
+							n++;
+
+						}
+					} 
+					
+				}
+			}
+
+			return {
+				nodes : nodes,
+				links : links
+			};
+		},
+		
+		
+		normalizeSystem : function(strands) {
+			// var list = [];
+			// _.each(strands, function(strand) {
+			// list.push(parseStrandSpec(strand));
+			// });
+			var list = _.map(strands, parseStrandSpec);
+
+			var uniq = absUnique(_.flatten(list)).sort(function(a, b) {
+				return a - b;
+			}), mapping = mapUnique(uniq, 1), out = [];
+			_.each(list, function(strand) {
+				var s = [];
+				_.each(strand, function(el) {
+					s.push(sign(el) * mapping[Math.abs(el)]);
+				});
+				out.push(s);
+			});
+			return out;
+		},
+		encodeStrand : function(strand) {
+			return _.map(strand, function(el) {
+				return Math.abs(el) + (sign(el) &lt; 0 ? '*' : '');
+			}).join(' ');
+		},
+<span id='DNA-method-threadSegments'>		/**
+</span>		 * Accepts a set of domains and a strand specification, and produces a sequence to represent the strand
+		 * @param {String[]}
+		 */
+		threadSegments : function(segments, strand) {
+			var strandList = _.isArray(strand) ? strand : parseStrandSpec(strand, ' '), sequence = '', id;
+			if(_.isArray(segments)) {
+				if(segments.length &lt; amax(strandList)) {
+					return '';
+				}
+				for(var i = 0; i &lt; strandList.length; i++) {
+					id = strandList[i];
+					if(segments[Math.abs(id) - 1]) {
+						if(id &gt; 0) {
+							sequence += segments[id - 1];
+						} else {
+							sequence += reverseComplement(segments[Math.abs(id) - 1]);
+						}
+					}
+				}
+			} else {
+				for(var i = 0; i &lt; strandList.length; i++) {
+					id = strandList[i];
+					if(segments[Math.abs(id)]) {
+						if(id &gt; 0) {
+							sequence += segments[id];
+						} else {
+							sequence += reverseComplement(segments[Math.abs(id)]);
+						}
+					}
+				}
+			}
+			return sequence;
+		},
+		unthreadSegments : function(sequence, strand) {
+
+		},
+<span id='DNA-method-structureSpec'>		/**
+</span>		 * Converts a CodeMirror-parsed NUPACK file into a structure specification.
+		 * @param {Array} lines Result of running CodeMirror#tokenize(string, 'nupack') on a structure specification
+		 * @return {Object} spec
+		 * @return {Object} spec.domains Hash mapping the (numerical) names of each segment to their sequence (or proto-sequence; may contain degenerate bases like N)
+		 * @return {Object} spec.strands Hash mapping strand names to {@link }
+		 */
+		structureSpec : function(lines) {
+			var sequences = {}, strands = {};
+			_.each(lines, function(line) {
+				if(line.length &gt; 0) {
+					if(line[0][1] == 'structure') {
+
+					} else if(line[0][1] == 'sequence') {
+						/*
+						 * e.g.:
+						 *     sequence a = 7N
+						 *     sequence a = ATCGNA
+						 */
+						var name = line[1][1], spec = _.select(line.slice(3), function(x) {
+							return (x[0] == 'number' || (x[0].indexOf('sequence') != -1));
+						});
+						if(spec[0][0] == 'number') {
+							var base = spec[1][1], times = spec[0][1], spec = '';
+							_.times(times, function() {
+								spec += base;
+							});
+						} else {
+							spec = _.pluck(spec, 1).join('');
+						}
+						sequences[name] = spec;
+
+						/*
+						 * e.g.:
+						 *     M1 : 1 2* 3 4
+						 */
+					} else if(line[0][0] == 'variable' &amp;&amp; line[1] &amp;&amp; line[1][1] == ':') {
+						var name = line[0][1], spec = _.select(line.slice(2), function(x) {
+							return x[0] == 'string';
+						});
+						spec = _.pluck(spec, 1);
+						spec = spec.join(' ');
+						strands[name] = spec;
+					}
+				}
+			});
+			return {
+				domains : sequences,
+				strands : strands,
+			};
+		},
+		defaultPolaritySpecifier : '*',
+
+<span id='DNA-method-makeIdentifier'>		/**
+</span>		 * Forms an identifier string consisting of a name and an optional
+		 * polarity specifier
+		 * @param {String} name,
+		 * @param {Number} polarity
+		 * @return {String} identifier
+		 */
+		makeIdentifier : function(name, polarity) {
+			return name + ((polarity == -1) ? this.defaultPolaritySpecifier : '');
+		},
+<span id='DNA-method-parsePolarity'>		/**
+</span>		 * Parses a string polarity identifier or number and produces a numerical
+		 * polarity
+		 *
+		 *     parsePolarity(&quot;+&quot;) // =&gt; 1
+		 *     parsePolarity(&quot;-&quot;) // =&gt; -1
+		 *     parsePolarity(1) // =&gt; 1
+		 *     parsePolarity(-5) // =&gt; -1
+		 *
+		 * @param {String/Number} polarityString Polarity representation
+		 * @returns {Number} polarity Numerical polarity (1 for 5' -&gt; 3', -1 for 3' -&gt; 5')
+		 */
+		parsePolarity : function(polarityString) {
+			if(_.isNumber(polarityString)) {
+				return this.signum(polarityString);
+			}
+
+			if(polarityString == &quot;-&quot;) {
+				return -1;
+			} else if(polarityString == &quot;+&quot;) {
+				return 1;
+			}
+			return 0;
+		},
+<span id='DNA-method-getPolarity'>		/**
+</span>		 * Gets the polarity of a given identifier string. Strings ending with * or
+		 * ' are assumed to have negative (3' to 5') polarity.
+		 * @param {String} identifier
+		 * @return {Number} polarity 1 for 5' -&gt; 3', -1 for 3' -&gt; 5'
+		 */
+		getPolarity : function(identifier) {
+			return identifier ? ((identifier[identifier.length - 1] == '*' || identifier[identifier.length - 1] == &quot;'&quot;) ? -1 : 1) : 0;
+		},
+<span id='DNA-method-parseIdentifier'>		/**
+</span>		 * Parses an identifier (identity + optional polarity specifier)
+		 * to an object containing the `identity` and `polarity`
+		 * @return {Object} spec
+		 * @return {Object} spec.identity
+		 * @return {Object} spec.polarity
+		 */
+		parseIdentifier : function(identifier) {
+			return {
+				identity : this.normalizeIdentity(identifier),
+				polarity : this.getPolarity(identifier),
+				// identifier : identifier,
+			}
+		},
+<span id='DNA-method-normalizeIdentity'>		/**
+</span>		 * Strips the polarity indicator (* or ') from an identifier. In
+		 * other words, gets the identity portion of an identifier.
+		 * @param {String} identifier
+		 * @returns {String} identity
+		 */
+		normalizeIdentity : function(identifier) {
+			if(this.getPolarity(identifier) == -1) {
+				return identifier.substring(0, identifier.length - 1);
+			}
+			return identifier;
+		},
+<span id='DNA-method-hashBy'>		/**
+</span>		 * Converts an array of objects to an Object keyed by the provided
+		 * `property` of the objects.
+		 *
+		 *     hashBy([{id: 'a'},{id: 'b'},{id: 'c'}],'id'); // -&gt; { a : {id: 'a'}, b: {id: 'b'}, c: {id: 'c'} }
+		 *
+		 * @param {Object[]} array Array of objects
+		 * @param {String} property Property of the `array` of objects which should be
+		 */
+		hashBy : function(array, property) {
+			return _.reduce(array, function(memo, obj) {
+				memo[obj[property]] = obj;
+			}, {});
+		},
+<span id='DNA-method-signum'>		/**
+</span>		 * Returns the sign (signum) of a number
+		 *
+		 *     input &gt; 0 // -&gt; 1
+		 *     input &lt; 0 // -&gt; -1
+		 *     input == 0 // -&gt; 0
+		 *
+		 * @param {Number} input
+		 * @returns {Number} output
+		 */
+		signum : function(number) {
+			return sign(number)
+		},
+		sign: sign,
+	};
+})();
+DNA = exports.DNA;
+</pre>
+</body>
+</html>

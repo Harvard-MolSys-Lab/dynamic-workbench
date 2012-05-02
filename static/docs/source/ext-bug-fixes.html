@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.require('Ext.grid.property.Store');
+Ext.grid.property.Store.override({
+	getProperty : function(row) {
+		return Ext.isNumber(row) ? this.store.getAt(row) : this.store.getById(row);
+	},
+	setValue : function(prop, value, create) {
+		var r = this.getRec(prop);
+		if (r) {
+			r.set('value', value);
+			this.source[prop] = value;
+		} else if (create) {
+
+			this.source[prop] = value;
+			r = new Ext.grid.property.Property({
+				name: prop,
+				value: value
+			}, prop);
+			this.add(r);
+		}
+	},
+	remove : function(prop) {
+		var r = this.getRec(prop);
+		if(r) {
+			this.remove(r);
+			delete this.source[prop];
+		}
+	},
+	getRec : function(prop) {
+		return this.getById(prop);
+	},
+});
+
+/*
+ * This patch is necessary in the 4.0.x branch, due to this bug: 
+ * http://www.sencha.com/forum/showthread.php?151211-Reloading-TreeStore-adds-all-records-to-store-getRemovedRecords&amp;p=661157#post661157
+ * http://www.sencha.com/forum/showthread.php?154059-4.0.7-TreePanel-Error-when-reloading-the-treeStore
+ * 
+ * Without the fix, on tree node refresh, all nodes are deleted (including POST requests to the server which delete *actual files*).
+ * This is apparently fixed in 4.1.0, so should be reverted then.
+ */
+Ext.require('Ext.data.TreeStore');
+Ext.data.TreeStore.override({
+    load: function(options) {
+        options = options || {};
+        options.params = options.params || {};
+
+        var me = this,
+            node = options.node || me.tree.getRootNode(),
+            root;
+
+        // If there is not a node it means the user hasnt defined a rootnode yet. In this case lets just
+        // create one for them.
+        if (!node) {
+            node = me.setRootNode({
+                expanded: true
+            });
+        }
+
+        if (me.clearOnLoad) {
+        	// BUGFIX: from 4.0.2; without this, all files are deleted by ext on refresh of tree
+            node.removeAll(false);//true,true);//true);
+        }
+
+        Ext.applyIf(options, {
+            node: node
+        });
+        options.params[me.nodeParam] = node ? node.getId() : 'root';
+
+        if (node) {
+            node.set('loading', true);
+        }
+
+        return me.callParent([options]);
+    },
+});</pre>
+</body>
+</html>

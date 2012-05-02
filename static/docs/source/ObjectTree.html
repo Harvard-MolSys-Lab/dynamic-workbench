@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='App-ui-ObjectTree'>/**
+</span> * Displays a tree of objects in the workspace, grouped hierarchically based on
+ * {@link Workspace.objects.Objects.Object#parent parent/child relationships}
+ */
+Ext.define('App.ui.ObjectTree', {
+	extend: 'Ext.tree.TreePanel',
+	useArrows: true,
+	initComponent: function() {
+		// Ext.apply(this, {
+		// selModel: new Ext.tree.MultiSelectionModel()
+		// });
+		App.ui.ObjectTree.superclass.initComponent.apply(this, arguments);
+		//this.editor = new Ext.tree.TreeEditor(this);
+		//this.editor.on('complete', this.onEditName, this);
+	},
+<span id='App-ui-ObjectTree-method-attachTo'>	/**
+</span>	 * Links this tree to the passed {@link Workspace}
+	 * @param {Workspace} workspace
+	 */
+	attachTo: function(workspace) {
+		this.workspace = workspace;
+		this.mon(this.workspace, 'instantiate', this.onCreate, this);
+		this.mon(this.workspace, 'initialize', this.bindParent, this);
+		this.mon(this.workspace, 'select', this.onWorkspaceSelect, this);
+		this.mon(this.workspace, 'unselect', this.onWorkspaceUnselect, this);
+		this.mon(this.workspace, 'destroy', this.onObjectDestroy, this);
+		var sm = this.getSelectionModel();
+		sm.on('selectionchange', this.onSelect, this);
+	},
+<span id='App-ui-ObjectTree-method-findNodeForObject'>	/**
+</span>	 * Finds a node in the tree for the passed object
+	 * @param {Workspace.objects.Object} item
+	 * @return {Ext.tree.Node} node
+	 */
+	findNodeForObject: function(item) {
+		if (item &amp;&amp; item.getId) {
+			// true to search deeply
+			return this.findNodeForId(item.getId());
+		}
+		return false;
+	},
+<span id='App-ui-ObjectTree-method-findNodeForId'>	/**
+</span>	 * Finds a node in the tree for the passed object id
+	 * @param {String} id
+	 * @return {Ext.tree.Node} node
+	 */
+	findNodeForId: function(id) {
+		// true to search deeply
+		return this.getStore().getRootNode().findChild('id', id, true);
+	},
+<span id='App-ui-ObjectTree-method-getObjectFromNode'>	/**
+</span>	 * Finds an object in the configured workspace corresponding to the passed node
+	 * @param {Ext.tree.Node} node
+	 */
+	getObjectFromNode: function(node) {
+		return this.workspace.getObjectById(node.id);
+	},
+<span id='App-ui-ObjectTree-method-onEditName'>	/**
+</span>	 * callback invoked by tree editor after a node's text has been edited; sets the name of the requisite object
+	 * @param {Ext.tree.TreeEditor} editor
+	 * @param {Object} value
+	 */
+	onEditName: function(editor, value) {
+		var o = this.getObjectFromNode(this.editor.editNode);
+		o.set('name', value);
+	},
+<span id='App-ui-ObjectTree-method-onSelect'>	/**
+</span>	 * callback invoked by the selection model after the selection has been changed; updates the workspace selection to match
+	 * @param {Object} sm
+	 * @param {Object} nodes
+	 */
+	onSelect: function(sm, nodes) {
+		if (!this.ignoreSelectionChange) {
+			this.ignoreSelectionChange = true;
+			var toSelect = [];
+			Ext.each(nodes, function(node) {
+				toSelect.push(this.workspace.getObjectById(node.id));
+			},
+			this);
+			this.workspace.setSelection(toSelect);
+			this.ignoreSelectionChange = false;
+		}
+	},
+<span id='App-ui-ObjectTree-method-onWorkspaceSelect'>	/**
+</span>	 * listener invoked by the workspace when its selection changes; updates the tree's selection to match
+	 * @param {Workspace.objects.Object} item
+	 */
+	onWorkspaceSelect: function(item) {
+		if (!this.ignoreSelectionChange) {
+			this.ignoreSelectionChange = true;
+			var n = this.findNodeForObject(item);
+			if (n) {
+				this.getSelectionModel().select(n,true);
+			}
+			this.ignoreSelectionChange = false;
+		}
+	},
+<span id='App-ui-ObjectTree-method-onWorkspaceUnselect'>	/**
+</span>	 * listener invoked by the workspace when its selection changes; updates the tree's selection to match
+	 * @param {Workspace.objects.Object} item
+	 */
+	onWorkspaceUnselect: function(item) {
+		if (!this.ignoreSelectionChange) {
+			this.ignoreSelectionChange = true;
+			var n = this.findNodeForObject(item);
+			if (n) {
+				this.getSelectionModel().deselect(n,true);
+			}
+			this.ignoreSelectionChange = false;
+		}
+	},
+<span id='App-ui-ObjectTree-method-onCreate'>	/**
+</span>	 * listener invoked by the workspace when an object is constructed; builds a node for it in the tree
+	 * @param {Workspace.objects.Object} obj
+	 */
+	onCreate: function(obj) {
+		var parentNode;
+
+		if (obj.hasParent()) {
+			parentNode = this.findNodeForObject(obj.getParent());
+		}
+		if(!parentNode) {
+			parentNode = this.getRootNode();
+		}
+
+		if (parentNode) {
+			parentNode.appendChild({
+				text: obj.get('name'),
+				id: obj.getId(),
+				iconCls: obj.get('iconCls'),
+				editable: true
+			});
+		}
+		obj.on('change', this.onChange, this);
+	},
+<span id='App-ui-ObjectTree-method-bindParent'>	/**
+</span>	 * Moves the node for a particular object such that it resides beneath its parent node.
+	 * @param {Workspace.objects.Objects.Object} obj
+	 */
+	bindParent: function(obj) {
+		var node = this.findNodeForObject(obj),
+		parentNode = this.findNodeForObject(obj.getParent());
+		if (parentNode) {
+			node.remove(false);
+			parentNode.appendChild(node);
+		}
+	},
+<span id='App-ui-ObjectTree-method-onObjectDestroy'>	/**
+</span>	 * listener invoked by the workspace when an object is constructed; builds a node for it in the tree
+	 * @param {Workspace.objects.Objects.Object} obj
+	 */
+	onObjectDestroy: function(obj) {
+		var node = this.findNodeForObject(obj);
+		if (node) {
+			node.remove();
+			node.destroy();
+		}
+		obj.un('change', this.onChange, this);
+	},
+<span id='App-ui-ObjectTree-method-onChange'>	/**
+</span>	 * listener invoked by an object when one of its properties is changed; updates the tree to match
+	 * @param {String} prop
+	 * @param {Mixed} value
+	 * @param {Workspace.objects.Object} obj
+	 */
+	onChange: function(prop, value, old, obj) {
+		if (!this.ignoreChange &amp;&amp; obj &amp;&amp; obj.getId) {
+			if (prop == 'name') {
+				var node = this.findNodeForObject(obj);
+				if (node) {
+					node.set('text',value);
+				}
+			} else if (prop == 'parent') {
+				var node = this.findNodeForObject(obj),
+				parentNode = this.findNodeForObject(obj.getParent());
+				if (parentNode) {
+					node.remove(false);
+					parentNode.appendChild(node);
+				}
+			}
+		}
+	},
+})</pre>
+</body>
+</html>

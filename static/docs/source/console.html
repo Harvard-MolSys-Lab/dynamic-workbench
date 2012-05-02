@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*!
+ * Ext JS Library 3.3.1
+ * Copyright(c) 2006-2010 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
+ */
+Ext.oldLog = Ext.log;
+Ext.apply(App, {
+<span id='Ext-method-log'>	/**
+</span>	 * @member Ext
+	 * See {@link Ext.debug.LogPanel#log}.
+	 */
+	log : function(args, options) {
+		options || ( options = {});
+		Ext.applyIf(options, {
+			iconCls : '',
+			silent : false
+		});
+		if(cp &amp;&amp; cp.rendered) {
+			cp.log.call(cp, args, options);
+			if(!options.silent &amp;&amp; cp.ownerCt.collapsed) {
+				cp.ownerCt.expand();
+			}
+		} else if(Ext.oldLog) {
+			Ext.oldLog.apply(Ext, arguments);
+		}
+	},
+	logf : function(format, arg1, arg2, etc) {
+		App.log(String.format.apply(String, arguments));
+	},
+	dump : function(o) {
+		if( typeof o == 'string' || typeof o == 'number' || typeof o == 'undefined' || Ext.isDate(o)) {
+			App.log(o);
+		} else if(!o) {
+			App.log(&quot;null&quot;);
+		} else if( typeof o != &quot;object&quot;) {
+			App.log('Unknown return type');
+		} else if(Ext.isArray(o)) {
+			App.log('[' + o.join(',') + ']');
+		} else {
+			var b = [&quot;{\n&quot;];
+			for(var key in o) {
+				var to = typeof o[key];
+				if(to != &quot;function&quot; &amp;&amp; to != &quot;object&quot;) {
+					b.push(Ext.String.format(&quot;  {0}: {1},\n&quot;, key, o[key]));
+				} else {
+					if(_.isArray(o[key])) {to = 'array';}
+					b.push(Ext.String.format(&quot;  {0}: {1},\n&quot;, key, to));
+				}
+			}
+			var s = b.join(&quot;&quot;);
+			if(s.length &gt; 3) {
+				s = s.substr(0, s.length - 2);
+			}
+			App.log(s + &quot;\n}&quot;);
+		}
+	},
+	_timers : {},
+
+	time : function(name) {
+		name = name || &quot;def&quot;;
+		Ext._timers[name] = new Date().getTime();
+	},
+	timeEnd : function(name, printResults) {
+		var t = new Date().getTime();
+		name = name || &quot;def&quot;;
+		var v = String.format(&quot;{0} ms&quot;, t - Ext._timers[name]);
+		Ext._timers[name] = new Date().getTime();
+		if(printResults !== false) {
+			App.log('Timer ' + (name == &quot;def&quot; ? v : name + &quot;: &quot; + v));
+		}
+		return v;
+	}
+});
+
+Ext.apply(Ext, (function() {
+	var msgCt;
+
+	function createBox(t, s) {
+		// return ['&lt;div class=&quot;msg&quot;&gt;',
+		//         '&lt;div class=&quot;x-box-tl&quot;&gt;&lt;div class=&quot;x-box-tr&quot;&gt;&lt;div class=&quot;x-box-tc&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;',
+		//         '&lt;div class=&quot;x-box-ml&quot;&gt;&lt;div class=&quot;x-box-mr&quot;&gt;&lt;div class=&quot;x-box-mc&quot;&gt;&lt;h3&gt;', t, '&lt;/h3&gt;', s, '&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;',
+		//         '&lt;div class=&quot;x-box-bl&quot;&gt;&lt;div class=&quot;x-box-br&quot;&gt;&lt;div class=&quot;x-box-bc&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;',
+		//         '&lt;/div&gt;'].join('');
+		return '&lt;div class=&quot;msg&quot;&gt;&lt;h3&gt;' + t + '&lt;/h3&gt;&lt;p&gt;' + s + '&lt;/p&gt;&lt;/div&gt;';
+	}
+
+	return {
+<span id='Ext-method-msg'>		/**
+</span>		 * Displays pop-up messages on the top of the screen.
+		 * @param {String} title Title to display in bold atop the message
+		 * @param {String} format/body Either formatted string (containing 
+		 * `{0}`-style numbered placeholders to be passed to Ext.String.format)
+		 * or just a regular string. In either case it will be displayed in the
+		 * message body.
+		 * @param {Object} [options] Hash containing additional options
+		 * @param {Number} [options.delay=3000] Length of time (in ms) that the
+		 * message should be displayed
+		 * @param {Function} [options.callback] function to be called 
+		 * upon display of message. Recieves the following arguments:
+		 * @param {Ext.Element} [options.callback.element] The generated 
+		 * messag element 
+		 * @param {String} [options.callback.message] The formatted message 
+		 * text
+		 * @param {Mixed} [options.scope] Scope in which to execute the 
+		 * `callback` function
+		 * @param {String[]} [options.params] Parameters to fill the numbered 
+		 * placeholders in the message string.
+		 * 
+		 * @param {String...} [parameters] If options is not specified, the 
+		 * remaining arguments will be treated as arguments to the numbered
+		 * parameters in the format string.
+		 *  
+		 * @member Ext
+		 */
+		msg : function(title, format) {
+			var options, params;
+			if(arguments.length == 3 &amp;&amp; _.isObject(arguments[2])) {
+				options = arguments[2];
+			} else {
+				options = {};
+			}
+			_.defaults(options, {
+				delay : 3000,
+				scope : window,
+			});
+			
+			// Prepare message container
+			if(!msgCt) {
+				msgCt = Ext.core.DomHelper.insertFirst(document.body, {
+					id : 'msg-div'
+				}, true);
+			}
+			
+			// Format message string
+			var s;
+			if(options.params) {
+				params = options.params;
+			} else {
+				if(arguments.length &gt; 2) {
+					params = Array.prototype.slice.call(arguments, 1)
+				}
+			}
+			if(params) {
+				s = Ext.String.format.apply(String, params);
+			} else {
+				s = format;
+			}
+			
+			// Insert message element
+			var m = Ext.core.DomHelper.append(msgCt, createBox(title, s), true);
+			m.hide();
+			m.slideIn('t').ghost(&quot;t&quot;, {
+				delay : options.delay,
+				remove : true
+			});
+
+			Ext.callback(options.callback, options.scope, m, s);
+		},
+	};
+})());
+
+Ext.debug = {};
+</pre>
+</body>
+</html>

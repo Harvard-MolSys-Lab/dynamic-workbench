@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='App-ui-MetaTab'>/**
+</span> * @class App.ui.MetaTab
+ * Ribbon panel which displays properties of an object
+ * @extends App.ui.BoundObjectPanel
+ */
+Ext.define('App.ui.MetaTab', {
+	extend:'App.ui.BoundObjectPanel',
+	initComponent: function() {
+		Ext.apply(this, {
+			tbar: [{
+
+				// Name group
+				xtype: 'buttongroup',
+				title: 'Name',
+				columns: 1,
+				defaults: {
+					cellCls: 'table-cell-padded'
+				},
+				items: [{
+					ref: '../../nameField',
+					fieldLabel: 'Name',
+					objectBinding: 'name',
+					xtype: 'textfield',
+					width: 200,
+					tooltip: {
+						title: 'Name',
+						text: 'The object\'s name'
+					},
+				},{
+					ref: '../../typeField',
+					xtype: 'combo',
+					objectBinding: 'wtype',
+					store: Workspace.Components.getTypeStore(),
+					tpl: new Ext.XTemplate(
+					'&lt;tpl for=&quot;.&quot;&gt;&lt;div class=&quot;x-combo-list-item&quot;&gt;',
+					'&lt;img src=&quot;' + Ext.BLANK_IMAGE_URL + '&quot; class=&quot;combo-icon {iconCls}&quot; /&gt;&amp;nbsp;&lt;span&gt;{wtype}&lt;/span&gt;',
+					'&lt;/div&gt;&lt;/tpl&gt;'
+					),
+					valueField: 'wtype',
+					displayField: 'wtype',
+					typeAhead: true,
+					mode: 'local',
+					forceSelection: true,
+					triggerAction: 'all',
+					selectOnFocus: true,
+					width: 200,
+					tooltip: {
+						title: 'Type',
+						text: 'The object type.'
+					},
+					cellCls: 'table-cell-padded-right'
+				}]
+			},{
+
+				// Properties group
+				xtype: 'buttongroup',
+				title: 'Properties',
+				columns: 1,
+				defaults: {
+					cellCls: 'table-cell-padded'
+				},
+				items: []
+			}]
+		});
+
+		App.ui.MetaTab.superclass.initComponent.apply(this, arguments);
+
+		//this.on('afterrender', this.afterrender, this);
+	},
+	afterrender: function() {
+		var tips = [this.nameField];
+		this.tips = [];
+		Ext.each(tips, function(field) {
+			if (field.tooltip) {
+				var t = field.tooltip;
+				if (t.text &amp;&amp; !t.html) {
+					t.html = t.text;
+				}
+				t.target = field.getEl();
+				this.tips.push(new Ext.ToolTip(t));
+			}
+		},
+		this)
+	}
+});</pre>
+</body>
+</html>

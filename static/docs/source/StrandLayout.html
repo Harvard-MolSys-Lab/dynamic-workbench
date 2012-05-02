@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Workspace-objects-dna-StrandLayout'>/**
+</span> * @class Workspace.objects.dna.StrandLayout
+ * @extends Workspace.idea.BaseLayout
+ */
+Ext.define('Workspace.objects.dna.StrandLayout', {
+	extend : 'Workspace.idea.BaseLayout',
+	doLayout : function() {
+		if(!this.ignore) {
+			this.ignore = true;
+			this.idea.children.each(function(child) {
+				// bit of a hack;
+				// TODO: Make sure doLayout isn't applied before children are rendered
+				if(child.is('rendered')) {
+					child.setPosition(parseInt(cx + Math.cos(theta) * rx -   child.getWidth()) + this.paddingTop,   // HACK
+					parseInt(cy + Math.sin(theta) * ry -   child.getHeight()) + this.paddingLeft);
+					theta = (theta + dtheta) % (2 * Math.PI);
+				}
+			}, this);
+			this.ignore = false;
+		}
+	},
+	childrenMovable : false,
+	paddingTop : 5,
+	paddingLeft : 5,
+}, function() {
+	Workspace.Layouts.register('Workspace.objects.dna.StrandLayout', Workspace.objects.dna.StrandLayout);
+});</pre>
+</body>
+</html>

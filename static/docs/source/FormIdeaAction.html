@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Workspace-actions-FormIdeaAction-method-constructor'><span id='Workspace-actions-FormIdeaAction-cfg-subjects'><span id='Workspace-actions-FormIdeaAction'>/**
+</span></span></span> * @class Workspace.actions.FormIdeaAction
+ * Action which encapsulates creating an idea from one or more objects
+ * @extends Workspace.actions.Action
+ * @cfg {Object[]} subjects
+ * Workspace objects to be added to the idea
+ * @constructor
+ * @param {Object} config
+ */
+Ext.define('Workspace.actions.FormIdeaAction', {
+	extend: 'Workspace.actions.Action',
+	constructor: function(config) {
+		Workspace.actions.FormIdeaAction.superclass.constructor.apply(this, arguments);
+		Ext.applyIf(this, {
+			scope: this,
+			ideaConfig: {}
+		})
+	},
+	wtype: 'FormIdeaAction',
+	handler: function() {
+		Ext.apply(this.ideaConfig, {
+			children: this.subjects,
+			wtype: 'Workspace.IdeaObject'
+		});
+		var parent = this.workspace.createObject(this.ideaConfig);
+
+	},
+	getUndo: function() {
+		return new Workspace.actions.OrphanObjectAction({
+			objects: this.subjects.concat([]),
+			text: 'Undo &quot;' + this.text + '&quot;',
+			iconCls: this.iconCls
+		});
+	},
+	serialize: function() {
+		return {
+			wtype: this.wtype,
+			subjects: Workspace.Components.serialize(this.subjects)
+		}
+	}
+});
+</pre>
+</body>
+</html>

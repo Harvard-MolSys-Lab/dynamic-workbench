@@ -35,6 +35,7 @@ app.configure(function() {
 	app.use(express.session({
 		secret : 'infomachine2'
 	}));
+	app.use(express.limit('10mb'));
 
 	// logging
 	winston.remove(winston.transports.Console);

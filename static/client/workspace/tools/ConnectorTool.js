@@ -89,6 +89,15 @@ Ext.define('Workspace.tools.ConnectorTool', {
 
 	},
 	/**
+	 * Called before the connection is created. Override to, for instance, 
+	 * change the right or left target of a connection.
+	 * @param {Workspace.objects.Object} left
+	 * @param {Workspace.objects.Object} right
+	 */
+	beforeConnect: function(left, right) {
+		
+	},
+	/**
 	 * Builds a new object of #targetWType
 	 */
 	buildObject : function() {
@@ -137,6 +146,7 @@ Ext.define('Workspace.tools.ConnectorTool', {
 				}
 
 				if(this.acceptRight(this.rightObject) && this.canConnect(this.leftObject, this.rightObject)) {
+					this.beforeConnect(this.leftObject, this.rightObject);
 					var o = this.buildObject();
 					this.onConnect(o, this.leftObject, this.rightObject);
 				} else {

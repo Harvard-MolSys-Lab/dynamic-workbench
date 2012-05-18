@@ -43,7 +43,10 @@ app.configure(function() {
 		colorize : true
 	});
 	winston.add(winston.transports.File, {
-		filename : 'logs/full.log'
+		filename : 'logs/full.log',
+		timestamp: true,
+		json: true,
+		maxsize: 1024 * 1024 * 1024,
 	});
 
 	// static file server

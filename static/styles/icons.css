@@ -31,7 +31,7 @@
 }
 
 .cite {
-	font-size:smaller;	
+	background-image: url(/images/icons/fugue/bookmark.png) !important;	
 }
 
 .author {
@@ -454,6 +454,13 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 .nupack-icon {
 	background-image: url(/images/icons/etc/nupack_favicon.png) !important;		
 }
+.mfold, .mfold-icon {
+	background-image: url(/images/icons/etc/mfold.png) !important;		
+}
+.tbi {
+	background-image: url(/images/icons/etc/tbi.gif) !important;		
+}
+
 .nupackage {
 	background-image: url(/images/icons/etc/box-nupack.png) !important;		
 }
@@ -477,11 +484,17 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 .nodal {
 	background-image: url(/images/icons/fugue/node.png) !important;
 }
-.txt, .tex {
+.txt {
 	background-image: url(/images/icons/fugue/document-text.png) !important;
 }
-.pepper, .sys, .comp {
+.tex {
+	background-image: url(/images/icons/fugue/document-tex.png) !important;
+}
+.pepper, .sys {
 	background-image: url(/images/icons/etc/Capsicum-2-icon.png) !important;
+}
+.comp {
+	background-image: url(/images/icons/etc/pepper-comp.png) !important;
 }
 .pil {
 	background-image: url(/images/icons/fugue/pill.png) !important;
@@ -489,8 +502,24 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 .xml, .html {
 	background-image: url(/images/icons/fugue/document-code.png) !important;
 }
+.rst {
+	background-image: url(/images/icons/fugue/document-text.png) !important;
+}
+.md {
+	background-image: url(/images/icons/etc/markdown.png) !important;
+}
+.document-sbml {
+	background-image: url(/images/icons/etc/document-sbml.png) !important;
+}
+.sbml {
+	background-image: url(/images/icons/etc/sbml.png) !important;
+}
+
 .js {
 	background-image: url(/images/icons/fugue/script.png) !important;
+}
+.coffee {
+	background-image: url(/images/icons/fugue/cup.png) !important;
 }
 .dynaml {
 	background-image: url(/images/icons/etc/dynaml.png) !important;	

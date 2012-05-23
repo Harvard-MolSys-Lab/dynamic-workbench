@@ -572,6 +572,11 @@ ul.dashboard-actions li a:hover {
 	font-weight: normal !important;
 }
 
+.citation-bar > .x-panel-body {
+	font-size: smaller;
+}
+
+
 /**
  * 	khebs@live.com
  * 	http://www.sencha.com/forum/showthread.php?132811-Another-Ribbon-Style&highlight=ribbon

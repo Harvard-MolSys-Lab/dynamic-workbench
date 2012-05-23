@@ -15,8 +15,9 @@ Ext.ns('App.ui');
 Ext.Loader.setPath('App', 'client');
 
 Ext.require(['App.ui.Launcher', 'App.ui.Application', // hack to make sure App.ui.FilesTree.DragDropManager is require'd before App.ui.FilesTree. For some reason Sencha Builder has trouble with that one
- 'App.ui.FilesTree', 'App.ui.TabPanel', 'App.ui.NupackMenu', 'App.ui.console.ScriptsPanel', 'App.ui.console.LogPanel',
- 'App.ui.Attribution',]);
+ 'App.ui.FilesTree', 'App.ui.TabPanel', 'App.ui.NupackMenu', 'App.ui.mfold.QuikFoldWindow', 'App.ui.vienna.RNAfoldWindow', //
+ 'App.ui.console.ScriptsPanel', 'App.ui.console.LogPanel',
+ 'App.ui.Attribution','App.ui.CitationBar',]);
 
 // Ext.Loader sucks
 Ext.require(['App.ui.nupack.Panel']);
@@ -146,6 +147,28 @@ App.ui.buildInterface = function() {
 						iconCls : 'nupack-icon',
 						handler : App.ui.Launcher.makeLauncher('nupack'),
 						menu : Ext.create('App.ui.NupackMenu'),
+					}, {
+						text: 'Mfold',
+						iconCls: 'mfold-icon',
+						menu: [{
+							text: 'QuikFold',
+							iconCls: 'mfold-icon',
+							handler: function() {
+								var win = Ext.create('App.ui.mfold.QuikFoldWindow');
+								win.show();
+							}
+						}]
+					},{
+						text: 'Vienna RNA',
+						iconCls: 'tbi',
+						menu: [{
+							text: 'RNAfold Server',
+							iconCls: 'tbi',
+							handler: function() {
+								var win = Ext.create('App.ui.vienna.RNAfoldWindow');
+								win.show();
+							}
+						}]
 					}, '-', {
 						text : 'Help',
 						iconCls : 'help',

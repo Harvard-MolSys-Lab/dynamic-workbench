@@ -40,15 +40,18 @@ exports.start = function(req, res, params) {
 	pre = prefix(node), fullPath = path.resolve(utils.userFilePath(path.join(path.dirname(node), pre))), inFileName = postfix(fullPath, 'txt'), inFile = params['data'];
 	switch(params.action) {
 		case 'clean':
-			async.parallel([
-				function(cb) {fs.unlink(postfix(fullPath,'txt'),function(err,res) { cb(null,res);});},
-				function(cb) {fs.unlink(postfix(fullPath,'domains'),function(err,res) { cb(null,res);});},
-				function(cb) {fs.unlink(postfix(fullPath,'svg'),function(err,res) { cb(null,res);});},
-				function(cb) {fs.unlink(postfix(fullPath,'nupack'),function(err,res) { cb(null,res);});},
-				function(cb) {fs.unlink(postfix(fullPath,'dynaml'),function(err,res) { cb(null,res);});},
-				function(cb) {fs.unlink(postfix(fullPath,'pil'),function(err,res) { cb(null,res);});},
-
-			],function(err,results) {
+			async.parallel(_.map(['txt','domains','svg','nupack','np','ms','dynaml','pil'],function(ext) { 
+					return function(cb) {fs.unlink(postfix(fullPath,ext),function(err,res) { cb(null,res);});};
+				}),
+				//[
+				// function(cb) {fs.unlink(postfix(fullPath,'txt'),function(err,res) { cb(null,res);});},
+				// function(cb) {fs.unlink(postfix(fullPath,'domains'),function(err,res) { cb(null,res);});},
+				// function(cb) {fs.unlink(postfix(fullPath,'svg'),function(err,res) { cb(null,res);});},
+				// function(cb) {fs.unlink(postfix(fullPath,'nupack'),function(err,res) { cb(null,res);});},
+				// function(cb) {fs.unlink(postfix(fullPath,'dynaml'),function(err,res) { cb(null,res);});},
+				// function(cb) {fs.unlink(postfix(fullPath,'pil'),function(err,res) { cb(null,res);});},
+				//],
+			function(err,results) {
 				if(err) {
 					utils.log({
 						level: "error",
@@ -103,11 +106,14 @@ exports.start = function(req, res, params) {
 				var nupackOut = lib.toNupackOutput(),
 					ddOut = lib.toDomainsOutput(),
 					pilOut = lib.toPilOutput(),
+					msOut = lib.toMSOutput(),
 					svgOut = lib.toSVGOutput();
 				async.parallel([function(cb) {
 					fs.writeFile(postfix(fullPath, 'domains'),ddOut,'utf8',cb);
 				},function(cb) {
-					fs.writeFile(postfix(fullPath, 'nupack'),nupackOut,'utf8',cb);
+					fs.writeFile(postfix(fullPath, 'np'),nupackOut,'utf8',cb);
+				},function(cb) {
+					fs.writeFile(postfix(fullPath, 'ms'),msOut,'utf8',cb);
 				},function(cb) {
 					fs.writeFile(postfix(fullPath, 'svg'),svgOut,'utf8',cb);
 				},function(cb) {

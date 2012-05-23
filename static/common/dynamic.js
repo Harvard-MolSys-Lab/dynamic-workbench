@@ -1574,9 +1574,12 @@ App.dynamic = module.exports = (function(_,DNA) {
 				return 'd'+id;
 			}
 			
+			// Surround with backtics for Multisubjective
+			out.push('#`');
 			out.push(_.map(library.segments,function(segment) {
 				return ['domain',nupackifyIdentity(segment.identity),'=',segment.getSequence()].join(' ');
 			}).join('\n'));
+			out.push('#`');
 			
 			// print strands ("optional?")
 			// e.g.: strand J = gate_toehold1* gate_duplex1* gate_toehold2
@@ -1615,6 +1618,100 @@ App.dynamic = module.exports = (function(_,DNA) {
 					return strand.getQualifiedName();
 				});
 				return [node.getName()+'_structure.seq','='].concat(names).join(' ');
+			}).join('\n'));
+			
+			return out.join('\n\n');
+			
+		},
+		toMSOutput: function() {
+			var library = this;
+
+			var out = [];
+			
+			// TODO: Add custom parameters
+			// material = dna
+			// temperature[C] = 23.0 # optional units: C (default) or K
+			// trials = 3
+			// sodium[M] = 1.0       # optional units: M (default), mM, uM, nM, pM
+			// dangles = some
+			
+			
+			// print lengths (segments)
+			// e.g.: length a = N7Y6N3
+			// Y specifies an immutable base
+			
+			function nupackifyIdentity(id) {
+				return 'd'+id;
+			}
+			
+			out.push(_.map(library.segments,function(segment) {
+				return ['length',nupackifyIdentity(segment.identity),'=','N'+segment.getLength()].join(' ');
+			}).join('\n'));
+			
+			
+			// print structures
+			// e.g.: hairpin A1: -
+			// e.g.: static A2
+			
+			out.push(_.map(library.nodes,function(node) {
+				if(node.type == 'hairpin') {
+					return ['hairpin',node.getName()+'_structure',':',(node.getPolarity() < 0 ? '-' : '+')].join(' ');
+				} else {
+					return ['static',node.getName()+'_structure'].join(' ');
+				}
+			}).join('\n'));
+			
+			
+			return out.join('\n\n');
+		},
+		toPilOutput: function() {
+			
+			var library = this;
+			var out = [];
+			
+			// print sequences (segments)
+			// sequence <name> = <constraints> : <length>
+			// e.g.: sequence x = "6N S 13N S" : 21
+			
+			function nupackifyIdentity(id) {
+				return 'd'+id;
+			}
+			
+			out.push(_.map(library.segments,function(segment) {
+				return ['sequence',nupackifyIdentity(segment.identity),'=',segment.getSequence()].join(' ');
+			}).join('\n'));
+			
+			// print strands 
+			// strand <name> = <list of sequences and explicit constraints> : <length>
+			// e.g.: strand C = "?N" c : 44
+			
+			out.push(_.map(library.strands,function(strand) {
+				return ['strand',strand.getQualifiedName(),'='].concat(_.map(strand.getSegments(),function(segment) {
+					return nupackifyIdentity(segment.getIdentifier());
+				})).join(' ');
+			}).join('\n'));
+			
+			// print structures
+			// structure <name> = <list of strands> : <secondary structure>
+			// e.g.: structure Gate = X + C + S + Y : U6 H15(+ H15(U29 + U14 H15(+)))
+			
+			out.push(_.map(library.nodes,function(node) {
+				
+				var structs = _.map(node.getStrands(),function(strand) { 
+					var struct = strand.getSegmentwiseStructure();
+					if(strand.getAbsolutePolarity() == -1) {
+						struct = struct.reverse();
+					}
+					return struct;
+				});
+				
+				var strand_names = _.map(node.getStrands(),function(strand) {
+					return strand.getQualifiedName();
+				});
+				
+				var concatamer = Structure.join(structs);
+				
+				return ['structure',node.getName()+'_structure','=',strand_names.join(' + '),':',concatamer.toDotParen()].join(' ');
 			}).join('\n'));
 			
 			return out.join('\n\n');
@@ -1791,9 +1888,6 @@ App.dynamic = module.exports = (function(_,DNA) {
 			fid.write('</svg>\n')
 			return fid.close()
 			
-		},
-		toPilOutput: function() {
-			return '';
 		},
 		toMotif: function() {
 			var strands = _.map(this.strands,function(strand) {

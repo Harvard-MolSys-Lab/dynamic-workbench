@@ -23,6 +23,12 @@ Ext.define('App.ui.NupackEditor', {
 	 * True to show the save button
 	 */
 	showSaveButton:true,
+	
+	dockedItems: [{
+		xtype: 'cite',
+		cite: 'zadeh_etal_2011',
+	}],
+	
 	initComponent: function() {
 		this.extraTbarItems = (this.extraTbarItems || []); 
 		var tbar = this.extraTbarItems.concat([]);

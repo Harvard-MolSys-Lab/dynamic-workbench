@@ -23,6 +23,12 @@ Ext.define('App.ui.DD', {
 	 */
 	mutating : false,
 	scoreFormat : '0.00',
+	
+	dockedItems: [{
+		xtype: 'cite',
+		cite: 'zhang_2011',
+	}],
+	
 	initComponent : function() {
 		/**
 		 * @property {DD} designer

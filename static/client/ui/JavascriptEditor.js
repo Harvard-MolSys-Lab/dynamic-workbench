@@ -10,9 +10,10 @@ Ext.define('App.ui.JavascriptEditor', {
 		'refHelper' : 'App.ui.RefHelper',
 	},
 	initComponent : function() {
+		var mode = this.mode;
 		if(!!this.json) {
-			this.mode = {
-				mode: 'javascript',
+			mode = {
+				name: 'javascript',
 				json: true,
 			};
 			this.editorType = 'JSON';
@@ -43,7 +44,7 @@ Ext.define('App.ui.JavascriptEditor', {
 				xtype : 'codemirror',
 				itemId : 'editor',
 				border : false,
-				mode : this.mode,
+				mode : mode,
 			}],
 		});
 		this.callParent(arguments);

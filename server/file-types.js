@@ -121,10 +121,15 @@ var types = [{
 	"iconCls" : "dd",
 	"name" : "Domain Design"
 }, {
-	"type" : "nupack",
+	"type" : ["nupack","np"],
 	"trigger" : "nupackedit",
 	"iconCls" : "nupack",
 	"name" : "NUPACK Multi-objective Script"
+}, {
+	"type" : "ms",
+	"trigger" : "msedit",
+	"iconCls" : "nupack",
+	"name" : "Multisubjective Design Script"
 }, {
 	"type" : "svg",
 	"trigger" : "viewer",

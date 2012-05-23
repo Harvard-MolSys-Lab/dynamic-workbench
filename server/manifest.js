@@ -7,7 +7,7 @@ var libPath = 'lib';
 var extPath = libPath + '/ext-4.0.7';
 var stylePath = 'static/styles';
 var extStyles = extPath + '/resources/css/ext-all';
-var codeMirrorVersion = '2.2';
+var codeMirrorVersion = '2.24';
 var codeMirrorPath = libPath + '/CodeMirror-'+codeMirrorVersion;
 var raphaelVersion = '2.0.1';//'1.5.2';
 
@@ -35,7 +35,7 @@ var libs = ['jquery-1.5.1.min', 'underscore', 'string', 'color-field-1.0.0/color
 ];//
 
 var uxs = ['RowExpander', 'CheckColumn'];
-var modes = ['javascript', 'stex', 'xml', 'diff', 'htmlmixed', 'css', 'clike','python','ruby','coffeescript',];
+var modes = ['javascript', 'stex', 'gfm','rst', 'xml', 'diff', 'htmlmixed', 'css', 'clike','python','ruby','coffeescript',];
 
 var scripts = ['ext-bug-fixes','core','canvas','workspace',]; 
 scripts = scripts.concat(['console','codemirror-modes']);

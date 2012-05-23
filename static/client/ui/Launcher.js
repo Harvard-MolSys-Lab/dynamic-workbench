@@ -230,6 +230,9 @@ Ext.define('App.ui.Launcher', {
 	});
 	App.ui.Launcher.register('js', 'App.ui.JavascriptEditor', {
 	});
+	App.ui.Launcher.register('json', 'App.ui.JavascriptEditor', {
+		json:true,
+	});
 	App.ui.Launcher.register('txt', 'App.ui.TextEditor', {
 		iconCls : 'txt',
 		editorType : 'Text',
@@ -249,7 +252,17 @@ Ext.define('App.ui.Launcher', {
 	App.ui.Launcher.register('tex', 'App.ui.TextEditor', {
 		iconCls : 'tex',
 		editorType : 'TeX',
-		mode : 'tex',
+		mode : 'stex',
+	});
+	App.ui.Launcher.register('md', 'App.ui.TextEditor', {
+		iconCls : 'md',
+		editorType : 'Markdown',
+		mode : 'gfm',
+	});
+	App.ui.Launcher.register('rst', 'App.ui.TextEditor', {
+		iconCls : 'rst',
+		editorType : 'ReStructuredText',
+		mode : 'rst',
 	});
 	App.ui.Launcher.register('pil', 'App.ui.TextEditor', {
 		iconCls : 'pil',

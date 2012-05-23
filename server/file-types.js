@@ -21,20 +21,45 @@ var types = [{
 	"iconCls" : "txt",
 	"name" : "Plain Text"
 }, {
-	"type" : ["js", "json"],
+	"type" : "js",
 	"trigger" : "js",
 	"iconCls" : "js",
 	"name" : "Javascript File"
+}, {
+	"type" : "json",
+	"trigger" : "json",
+	"iconCls" : "json",
+	"name" : "Javascript Object Notation (JSON) File"
+}, {
+	"type" : "coffee",
+	"trigger" : "coffee",
+	"iconCls" : "coffee",
+	"name" : "CoffeeScript File"
 }, {
 	"type" : "xml",
 	"trigger" : "xml",
 	"iconCls" : "xml",
 	"name" : "XML File"
 }, {
+	"type" : "sbml",
+	"trigger" : "xml",
+	"iconCls" : "document-sbml",
+	"name" : "Systems Biology Markup Language (SBML) File"
+}, {
 	"type" : ["html", "htm"],
 	"trigger" : "html",
 	"iconCls" : "html",
 	"name" : "HTML File"
+}, {
+	"type" : ["md", "markdown"],
+	"trigger" : "md",
+	"iconCls" : "md",
+	"name" : "Markdown File"
+}, {
+	"type" : "rst", 
+	"trigger" : "rst",
+	"iconCls" : "rst",
+	"name" : "ReStructuredText File"
 }, {
 	"type" : ["dynaml", "dsml", "dyn"],
 	"trigger" : "dynaml",
@@ -49,7 +74,7 @@ var types = [{
 	"type" : "pil",
 	"trigger" : "pil",
 	"iconCls" : "pil",
-	"name" : "PIL File"
+	"name" : "Pepper Intermediate Language (PIL) File"
 }, {
 	"type" : "pepper",
 	"trigger" : "pepper",

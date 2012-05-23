@@ -10,6 +10,13 @@ Ext.define('App.ui.JavascriptEditor', {
 		'refHelper' : 'App.ui.RefHelper',
 	},
 	initComponent : function() {
+		if(!!this.json) {
+			this.mode = {
+				mode: 'javascript',
+				json: true,
+			};
+			this.editorType = 'JSON';
+		}
 		Ext.applyIf(this, {
 			tbar : [{
 				text : 'Run',

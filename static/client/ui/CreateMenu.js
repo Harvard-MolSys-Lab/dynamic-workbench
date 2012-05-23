@@ -148,7 +148,7 @@ Ext.define('App.ui.CreateMenu', {
 				type: 'sys',
 			},{
 				text: 'Pepper Component',
-				iconCls: 'pepper',
+				iconCls: 'comp',
 				type: 'comp',
 			},{
 				text: 'Pepper Intermediate (PIL)',
@@ -177,12 +177,11 @@ Ext.define('App.ui.CreateMenu', {
 				disabled: true,
 			},{
 				text: 'SBML File',
-				iconCls: 'sbml',
+				iconCls: 'document-sbml',
 				type: 'sbml',
-				disabled: true,
 			},'-',{
 				text: 'Workspace',
-				iconCls: 'workspace',
+				iconCls: 'whiteboard',
 				type: 'workspace',
 			},{
 				text: 'HTML File',
@@ -197,9 +196,21 @@ Ext.define('App.ui.CreateMenu', {
 				iconCls: 'js',
 				type: 'js',
 			},{
+				text: 'CoffeeScript File',
+				iconCls: 'coffee',
+				type: 'coffee',
+			},{
 				text: 'Text File',
 				iconCls: 'txt',
 				type: 'txt',
+			},{
+				text: 'LaTeX Document',
+				iconCls: 'tex',
+				type: 'tex',
+			},{
+				text: 'Markdown Document',
+				iconCls: 'md',
+				type: 'md',
 			},'-',{
 				text: 'Folder',
 				iconCls: 'folder',

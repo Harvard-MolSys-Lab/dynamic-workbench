@@ -1,160 +1,125 @@
 Ext.define('App.ui.nupack.PartitionWindow',{
-	extend:'Ext.window.Window',
-	width: 400,
-	height: 400,
-	//layout: 'fit',
-	layout: 'border',
+	extend:'App.ui.sequence.AnalysisWindow',
 	title: "NUPACK Partition Calculator",
-	plain: true,
-	bodyBorder: false,
-	border: false,
-	closeAction: 'hide',
-	initComponent: function() {
-		Ext.apply(this,{
+	url: 'http://www.nupack.org/partition/new',
+	cite: 'zadeh_etal_2011',
+	iconCls: 'nupack-icon',
+	getForm: function() {
+		return {
 			items: [{
-					xtype: 'codemirror',
-					height: 100,
-					mode: 'sequence',
-					title: 'Sequences',
-					region: 'center',
-					//margin: '0 0 5 0',
-					//fieldLabel: '',
-					// name: 'design_job[target_structure]',
-					// labelAlign: 'top',
-				},{
-					region: 'south',
-					height: 200,
-					split: true,
-					xtype:'form',
-					frame: true,
-					defaults: {
-						xtype: 'textfield',
-						anchor: '100%',
-					},
-					items: [{
-						fieldLabel: 'Nucleic Acid',
-						name      : 'partition_job[nucleic_acid_type]',
-						value     : 'DNA',
-					},
-					/*{
-			            xtype      : 'fieldcontainer',
-			            fieldLabel : 'Nucleic Acid',
-			            defaultType: 'radiofield',
-			            defaults: {
-			                flex: 1
-			            },
-			            layout: 'hbox',
-			            items: [
-			                {
-			                    boxLabel  : 'DNA',
-			                    checked   : true,
-			                    name      : 'design_job[nucleic_acid_type]',
-			                    inputValue: 'DNA',
-			                    id        : 'radio1'
-			                }, {
-			                    boxLabel  : 'RNA',
-			                    name      : 'design_job[nucleic_acid_type]',
-			                    inputValue: 'RNA',
-			                },
-			            ]
-			        },*/
-			       {
-						name: 'partition_job[temperature]',
-						xtype: 'numberfield',
-						value: 20.0,
-						fieldLabel : 'Temperature (°C)',
-					}, {
-						name: 'partition_job[max_complex_size]',
-						xtype: 'numberfield',
-						value: 1,
-						fieldLabel : 'Max Complex Size',
+				fieldLabel: 'Nucleic Acid',
+				name      : 'partition_job[nucleic_acid_type]',
+				value     : 'DNA',
+			},
+			/*{
+	            xtype      : 'fieldcontainer',
+	            fieldLabel : 'Nucleic Acid',
+	            defaultType: 'radiofield',
+	            defaults: {
+	                flex: 1
+	            },
+	            layout: 'hbox',
+	            items: [
+	                {
+	                    boxLabel  : 'DNA',
+	                    checked   : true,
+	                    name      : 'design_job[nucleic_acid_type]',
+	                    inputValue: 'DNA',
+	                    id        : 'radio1'
+	                }, {
+	                    boxLabel  : 'RNA',
+	                    name      : 'design_job[nucleic_acid_type]',
+	                    inputValue: 'RNA',
+	                },
+	            ]
+	        },*/
+	       {
+				name: 'partition_job[temperature]',
+				xtype: 'numberfield',
+				value: 20.0,
+				fieldLabel : 'Temperature (°C)',
+			}, {
+				name: 'partition_job[max_complex_size]',
+				xtype: 'numberfield',
+				value: 1,
+				fieldLabel : 'Max Complex Size',
+			},{
+				name: 'partition_job[rna_parameter_file]',
+				xtype: 'combobox',
+				fieldLabel : 'RNA Parameters',
+				value: "rna1995",
+				store: Ext.create('Ext.data.Store', {
+				    fields: ['view', 'value'],
+				    data : [
+				        {"view":"Serra and Turner, 1995", "value":"rna1995"},
+				        {"view":"Mathews et al., 1999", "value":"rna1999"},
+				    ],
+				}),
+				queryMode: 'local',
+			    displayField: 'view',
+			    valueField: 'value',
+			},{
+				name: 'partition_job[dna_parameter_file]',
+				value: "dna1998",
+				xtype: 'hidden'
+			},{
+				name: 'partition_job[dangle_level]',
+				xtype: 'combobox',
+				fieldLabel : 'Dangles',
+				value: 1,
+				store: Ext.create('Ext.data.Store', {
+				    fields: ['view', 'value'],
+				    data : [
+				        {"view":"None", "value":0},
+				        {"view":"Some", "value":1},
+				        {"view":"All", "value":2}
+				    ],
+				}),
+				queryMode: 'local',
+			    displayField: 'view',
+			    valueField: 'value',
+			},{
+	            xtype      : 'fieldcontainer',
+	            fieldLabel : 'Salts',
+	            defaultType: 'numberfield',
+	            defaults: {
+	                flex: 1,
+	                labelWidth: 30,
+	            },
+	            layout: 'hbox',
+	            items: [
+	                {
+						name: 'partition_job[na_salt]',
+						fieldLabel : 'Na<sup>+</sup>',
+						value: 1.0,
+						margins: '0 5 0 0',
 					},{
-						name: 'partition_job[rna_parameter_file]',
-						xtype: 'combobox',
-						fieldLabel : 'RNA Parameters',
-						value: "rna1995",
-						store: Ext.create('Ext.data.Store', {
-						    fields: ['view', 'value'],
-						    data : [
-						        {"view":"Serra and Turner, 1995", "value":"rna1995"},
-						        {"view":"Mathews et al., 1999", "value":"rna1999"},
-						    ],
-						}),
-						queryMode: 'local',
-					    displayField: 'view',
-					    valueField: 'value',
-					},{
-						name: 'partition_job[dna_parameter_file]',
-						value: "dna1998",
-						xtype: 'hidden'
-					},{
-						name: 'partition_job[dangle_level]',
-						xtype: 'combobox',
-						fieldLabel : 'Dangles',
-						value: 1,
-						store: Ext.create('Ext.data.Store', {
-						    fields: ['view', 'value'],
-						    data : [
-						        {"view":"None", "value":0},
-						        {"view":"Some", "value":1},
-						        {"view":"All", "value":2}
-						    ],
-						}),
-						queryMode: 'local',
-					    displayField: 'view',
-					    valueField: 'value',
-					},{
-			            xtype      : 'fieldcontainer',
-			            fieldLabel : 'Salts',
-			            defaultType: 'numberfield',
-			            defaults: {
-			                flex: 1,
-			                labelWidth: 30,
-			            },
-			            layout: 'hbox',
-			            items: [
-			                {
-								name: 'partition_job[na_salt]',
-								fieldLabel : 'Na<sup>+</sup>',
-								value: 1.0,
-								margins: '0 5 0 0',
-							},{
-								fieldLabel : 'Mg<sup>2+</sup>',
-								name: 'partition_job[mg_salt]',
-								value: 0.0
-							}
-			            ]
-			        },{
-						name: 'partition_job[dotplot_target]',
-						xtype: 'hidden',
-						value: '',
-					},{
-						name: 'partition_job[email_address]',
-						fieldLabel: 'Email'
-					},{
-						name: 'commit',
-						value:'Analyze',
-						xtype:'hidden',
-					},{
-						name: 'preview_token',
-						value:'',
-						xtype:'hidden',
-					}]
-			}],
-			buttons: [{
-				text: 'Analyze',
-				handler: this.doSubmit,
-				scope: this,
+						fieldLabel : 'Mg<sup>2+</sup>',
+						name: 'partition_job[mg_salt]',
+						value: 0.0
+					}
+	            ]
+	        },{
+				name: 'partition_job[dotplot_target]',
+				xtype: 'hidden',
+				value: '',
+			},{
+				name: 'partition_job[email_address]',
+				fieldLabel: 'Email'
+			},{
+				name: 'commit',
+				value:'Analyze',
+				xtype:'hidden',
+			},{
+				name: 'preview_token',
+				value:'',
+				xtype:'hidden',
 			}]
-		});
-		//this.on('afterrender',this.afterrender,this);
-		this.callParent(arguments);
+		}
 	},
-	doSubmit: function() {
-		var codemirror = this.down('codemirror');
-		var val = codemirror.getValue();
-		var strands = _.compact(val.split('\n'));
-		
+
+	getParams: function() {
+		var strands = this.getStrands();
 		var scales = {
 			'p':-12,
 			'n':-9,
@@ -179,11 +144,7 @@ Ext.define('App.ui.nupack.PartitionWindow',{
 			}
 		}));
 		
-		
-		
-		var form = this.down('form').getForm();
-		form.doAction('standardsubmit',{
-			params: _.reduce(partition_sequence,function(memo,strand,i) {
+		return _.reduce(partition_sequence,function(memo,strand,i) {
 				memo['partition_sequence['+i+'][name]'] = strand.name;
 				memo['partition_sequence['+i+'][concentration]'] = strand.concentration;
 				memo['partition_sequence['+i+'][scale]'] = strand.scale;
@@ -199,16 +160,8 @@ Ext.define('App.ui.nupack.PartitionWindow',{
 				'partition_job[predefined_complexes]':'',
 				'partition_job[filter_min_fraction_of_max]':'',
 				'partition_job[filter_max_number]':'',
-			}),
-			target: '_blank',
-			url: 'http://www.nupack.org/partition/new',
-			method: 'post',
-			enctype:'multipart/form-data',
-		})
-	},
-	updateStrands: function(strands) {
-		var strandsField = this.down('codemirror');
-		strandsField.setValue(strands);
+			});
+
 	}
 })
 

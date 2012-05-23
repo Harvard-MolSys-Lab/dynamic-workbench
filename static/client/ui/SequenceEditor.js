@@ -14,7 +14,8 @@ Ext.define('App.ui.SequenceEditor', {
 	 * Text to display in the #saveButton
 	 */
 	saveButtonText : 'Save',
-	requires: ['App.ui.SequenceStats','App.ui.CompareMenu','App.ui.StatMenu','App.ui.SaveButton'],
+	requires: ['App.ui.SequenceStats','App.ui.CompareMenu','App.ui.StatMenu','App.ui.SaveButton',
+	'App.ui.vienna.RNAfoldWindow','App.ui.mfold.QuikFoldWindow','App.ui.nupack.PartitionWindow'],
 	initComponent: function() {
 		Ext.applyIf(this, {
 			tbar: [{
@@ -302,6 +303,16 @@ Ext.define('App.ui.SequenceEditor', {
 						handler: this.showPartitionWindow,
 						scope: this,
 						iconCls: 'nupack-icon',
+					},{
+						text: 'Calculate MFE Structure...',
+						handler: this.showQuikfoldWindow,
+						scope: this,
+						iconCls: 'mfold',
+					},{
+						text: 'Calculate Partition Function...',
+						handler: this.showViennaPartitionWindow,
+						scope: this,
+						iconCls: 'tbi',
 					},'-',{
 						text: 'MFE Complexes',
 						iconCls: 'nupack-icon',
@@ -648,6 +659,25 @@ Ext.define('App.ui.SequenceEditor', {
 		this.partitionWindow.updateStrands(this.getValue());
 		this.partitionWindow.show();
 	},
+	showViennaPartitionWindow: function() {
+		if(!this.rnaFoldWindow) {
+			this.rnaFoldWindow = Ext.create('App.ui.vienna.RNAfoldWindow',{
+				renderTo: Ext.getBody(),
+			});
+		}
+		this.rnaFoldWindow.updateStrands(this.getValue());
+		this.rnaFoldWindow.show();
+	},
+	showQuikfoldWindow: function() {
+		if(!this.quikFoldWindow) {
+			this.quikFoldWindow = Ext.create('App.ui.mfold.QuikFoldWindow',{
+				renderTo: Ext.getBody(),
+			});
+		}
+		this.quikFoldWindow.updateStrands(this.getValue());
+		this.quikFoldWindow.show();
+	},
+	
 	subsetsMfe: function(fullName) {
 		var strands = this.smartSelect(),
 		maxComplexes = strands.length;

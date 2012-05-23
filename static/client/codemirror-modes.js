@@ -372,6 +372,7 @@ CodeMirror.defineMode("dd-sequence", function() {
 
 CodeMirror.defineMode("nupack", function(config) {
 	var sequenceMode = CodeMirror.getMode(config,'sequence');
+	var ms = !!config.mode.multisubjective;
 	return {
 		startState: function() {
 			return {value:''};
@@ -383,7 +384,10 @@ CodeMirror.defineMode("nupack", function(config) {
 			
 			// Beginning of line
 			if(state.value=='') {
-				if(stream.eat('%')) {
+				if(stream.match('#`',true,true) || stream.match('#``',true,true)) {
+					stream.skipToEnd();
+					return 'builtin';	
+				} else if(stream.eat('%') || stream.eat('#')) {
 					stream.skipToEnd();
 					return 'comment';
 				} else if(stream.match('structure',true,true)) {
@@ -396,9 +400,40 @@ CodeMirror.defineMode("nupack", function(config) {
 					state.value='structure-name';
 					return 'keyword';
 				} else {
+					if(!!ms) {
+						if(stream.match('hairpin',true,true)) {
+							state.value = 'ms-definition-left';
+							return 'keyword';
+						} else if(stream.match('coop',true,true)) {
+							state.value = 'ms-definition-left';
+							return 'keyword';
+						} else if(stream.match('bridge',true,true)) {
+							state.value = 'ms-definition-left';
+							return 'keyword';
+						} else if(stream.match('static',true,true)) {
+							state.value = 'ms-definition-left';
+							return 'keyword';
+						} else if(stream.match('length',true,true)) {
+							state.value = 'sequence-definition-left';
+							return 'keyword';
+						}
+					}
 					state.value='structure-name';
 				}
 				
+			// multisubjective
+			} else if(state.value=='ms-definition-left') {
+				stream.eatWhile(/\S/);
+				state.value = 'ms-definition-assign';
+				return 'string';
+			} else if(state.value=='ms-definition-assign') {
+				stream.eatWhile(/[\S:]/);
+				state.value = 'sequence-definition-right';
+				return 'operator';
+			} else if(state.value=='ms-definition-right') {
+				state.value='';
+				return '';
+			
 			// structure (name) = (spec in HU+)
 			} else if(state.value=='structure-definition-left') {
 				stream.eatWhile(/\S/);

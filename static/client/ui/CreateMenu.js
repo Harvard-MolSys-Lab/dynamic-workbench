@@ -157,7 +157,7 @@ Ext.define('App.ui.CreateMenu', {
 			},'-',{
 				text: 'NUPACK Multi-objective script',
 				iconCls: 'nupack',
-				type: 'nupack',
+				type: 'np',
 			},{
 				text: 'Sequence',
 				iconCls: 'seq',

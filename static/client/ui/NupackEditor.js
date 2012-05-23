@@ -29,7 +29,20 @@ Ext.define('App.ui.NupackEditor', {
 		cite: 'zadeh_etal_2011',
 	}],
 	
+	/**
+	 * @cfg
+	 * Enable additional multisubjective syntax
+	 */
+	multisubjective: false,
+	
 	initComponent: function() {
+		if(this.multisubjective) {
+			this.mode = {
+				name: 'nupack',
+				multisubjective: true,
+			}
+		}
+		
 		this.extraTbarItems = (this.extraTbarItems || []); 
 		var tbar = this.extraTbarItems.concat([]);
 		if(this.showNupackButton) {

@@ -23,7 +23,7 @@ Ext.define('App.ui.files.DragDropManager', {
 					});
 					this.fileUploaders[id] = uploader;
 					uh.upload(id, {
-						userfile : App.Path.join([rec.getPath(), uh.getName(id)])
+						userfile : App.Path.join([rec.getDocumentPath(), uh.getName(id)])
 						 //App.Path.join([App.Path.pop(rec.getPath(), 1), uh.getName(id)])
 					});
 					this.filesTree.loaders++;

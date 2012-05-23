@@ -1,7 +1,10 @@
 Ext.define('App.ui.files.FileUploader',{
 	extend: 'App.ui.FileUploader',
 },function() {
-	App.ui.files.FileUploader.addHandler(['jpg','png','gif','txt','pdf','svg','txt','seq','nupack','nodal','workspace','html','js','xml'], function(fileName) {
+	var types = ['jpg','png','gif','txt','pdf','svg','txt','seq','nupack','nodal','workspace','html','js','xml'];
+	types = _.uniq(types.concat(_.keys(App.Document.triggers)));
+	
+	App.ui.files.FileUploader.addHandler(types, function(fileName) {
 		App.ui.filesTree.refreshDocument(this.record);
 		this.filesTree.loaders--;
 		this.filesTree.setLoading((this.filesTree.loaders > 0));

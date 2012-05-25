@@ -454,6 +454,12 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 .nupack-icon {
 	background-image: url(/images/icons/etc/nupack_favicon.png) !important;		
 }
+.ms, .document-ms, .script-ms {
+	background-image: url(/images/icons/etc/script-multisubjective.png) !important;		
+}
+.ms-icon {
+	background-image: url(/images/icons/etc/multisubjective.png) !important;	
+}
 .mfold, .mfold-icon {
 	background-image: url(/images/icons/etc/mfold.png) !important;		
 }

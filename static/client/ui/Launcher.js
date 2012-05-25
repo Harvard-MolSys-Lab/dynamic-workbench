@@ -224,7 +224,7 @@ Ext.define('App.ui.Launcher', {
 
 	});
 	App.ui.Launcher.register('nupackedit', 'App.ui.NupackEditor', {});
-	App.ui.Launcher.register('msedit', 'App.ui.NupackEditor', {multisubjective:true});
+	App.ui.Launcher.register('msedit', 'App.ui.MultisubjectiveEditor');
 	
 	App.ui.Launcher.register('taskmanager', 'App.ui.TaskManager', {
 		iconCls : 'system-monitor',

@@ -44,7 +44,7 @@ program.option('-b, --bored <n>','stop when the score has not changed after <n> 
 	
 program.option('-o, --output <file>','file to which to send output strands')
 program.option('--format <format>','which format to use when outputting files (dd/seq/ddjs) [seq]','seq')
-program.option('-d, --designs <n>','number of designs to produce. If < 1 and output files specified, design number will be appended to filename (e.g. design-1.dd)',1)
+program.option('-d, --designs <n>','number of designs to produce. If > 1 and output files specified, design number will be appended to filename (e.g. design-1.dd)',1)
 program.option('-u, --try-unique <n>','if design produced is not unique, attempt to redesign <n> times',0)
 
 program.option('-i, --interactive','true to print output as mutations occur',Boolean)
@@ -52,6 +52,13 @@ program.option('-q, --quiet','in interactive mode, true to print only score stat
 
 
 var argv = opts.parse(process.argv);
+
+function logBlock(message,symbol) {
+	if(!symbol) symbol = '#';
+	console.log(Array(70).join(symbol));
+	console.log(message);
+	console.log(Array(70).join(symbol));
+}
 
 
 /*
@@ -109,7 +116,7 @@ var rules = _.reduce(rules,function(rules,value,r) {
 	return rules;
 },{});
 
-console.log(rules);
+// console.log(rules);
 
 var params = _.reduce(params,function(params,p) {
 	if(argv[p]) {
@@ -119,17 +126,23 @@ var params = _.reduce(params,function(params,p) {
 },{});
 
 
-console.log(params);
+// console.log(params);
 
 dd.updateRules(rules);
 dd.updateParams(params);
 
+//debugger;
 
 /*
  * Load data file
  */
 var file = _.first(program.args);
-var data = fs.readFileSync(file,'utf8');
+try {
+	var data = fs.readFileSync(file,'utf8');
+} catch (e) {
+	console.log("Unable to open file: "+file);
+	process.exit(1);
+}
 
 /*
  * Design
@@ -139,8 +152,17 @@ var designCount = program.designs,
 	
 for(var i=0;i<designCount;i++) {
 	var attempts = 0, unique = false;
+	if(program.interactive) {
+		logBlock('Design number: '+i,'=');
+	}
+	
+	// Multiple design attempts (for tryUnique)
 	do {
+		//debugger;
 		attempts++;
+		if(program.interactive) {
+			logBlock('Design attempt: '+attempts,'-');
+		}
 		dd.loadFile(data);
 		dd.evaluateAllScores();
 		dd.mutateUntil(iterator);
@@ -156,11 +178,18 @@ for(var i=0;i<designCount;i++) {
 			default:
 				outputData = dd.printDomains().join('\n');	
 		}
-		if(tryUnique && attempts < tryUnique) {
+		
+		// If we've attempted less than `tryUnique` times
+		if(tryUnique && attempts < tryUnique && designs.length > 0) {
+			
+			// Search all previous designs
 			for(var j=0;j<designs.length;j++) {
-				unique = (outputData == designs[j]);
+				unique = (outputData != designs[j]);
 				if(!unique) break;
 			}
+			
+		// If tryUnique is disabled, or we've exceeded that number of attempts,
+		// just break
 		} else {
 			unique = true;
 		}

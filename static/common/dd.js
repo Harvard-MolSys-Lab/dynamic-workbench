@@ -843,7 +843,7 @@ var DD = function() {
 		for( j = 0; j < num_domain; j++) {
 			var line = f[j].split(' ');
 			
-			buffer = f[j];
+			var buffer = f[j];
 			i = 0;
 			while(buffer[i] != ' ') {
 				if((buffer[i] != 'G') && (buffer[i] != 'A') && (buffer[i] != 'T') && (buffer[i] != 'C') && (buffer[i] != 'g') && (buffer[i] != 'a') && (buffer[i] != 't') && (buffer[i] != 'c')) {
@@ -901,7 +901,10 @@ var DD = function() {
 				// throw 'Error';
 			// }
 		}
-
+		
+		resetCounters();  
+		
+		//debugger;
 		setupScoreMatricies();
 	}
 
@@ -974,6 +977,7 @@ var DD = function() {
 		// all flags set (bases available)
 		doneflag = 0;
 
+		resetCounters();
 		setupScoreMatricies();
 		startingDomainSequences();
 	}
@@ -1024,6 +1028,16 @@ var DD = function() {
 				throw 'Error';
 			}
 		}
+		debugger;
+	}
+
+	function resetCounters() {
+		num_mut_attempts = 0;
+		total_mutations = 0;
+		num_mut = 0;
+		bored_mutations = 0;
+		mutation_delta = 0;  
+		mutation_flux = 0;
 	}
 
 	function randomBase() {
@@ -1681,6 +1695,9 @@ var DD = function() {
 			_.extend(params,state.params);
 			
 			setupScoreMatricies();
+		},
+		resetCounters: function() {
+			
 		},
 		serialize : function() {
 			this.saveState.apply(this, arguments);

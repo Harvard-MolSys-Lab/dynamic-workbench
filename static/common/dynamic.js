@@ -1130,9 +1130,24 @@ App.dynamic = module.exports = (function(_,DNA) {
 		toDotParen: function() {
 			if(this.type=='dot-paren') {
 				return this.spec;				
+			} else if(this.type=='DU+') { 
+				return DNA.DUtoDotParen(this.spec);
 			} else {
 				throw new DynamlError({
-					type: 'unimplemented',
+					type: 'Conversion from structure type "<%= structure_type %>" to dot-paren is not supported',
+					structure_type: this.type
+				});
+			}
+		},
+		toDUPlus: function() {
+			if(this.type=='DU+') { 
+				return this.spec;	
+			} else if(this.type=='dot-paren') {
+				return DNA.dotParenToDU(this.spec);
+			} else {
+				throw new DynamlError({
+					type: 'Conversion from structure type "<%= structure_type %>" to DU+ is not supported',
+					structure_type: this.type
 				});
 			}
 		},
@@ -1191,20 +1206,10 @@ App.dynamic = module.exports = (function(_,DNA) {
 			
 		},
 		DUtoDotParen: function(spec) {
-			
+			return DNA.DUtoDotParen(spec);
 		},
 		dotParenToDU: function(spec) {
-			var ch = '', count=0, out = [];
-			while(spec.length > 0) {
-				if(ch != spec[0]) {
-					out.push(Array(count+1).join(ch));
-				} else {
-					n++;
-				}
-				Array.prototype.shift.apply(spec);
-			}
-			out.push(Array(count+1).join(ch));
-			return out.join('');
+			return DNA.dotParenToDU(spec);
 		},
 		join: function(structures) {
 			return new Structure(_.map(structures,function(struct) {
@@ -1496,64 +1501,63 @@ App.dynamic = module.exports = (function(_,DNA) {
 			return Compiler.printStrands(this,config);
 		},
 		
-		// toNupackOutput: function() {
-// 			
-			// var library = this;
-// 
-			// var out = [];
-// 			
-			// // TODO: Add custom parameters
-			// // material = dna
-			// // temperature[C] = 23.0 # optional units: C (default) or K
-			// // trials = 3
-			// // sodium[M] = 1.0       # optional units: M (default), mM, uM, nM, pM
-			// // dangles = some
-// 			
-// 			
-			// // print domains (segments)
-			// // e.g.: domain x = N7
-// 			
-			// function nupackifyIdentity(id) {
-				// return 'd'+id;
-			// }
-// 			
-			// out.push(_.map(library.segments,function(segment) {
-				// return ['domain',nupackifyIdentity(segment.identity),'=',segment.getSequence()].join(' ');
-			// }).join('\n'));
-// 			
-			// // print strands ("optional?")
-			// // e.g.: strand J = gate_toehold1* gate_duplex1* gate_toehold2
-			// // TODO: new NUPACK requires these not to be numbers... poo; need to letter domains.
-// 			
-			// out.push(_.map(library.strands,function(strand) {
-				// return ['strand',strand.getQualifiedName(),'='].concat(_.map(strand.getSegments(),function(segment) {
-					// return nupackifyIdentity(segment.getIdentifier());
-				// })).join(' ');
-			// }).join('\n'));
-// 			
-			// // print structures
-			// // e.g.: structure gate_full = D30(+D30(U6+))
-			// // e.g.: structure haripin = Ux Hx Ux Ux
-// 			
-			// out.push(_.map(library.strands,function(strand) {
-				// var struct = strand.getStructure();
-				// if(strand.getAbsolutePolarity == -1) {
-					// struct = struct.reverse();
-				// }
-				// return ['structure',strand.getQualifiedName()+'_structure','=',struct.toDotParen()].join(' ');
-			// }).join('\n'));
-// 			
-			// // thread sequences onto structures 
-			// // e.g.: gate_full.seq = E G F
-// 			
-			// out.push(_.map(library.strands,function(strand) {
-				// return [strand.getQualifiedName()+'_structure.seq','=',strand.getQualifiedName()].join(' ');
-			// }).join('\n'));
-// 			
-			// return out.join('\n\n');
-// 			
-		// },
-		toNupackOutput: function() {
+		toEnumOutput: function() {
+			
+			var library = this;
+
+			var out = [];
+			
+			
+			// print domains (segments)
+			// e.g.: domain x : 7
+			
+			function nupackifyIdentity(id) {
+				return ''+id;
+			}
+			
+			out.push(_.map(library.segments,function(segment) {
+				return ['domain',nupackifyIdentity(segment.identity),':',segment.getLength()].join(' ');
+			}).join('\n'));
+			
+			// print strands 
+			// e.g.: strand A : a x b y z* c* y* b* x*
+			
+			out.push(_.map(library.strands,function(strand) {
+				return ['strand',strand.getQualifiedName(),':'].concat(_.map(strand.getSegments(),function(segment) {
+					return nupackifyIdentity(segment.getIdentifier());
+				})).join(' ');
+			}).join('\n'));
+			
+			// print complexes
+			// e.g.: 
+			// complex IA :
+			// I A
+			// (((( + )))).....
+			
+			out.push(_.map(library.nodes,function(node) {
+				
+				var structs = _.map(node.getStrands(),function(strand) { 
+					var struct = strand.getStructure();
+					if(strand.getAbsolutePolarity() == -1) {
+						struct = struct.reverse();
+					}
+					return struct;
+				});
+				
+				var strands = _.map(node.getStrands(),function(strand) {
+					return strand.getQualifiedName();
+				});
+				var concatamer = Structure.join(structs);
+				
+				return ['complex',node.getName(),':\n',].concat(strands).concat(["\n",concatamer.toDotParen()]).join(' ');
+			}).join('\n'));
+			
+			
+			return out.join('\n\n');
+			
+		},
+		toNupackOutput: function(options) {
+			options = options || {multisubjective: true,forceDU: true};
 			
 			var library = this;
 
@@ -1575,12 +1579,12 @@ App.dynamic = module.exports = (function(_,DNA) {
 			}
 			
 			// Surround with backtics for Multisubjective
-			out.push('#`');
+			if(!!options.multisubjective) out.push('#`');
 			out.push(_.map(library.segments,function(segment) {
 				return ['domain',nupackifyIdentity(segment.identity),'=',segment.getSequence()].join(' ');
 			}).join('\n'));
-			out.push('#`');
-			
+			if(!!options.multisubjective) out.push('#`');
+
 			// print strands ("optional?")
 			// e.g.: strand J = gate_toehold1* gate_duplex1* gate_toehold2
 			// TODO: new NUPACK requires these not to be numbers... poo; need to letter domains.
@@ -1605,9 +1609,16 @@ App.dynamic = module.exports = (function(_,DNA) {
 					return struct;
 				});
 				
-				var concatamer = Structure.join(structs);
+				var concatamer = Structure.join(structs), concatamer_struct;
+				if(!!options.multisubjective || !!options.forceDU) {
+					concatamer_struct = concatamer.toDUPlus();
+				} else {
+					concatamer_struct = concatamer.toDotParen();
+				}
+			
 				
-				return ['structure',node.getName()+'_structure','=',concatamer.toDotParen()].join(' ');
+				
+				return ['structure',node.getName()+'_structure','=',concatamer_struct].join(' ');
 			}).join('\n'));
 			
 			// thread sequences onto structures 
@@ -1627,14 +1638,6 @@ App.dynamic = module.exports = (function(_,DNA) {
 			var library = this;
 
 			var out = [];
-			
-			// TODO: Add custom parameters
-			// material = dna
-			// temperature[C] = 23.0 # optional units: C (default) or K
-			// trials = 3
-			// sodium[M] = 1.0       # optional units: M (default), mM, uM, nM, pM
-			// dangles = some
-			
 			
 			// print lengths (segments)
 			// e.g.: length a = N7Y6N3
@@ -1709,9 +1712,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 					return strand.getQualifiedName();
 				});
 				
-				var concatamer = Structure.join(structs);
+				var concatamer = Structure.join(structs),
+					concatamer_struct = concatamer.toDotParen();
 				
-				return ['structure',node.getName()+'_structure','=',strand_names.join(' + '),':',concatamer.toDotParen()].join(' ');
+				
+				return ['structure',node.getName()+'_structure','=',strand_names.join(' + '),':',concatamer_struct].join(' ');
 			}).join('\n'));
 			
 			return out.join('\n\n');

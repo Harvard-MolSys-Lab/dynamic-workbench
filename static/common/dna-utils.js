@@ -1275,6 +1275,148 @@ exports.DNA = (function() {
 			};
 		},
 		
+		DUtoDotParen: function(struct) {
+			var regex = /([HhDdUu])(\d+)s?(.+)/;
+			//			 (1) ch    (2) d  (3) rest
+			
+			
+			function resolve(struct,stack) {
+				if(!stack) {stack = [];}
+				
+				struct = struct.trim();
+				
+				var lst = struct.match(regex);
+				if(!lst || lst.length != 4) {
+					return '';
+				}
+				var ch = lst[1],
+					d = parseInt(lst[2]),
+					rest = lst[3];
+					
+				// e.g. struct = "H6( U5 + H2 (U3) )", "H", "6", "( U5 + H2 (U3) )"]
+				// => ["H6( U5 + H2 (U3) )", "H", "6", "( U5 + H2 (U3) )"]
+				//		0					  1	   2	3
+				//							  ch   d  rest
+				
+				switch(ch) {
+					case 'D':
+					case 'H':
+						rest = rest.trim();
+						if(rest[0] == '(') {
+							stack.push(d);
+							var o = parse(rest,stack);
+							o.dp = Array(d+1).join('(') + o.dp + Array(d+1).join(')');
+							return o;
+						} else {
+							var o = resolve(rest,stack);
+							o.dp = Array(d+1).join('(') + o.dp + Array(d+1).join(')');
+							return o;
+						}
+						
+					case 'U':
+						return {rest: rest, dp: Array(d+1).join('.'), stack: stack};
+					case '+':
+						return {rest: rest, dp:'+', stack: stack};
+				}
+			}
+			
+			function parse(struct,stack) {
+				var rest = struct, out = [];
+				do {
+					rest = rest.trim();
+					if(rest[0] == ')') {
+						var d = stack.pop(),
+							rest = rest.substr(1);
+							
+						return {
+							rest: rest,
+							dp: out.join(''),
+							stack: stack
+						}
+					}
+					var o = resolve(rest,stack);
+					stack = o.stack;
+					rest = o.rest;
+					out.push(o.dp);
+				} while(rest != '')	
+				
+				return {
+					rest: rest,
+					dp: out.join(''),
+					stack: stack
+				};
+			}
+			
+			var o = parse(struct,[]);
+			return o.dp;
+		},
+		
+		dotParenToDU: function(struct) {
+
+			var last = '';
+				count = 0,
+				list = [];
+			
+			_.each(struct.split('').concat(null),function(ch) {
+				if(ch == last) {
+					count ++;
+				} else {
+					if (count != 0)	list.push([last,count]);
+					last = ch;
+					count = 1;
+				}
+			});
+			
+			function resolve(struct_list) {
+				if(struct_list.length > 1) {
+					var left = struct_list.shift(),
+						right = struct_list.pop();
+					var left_list = [], right_list = [];
+					
+					while(struct_list.length > 1 && (left[0] != '(' || right[0] != ')')) {
+						if(left[0] != '(') {
+							left_list.push(resolve([left]));
+							left = struct_list.shift();
+						} 
+						
+						if(right[0] != ')') {
+							right_list.unshift(resolve([right]));
+							right = struct_list.pop();
+						}
+					}
+					
+					// If we now have a duplex
+					if(left[0] == '(' && right[0] == ')') {
+						if(left[1] > right[1]) {
+							// There's a bulge to the right, so consume (right) paired bases 
+							// for this duplex, return (left - right) paired bases to the 
+							// left side.
+							struct_list.unshift(['(',left[1]-right[1]]);
+							left[1] = right[1];
+						} else if(right[1] > left[1]) {
+							// There's a bulge to the left, so consume (left) paired bases 
+							// for this duplex, return (right - left) paired bases to the 
+							// right side.
+							struct_list.push([')',right[1]-left[1]]);
+							right[1] = left[1];
+						}
+						left_list.push('D'+right[1]+'(');
+						right_list.unshift(')');
+					}
+					return left_list.concat([resolve(struct_list)]).concat(right_list).join(' ') 
+				} else {
+					if(struct_list.length == 0) { 
+						return ''; 
+					} else if(struct_list[0][0] == '.') {
+						return 'U'+struct_list[0][1];
+					} else {
+						// + or space
+						return struct_list[0][0];
+					}
+				}
+			}
+			return resolve(list);
+		},
 		
 		normalizeSystem : function(strands) {
 			// var list = [];

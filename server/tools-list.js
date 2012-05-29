@@ -1,1 +1,1 @@
-exports.list = ['pepper','nupack/analysis','nupack/pairwise','nupack/subsets','spurious','nodal'];
+exports.list = ['pepper','nupack/analysis','nupack/pairwise','nupack/subsets','spurious','nodal','multisubjective'];

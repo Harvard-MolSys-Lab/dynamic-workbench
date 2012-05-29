@@ -40,7 +40,7 @@ exports.start = function(req, res, params) {
 	pre = prefix(node), fullPath = path.resolve(utils.userFilePath(path.join(path.dirname(node), pre))), inFileName = postfix(fullPath, 'txt'), inFile = params['data'];
 	switch(params.action) {
 		case 'clean':
-			async.parallel(_.map(['txt','domains','svg','nupack','np','ms','dynaml','pil'],function(ext) { 
+			async.parallel(_.map(['txt','domains','svg','nupack','np','ms','dynaml','pil','enum'],function(ext) { 
 					return function(cb) {fs.unlink(postfix(fullPath,ext),function(err,res) { cb(null,res);});};
 				}),
 				//[
@@ -107,7 +107,8 @@ exports.start = function(req, res, params) {
 					ddOut = lib.toDomainsOutput(),
 					pilOut = lib.toPilOutput(),
 					msOut = lib.toMSOutput(),
-					svgOut = lib.toSVGOutput();
+					svgOut = lib.toSVGOutput(),
+					enumOut = lib.toEnumOutput();
 				async.parallel([function(cb) {
 					fs.writeFile(postfix(fullPath, 'domains'),ddOut,'utf8',cb);
 				},function(cb) {
@@ -120,6 +121,8 @@ exports.start = function(req, res, params) {
 					fs.writeFile(postfix(fullPath, 'dynaml'),JSON.stringify(input,null,'\t'),'utf8',cb);
 				},function(cb) {
 					fs.writeFile(postfix(fullPath, 'pil'),pilOut,'utf8',cb);
+				},function(cb) {
+					fs.writeFile(postfix(fullPath, 'enum'),enumOut,'utf8',cb);
 				},],function(err) {
 					if(err) {
 						utils.log({

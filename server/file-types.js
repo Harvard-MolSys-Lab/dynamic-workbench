@@ -128,7 +128,7 @@ var types = [{
 }, {
 	"type" : "ms",
 	"trigger" : "msedit",
-	"iconCls" : "nupack",
+	"iconCls" : "ms",
 	"name" : "Multisubjective Design Script"
 }, {
 	"type" : "svg",

@@ -6,11 +6,16 @@ var path = require('path'),
 
 
 var filesPath = config.files.path,
+	toolsPath = config.tools.path,
 	getUserData = auth.getUserData;
 
 exports.userFilePath = function(node) {
 	return path.join(filesPath,node);
 }
+exports.toolPath = function(node) {
+	return path.join(toolsPath,node);
+}
+
 function sendError(res,msg,status) {
 	var body = msg;
 	res.setHeader('Content-Type', 'text/plain');

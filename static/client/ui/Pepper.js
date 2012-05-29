@@ -17,7 +17,7 @@ Ext.define('App.ui.Pepper', {
 				iconCls: 'compile',
 				handler: function() {
 					App.runTask('Pepper', {
-						node: this.getPath()
+						node: this.getDocumentPath()
 					});
 				},
 				scope: this,

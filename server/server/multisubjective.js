@@ -1,6 +1,7 @@
 var utils = require('../utils'), proc = require('child_process'), //
 fs = require('fs'), _ = require('underscore'), async = require('async'), //
 path = require('path'), winston = require('winston'), //
+glob = require('glob');
 DNA = require('../../static/common/dna-utils');
 
 var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath, getCommand = utils.getCommand;
@@ -12,10 +13,9 @@ var commands = {
 	},
 }
 
-
 function prefix(str) {
 	var x = path.basename(str).split('.');
-	if(x.length > 1) {
+	if (x.length > 1) {
 		x.pop();
 	}
 	return x.join('.');
@@ -29,9 +29,11 @@ function quote(str) {
 	return "'" + str + "'";
 }
 
+var maxBuffer = 1000 * 1024;
+
 exports.name = 'Multisubjective';
 exports.iconCls = 'ms-icon';
-exports.params = ['node','mode']
+exports.params = ['node', 'mode', 'action']
 exports.start = function(req, res, params) {
 	var node = params['node'], fullPath = utils.userFilePath(node), cmd;
 
@@ -44,7 +46,6 @@ exports.start = function(req, res, params) {
 	// console.log('basename:'+path.basename(fullPath));
 	// console.log('dirname:'+path.dirname(fullPath));
 
-
 	// modes:
 	/*
 	 * Load:
@@ -55,7 +56,7 @@ exports.start = function(req, res, params) {
 	 * a - autofill from last web submission
 	 * j - job number
 	 */
-	
+
 	/*
 	 * Iteration:
 	 * o - run DD once
@@ -66,30 +67,84 @@ exports.start = function(req, res, params) {
 	 */
 
 	var mode = params['mode'] || 'fw';
+	var action = params['action'] || 'default';
 
-
-
-	var prefix = path.basename(fullPath,'.ms');
+	var pre = path.basename(fullPath, '.ms');
 	var working_dir = path.dirname(fullPath);
 
-	cmd = getCommand(commands['ms'], 
-	['-m', mode,'-d',working_dir,'-i',prefix,'-o',prefix,'-w']);
-	
-	var env = {"NUPACKHOME":utils.toolPath("nupack3")};
-	winston.log("info", cmd);
-	winston.log("info",env);
-	proc.exec(cmd, {env: env},function(err, stdout, stderr) {
-		if (err) {
-			utils.log("error", "ms: Execution error. ", {
-				cmd : cmd,
-				stderr : stderr,
-				stdout : stdout,
+	switch(action) {
+		case 'clean':
+			glob(path.join(working_dir, pre) + '{-*.{dd,msq,},.mso,.log}', function(err, files) {
+				if (err) {
+					utils.log({
+						level : "error",
+						source : "ms",
+						message : "Cleaning error",
+						err : err,
+					});
+					res.send("Cleaning error.");
+					return
+				}
+				if(!!files) utils.log({
+					level: 'info', source: 'ms', message: 'Cleaning files: '+files.join(', ')
+				})
+
+				async.map(files, function(file, cb) {
+					fs.unlink(file, function(err, res) {
+						cb(null, res);
+					})
+				}, function(err, results) {
+					if (err) {
+						utils.log({
+							level : "error",
+							source : "ms",
+							message : "Cleaning error",
+							err : err,
+						});
+						res.send("Cleaning error.");
+					} else {
+						res.send("Files cleaned.");
+					}
+				})
 			});
-		}
-		if (stderr) {
-			res.send("Task completed with errors. \n\n" + stderr);
-		} else {
-			res.send(stdout);
-		}
-	})
+			return;
+		default:
+		case 'default':
+			cmd = getCommand(commands['ms'], ['-m', mode, '-d', working_dir, '-i', pre, '-o', pre, '-w']);
+
+			var env = {
+				"NUPACKHOME" : utils.toolPath("nupack3"),
+				"HOME" : '/home/webserver-user'
+			};
+			winston.log("info", cmd);
+			winston.log("info", env);
+
+			// cmd = 'valgrind --leak-check=full -v '+cmd
+			proc.exec(cmd, {
+				env : env,
+				maxBuffer : maxBuffer
+			}, function(err, stdout, stderr) {
+				if (err) {
+					utils.log("error", "Node execution error. ", {
+						cmd : cmd,
+						stderr : stderr,
+						stdout : stdout,
+						err : err,
+					});
+				}
+				if (stderr) {
+					utils.log({
+						level : "error",
+						source : "ms",
+						message : "MS execution error. ",
+						cmd : cmd,
+						stderr : stderr,
+						stdout : stdout,
+					});
+					res.send("Task completed with errors. \n\n" + stderr + '\n' + stdout);
+				} else {
+					res.send(stdout);
+				}
+			})
+	}
 };

@@ -51,6 +51,14 @@ Ext.define('App.ui.MultisubjectiveEditor', {
 			iconCls: 'ms-icon',
 			handler: this.runMS,
 			scope: this,
+			xtype: 'splitbutton',
+			menu:[{
+				text: 'Clean',
+				iconCls: 'clean',
+				handler: this.clean,
+				scope:this
+			}]
+
 		}]);
 		if(this.showNupackButton) {
 			tbar.push({
@@ -100,10 +108,16 @@ Ext.define('App.ui.MultisubjectiveEditor', {
 	},
 	runMS: function() {
 		App.runTask('Multisubjective', {
-			node: this.getDocumentPath()
+			node: this.getDocumentPath(),
+			action: 'default'
 		});
 	},
-	populateDesignWindow: function(menu,designWindow) {
+	clean: function() {
+		App.runTask('Multisubjective', {
+			node: this.getDocumentPath(),
+			action: 'clean'
+		});
+	},	populateDesignWindow: function(menu,designWindow) {
 		designWindow.updateDesign(this.getValue());
 	},
 	/**

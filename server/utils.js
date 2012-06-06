@@ -69,6 +69,11 @@ exports.log = function(options) {
 	winston.log(level, (source ? source + ":" : "") + message, options);
 }
 
+function joinCommand(spec,args) {
+	var fullArgs = spec.arguments.concat(args);
+	return spec;
+}
+
 function getCommand(spec,args) {
 	if(spec) {
 		var fullArgs = spec.arguments.concat(args);
@@ -78,6 +83,7 @@ function getCommand(spec,args) {
 	return false;
 }
 
+exports.joinCommand = joinCommand; 
 exports.getCommand = getCommand; 
 
 function sscanf (str, format) {

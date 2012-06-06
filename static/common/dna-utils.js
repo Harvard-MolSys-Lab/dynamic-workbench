@@ -1156,10 +1156,6 @@ exports.DNA = (function() {
 		},
 		/**
 		 * Generates an adjacency network for use with Protovis network visualizations
-		 * @param {String} struct The target structure in dot-paren notation
-		 * @param {String[]} strands Array of sequences depicted in the structure
-		 * @param {Boolean} linkStrands true to generate strong links between adjacent bases in the same strand (e.g. for force-directed visualizations),
-		 * false to only link hybridized bases (defaults to false)
 		 */
 		generateAdjacency2 : function(strands,params) {
 			// var struct = "....(((...)))....";
@@ -1402,8 +1398,11 @@ exports.DNA = (function() {
 						}
 						left_list.push('D'+right[1]+'(');
 						right_list.unshift(')');
+					} else {
+						left_list.push('');
+						right_list.unshift('');
 					}
-					return left_list.concat([resolve(struct_list)]).concat(right_list).join(' ') 
+					return left_list.join(' ') + resolve(struct_list) + right_list.join(' ') 
 				} else {
 					if(struct_list.length == 0) { 
 						return ''; 

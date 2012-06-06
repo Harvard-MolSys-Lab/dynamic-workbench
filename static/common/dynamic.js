@@ -723,10 +723,29 @@ App.dynamic = module.exports = (function(_,DNA) {
 			}));
 		},
 		/**
+		 * Returns segments in the order they occur on the strand (accounting for polarity)
+		 */
+		getOrderedSegments : function() {
+			var rev = (this.getAbsolutePolarity() == -1);			
+			return _.flatten(_.map(this.getOrderedDomains(), function(domain) {
+				return rev ? _.clone(domain.getSegments()).reverse() : domain.getSegments()
+			}));
+		},
+		/**
 		 * @inheritdoc App.dynamic.Node#getDomains
 		 */
 		getDomains : function() {
 			return this.domains;
+		},
+		/**
+		 * Returns domains in the order they occur on the strand (accounting for polarity)
+		 */
+		getOrderedDomains : function() {
+			if(this.getAbsolutePolarity == -1) {
+				return _.clone(this.domains).reverse();
+			} else {
+				return _.clone(this.getDomains());
+			}
 		},
 		/**
 		 * @inheritdoc App.dynamic.Node#getDomain
@@ -1512,7 +1531,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			// e.g.: domain x : 7
 			
 			function nupackifyIdentity(id) {
-				return ''+id;
+				return id;
 			}
 			
 			out.push(_.map(library.segments,function(segment) {
@@ -1523,7 +1542,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			// e.g.: strand A : a x b y z* c* y* b* x*
 			
 			out.push(_.map(library.strands,function(strand) {
-				return ['strand',strand.getQualifiedName(),':'].concat(_.map(strand.getSegments(),function(segment) {
+				return ['strand',strand.getQualifiedName(),'='].concat(_.map(strand.getOrderedSegments(),function(segment) {
 					return nupackifyIdentity(segment.getIdentifier());
 				})).join(' ');
 			}).join('\n'));
@@ -1537,7 +1556,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			out.push(_.map(library.nodes,function(node) {
 				
 				var structs = _.map(node.getStrands(),function(strand) { 
-					var struct = strand.getStructure();
+					var struct = strand.getSegmentwiseStructure();
 					if(strand.getAbsolutePolarity() == -1) {
 						struct = struct.reverse();
 					}
@@ -1549,8 +1568,8 @@ App.dynamic = module.exports = (function(_,DNA) {
 				});
 				var concatamer = Structure.join(structs);
 				
-				return ['complex',node.getName(),':\n',].concat(strands).concat(["\n",concatamer.toDotParen()]).join(' ');
-			}).join('\n'));
+				return [['complex',node.getName(),':',].join(' '),strands.join(' '),concatamer.toDotParen()].join('\n');
+			}).join('\n\n'));
 			
 			
 			return out.join('\n\n');
@@ -1590,7 +1609,9 @@ App.dynamic = module.exports = (function(_,DNA) {
 			// TODO: new NUPACK requires these not to be numbers... poo; need to letter domains.
 			
 			out.push(_.map(library.strands,function(strand) {
-				return ['strand',strand.getQualifiedName(),'='].concat(_.map(strand.getSegments(),function(segment) {
+				var segments = strand.getOrderedSegments();
+				
+				return ['strand',strand.getQualifiedName(),'='].concat(_.map(segments,function(segment) {
 					return nupackifyIdentity(segment.getIdentifier());
 				})).join(' ');
 			}).join('\n'));
@@ -1624,12 +1645,26 @@ App.dynamic = module.exports = (function(_,DNA) {
 			// thread sequences onto structures 
 			// e.g.: gate_full.seq = E G F
 			
-			out.push(_.map(library.nodes,function(node) {
-				var names = _.map(node.getStrands(),function(strand) {
-					return strand.getQualifiedName();
-				});
-				return [node.getName()+'_structure.seq','='].concat(names).join(' ');
-			}).join('\n'));
+			if(!options.multisubjective) {
+				
+				out.push(_.map(library.nodes,function(node) {
+					var names = _.map(node.getStrands(),function(strand) {
+						return strand.getQualifiedName();
+					});
+					return [node.getName()+'_structure.seq','='].concat(names).join(' ');
+				}).join('\n'));
+			
+			} else {
+				
+				out.push(_.map(library.nodes,function(node) {
+					var names = _.map(node.getStrands(),function(strand) {
+						return _.map(strand.getOrderedSegments(),
+							function(seg) { return nupackifyIdentity(seg.getIdentifier()) }).join(' ')
+					});
+					return [node.getName()+'_structure.seq','='].concat(names).join(' ');
+				}).join('\n'));
+				
+			}
 			
 			return out.join('\n\n');
 			
@@ -1689,7 +1724,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			// e.g.: strand C = "?N" c : 44
 			
 			out.push(_.map(library.strands,function(strand) {
-				return ['strand',strand.getQualifiedName(),'='].concat(_.map(strand.getSegments(),function(segment) {
+				return ['strand',strand.getQualifiedName(),'='].concat(_.map(strand.getOrderedSegments(),function(segment) {
 					return nupackifyIdentity(segment.getIdentifier());
 				})).join(' ');
 			}).join('\n'));

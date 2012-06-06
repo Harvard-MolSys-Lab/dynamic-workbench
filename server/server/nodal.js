@@ -99,6 +99,43 @@ exports.start = function(req, res, params) {
 			});
 			break;
 		case 'dynamic':
+		// [function(cb) {
+					// fs.writeFile(postfix(fullPath, 'domains'),ddOut,'utf8',cb);
+				// },function(cb) {
+					// fs.writeFile(postfix(fullPath, 'np'),nupackOut,'utf8',cb);
+				// },function(cb) {
+					// var dirname = postfix(fullPath+'-ms','package');
+					// fs.mkdir(dirname,function(err) {
+						// var contents = {
+							// iconCls:'package'
+						// };
+						// async.parallel([
+							// function(_cb) { fs.writeFile(path.join(dirname,postfix(pre,'ms')),msOut,'utf8',_cb) },
+							// function(_cb) { fs.writeFile(path.join(dirname,postfix(pre,'np')),ms_nupackOut,'utf8',_cb) },
+							// function(_cb) { fs.writeFile(path.join(dirname,'contents.json'),JSON.stringify(contents),'utf8',_cb) }
+						// ],cb);
+					// });
+				// },function(cb) {
+					// fs.writeFile(postfix(fullPath, 'svg'),svgOut,'utf8',cb);
+				// },function(cb) {
+					// fs.writeFile(postfix(fullPath, 'dynaml'),JSON.stringify(input,null,'\t'),'utf8',cb);
+				// },function(cb) {
+					// fs.writeFile(postfix(fullPath, 'pil'),pilOut,'utf8',cb);
+				// },function(cb) {
+					// //fs.writeFile(postfix(fullPath, 'enum'),enumOut,'utf8',cb);
+					// var dirname = postfix(fullPath+'-enum','package');
+					// var contents = {
+						// iconCls:'package'
+					// };
+					// fs.mkdir(dirname,function(err) {
+						// async.parallel([
+							// function(_cb) { fs.writeFile(path.join(dirname,postfix(pre,'enum')),enumOut,'utf8',_cb) },
+							// function(_cb) { fs.writeFile(path.join(dirname,'contents.json'),JSON.stringify(contents),'utf8',_cb) }
+						// ],cb);
+					// });
+				// },]
+		
+		
 			try {
 				var data = params["data"];
 				var input = JSON.parse(data);

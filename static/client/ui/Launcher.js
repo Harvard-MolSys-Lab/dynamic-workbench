@@ -225,7 +225,9 @@ Ext.define('App.ui.Launcher', {
 	});
 	App.ui.Launcher.register('nupackedit', 'App.ui.NupackEditor', {});
 	App.ui.Launcher.register('msedit', 'App.ui.MultisubjectiveEditor');
+	App.ui.Launcher.register('enumedit', 'App.ui.EnumEditor');
 	
+	App.ui.Launcher.register('enumview', 'App.ui.EnumViewer');
 	App.ui.Launcher.register('taskmanager', 'App.ui.TaskManager', {
 		iconCls : 'system-monitor',
 		title : 'Task Manager'
@@ -250,6 +252,8 @@ Ext.define('App.ui.Launcher', {
 		iconCls : 'xml',
 		editorType : 'XML',
 		mode : 'xml',
+	});
+	App.ui.Launcher.register('sbml', 'App.ui.SBMLEditor', {
 	});
 	App.ui.Launcher.register('tex', 'App.ui.TextEditor', {
 		iconCls : 'tex',

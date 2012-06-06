@@ -35,7 +35,20 @@ Ext.define('App.ui.nodal.LibraryWindow', {
 						title : 'DD',
 						xtype : 'codemirror',
 						mode : 'nupack',
+						name : 'dd',
 						value : this.lastLibrary.toDomainsOutput()
+					}, {
+						title : 'PIL',
+						xtype : 'codemirror',
+						mode : 'pepper',
+						name : 'pil',
+						value : this.lastLibrary.toPilOutput()
+					}, {
+						title : 'Enum',
+						xtype : 'codemirror',
+						mode : 'pepper',
+						name : 'enum',
+						value : this.lastLibrary.toEnumOutput()
 					}, {
 						title : 'Strands',
 						xtype : 'codemirror',
@@ -94,6 +107,17 @@ Ext.define('App.ui.nodal.LibraryWindow', {
 		if(ddPanel) {
 			ddPanel.setValue(this.lastLibrary.toDomainsOutput());
 		}
+		
+		var pilPanel = this.down("codemirror[name='pil']");
+		if(pilPanel) {
+			pilPanel.setValue(this.lastLibrary.toPilOutput());
+		}
+		var emumPanel = this.down("codemirror[name='emum']");
+		if(emumPanel) {
+			emumPanel.setValue(this.lastLibrary.toEnumOutput());
+		}
+
+
 
 		var strands = this.down("codemirror[name='strands']");
 		if(strands) {
@@ -103,6 +127,7 @@ Ext.define('App.ui.nodal.LibraryWindow', {
 		if(source) {
 			source.setValue(this.printStrands(this.lastLibrary,{annotations: true, originalSegmentNames: true}));
 		}
+		
 		
 		
 		if(this.sourceDynaml) {

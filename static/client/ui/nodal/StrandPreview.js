@@ -4,7 +4,7 @@ Ext.define('App.ui.nodal.StrandPreview', {
 	built : false,
 	adjacencyMode : 2,
 	labelBases: false,
-	setValue : function(structure) {
+	setValue : function(structure,strands) {
 		if(structure) {
 
 			if(this.adjacencyMode == 2) {
@@ -12,7 +12,8 @@ Ext.define('App.ui.nodal.StrandPreview', {
 					linkStrands : true
 				});
 			} else {
-				this.nodeLayout = DNA.generateAdjacency(structure, ['A'], true);
+				if(!!strands) { strands = ['A']}
+				this.nodeLayout = DNA.generateAdjacency(structure, strands, true);
 			}
 			//this.nodeLayout = DNA.generateAdjacency(structure,strands,true);
 			if(!this.built) {
@@ -69,11 +70,12 @@ Ext.define('App.ui.nodal.StrandPreview', {
 				});
 			}
 		} else {
-			force.link.add(pv.Line)
+			this.force.link.add(pv.Line)
 			.strokeStyle( function(d,l) {
 				return l.probability ? probColors(l.probability) : 'rgba(0,0,0,0.2)'
 			});
-			force.node.add(pv.Dot)
+			
+			this.force.node.add(pv.Dot)
 			.size( function(d) {
 				return 10;
 			})

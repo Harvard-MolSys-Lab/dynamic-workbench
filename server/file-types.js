@@ -42,7 +42,7 @@ var types = [{
 	"name" : "XML File"
 }, {
 	"type" : "sbml",
-	"trigger" : "xml",
+	"trigger" : "sbml",
 	"iconCls" : "document-sbml",
 	"name" : "Systems Biology Markup Language (SBML) File"
 }, {
@@ -130,6 +130,16 @@ var types = [{
 	"trigger" : "msedit",
 	"iconCls" : "ms",
 	"name" : "Multisubjective Design Script"
+}, {
+	"type" : "enum",
+	"trigger" : "enumedit",
+	"iconCls" : "enum-icon",
+	"name" : "Domain-level Enumerator Script"
+},{
+	"type" : "enjs",
+	"trigger" : "enumview",
+	"iconCls" : "enum-icon",
+	"name" : "Domain-level Enumerator Results"
 }, {
 	"type" : "svg",
 	"trigger" : "viewer",
@@ -322,6 +332,12 @@ var contentTransforms = {
 				callback(null, null);
 			}
 		});
+	}
+}
+
+var macros = {
+	'nodal-package': function(node) {
+		
 	}
 }
 

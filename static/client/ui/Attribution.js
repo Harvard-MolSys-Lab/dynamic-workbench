@@ -39,6 +39,15 @@ Ext.define('App.ui.Attribution', {
 				pages: 'W70-W74',
 				url: 'http://nar.oxfordjournals.org/content/36/suppl_2/W70.full',
 			},
+			'sbml_2003':{
+				authors: ['Hucka, M., Finney, A., Sauro, H. M., Bolouri, H., Doyle, J. C., Kitano, H., Arkin, A. P., Bornstein, B. J., Bray, D., Cornish-Bowden, A. , Cuellar, A. A., Dronov, S., Gilles, E. D., Ginkel, M., Gor, V., Goryanin, I. I., Hedley, W. J., Hodgman, T. C., Hofmeyr, J.-H., Hunter, P. J., Juty, N. S., Kasberger, J. L., Kremling, A., Kummer, U., Le Novère, N., Loew, L. M., Lucio, D., Mendes, P., Minch, E., Mjolsness, E. D., Nakayama, Y., Nelson, M. R., Nielsen, P. F., Sakurada, T., Schaff, J. C., Shapiro, B. E., Shimizu, T. S., Spence, H. D., Stelling, J., Takahashi, K., Tomita, M., Wagner, J., Wang, J.'],
+				year:2003,
+				title: 'The Systems Biology Markup Language (SBML): A medium for representation and exchange of biochemical network models.',
+				publication: 'Bioinformatics',
+				volume: 19, 
+				number: 4,
+				pages: '524–531'
+			}
 		}
 	},
 	extend : 'Ext.window.Window',

@@ -59,7 +59,7 @@ Ext.define('Workspace.objects.dna.AbstractNode', {
 	render: function() {
 		this.arguments = [this.get('x') + this.getRadiusX(), this.get('y') + this.getRadiusY(), this.getRadiusX(), this.getRadiusY()];
 		Workspace.objects.Ellipse.superclass.render.call(this);
-		this.layout.doFirstLayout();
+		debugger;
 		this.toBack();
 		this.addShim(new Workspace.ConnectionLabel({
 			cls: 'workspace-label-plain workspace-label-small',
@@ -68,6 +68,7 @@ Ext.define('Workspace.objects.dna.AbstractNode', {
 			property: 'motif',
 			editable: false
 		}));
+		this.layout.doFirstLayout();
 
 	},
 	/**

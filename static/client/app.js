@@ -65,7 +65,10 @@ Ext.apply(App, {
 			t += s.charAt(Math.floor(Math.random() * 26));
 		}
 		return t;
-	}
+	},
+	bootstrap: function() {
+		App.fireEvent('load');
+	},
 });
 
 /**

@@ -239,3 +239,7 @@ App.ui.buildInterface = function() {
 
 	App.ui.Launcher.launch('dashboard');
 };
+
+App.on('load',function() {
+	App.ui.buildInterface();
+});

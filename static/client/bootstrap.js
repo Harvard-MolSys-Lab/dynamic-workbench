@@ -1,1 +1,1 @@
-Ext.onReady(App.ui.buildInterface);
+Ext.onReady(App.bootstrap);

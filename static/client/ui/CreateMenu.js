@@ -38,7 +38,7 @@ Ext.define('App.ui.CreateMenu', {
 	 * @cfg
 	 * Delay, in milliseconds, before this menu should be hidden after the mouse leaves.
 	 */
-	afterLeaveDelay: 100,
+	afterLeaveDelay: 500,
 	
 	initComponent: function() {
 		this.extraMenuItems || (this.extraMenuItems = []);
@@ -104,9 +104,9 @@ Ext.define('App.ui.CreateMenu', {
 	},
 	afterRender : function() {
 		this.callParent(arguments);
-		var me = this;
-		me.el.un(me.mouseMonitor)
-		me.mouseMonitor = me.el.monitorMouseLeave(this.afterLeaveDelay, me.onMouseLeave, me);
+		// var me = this;
+		// me.el.un(me.mouseMonitor)
+		// me.mouseMonitor = me.el.monitorMouseLeave(this.afterLeaveDelay, me.onMouseLeave, me);
 	},
 	
 	/**

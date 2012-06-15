@@ -25,7 +25,7 @@ Ext.define('Workspace.objects.Rectangle', {
 
 	isResizable: true,
 	render: function() {
-		this.arguments = [this.x, this.y, this.width, this.height, this.r];
+		if(!this.arguments) this.arguments = [this.x, this.y, this.width, this.height, this.r];
 		Workspace.objects.Rectangle.superclass.render.call(this);
 	}
 }, function() {

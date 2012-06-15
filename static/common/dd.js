@@ -1028,7 +1028,7 @@ var DD = function() {
 				throw 'Error';
 			}
 		}
-		debugger;
+		//debugger;
 	}
 
 	function resetCounters() {

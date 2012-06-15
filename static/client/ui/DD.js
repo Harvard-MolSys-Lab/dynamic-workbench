@@ -8,7 +8,7 @@ Ext.define('App.ui.DD', {
 		app : 'App.ui.Application',
 		tip : 'App.ui.TipHelper',
 	},
-	requires : ['App.ui.SequenceEditor', 'App.ui.dd.RulesWindow', 'App.ui.dd.ScoreParametersWindow'],
+	requires : ['App.ui.SequenceEditor', 'App.ui.dd.RulesWindow', 'App.ui.dd.ScoreParametersWindow', 'App.ui.dd.SequenceWindow'],
 	constructor : function() {
 		this.mixins.app.constructor.apply(this, arguments);
 		this.callParent(arguments);
@@ -289,12 +289,16 @@ Ext.define('App.ui.DD', {
 							scope : this,
 						}, '-', {
 							text : 'Add specific domains...',
-							handler : this.addManyDomains,
+							handler : function() { 
+								this.addManyDomains('');
+							},
 							scope : this,
 							tooltip : 'Open a window to add domains with specific sequences to the design.'
 						}, {
 							text : 'Add domains from DD file...',
-							handler : this.loadFromDDFile,
+							handler : function() {
+								this.loadFromDDFile('');
+							},
 							scope : this,
 							tooltip : 'Open a window to add domains using a file created by a legacy version of DD. ' + 'This also allows you to specify the importance and composition of each of the added domains.'
 

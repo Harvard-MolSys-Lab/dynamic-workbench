@@ -18,6 +18,16 @@
 	background-color: rgba(255,255,255,0.7);
 	height: 100%;
 }
+.dashboard b, .dashboard h2 {
+	font-family: ColaborateRegular;
+	font-weight: normal;
+}
+
+.dashboard hr {
+	border-top: solid 1px silver;
+	height: 0px
+}
+
 .dashboard-wrap .logos {
 	position: absolute;
 	bottom: 10px;
@@ -80,6 +90,13 @@ ul.dashboard-actions li a:hover {
 .dashboard-actions h2 {
 	border-bottom: solid 1px silver;
 }
+
+#fp-citations li {
+	text-indent: -1em; 
+	padding-left: 1em;
+	margin-top: 0.5em
+}
+
 .attribution p {
 	margin: 5px;
 }

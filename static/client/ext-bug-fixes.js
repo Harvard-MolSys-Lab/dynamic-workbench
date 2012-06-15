@@ -38,38 +38,38 @@ Ext.grid.property.Store.override({
  * Without the fix, on tree node refresh, all nodes are deleted (including POST requests to the server which delete *actual files*).
  * This is apparently fixed in 4.1.0, so should be reverted then.
  */
-Ext.require('Ext.data.TreeStore');
-Ext.data.TreeStore.override({
-    load: function(options) {
-        options = options || {};
-        options.params = options.params || {};
-
-        var me = this,
-            node = options.node || me.tree.getRootNode(),
-            root;
-
-        // If there is not a node it means the user hasnt defined a rootnode yet. In this case lets just
-        // create one for them.
-        if (!node) {
-            node = me.setRootNode({
-                expanded: true
-            });
-        }
-
-        if (me.clearOnLoad) {
-        	// BUGFIX: from 4.0.2; without this, all files are deleted by ext on refresh of tree
-            node.removeAll(false);//true,true);//true);
-        }
-
-        Ext.applyIf(options, {
-            node: node
-        });
-        options.params[me.nodeParam] = node ? node.getId() : 'root';
-
-        if (node) {
-            node.set('loading', true);
-        }
-
-        return me.callParent([options]);
-    },
-});
+// Ext.require('Ext.data.TreeStore');
+// Ext.data.TreeStore.override({
+    // load: function(options) {
+        // options = options || {};
+        // options.params = options.params || {};
+// 
+        // var me = this,
+            // node = options.node || me.tree.getRootNode(),
+            // root;
+// 
+        // // If there is not a node it means the user hasnt defined a rootnode yet. In this case lets just
+        // // create one for them.
+        // if (!node) {
+            // node = me.setRootNode({
+                // expanded: true
+            // });
+        // }
+// 
+        // if (me.clearOnLoad) {
+        	// // BUGFIX: from 4.0.2; without this, all files are deleted by ext on refresh of tree
+            // node.removeAll(false);//true,true);//true);
+        // }
+// 
+        // Ext.applyIf(options, {
+            // node: node
+        // });
+        // options.params[me.nodeParam] = node ? node.getId() : 'root';
+// 
+        // if (node) {
+            // node.set('loading', true);
+        // }
+// 
+        // return me.callParent([options]);
+    // },
+// });

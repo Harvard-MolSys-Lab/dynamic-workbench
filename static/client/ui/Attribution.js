@@ -48,7 +48,14 @@ Ext.define('App.ui.Attribution', {
 				number: 4,
 				pages: '524–531'
 			}
-		}
+		},
+		printAllCitations: function() {
+			this.tpl = new Ext.XTemplate(this.tpl);
+			return "<ul>"+_.map(this.cites,function(cite,key) {
+				return this.tpl.apply(cite)
+			},this).join('\n')+"</ul>";
+		},
+		tpl: '<li><b>{[values.authors.join(", ")]}</b>. "{title}". <tpl if="!!publication"><i>{publication}</i> </tpl>{volume}<tpl if="!!volume && !!pages">:</tpl>{pages}<tpl if="!!year"> ({year})</tpl>. <tpl if="!!url"><a href="{url}">URL</a></tpl></li>',
 	},
 	extend : 'Ext.window.Window',
 	width : 500,
@@ -69,5 +76,6 @@ Ext.define('App.ui.Attribution', {
 	},
 	initAttribution : function() {
 
-	}
+	},
+	
 })

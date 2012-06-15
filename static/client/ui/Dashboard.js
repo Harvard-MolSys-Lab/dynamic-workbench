@@ -3,6 +3,7 @@
  */
 Ext.define('App.ui.Dashboard', {
 	extend: 'Ext.panel.Panel',
+	requires: ['App.ui.Attribution'],
 	initComponent: function() {
 
 		Ext.apply(this, {
@@ -27,6 +28,7 @@ Ext.define('App.ui.Dashboard', {
 	initDashboard: function() {
 		if(App.User.isLoggedIn()) {
 			Ext.get('fp-user-name').update(App.User.name+' ('+App.User.email+')');
+			Ext.get('fp-citations').update(App.ui.Attribution.printAllCitations())
 		}
 	}
 });

@@ -1518,7 +1518,8 @@ var DD = function() {
 				mut_old[k] = domain[mut_domain][j];
 
 				// hack to not mutate bases constrained to only 1 base
-				if((domain_gatc_avail[mut_domain] & 1) + (domain_gatc_avail[mut_domain] & 2) / 2 + (domain_gatc_avail[mut_domain] & 4) / 4 + (domain_gatc_avail[mut_domain] & 8) / 8 > 1) {
+				if((domain_gatc_avail[mut_domain] & 1) + (domain_gatc_avail[mut_domain] & 2) / 2 + //
+				(domain_gatc_avail[mut_domain] & 4) / 4 + (domain_gatc_avail[mut_domain] & 8) / 8 > 1) {
 					if(rule_ming) {
 						// Minimize G rule active
 						do {
@@ -1532,11 +1533,11 @@ var DD = function() {
 							else
 								mut_new[k] = 4;
 							// Undo mutation if new base is not allowed
-							if((mut_new[k] == 1) && (domain_gatc_avail[mut_domain] / 8 == 0))
+							if((mut_new[k] == 1) && (Math.floor(domain_gatc_avail[mut_domain] / 8) == 0))
 								mut_new[k] = mut_old[k];
-							if((mut_new[k] == 2) && ((domain_gatc_avail[mut_domain] / 4) % 2 == 0))
+							if((mut_new[k] == 2) && (Math.floor(domain_gatc_avail[mut_domain] / 4) % 2 == 0))
 								mut_new[k] = mut_old[k];
-							if((mut_new[k] == 3) && ((domain_gatc_avail[mut_domain] / 2) % 2 == 0))
+							if((mut_new[k] == 3) && (Math.floor(domain_gatc_avail[mut_domain] / 2) % 2 == 0))
 								mut_new[k] = mut_old[k];
 							if((mut_new[k] == 4) && (domain_gatc_avail[mut_domain] % 2 == 0))
 								mut_new[k] = mut_old[k];
@@ -1555,11 +1556,11 @@ var DD = function() {
 							else
 								mut_new[k] = 4;
 							// Undo mutation if new base is not allowed
-							if((mut_new[k] == 1) && (domain_gatc_avail[mut_domain] / 8 == 0))
+							if((mut_new[k] == 1) && (Math.floor(domain_gatc_avail[mut_domain] / 8) == 0))
 								mut_new[k] = mut_old[k];
-							if((mut_new[k] == 2) && ((domain_gatc_avail[mut_domain] / 4) % 2 == 0))
+							if((mut_new[k] == 2) && (Math.floor(domain_gatc_avail[mut_domain] / 4) % 2 == 0))
 								mut_new[k] = mut_old[k];
-							if((mut_new[k] == 3) && ((domain_gatc_avail[mut_domain] / 2) % 2 == 0))
+							if((mut_new[k] == 3) && (Math.floor(domain_gatc_avail[mut_domain] / 2) % 2 == 0))
 								mut_new[k] = mut_old[k];
 							if((mut_new[k] == 4) && (domain_gatc_avail[mut_domain] % 2 == 0))
 								mut_new[k] = mut_old[k];

@@ -206,9 +206,10 @@ Ext.define('App.ui.DD', {
 						xtype : 'combobox',
 						typeAhead : true,
 						triggerAction : 'all',
+						allowBlank: false,
 						forceSelection : true,
 						selectOnTab : true,
-						store : [[15, "GATC"], [7, "ATC"], [11, "GTC"], [14, "GAT"], [13, "GAC"], [12, "GA"], [6, "AT"], [9, "GC"], [10, "GT"], [5, "AC"], [3, "TC"], [8, "G"], [4, "A"], [3, "T"], [1, "C"]],
+						store : [[15, "GATC"], [7, "ATC"], [11, "GTC"], [14, "GAT"], [13, "GAC"], [12, "GA"], [6, "AT"], [9, "GC"], [10, "GT"], [5, "AC"], [3, "TC"], [8, "G"], [4, "A"], [2, "T"], [1, "C"]],
 						lazyRender : true,
 						listClass : 'x-combo-list-small',
 						tooltip : {
@@ -314,7 +315,7 @@ Ext.define('App.ui.DD', {
 						handler : function() {
 							var rec = this.grid.getSelectionModel().getLastSelected()
 							if(rec) {
-								this.cellEditor.startEdit(rec, this.grid.headerCt.getHeaderAtIndex(0));
+								this.cellEditor.startEdit(rec, this.grid.headerCt.getHeaderAtIndex(1));
 							}
 						},
 						scope : this,
@@ -735,9 +736,15 @@ Ext.define('App.ui.DD', {
 	 * Add a domain from the {@link #addDomainButton}
 	 */
 	doAddDomain : function() {
+		var rec = this.grid.getSelectionModel().getLastSelected()
+		if(rec) {
+			var comp = rec.get('composition')	
+		} else {
+			comp = 15
+		}
 		var len = this.addDomLen.getValue();
 		var seq = this.designer.randomSequence(1,len)[0];
-		this.addDomain(this.designer.printfDomain(seq), 1, 15);
+		this.addDomain(this.designer.printfDomain(seq), 1, comp);
 	},
 	/**
 	 * Adds a domain to the {@link #designer}

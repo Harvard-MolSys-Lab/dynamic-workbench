@@ -4,7 +4,7 @@ Designing Nodal Systems
 Overview
 --------
 
-The nodal formalism allows you to express complicated computational or assembly processes in terms of simple behavioral units, called nodes. Many types of nodes exist--these types are called "motifs"; motifs are defined by mapping a structural unit of DNA or RNA (such as a hairpin) to a simple behavioral function. Nodes generally have several "ports" which correspond to domains of the underlying nucleic acid species. Nodal programs are written by adding instances of motifs (nodes) to a workspace, then connecting the ports together to indicate behavioral relationships, and in turn sequence complementarities. The nodal compiler, called DyNAMiC (the Dynamic Nucleic Acid Mechanism Compiler) propagates those sequence complementarity requirements to generate a list of distinct sequences which must be designed by a sequence designer (such as [DD](web-dd) or [NUPACK](nupack) ).
+The nodal formalism allows you to express complicated computational or assembly processes in terms of simple behavioral units, called nodes. Many types of nodes exist--these types are called "motifs"; motifs are defined by mapping a structural unit of DNA or RNA (such as a hairpin) to a simple behavioral function. Nodes generally have several "ports" which correspond to domains of the underlying nucleic acid species. Nodal programs are written by adding instances of motifs (nodes) to a workspace, then connecting the ports together to indicate behavioral relationships, and in turn sequence complementarities. The nodal compiler, called DyNAMiC (the Dynamic Nucleic Acid Mechanism Compiler) propagates those sequence complementarity requirements to generate a list of distinct sequences which must be designed by a sequence designer (such as [DD](web-dd) or [NUPACK](nupack)&nbsp;). 
 
 The basic workflow is like this:
 
@@ -15,6 +15,7 @@ The basic workflow is like this:
 
 Note: The nodal compiler generates a bunch of files, so it's recommended that you place each nodal system in a folder by itself.
 
+DyNAMiC actually uses a [JSON](http://json.org/)-based input format, called DyNAML. You can enter DyNAML directly using the DyNAML editor application, or you can design custom DyNAML motifs from within workbench. The DyNAML language is described in [this whitepaper](/etc/papers/nodal.pdf).
 
 Adding Nodes
 -------------
@@ -26,7 +27,7 @@ Defining Motifs
 
 You can create new motifs in two ways, each using the "Create Motif" tool in the ribbon. First, click the "Create Motif" button, then either:
 
--	Click on the workspace to generate an empty motif. Then select this motif and enter a custon DyNAML description using the inspector on the right, or:
+-	Click on the workspace to generate an empty motif. Then select this motif and enter a custom [DyNAML](/etc/papers/nodal.pdf) description using the inspector on the right, or:
 -	Click and drag on the workspace to select and existing system of nodes, and wrap that system in a new motif. 
 	-	This will effectively remove those nodes from the system, and transform them into part of the motif. 
 	-	All outgoing connections will be removed. 
@@ -55,7 +56,7 @@ Once your system is assembled, you can generate a picture of the underlying spec
 -	(system)`.svg` - A graphical representation of the underlying species in your system
 -	(system)`.nupack` - A textual input file for the NUPACK multi-objective thermodynamic sequence designer
 -	(system)`.domains` - A textual input file for [WebDD](web-dd)
--	(system)`.pil` - A version of the compiled system in the Pepper Intermediate Language (PIL)
+-	(system)`.pil` - A version of the compiled system in the [Pepper Intermediate Language](pepper) (PIL)
 
 You can select several other options from the drop-down next to the "Compile" button:
 

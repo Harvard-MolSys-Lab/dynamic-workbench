@@ -15,18 +15,26 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('App.ui.files.FileUploader',{
-	extend: 'App.ui.FileUploader',
-},function() {
-	App.ui.files.FileUploader.addHandler(['jpg','png','gif','txt','pdf','svg','txt','seq','nupack','nodal','workspace','html','js','xml'], function(fileName) {
-		App.ui.filesTree.refreshDocument(this.record);
-		this.filesTree.loaders--;
-		this.filesTree.setLoading((this.filesTree.loaders &gt; 0));
-		Ext.msg('File',&quot;{0} uploaded successfully.&quot;,fileName);
+  <pre class="prettyprint lang-js">Ext.define('App.ui.files.FileUploader', {
+	statics : {
+		buildStandardHandlers : function() {
+			var types = ['jpg', 'png', 'gif', 'txt', 'pdf', 'svg', 'txt', 'seq', 'nupack', 'nodal', 'workspace', 'html', 'js', 'xml'];
+			types = _.uniq(types.concat(_.keys(App.triggers)));
+
+			App.ui.files.FileUploader.addHandler(types, function(fileName) {
+				App.ui.filesTree.refreshDocument(this.record);
+				this.filesTree.loaders--;
+				this.filesTree.setLoading((this.filesTree.loaders &gt; 0));
+				Ext.msg('File', &quot;{0} uploaded successfully.&quot;, fileName);
+			});
+		}
+	},
+	extend : 'App.ui.FileUploader',
+}, function() {
+	App.ui.files.FileUploader.addHandler(['exe', 'sh', 'run', ''], function(fileName) {
+		Ext.MsgBox.alert(&quot;Not Permitted&quot;, &quot;Uploading this type of file is not allowed for security reasons.&quot;);
 	});
-	App.ui.files.FileUploader.addHandler(['exe','sh','run',''], function(fileName) {
-		Ext.MsgBox.alert(&quot;Not Permitted&quot;,&quot;Uploading this type of file is not allowed for security reasons.&quot;);
-	});
-});</pre>
+	App.on('load',App.ui.files.FileUploader.buildStandardHandlers);
+}); </pre>
 </body>
 </html>

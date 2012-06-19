@@ -20,6 +20,7 @@
  */
 Ext.define('App.ui.Dashboard', {
 	extend: 'Ext.panel.Panel',
+	requires: ['App.ui.Attribution'],
 	initComponent: function() {
 
 		Ext.apply(this, {
@@ -44,7 +45,120 @@ Ext.define('App.ui.Dashboard', {
 	initDashboard: function() {
 		if(App.User.isLoggedIn()) {
 			Ext.get('fp-user-name').update(App.User.name+' ('+App.User.email+')');
+			Ext.get('fp-citations').update(App.ui.Attribution.printAllCitations())
 		}
+		var quickstart = Ext.create('Ext.panel.Panel',{
+			renderTo: Ext.get('dashboard-quickstart'),
+			width: 300,
+			height: 300,
+			baseCls:'x-plain',
+			layout: {
+	            type: 'table',
+	            columns: 3
+	        },
+	        defaults: {xtype: 'button', scale: 'large', iconAlign: 'top', width: 120, height: 70},
+	        items: [
+	        	// Row 1
+		        {
+		        	text: 'Behavioral Design',
+		        	menu: [{
+		        		text: 'Nodal',
+		        		iconCls: 'nodal',
+		        	},{
+		        		text: 'Pepper',
+		        		iconCls: 'pepper',
+		        	},{
+		        		text: 'Chemical Reaction Network (CRN)',
+		        		iconCls: 'crn',
+		        		disabled: true,
+		        	}]
+		        },{
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        },{
+	        		xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        },	
+		        
+		        // Row 1.5
+		        {
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        	layout: {
+				        type: 'hbox',
+				        align: 'middle'
+				    },
+		        	items: [{
+		        		xtype: 'label',
+		        		html: '&amp;darr; ',
+		        	},{
+		        		xtype: 'button',
+		        		iconCls: 'secondary',
+		        		text: 'Domain Design',
+		        	}]
+		        },{
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        },{
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        },
+		        
+		        
+	        	// Row 2
+		        {
+		        	text: 'Domain Design'
+		        },{
+		        	text: 'Enumeration'
+		        },{
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        },
+		        
+		        // Row 2.5
+		        {
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        	layout: {
+				        type: 'hbox',
+				        align: 'middle'
+				    },
+		        	items: [{
+		        		xtype: 'label',
+		        		html: '&amp;darr; ',
+		        	},{
+		        		xtype: 'button',
+		        		text: 'Sequence Design',
+		        		iconCls: 'sequence',
+		        	}]
+		        },{
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        },{
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        },
+		        
+		        
+	        	// Row 3
+	        	{
+		        	text: 'Sequences'
+		        },{
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        },{
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        },
+	        ]
+
+		})
 	}
 });</pre>
 </body>

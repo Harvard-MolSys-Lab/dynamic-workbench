@@ -55,7 +55,7 @@ Ext.define('App.ui.CreateMenu', {
 </span>	 * @cfg
 	 * Delay, in milliseconds, before this menu should be hidden after the mouse leaves.
 	 */
-	afterLeaveDelay: 100,
+	afterLeaveDelay: 500,
 	
 	initComponent: function() {
 		this.extraMenuItems || (this.extraMenuItems = []);
@@ -121,9 +121,9 @@ Ext.define('App.ui.CreateMenu', {
 	},
 	afterRender : function() {
 		this.callParent(arguments);
-		var me = this;
-		me.el.un(me.mouseMonitor)
-		me.mouseMonitor = me.el.monitorMouseLeave(this.afterLeaveDelay, me.onMouseLeave, me);
+		// var me = this;
+		// me.el.un(me.mouseMonitor)
+		// me.mouseMonitor = me.el.monitorMouseLeave(this.afterLeaveDelay, me.onMouseLeave, me);
 	},
 	
 <span id='App-ui-CreateMenu-method-onCreateButton'>	/**
@@ -165,7 +165,7 @@ Ext.define('App.ui.CreateMenu', {
 				type: 'sys',
 			},{
 				text: 'Pepper Component',
-				iconCls: 'pepper',
+				iconCls: 'comp',
 				type: 'comp',
 			},{
 				text: 'Pepper Intermediate (PIL)',
@@ -174,7 +174,7 @@ Ext.define('App.ui.CreateMenu', {
 			},'-',{
 				text: 'NUPACK Multi-objective script',
 				iconCls: 'nupack',
-				type: 'nupack',
+				type: 'np',
 			},{
 				text: 'Sequence',
 				iconCls: 'seq',
@@ -194,12 +194,11 @@ Ext.define('App.ui.CreateMenu', {
 				disabled: true,
 			},{
 				text: 'SBML File',
-				iconCls: 'sbml',
+				iconCls: 'document-sbml',
 				type: 'sbml',
-				disabled: true,
 			},'-',{
 				text: 'Workspace',
-				iconCls: 'workspace',
+				iconCls: 'whiteboard',
 				type: 'workspace',
 			},{
 				text: 'HTML File',
@@ -214,9 +213,21 @@ Ext.define('App.ui.CreateMenu', {
 				iconCls: 'js',
 				type: 'js',
 			},{
+				text: 'CoffeeScript File',
+				iconCls: 'coffee',
+				type: 'coffee',
+			},{
 				text: 'Text File',
 				iconCls: 'txt',
 				type: 'txt',
+			},{
+				text: 'LaTeX Document',
+				iconCls: 'tex',
+				type: 'tex',
+			},{
+				text: 'Markdown Document',
+				iconCls: 'md',
+				type: 'md',
 			},'-',{
 				text: 'Folder',
 				iconCls: 'folder',

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define('App.ui.vienna.RNAfoldWindow',{
+	extend:'App.ui.sequence.AnalysisWindow',
+	title: &quot;RNAfold Secondary Structure Calculator&quot;,
+	url: 'http://rna.tbi.univie.ac.at/cgi-bin/RNAfold.cgi',
+	cite: 'gruber_etal_2008',
+	iconCls: 'tbi',
+	height: 480,
+	getForm: function() {
+		return {
+			height: 300,
+			items: [{
+				name: 'p',
+				xtype: 'combobox',
+				fieldLabel : 'Compute',
+				value: &quot;p&quot;,
+				store: Ext.create('Ext.data.Store', {
+				    fields: ['view', 'value'],
+				    data : [
+				        {&quot;view&quot;:&quot;Partition function + MFE Structure&quot;, &quot;value&quot;:&quot;p&quot;},
+				        {&quot;view&quot;:&quot;MFE Structure only&quot;, &quot;value&quot;:&quot;mfe&quot;},
+				    ],
+				}),
+				queryMode: 'local',
+			    displayField: 'view',
+			    valueField: 'value',
+			},{
+				name: 'Temp',
+				xtype: 'numberfield',
+				value: 20.0,
+				fieldLabel : 'Temperature (°C)',
+			},{
+				name: 'param',
+				xtype: 'combobox',
+				fieldLabel : 'Parameter Set',
+				value: &quot;dna&quot;,
+				store: Ext.create('Ext.data.Store', {
+				    fields: ['view', 'value'],
+				    data : [
+				        {&quot;view&quot;:&quot;DNA (Matthews 2004)&quot;, &quot;value&quot;:&quot;dna&quot;},
+				        {&quot;view&quot;:&quot;RNA (Turner 2004)&quot;, &quot;value&quot;:&quot;rna2004&quot;},
+				        {&quot;view&quot;:&quot;RNA (Turner 1999)&quot;, &quot;value&quot;:&quot;rna1999&quot;},
+				        {&quot;view&quot;:&quot;RNA (Andronescu 2007)&quot;, &quot;value&quot;:&quot;andronescu&quot;},
+				    ],
+				}),
+				queryMode: 'local',
+			    displayField: 'view',
+			    valueField: 'value',
+			},{
+				name: 'dangles',
+				xtype: 'combobox',
+				fieldLabel : 'Dangle treatment',
+				value: &quot;d2&quot;,
+				store: Ext.create('Ext.data.Store', {
+				    fields: ['view', 'value'],
+				    data : [
+				        {&quot;view&quot;:&quot;no dangling end energies&quot;, &quot;value&quot;:&quot;d0&quot;},
+				        {&quot;view&quot;:&quot;unpaired bases can participate in at most one dangling end (MFE folding only)&quot;, &quot;value&quot;:&quot;d1&quot;},
+				        {&quot;view&quot;:&quot;dangling energies on both sides of a helix in any case&quot;, &quot;value&quot;:&quot;d2&quot;},
+				        {&quot;view&quot;:&quot;allow coaxial stacking of adjacent helices in multi-loops (MFE folding only)&quot;, &quot;value&quot;:&quot;d3&quot;},
+				    ],
+				}),
+				queryMode: 'local',
+			    displayField: 'view',
+			    valueField: 'value',
+			},{
+				name: 'circ',
+				boxLabel : 'Sequence Type',
+				xtype: 'checkbox',
+				value: false,
+	        },{
+				name: 'nocloseGU',
+				boxLabel : 'No GU pairs at the end of helices',
+				xtype: 'checkbox',
+				checked: false,
+	        },{
+				name: 'noLP',
+				boxLabel : 'Avoid isolated base pairs',
+				xtype: 'checkbox',
+				checked: false,
+	        },{
+				name: 'SVG',
+				boxLabel : 'SVG output',
+				xtype: 'checkbox',
+				checked: true,
+	        },{
+				name: 'mountain',
+				boxLabel : 'Mountain Plot',
+				xtype: 'checkbox',
+				checked: true,
+	        },{
+				name: 'reliability',
+				boxLabel : 'Confidence Indicators',
+				xtype: 'checkbox',
+				checked: true,
+	        },]
+		};
+	},
+	getParams: function() { 
+		return {
+			SCREEN: this.getValue(),
+			PAGE: 2,
+			proceed: 'proceed',
+		}
+	},
+});
+
+
+</pre>
+</body>
+</html>

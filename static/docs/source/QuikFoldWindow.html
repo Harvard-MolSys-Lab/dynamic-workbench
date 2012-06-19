@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define('App.ui.mfold.QuikFoldWindow',{
+	extend:'App.ui.sequence.AnalysisWindow',
+	title: &quot;QuikFold Secondary Structure Calculator&quot;,
+	url: 'http://mfold.rna.albany.edu/cgi-bin/DINAMelt/quikfold.cgi',
+	cite: 'markham_zuker_2005',
+	iconCls: 'mfold',
+	getForm: function() {
+		return {
+			items: [{
+				fieldLabel: 'Name',
+				name	  : 'name',
+			},{
+				name: 'temp',
+				xtype: 'numberfield',
+				value: 20.0,
+				fieldLabel : 'Temperature (°C)',
+			},{
+				name: 'NA',
+				xtype: 'combobox',
+				fieldLabel : 'Nucleic Acid',
+				value: &quot;DNA&quot;,
+				store: Ext.create('Ext.data.Store', {
+				    fields: ['view', 'value'],
+				    data : [
+				        {&quot;view&quot;:&quot;DNA&quot;, &quot;value&quot;:&quot;DNA&quot;},
+				        {&quot;view&quot;:&quot;RNA (2.3)&quot;, &quot;value&quot;:&quot;RNA&quot;},
+				        {&quot;view&quot;:&quot;RNA (3.0)&quot;, &quot;value&quot;:&quot;RNA3&quot;},
+				    ],
+				}),
+				queryMode: 'local',
+			    displayField: 'view',
+			    valueField: 'value',
+			},{
+				name: 'type',
+				fieldLabel : 'Sequence Type',
+				xtype: 'combobox',
+				value: 'linear',
+				store: Ext.create('Ext.data.Store', {
+				    fields: ['view', 'value'],
+				    data : [
+				        {&quot;view&quot;:&quot;Linear&quot;, &quot;value&quot;:'linear'},
+				        {&quot;view&quot;:&quot;Circular&quot;, &quot;value&quot;:'circular'},
+				    ],
+				}),
+				queryMode: 'local',
+			    displayField: 'view',
+			    valueField: 'value',
+			},{
+	            xtype      : 'fieldcontainer',
+	            fieldLabel : 'Salts',
+	            defaultType: 'numberfield',
+	            defaults: {
+	                flex: 1,
+	                labelWidth: 30,
+	            },
+	            layout: 'hbox',
+	            items: [
+	                {
+						name: 'Sodium',
+						fieldLabel : 'Na&lt;sup&gt;+&lt;/sup&gt;',
+						value: 1.0,
+						margins: '0 5 0 0',
+					},{
+						fieldLabel : 'Mg&lt;sup&gt;2+&lt;/sup&gt;',
+						name: 'Magnesium',
+						value: 0.0
+					},{
+						labelWidth: 0,
+						name: 'saltunit',
+						xtype: 'combobox',
+						value: 'mM',
+						store: Ext.create('Ext.data.Store', {
+						    fields: ['view', 'value'],
+						    data : [
+						        {&quot;view&quot;:&quot;M&quot;, &quot;value&quot;:'M'},
+						        {&quot;view&quot;:&quot;mM&quot;, &quot;value&quot;:'mM'},
+						    ],
+						}),
+						queryMode: 'local',
+					    displayField: 'view',
+					    valueField: 'value',
+					}
+	            ]
+	        },{
+	        	name: 'polymer',
+	        	fieldLabel: 'Polymer Mode',
+	        	xtype: 'checkbox',
+	        	value: false,
+	        },{
+	        	name: 'p',
+	        	fieldLabel: &quot;% Suboptimal&quot;,
+	        	value: 5,
+	        },{
+	        	name: 'w',
+	        	fieldLabel: 'Window Size',
+	        	value: 'default',
+	        },{
+	        	name: 'max',
+	        	fieldLabel: 'Foldings',
+	        	xtype: 'numberfield',
+	        	value: 50,
+	        },{
+	        	name: 'maxbp',
+	        	fieldLabel: 'Max distance between paired bases',
+	        }]
+		};
+	},
+	getParams: function() { 
+		return {
+			seq: this.getValue(),
+		}
+	},
+	updateStrands: function(strands) {
+		var strandsField = this.down('codemirror');
+		strandsField.setValue(strands);
+	}
+});
+
+
+</pre>
+</body>
+</html>

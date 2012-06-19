@@ -31,7 +31,9 @@ Ext.define('Workspace.objects.dna.OutputPort', {
 	width: 8,
 	height: 8,
 	polarity: 1,
+	rotation: 0,
 	isResizable: false,
+	preventRotate: true,
 	constructor: function() {
 		this.callParent(arguments);
 		this.mixins.port.constructor.apply(this,arguments);
@@ -42,11 +44,17 @@ Ext.define('Workspace.objects.dna.OutputPort', {
 		if(this.complementarity) {
 			this.set('complementarity', Workspace.Components.realize(this.complementarity));
 		}
+		this.set('rotation',0)
 		this.callParent(arguments);
 	},
 	render: function() {
 		this.callParent(arguments);
 		this.mixins.port.render.apply(this,arguments);
+	},
+	updateAttr: function(attrName, value) {
+		if(attrName!='rotation') {
+			return this.callParent(arguments);
+		}
 	},
 }, function() {
 	Workspace.reg('Workspace.objects.dna.OutputPort',Workspace.objects.dna.OutputPort);

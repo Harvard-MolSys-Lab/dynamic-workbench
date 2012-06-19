@@ -739,11 +739,30 @@ App.dynamic = module.exports = (function(_,DNA) {
 				return domain.getSegments();
 			}));
 		},
+<span id='App-dynamic-Strand-method-getOrderedSegments'>		/**
+</span>		 * Returns segments in the order they occur on the strand (accounting for polarity)
+		 */
+		getOrderedSegments : function() {
+			var rev = (this.getAbsolutePolarity() == -1);			
+			return _.flatten(_.map(this.getOrderedDomains(), function(domain) {
+				return rev ? _.clone(domain.getSegments()).reverse() : domain.getSegments()
+			}));
+		},
 <span id='App-dynamic-Strand-method-getDomains'>		/**
 </span>		 * @inheritdoc App.dynamic.Node#getDomains
 		 */
 		getDomains : function() {
 			return this.domains;
+		},
+<span id='App-dynamic-Strand-method-getOrderedDomains'>		/**
+</span>		 * Returns domains in the order they occur on the strand (accounting for polarity)
+		 */
+		getOrderedDomains : function() {
+			if(this.getAbsolutePolarity == -1) {
+				return _.clone(this.domains).reverse();
+			} else {
+				return _.clone(this.getDomains());
+			}
 		},
 <span id='App-dynamic-Strand-method-getDomain'>		/**
 </span>		 * @inheritdoc App.dynamic.Node#getDomain
@@ -1147,9 +1166,24 @@ App.dynamic = module.exports = (function(_,DNA) {
 		toDotParen: function() {
 			if(this.type=='dot-paren') {
 				return this.spec;				
+			} else if(this.type=='DU+') { 
+				return DNA.DUtoDotParen(this.spec);
 			} else {
 				throw new DynamlError({
-					type: 'unimplemented',
+					type: 'Conversion from structure type &quot;&lt;%= structure_type %&gt;&quot; to dot-paren is not supported',
+					structure_type: this.type
+				});
+			}
+		},
+		toDUPlus: function() {
+			if(this.type=='DU+') { 
+				return this.spec;	
+			} else if(this.type=='dot-paren') {
+				return DNA.dotParenToDU(this.spec);
+			} else {
+				throw new DynamlError({
+					type: 'Conversion from structure type &quot;&lt;%= structure_type %&gt;&quot; to DU+ is not supported',
+					structure_type: this.type
 				});
 			}
 		},
@@ -1208,20 +1242,10 @@ App.dynamic = module.exports = (function(_,DNA) {
 			
 		},
 		DUtoDotParen: function(spec) {
-			
+			return DNA.DUtoDotParen(spec);
 		},
 		dotParenToDU: function(spec) {
-			var ch = '', count=0, out = [];
-			while(spec.length &gt; 0) {
-				if(ch != spec[0]) {
-					out.push(Array(count+1).join(ch));
-				} else {
-					n++;
-				}
-				Array.prototype.shift.apply(spec);
-			}
-			out.push(Array(count+1).join(ch));
-			return out.join('');
+			return DNA.dotParenToDU(spec);
 		},
 		join: function(structures) {
 			return new Structure(_.map(structures,function(struct) {
@@ -1513,64 +1537,63 @@ App.dynamic = module.exports = (function(_,DNA) {
 			return Compiler.printStrands(this,config);
 		},
 		
-		// toNupackOutput: function() {
-// 			
-			// var library = this;
-// 
-			// var out = [];
-// 			
-			// // TODO: Add custom parameters
-			// // material = dna
-			// // temperature[C] = 23.0 # optional units: C (default) or K
-			// // trials = 3
-			// // sodium[M] = 1.0       # optional units: M (default), mM, uM, nM, pM
-			// // dangles = some
-// 			
-// 			
-			// // print domains (segments)
-			// // e.g.: domain x = N7
-// 			
-			// function nupackifyIdentity(id) {
-				// return 'd'+id;
-			// }
-// 			
-			// out.push(_.map(library.segments,function(segment) {
-				// return ['domain',nupackifyIdentity(segment.identity),'=',segment.getSequence()].join(' ');
-			// }).join('\n'));
-// 			
-			// // print strands (&quot;optional?&quot;)
-			// // e.g.: strand J = gate_toehold1* gate_duplex1* gate_toehold2
-			// // TODO: new NUPACK requires these not to be numbers... poo; need to letter domains.
-// 			
-			// out.push(_.map(library.strands,function(strand) {
-				// return ['strand',strand.getQualifiedName(),'='].concat(_.map(strand.getSegments(),function(segment) {
-					// return nupackifyIdentity(segment.getIdentifier());
-				// })).join(' ');
-			// }).join('\n'));
-// 			
-			// // print structures
-			// // e.g.: structure gate_full = D30(+D30(U6+))
-			// // e.g.: structure haripin = Ux Hx Ux Ux
-// 			
-			// out.push(_.map(library.strands,function(strand) {
-				// var struct = strand.getStructure();
-				// if(strand.getAbsolutePolarity == -1) {
-					// struct = struct.reverse();
-				// }
-				// return ['structure',strand.getQualifiedName()+'_structure','=',struct.toDotParen()].join(' ');
-			// }).join('\n'));
-// 			
-			// // thread sequences onto structures 
-			// // e.g.: gate_full.seq = E G F
-// 			
-			// out.push(_.map(library.strands,function(strand) {
-				// return [strand.getQualifiedName()+'_structure.seq','=',strand.getQualifiedName()].join(' ');
-			// }).join('\n'));
-// 			
-			// return out.join('\n\n');
-// 			
-		// },
-		toNupackOutput: function() {
+		toEnumOutput: function() {
+			
+			var library = this;
+
+			var out = [];
+			
+			
+			// print domains (segments)
+			// e.g.: domain x : 7
+			
+			function nupackifyIdentity(id) {
+				return id;
+			}
+			
+			out.push(_.map(library.segments,function(segment) {
+				return ['domain',nupackifyIdentity(segment.identity),':',segment.getLength()].join(' ');
+			}).join('\n'));
+			
+			// print strands 
+			// e.g.: strand A : a x b y z* c* y* b* x*
+			
+			out.push(_.map(library.strands,function(strand) {
+				return ['strand',strand.getQualifiedName(),'='].concat(_.map(strand.getOrderedSegments(),function(segment) {
+					return nupackifyIdentity(segment.getIdentifier());
+				})).join(' ');
+			}).join('\n'));
+			
+			// print complexes
+			// e.g.: 
+			// complex IA :
+			// I A
+			// (((( + )))).....
+			
+			out.push(_.map(library.nodes,function(node) {
+				
+				var structs = _.map(node.getStrands(),function(strand) { 
+					var struct = strand.getSegmentwiseStructure();
+					if(strand.getAbsolutePolarity() == -1) {
+						struct = struct.reverse();
+					}
+					return struct;
+				});
+				
+				var strands = _.map(node.getStrands(),function(strand) {
+					return strand.getQualifiedName();
+				});
+				var concatamer = Structure.join(structs);
+				
+				return [['complex',node.getName(),':',].join(' '),strands.join(' '),concatamer.toDotParen()].join('\n');
+			}).join('\n\n'));
+			
+			
+			return out.join('\n\n');
+			
+		},
+		toNupackOutput: function(options) {
+			options = options || {multisubjective: true,forceDU: true};
 			
 			var library = this;
 
@@ -1591,16 +1614,21 @@ App.dynamic = module.exports = (function(_,DNA) {
 				return 'd'+id;
 			}
 			
+			// Surround with backtics for Multisubjective
+			if(!!options.multisubjective) out.push('#`');
 			out.push(_.map(library.segments,function(segment) {
 				return ['domain',nupackifyIdentity(segment.identity),'=',segment.getSequence()].join(' ');
 			}).join('\n'));
-			
+			if(!!options.multisubjective) out.push('#`');
+
 			// print strands (&quot;optional?&quot;)
 			// e.g.: strand J = gate_toehold1* gate_duplex1* gate_toehold2
 			// TODO: new NUPACK requires these not to be numbers... poo; need to letter domains.
 			
 			out.push(_.map(library.strands,function(strand) {
-				return ['strand',strand.getQualifiedName(),'='].concat(_.map(strand.getSegments(),function(segment) {
+				var segments = strand.getOrderedSegments();
+				
+				return ['strand',strand.getQualifiedName(),'='].concat(_.map(segments,function(segment) {
 					return nupackifyIdentity(segment.getIdentifier());
 				})).join(' ');
 			}).join('\n'));
@@ -1619,19 +1647,128 @@ App.dynamic = module.exports = (function(_,DNA) {
 					return struct;
 				});
 				
-				var concatamer = Structure.join(structs);
+				var concatamer = Structure.join(structs), concatamer_struct;
+				if(!!options.multisubjective || !!options.forceDU) {
+					concatamer_struct = concatamer.toDUPlus();
+				} else {
+					concatamer_struct = concatamer.toDotParen();
+				}
+			
 				
-				return ['structure',node.getName()+'_structure','=',concatamer.toDotParen()].join(' ');
+				
+				return ['structure',node.getName()+'_structure','=',concatamer_struct].join(' ');
 			}).join('\n'));
 			
 			// thread sequences onto structures 
 			// e.g.: gate_full.seq = E G F
 			
+			if(!options.multisubjective) {
+				
+				out.push(_.map(library.nodes,function(node) {
+					var names = _.map(node.getStrands(),function(strand) {
+						return strand.getQualifiedName();
+					});
+					return [node.getName()+'_structure.seq','='].concat(names).join(' ');
+				}).join('\n'));
+			
+			} else {
+				
+				out.push(_.map(library.nodes,function(node) {
+					var names = _.map(node.getStrands(),function(strand) {
+						return _.map(strand.getOrderedSegments(),
+							function(seg) { return nupackifyIdentity(seg.getIdentifier()) }).join(' ')
+					});
+					return [node.getName()+'_structure.seq','='].concat(names).join(' ');
+				}).join('\n'));
+				
+			}
+			
+			return out.join('\n\n');
+			
+		},
+		toMSOutput: function() {
+			var library = this;
+
+			var out = [];
+			
+			// print lengths (segments)
+			// e.g.: length a = N7Y6N3
+			// Y specifies an immutable base
+			
+			function nupackifyIdentity(id) {
+				return 'd'+id;
+			}
+			
+			out.push(_.map(library.segments,function(segment) {
+				return ['length',nupackifyIdentity(segment.identity),'=','N'+segment.getLength()].join(' ');
+			}).join('\n'));
+			
+			
+			// print structures
+			// e.g.: hairpin A1: -
+			// e.g.: static A2
+			
 			out.push(_.map(library.nodes,function(node) {
-				var names = _.map(node.getStrands(),function(strand) {
+				if(node.type == 'hairpin') {
+					return ['hairpin',node.getName()+'_structure',':',(node.getPolarity() &lt; 0 ? '-' : '+')].join(' ');
+				} else {
+					return ['static',node.getName()+'_structure'].join(' ');
+				}
+			}).join('\n'));
+			
+			
+			return out.join('\n\n');
+		},
+		toPilOutput: function() {
+			
+			var library = this;
+			var out = [];
+			
+			// print sequences (segments)
+			// sequence &lt;name&gt; = &lt;constraints&gt; : &lt;length&gt;
+			// e.g.: sequence x = &quot;6N S 13N S&quot; : 21
+			
+			function nupackifyIdentity(id) {
+				return 'd'+id;
+			}
+			
+			out.push(_.map(library.segments,function(segment) {
+				return ['sequence',nupackifyIdentity(segment.identity),'=',segment.getSequence()].join(' ');
+			}).join('\n'));
+			
+			// print strands 
+			// strand &lt;name&gt; = &lt;list of sequences and explicit constraints&gt; : &lt;length&gt;
+			// e.g.: strand C = &quot;?N&quot; c : 44
+			
+			out.push(_.map(library.strands,function(strand) {
+				return ['strand',strand.getQualifiedName(),'='].concat(_.map(strand.getOrderedSegments(),function(segment) {
+					return nupackifyIdentity(segment.getIdentifier());
+				})).join(' ');
+			}).join('\n'));
+			
+			// print structures
+			// structure &lt;name&gt; = &lt;list of strands&gt; : &lt;secondary structure&gt;
+			// e.g.: structure Gate = X + C + S + Y : U6 H15(+ H15(U29 + U14 H15(+)))
+			
+			out.push(_.map(library.nodes,function(node) {
+				
+				var structs = _.map(node.getStrands(),function(strand) { 
+					var struct = strand.getSegmentwiseStructure();
+					if(strand.getAbsolutePolarity() == -1) {
+						struct = struct.reverse();
+					}
+					return struct;
+				});
+				
+				var strand_names = _.map(node.getStrands(),function(strand) {
 					return strand.getQualifiedName();
 				});
-				return [node.getName()+'_structure.seq','='].concat(names).join(' ');
+				
+				var concatamer = Structure.join(structs),
+					concatamer_struct = concatamer.toDotParen();
+				
+				
+				return ['structure',node.getName()+'_structure','=',strand_names.join(' + '),':',concatamer_struct].join(' ');
 			}).join('\n'));
 			
 			return out.join('\n\n');
@@ -1808,9 +1945,6 @@ App.dynamic = module.exports = (function(_,DNA) {
 			fid.write('&lt;/svg&gt;\n')
 			return fid.close()
 			
-		},
-		toPilOutput: function() {
-			return '';
 		},
 		toMotif: function() {
 			var strands = _.map(this.strands,function(strand) {

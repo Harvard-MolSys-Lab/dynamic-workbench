@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='App-ui-D3Panel'>/**
+</span> * Allows D3 visualizations to be automatically sized and displayed
+ * within a {@link Ext.panel.Panel panel}
+ */
+Ext.define('App.ui.D3Panel', {
+	alias : 'widget.d3panel',
+	extend : 'Ext.panel.Panel',
+<span id='App-ui-D3Panel-cfg-pan'>	/**
+</span>	 * @cfg pan {Boolean}
+	 * true to automatically allow panning of the display (defaults to true)
+	 */
+	pan : true,
+<span id='App-ui-D3Panel-cfg-zoom'>	/**
+</span>	 * @cfg zoom {Number} if &gt;0, mousewheel events on the visualization will
+	 * zoom with this speed; false to disable zooming (defaults to 1)
+	 */
+	zoom : 1,
+	bpadding : 20,
+	visPadding : 10,
+<span id='App-ui-D3Panel-cfg-autoRender'>	/**
+</span>	 * @cfg autoRender {Boolean}
+	 * true to automatically render the visualization after the component
+	 * renders; false to render manually using {@link #afterrender} (defaults
+	 * to false)
+	 */
+	autoRender : false,
+<span id='App-ui-D3Panel-cfg-autoSize'>	/**
+</span>	 * @cfg autoSize {Boolean} true to automatically scale the visualization to
+	 * the size of the panel's body element (defaults to true)
+	 */
+	autoSize : true,
+	initComponent : function() {
+		//this.on('afterrender',this.afterrender,this);
+		this.callParent(arguments);
+		if (this.autoRender) {
+			this.on('afterrender', this.afterrender, this, {
+				single : true
+			});
+		}
+	},
+<span id='App-ui-D3Panel-method-afterrender'>	/**
+</span>	 * Renders the visualization. Called automatically if {@link #autoRender}
+	 * is true
+	 */
+	afterrender : function() {
+		if (!this.built) {
+			this.buildVis();
+			if (!this.collapsed) {
+				this.renderVis();
+			}
+			this.on('collapse', this.hideVis, this);
+			this.on('expand', this.resizeVis, this);
+			this.on('resize', this.resizeVis, this);
+			this.built = true;
+		}
+	},
+<span id='App-ui-D3Panel-method-getBodyWidth'>	/**
+</span>	 * @return {Number} width of the body element in pixels
+	 */
+	getBodyWidth : function() {
+		return this.body.getWidth();
+	},
+<span id='App-ui-D3Panel-method-getBodyHeight'>	/**
+</span>	 * @return {Number} height of the body element in pixels
+	 */
+	getBodyHeight : function() {
+		return this.body.getHeight();
+	},
+<span id='App-ui-D3Panel-method-resizeVis'>	/**
+</span>	 * Updates the size (if {@link #autoSize} is true) of the visualization on
+	 * panel resize. Calls user-defined {@link #updateVis}
+	 */
+	resizeVis : function(p, w, h) {
+		if (this.autoSize) {
+			this.doAutoSize();
+		}
+		this.updateVis();
+		//this.vis.render();
+	},
+	doAutoSize : function() {
+		this.vis
+		.attr('width', this.getBodyWidth() - this.visPadding)
+		.attr('height', this.getBodyHeight() - this.visPadding)
+		.style('top', this.visPadding)
+		.style('left', this.visPadding);
+		
+		if(this.rect) {
+			this.rect
+			.attr('width', this.getBodyWidth() - this.visPadding)
+			.attr('height', this.getBodyHeight() - this.visPadding)
+		}
+	},
+<span id='App-ui-D3Panel-method-renderVis'>	/**
+</span>	 * Renders the visualization. Do not override this method; override
+	 * {@link #buildVis} to specify your visualization.
+	 */
+	renderVis : function() {
+		if (this.vis) {
+			// this.vis.visible(true);
+			// this.vis.render();
+		}
+	},
+<span id='App-ui-D3Panel-method-updateVis'>	/**
+</span>	 * Override this method to provide custom logic upon panel resize (such as
+	 * updating visualization parameters other than width and height)
+	 */
+	updateVis : function() {
+	},
+<span id='App-ui-D3Panel-method-hideVis'>	/**
+</span>	 * Hides the visualization.
+	 */
+	hideVis : function() {
+		if (this.vis) {
+			//this.vis.visible(false);
+			this.vis.render();
+		}
+	},
+<span id='App-ui-D3Panel-method-buildVis'>	/**
+</span>	 * Override this method to provide your custom visualization logic
+	 */
+	buildVis : function() {
+		return this.getCanvas();
+	},
+<span id='App-ui-D3Panel-method-getCanvas'>	/**
+</span>	 * Builds the visualization panel, sizes, and sets pan and zoom events if
+	 * specified.
+	 * @returns {pv.Panel} panel the visualization panel
+	 */
+	getCanvas : function() {
+<span id='App-ui-D3Panel-property-vis'>		/**
+</span>		 * @property {pv.Panel} vis
+		 * The visualization panel to which you can write. Ensure it is built
+		 * by calling {@link #getCanvas}.
+		 */
+		if (!this.vis) {
+			this.vis = d3.select(&quot;#&quot; + this.getEl().id).append(&quot;svg&quot;).style('position', 'absolute').attr(&quot;pointer-events&quot;, &quot;all&quot;);
+			
+			if (this.autoSize) {
+				this.doAutoSize();
+				// this.vis
+				// .width(this.body.getWidth())
+				// .height(this.body.getHeight());
+			}
+			if (this.pan || this.zoom) {
+				var me = this;
+				function redraw() {
+					me.vis.attr(&quot;transform&quot;, &quot;translate(&quot; + d3.event.translate + &quot;)&quot; + &quot; scale(&quot; + d3.event.scale + &quot;)&quot;);
+				}
+				
+				this.vis = this.vis.append('svg:g').call(d3.behavior.zoom().on(&quot;zoom&quot;, redraw)).append('svg:g');
+				
+				// Plain white rectangle to allow panning
+				this.rect = this.vis.append('svg:rect')
+			    .attr('width', this.getWidth())
+			    .attr('height', this.getHeight())
+			    .attr('fill', 'white');
+				//this.vis.event(&quot;mousedown&quot;, pv.Behavior.pan());
+			}
+
+		}
+		return this.vis;
+	},
+	redraw : function() {
+		this.vis.attr(&quot;transform&quot;, &quot;translate(&quot; + d3.event.translate + &quot;)&quot; + &quot; scale(&quot; + d3.event.scale + &quot;)&quot;);
+	}
+})</pre>
+</body>
+</html>

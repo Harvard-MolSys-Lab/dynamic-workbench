@@ -35,8 +35,22 @@ Ext.define('Workspace.tools.nodal.ExposureTool', {
 	canConnect: function() {
 		return Workspace.objects.dna.Exposure.prototype.canConnect.apply(this,arguments);
 	},
-	onConnect: function(conn,left,right) {
+	beforeConnect: function(left,right) {
 		
+		// If we dragged directly to a motif
+		if(right.hasWType('Workspace.objects.dna.Motif')) {
+			
+			// Make a new port object
+			var port = this.workspace.buildManager.buildPort({
+				wtype: left.get('wtype'),
+			});
+			
+			// Add port to motif
+			right.adopt(port);
+			
+			// Expose
+			this.rightObject = port;
+		}
 	},
 	targetWType: 'Workspace.objects.dna.Exposure'
 }, function() {

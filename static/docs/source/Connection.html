@@ -76,6 +76,10 @@ Ext.define('Workspace.objects.Connection', {
 				property : 'name'
 			}));
 		}
+		
+		if(this.thetaProperty) {
+			if(!this.dthetaProperty) {this.dthetaProperty = 'd' + this.thetaProperty}
+		}
 	},
 	extend : 'Workspace.objects.VectorObject',
 	requires : ['Workspace.objects.Path'],
@@ -242,7 +246,8 @@ Ext.define('Workspace.objects.Connection', {
 				y: bb2.y + bb2.height / 2,
 				r: bb2.width / 2,
 			};
-			var theta1 = obj1.get(this.thetaProperty)*Math.PI/180, theta2 = obj2.get(this.thetaProperty)*Math.PI/180;
+			var theta1 = obj1.get(this.thetaProperty)*Math.PI/180, //+ (obj1[this.dthetaProperty] ? obj1[this.dthetaProperty] : 0 ), 
+				theta2 = obj2.get(this.thetaProperty)*Math.PI/180; //+ (obj2[this.dthetaProperty] ? obj2[this.dthetaProperty] : 0 );
 			var l = 40;
 			var path = [&quot;M&quot;,c1.x+Math.cos(theta1)*c1.r, c1.y+Math.sin(theta1)*c1.r,
 				// first control point

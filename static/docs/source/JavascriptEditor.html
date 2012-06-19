@@ -27,6 +27,14 @@ Ext.define('App.ui.JavascriptEditor', {
 		'refHelper' : 'App.ui.RefHelper',
 	},
 	initComponent : function() {
+		var mode = this.mode;
+		if(!!this.json) {
+			mode = {
+				name: 'javascript',
+				json: true,
+			};
+			this.editorType = 'JSON';
+		}
 		Ext.applyIf(this, {
 			tbar : [{
 				text : 'Run',
@@ -53,7 +61,7 @@ Ext.define('App.ui.JavascriptEditor', {
 				xtype : 'codemirror',
 				itemId : 'editor',
 				border : false,
-				mode : this.mode,
+				mode : mode,
 			}],
 		});
 		this.callParent(arguments);

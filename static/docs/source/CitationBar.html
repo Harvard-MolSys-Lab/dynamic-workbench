@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define('App.ui.CitationBar',{
+	alias: 'widget.cite',
+	extend: 'Ext.panel.Panel',
+	requires: ['App.ui.Attribution'],
+	cls: 'simple-header citation-bar',
+	dock:'bottom',
+	// closeable: true,
+	// iconCls: 'cite',
+	// headerPosition: 'right',
+	// closable: true,
+	// closeAction: 'collapse',
+	frame: true,
+	padding: '5 5 5 5',
+	tpl: '&lt;b&gt;{[values.authors.join(&quot;, &quot;)]}&lt;/b&gt;. &quot;{title}&quot;. &lt;i&gt;{publication}&lt;/i&gt; {volume}:{pages} ({year}). &lt;a href=&quot;{url}&quot;&gt;URL&lt;/a&gt;',
+//	padding: '5 0 0 0',
+	minHeight: 36,
+	initComponent: function() {
+		this.tpl = new Ext.XTemplate(this.tpl);
+		if(Ext.isString(this.cite)) {
+			this.cite = App.ui.Attribution.getCite(this.cite);
+		}
+		
+		if (!this.cite) this.cite = {};
+		Ext.applyIf(this.cite,{
+			authors: [],
+			title: '',
+			publication: '',
+			volume: '',
+			pages: '',
+			year: '',
+			url: '',
+		})
+		
+		Ext.applyIf(this,{
+			html: this.tpl.apply(this.cite)
+		});
+		this.callParent(arguments);
+	},
+})
+</pre>
+</body>
+</html>

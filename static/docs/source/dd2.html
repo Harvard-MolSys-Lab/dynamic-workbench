@@ -860,7 +860,7 @@ var DD = function() {
 		for( j = 0; j &lt; num_domain; j++) {
 			var line = f[j].split(' ');
 			
-			buffer = f[j];
+			var buffer = f[j];
 			i = 0;
 			while(buffer[i] != ' ') {
 				if((buffer[i] != 'G') &amp;&amp; (buffer[i] != 'A') &amp;&amp; (buffer[i] != 'T') &amp;&amp; (buffer[i] != 'C') &amp;&amp; (buffer[i] != 'g') &amp;&amp; (buffer[i] != 'a') &amp;&amp; (buffer[i] != 't') &amp;&amp; (buffer[i] != 'c')) {
@@ -918,7 +918,10 @@ var DD = function() {
 				// throw 'Error';
 			// }
 		}
-
+		
+		resetCounters();  
+		
+		//debugger;
 		setupScoreMatricies();
 	}
 
@@ -991,6 +994,7 @@ var DD = function() {
 		// all flags set (bases available)
 		doneflag = 0;
 
+		resetCounters();
 		setupScoreMatricies();
 		startingDomainSequences();
 	}
@@ -1041,6 +1045,16 @@ var DD = function() {
 				throw 'Error';
 			}
 		}
+		//debugger;
+	}
+
+	function resetCounters() {
+		num_mut_attempts = 0;
+		total_mutations = 0;
+		num_mut = 0;
+		bored_mutations = 0;
+		mutation_delta = 0;  
+		mutation_flux = 0;
 	}
 
 	function randomBase() {
@@ -1521,7 +1535,8 @@ var DD = function() {
 				mut_old[k] = domain[mut_domain][j];
 
 				// hack to not mutate bases constrained to only 1 base
-				if((domain_gatc_avail[mut_domain] &amp; 1) + (domain_gatc_avail[mut_domain] &amp; 2) / 2 + (domain_gatc_avail[mut_domain] &amp; 4) / 4 + (domain_gatc_avail[mut_domain] &amp; 8) / 8 &gt; 1) {
+				if((domain_gatc_avail[mut_domain] &amp; 1) + (domain_gatc_avail[mut_domain] &amp; 2) / 2 + //
+				(domain_gatc_avail[mut_domain] &amp; 4) / 4 + (domain_gatc_avail[mut_domain] &amp; 8) / 8 &gt; 1) {
 					if(rule_ming) {
 						// Minimize G rule active
 						do {
@@ -1535,11 +1550,11 @@ var DD = function() {
 							else
 								mut_new[k] = 4;
 							// Undo mutation if new base is not allowed
-							if((mut_new[k] == 1) &amp;&amp; (domain_gatc_avail[mut_domain] / 8 == 0))
+							if((mut_new[k] == 1) &amp;&amp; (Math.floor(domain_gatc_avail[mut_domain] / 8) == 0))
 								mut_new[k] = mut_old[k];
-							if((mut_new[k] == 2) &amp;&amp; ((domain_gatc_avail[mut_domain] / 4) % 2 == 0))
+							if((mut_new[k] == 2) &amp;&amp; (Math.floor(domain_gatc_avail[mut_domain] / 4) % 2 == 0))
 								mut_new[k] = mut_old[k];
-							if((mut_new[k] == 3) &amp;&amp; ((domain_gatc_avail[mut_domain] / 2) % 2 == 0))
+							if((mut_new[k] == 3) &amp;&amp; (Math.floor(domain_gatc_avail[mut_domain] / 2) % 2 == 0))
 								mut_new[k] = mut_old[k];
 							if((mut_new[k] == 4) &amp;&amp; (domain_gatc_avail[mut_domain] % 2 == 0))
 								mut_new[k] = mut_old[k];
@@ -1558,11 +1573,11 @@ var DD = function() {
 							else
 								mut_new[k] = 4;
 							// Undo mutation if new base is not allowed
-							if((mut_new[k] == 1) &amp;&amp; (domain_gatc_avail[mut_domain] / 8 == 0))
+							if((mut_new[k] == 1) &amp;&amp; (Math.floor(domain_gatc_avail[mut_domain] / 8) == 0))
 								mut_new[k] = mut_old[k];
-							if((mut_new[k] == 2) &amp;&amp; ((domain_gatc_avail[mut_domain] / 4) % 2 == 0))
+							if((mut_new[k] == 2) &amp;&amp; (Math.floor(domain_gatc_avail[mut_domain] / 4) % 2 == 0))
 								mut_new[k] = mut_old[k];
-							if((mut_new[k] == 3) &amp;&amp; ((domain_gatc_avail[mut_domain] / 2) % 2 == 0))
+							if((mut_new[k] == 3) &amp;&amp; (Math.floor(domain_gatc_avail[mut_domain] / 2) % 2 == 0))
 								mut_new[k] = mut_old[k];
 							if((mut_new[k] == 4) &amp;&amp; (domain_gatc_avail[mut_domain] % 2 == 0))
 								mut_new[k] = mut_old[k];
@@ -1698,6 +1713,9 @@ var DD = function() {
 			_.extend(params,state.params);
 			
 			setupScoreMatricies();
+		},
+		resetCounters: function() {
+			
 		},
 		serialize : function() {
 			this.saveState.apply(this, arguments);

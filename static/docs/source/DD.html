@@ -25,7 +25,7 @@ Ext.define('App.ui.DD', {
 		app : 'App.ui.Application',
 		tip : 'App.ui.TipHelper',
 	},
-	requires : ['App.ui.SequenceEditor', 'App.ui.dd.RulesWindow', 'App.ui.dd.ScoreParametersWindow'],
+	requires : ['App.ui.SequenceEditor', 'App.ui.dd.RulesWindow', 'App.ui.dd.ScoreParametersWindow', 'App.ui.dd.SequenceWindow'],
 	constructor : function() {
 		this.mixins.app.constructor.apply(this, arguments);
 		this.callParent(arguments);
@@ -40,6 +40,12 @@ Ext.define('App.ui.DD', {
 	 */
 	mutating : false,
 	scoreFormat : '0.00',
+	
+	dockedItems: [{
+		xtype: 'cite',
+		cite: 'zhang_2011',
+	}],
+	
 	initComponent : function() {
 <span id='App-ui-DD-property-designer'>		/**
 </span>		 * @property {DD} designer
@@ -217,9 +223,10 @@ Ext.define('App.ui.DD', {
 						xtype : 'combobox',
 						typeAhead : true,
 						triggerAction : 'all',
+						allowBlank: false,
 						forceSelection : true,
 						selectOnTab : true,
-						store : [[15, &quot;GATC&quot;], [7, &quot;ATC&quot;], [11, &quot;GTC&quot;], [14, &quot;GAT&quot;], [13, &quot;GAC&quot;], [12, &quot;GA&quot;], [6, &quot;AT&quot;], [9, &quot;GC&quot;], [10, &quot;GT&quot;], [5, &quot;AC&quot;], [3, &quot;TC&quot;], [8, &quot;G&quot;], [4, &quot;A&quot;], [3, &quot;T&quot;], [1, &quot;C&quot;]],
+						store : [[15, &quot;GATC&quot;], [7, &quot;ATC&quot;], [11, &quot;GTC&quot;], [14, &quot;GAT&quot;], [13, &quot;GAC&quot;], [12, &quot;GA&quot;], [6, &quot;AT&quot;], [9, &quot;GC&quot;], [10, &quot;GT&quot;], [5, &quot;AC&quot;], [3, &quot;TC&quot;], [8, &quot;G&quot;], [4, &quot;A&quot;], [2, &quot;T&quot;], [1, &quot;C&quot;]],
 						lazyRender : true,
 						listClass : 'x-combo-list-small',
 						tooltip : {
@@ -300,12 +307,16 @@ Ext.define('App.ui.DD', {
 							scope : this,
 						}, '-', {
 							text : 'Add specific domains...',
-							handler : this.addManyDomains,
+							handler : function() { 
+								this.addManyDomains('');
+							},
 							scope : this,
 							tooltip : 'Open a window to add domains with specific sequences to the design.'
 						}, {
 							text : 'Add domains from DD file...',
-							handler : this.loadFromDDFile,
+							handler : function() {
+								this.loadFromDDFile('');
+							},
 							scope : this,
 							tooltip : 'Open a window to add domains using a file created by a legacy version of DD. ' + 'This also allows you to specify the importance and composition of each of the added domains.'
 
@@ -321,7 +332,7 @@ Ext.define('App.ui.DD', {
 						handler : function() {
 							var rec = this.grid.getSelectionModel().getLastSelected()
 							if(rec) {
-								this.cellEditor.startEdit(rec, this.grid.headerCt.getHeaderAtIndex(0));
+								this.cellEditor.startEdit(rec, this.grid.headerCt.getHeaderAtIndex(1));
 							}
 						},
 						scope : this,
@@ -742,9 +753,15 @@ Ext.define('App.ui.DD', {
 </span>	 * Add a domain from the {@link #addDomainButton}
 	 */
 	doAddDomain : function() {
+		var rec = this.grid.getSelectionModel().getLastSelected()
+		if(rec) {
+			var comp = rec.get('composition')	
+		} else {
+			comp = 15
+		}
 		var len = this.addDomLen.getValue();
 		var seq = this.designer.randomSequence(1,len)[0];
-		this.addDomain(this.designer.printfDomain(seq), 1, 15);
+		this.addDomain(this.designer.printfDomain(seq), 1, comp);
 	},
 <span id='App-ui-DD-method-addDomain'>	/**
 </span>	 * Adds a domain to the {@link #designer}

@@ -1,8 +1,9 @@
-if( typeof require === 'function') {
-	_ = require('underscore');
+if ( typeof require === 'function') {
+	_ = require('underscore')
 	DNA = require('./dna-utils.js').DNA;
-} else {
-	module = {}; module.exports = {};
+}
+if(typeof module == 'undefined') {
+	module = {};
 }
 if( typeof App == 'undefined') {
 	App = {};
@@ -372,6 +373,12 @@ App.dynamic = module.exports = (function(_,DNA) {
 		// }, {});
 
 		// Capture any domain/strand properties specified on the nodes
+		
+		// Parse compact input format
+		if(_.isString(config.domains)) {
+			config.domains = Compiler.parseDomainString(config.domains);
+		}
+		
 		var nodeDomainProperties = _.reduce(config.domains || [], function(memo, domain) {
 			memo[domain.name] = domain;
 			return memo;
@@ -406,9 +413,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 			strand = _.copyWith(strand,nodeStrandProperties[strand.name] || {});
 			// (must always copy else assigning to strand screws things up)
 			
-			// if(nodeStrandProperties[strand.name]) {
-			// }
-
+			// Parse compact input format
+			if(_.isString(strand.domains)) {
+				strand.domains = Compiler.parseDomainString(strand.domains);
+			}
+			
 			// See if additional domain properties for this strand were specified by the node			
 			strand.domains = _.map(strand.domains, function(domain) {
 		
@@ -548,6 +557,16 @@ App.dynamic = module.exports = (function(_,DNA) {
 				return strand.getSegmentwiseStructure();
 			}));
 		},
+		getSegmentLengths: function() {
+			return _.reduce(this.getStrands(),function(memo,strand) {
+				var lens = _.clone(strand.getSegmentLengths());
+				if(strand.polarity == -1) {
+					lens.reverse();
+				}
+				memo.concat(lens);
+				return memo;
+			})
+		},
 		serialize: function() {
 			var out = _.copy(this);
 			if(out.motif) { out.motif = out.motif.getName(); }
@@ -644,7 +663,16 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * @private
 		 * Use #getDomains
 		 */
+		
+		if(_.isString(this.domains)) {
+			this.domains = Compiler.parseDomainString(this.domains);
+		}
+		
 		this.domains = _.map(this.domains, function(domain) {
+			if(_.isString(domain)) {
+				domain = _.first(Compiler.parseDomainString(domain));
+			}
+			
 			return new Domain(_.copyWith(domain,{ strand: this, library: this.library, }));
 			// return new Domain(_.copyTo(_.copy(domain),{
 				// strand: this
@@ -728,7 +756,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 		getOrderedSegments : function() {
 			var rev = (this.getAbsolutePolarity() == -1);			
 			return _.flatten(_.map(this.getOrderedDomains(), function(domain) {
-				return rev ? _.clone(domain.getSegments()).reverse() : domain.getSegments()
+				return rev ? _.clone(domain.getSegments()).reverse() : _.clone(domain.getSegments())
 			}));
 		},
 		/**
@@ -791,8 +819,12 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * @return {App.dynamic.Structure} structure
 		 */
 		getStructure : function() {
-			return this.structure.expand(this.getSegmentLengths());
-			
+			try {
+				return this.structure.expand(this.getSegmentLengths());
+			} catch(e) {
+				e.message = "In strand "+this.getQualifiedName()+", "+e.message;
+				throw e;
+			}
 				// var duplex = false, lastDuplex = false, regionLength = 0, out = [];
 // 				
 				// // This code isn't right
@@ -867,7 +899,12 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * @property {App.dynamic.Segment[]} segments
 		 * @private
 		 */
-
+		
+		// Parse string representation
+		if(_.isString(this.segments)) {
+			this.segments = Compiler.parseSegmentString(this.segments);
+		}
+		
 		// Construct Segment objects from specification
 		this.segments = _.map(this.segments, function(segment) {
 			segment = _.copyWith(segment, {
@@ -933,8 +970,24 @@ App.dynamic = module.exports = (function(_,DNA) {
 			if(out.library) { delete out.library; }
 			return _.serialize(out);
 		},
-		
 	};
+	
+	/**
+	 * Produces a domain from the {@link App.dynamic.Compiler.parseDomainString compact string representation}.
+	 * 
+	 * @param {String} str
+	 * The domain string
+	 * 
+	 * @param {App.dynamic.Library} library
+	 * The library reference
+	 * 
+	 * @returns {App.dynamic.Domain} domain 
+	 */
+	Domain.fromString = function(str,library) {
+		var o = Compiler.parseDomainString(str);
+		o.library = library;
+		return new Domain(o)
+	}
 
 	/* ***************************************************************** */
 
@@ -977,6 +1030,9 @@ App.dynamic = module.exports = (function(_,DNA) {
 			 */
 			sequence : '',
 		});
+		if(this.length) {
+			this.segmentLength = this.length;
+		}
 		if(this.sequence) {
 			this.segmentLength = this.sequence.length;
 		}
@@ -1188,7 +1244,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 			if(lengths.length != spec.length) {
 				throw new DynamlError({
 					type: "structure size mismatch",
+					message: "Structure '<%= structure %>' (length: <%= structureLength %>) is <%= rel %> than segment count (<%= segmentLength %>)",
 					structure: spec,
+					structureLength: spec.length,
+					rel: (spec.length > lengths.length) ? 'longer' : 'shorter',
+					segmentLength: lengths.length,
 					lengths: lengths,
 				});
 			}
@@ -1797,10 +1857,10 @@ App.dynamic = module.exports = (function(_,DNA) {
 			'<defs><path id="arrow" d="M -7 -7 L 0 0 L -7 7"/>\n</defs>\n'+
 			'<style type="text/css">text { font-family: tahoma, helvetica, arial; }</style>')
 
-			for(var svgi = 0; svgi < this.strands.length; svgi++) {
-				var strand = this.strands[svgi];
+			for(var svgi = 0; svgi < this.nodes.length; svgi++) {
+				var node = this.nodes[svgi];
 				
-				 var structure = strand.getSegmentwiseStructure().toDotParen();
+				 var structure = node.getSegmentwiseStructure().toDotParen();
 				
 				if(structure.match(/^\.+$/)) { //initiator, straight strand without hybridization
 					fid.write('<g stroke = "rgb(139,98,61)" stroke-width = "2" fill = "none">\n<path d = "M {0} {1} L {2} {3}"/>\n'.format(x+H*.15,y+V*.5,x+H*.6,y+V*.5))
@@ -1815,8 +1875,8 @@ App.dynamic = module.exports = (function(_,DNA) {
 				      fid.write('<text x="{0}" y="{1}" stroke="none" fill="black">{2}</text>\n'.format(x+H*.15+H*(svgj+.5)/segments.length*.45,y+V*.5-V*.05,s))
 				    }
 				    fid.write('</g>\n')
-				} else if(structure.match(/^\.+\(+\.+\)+(\.+)?$/)) { //hairpin loop
-			    	var segments = strand.getSegments();
+				} else if(structure.match(/^\.+\(+\.+\)+(\.+)?$/) || structure.match(/^\.+\(+\.?\+\)+)$/)) { //hairpin loop
+			    	var segments = node.getSegments();
 					var a = structure.indexOf('(');  // number of first hybridized segment
 
 				    var b = a;
@@ -1829,7 +1889,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 				    while(structure[d]==')') { d++ }
 				    d--;
 				    
-				    var segmentLengths = strand.getSegmentLengths();
+				    var segmentLengths = node.getSegmentLengths();
 				    
 				    function sum(ls) {
 				    	return _.reduce(ls,function(m,x) {return m+x},0);
@@ -2102,9 +2162,14 @@ App.dynamic = module.exports = (function(_,DNA) {
 						// If the sourceNode's polarity has been set
 						if(complement.sourceNode.polarity != 0) {
 
-							// Downstream node should have polarity opposite the sourcePort's absolute polarity
-							// (absolute polarity) = (relative port polarity) * (relative strand polarity) * (node polarity)
-							var targetPolarity = -1 * complement.sourcePort.polarity * complement.sourcePort.getStrand().getPolarity() * complement.sourceNode.polarity
+							// Calculate downstream node polarity such that targetPort's absolute polarity is opposite 
+							// sourcePort's absolute polarity.
+							// Recall (absolute polarity) = (relative port polarity) * (relative strand polarity) * (node polarity)
+							// Therefore if (targetPort abs polarity)  = (targetPort rel port polarity) * (targetPort strand polarity) * (targetPort node polarity)
+							//										  := -1 (sourcePort rel port polarity) * (sourcePort strand polarity) * (sourcePort node polarity)
+							// -> (targetPort node polarity) = -1 * [(sourcePort rel port polarity) * (sourcePort strand polarity) * (sourcePort node polarity)] *
+							//										[(targetPort rel port polarity) * (targetPort strand polarity)]
+							var targetPolarity = -1 * complement.sourcePort.polarity * complement.sourcePort.getStrand().getPolarity() * complement.sourceNode.polarity  * complement.targetPort.polarity * complement.targetPort.getStrand().getPolarity()
 							
 							if(isNaN(targetPolarity)) {
 								if(isNaN(complement.sourcePort.polarity)) {									
@@ -2134,7 +2199,8 @@ App.dynamic = module.exports = (function(_,DNA) {
 							if(complement.targetNode.polarity != 0 && complement.targetNode.polarity == -targetPolarity) {
 								throw new DynamlError({
 									type : 'polarity conflict',
-									message : _.template('Complementarity statement in node <%= source %> implies node <%= target %> ' + 'should have polarity <%= expected %>, but instead it has polarity <%= encountered %>', {
+									message : _.template('Complementarity statement in node <%= source %> implies node <%= target %> ' + //
+									'should have polarity <%= expected %>, but instead it has polarity <%= encountered %>', {
 										source : complement.sourceNode.name,
 										target : complement.targetNode.name,
 										expected : targetPolarity,
@@ -2568,6 +2634,117 @@ App.dynamic = module.exports = (function(_,DNA) {
 			return out;
 		}
 		
+		var roleAbbrevs = {
+			'domain':{
+				'i': 'input',
+				'o': 'output',
+				'b': 'bridge',
+				's': 'structural',
+				'x': 'structural',
+			},
+			'segment':{
+				't':'toehold',
+				'th':'toehold',
+				'c':'clamp',
+				'cl':'clamp',
+			}
+		};
+		
+		/**
+		 * Expands a compact "role specifier" to a full role name. Allows shorthand role names
+		 * to be used to reduce typing. Short-hand names available:
+		 * 
+		 * -	For {@link App.dynamic.Domain Domains}:
+		 * 		-	`i` : input
+		 * 		-	`o` : output
+		 * 		-	`b` : bridge
+		 * 		-	`s` or `x` : structural
+		 * -	For {@link App.dynamic.Segment Segments}:
+		 * 		-	`t` or `th` : toehold
+		 * 		-	`c` or `cl` : clamp
+		 * 
+		 * @param {String} type 
+		 * `domain` or `segment
+		 * 
+		 * @param {String} str
+		 * The role specifier to be expanded
+		 */
+		function expandRole(type,str) {
+			if(roleAbbrevs[type]) {
+				if(roleAbbrevs[type][str]) return roleAbbrevs[type][str]
+			}
+			return str;
+		}
+		
+		/**
+		 * Accepts a domain list in a compact, string representation. 
+		 * 
+		 * ex: d1[a*(8) b* c(2)]i- d2[d:t e f*]o
+		 * 
+		 * The format is as follows: 
+		 * _name_ [_segments_] _role (optional)_ _polarity (optional)_
+		 * 
+		 * 	-	`name` is any alphanumeric string (underscores allowed),
+		 * 	-	`segments` is a space-separated list of segments in {@link #parseSegmentString string format}
+		 * 	-	`role` is a {@link App.dynamic.Domain#role role name} or {@link #expandRole role specifier}
+		 * 	-	`polarity` is an optional {@link App.dynamic.Domain#polarity} polarity specifier: `+` or `-`
+		 * 
+		 * @param {String} str
+		 * @return {App.dynamic.Domain[]}
+		 */
+		function parseDomainString(str) {
+			var domains = str.match(/(\w+\[[\w\(\)\*'\s:]+\]\w?[\+-]?)\s?/g);
+			return _.map(domains,function(dom) {
+				var parts = dom.match(/(\w+)\[([\w\(\)\*'\s:]+)](\w?)([\+-]?)/);
+				//	e.g. "d1[a*(1) b* c(2)]i-"
+				//	->  ["d1[a*(1) b* c(2)]i-", "d1", "a*(1) b* c(2)", "i", "-"]
+				//       0                       1     2                3    4
+				var d = {
+					name: parts[1],
+					segments: parseSegmentString(parts[2]),
+				};
+				var role = expandRole('domain',parts[3]);
+				if(!!role) {d.role = role;}
+				if(!!parts[4]) {d.polarity = parts[4];}
+				return d;		
+			})
+		}
+		
+		/**
+		 * Accepts a segment list in a compact, string representation
+		 * and converts it to valid DyNAML
+		 * 
+		 * ex: a*(8) b*t c(2) d:c
+		 * 
+		 * The format is as follows:
+		 * _name_ (_length (optional)_) _role_
+		 * 
+		 * -	`name` is any alphanumeric string (underscores allowed) with an optional {@link App.dynamic.Segment#polarity polarity specifier}
+		 * 	-	`length` is the length of the Segment in bases
+		 * 	-	`role` is a {@link App.dynamic.Segment#role role name} or {@link #expandRole role specifier}. If 
+		 * 
+		 */
+		function parseSegmentString(str) {
+			var segments = str.split(/\s+/g);
+			return _.map(segments,function(seg) {
+				seg.trim();
+				var parts = seg.match(/(\w+\*?)(?:\((\d+)\))?:?(\w)?/);
+				// e.g.: "a*(6):t"
+				// 	-> ["a*(6):t", "a*", "6",   "t"]
+				//		0			1     2      3
+				//		full		name length  role
+				
+				var s = {
+					name: parts[1],
+				};
+				var role = expandRole('segment',parts[3]);
+				if(!!role) {s.role = role;}
+				if(!!parts[2]) {s.length = parseInt(parts[2])}
+				return s;
+			})
+		}
+		
+		
 		/**
 		 * @property {Object} standardMotifs
 		 * Hash containing configuration objects for each of the standard motifs, indexed by name.
@@ -2662,7 +2839,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			},{
 				name: 'm5',
 				type: 'hairpin',
-				structure: '.((.)).',
+				structure: '.((.))',
 			    domains: [{
 			    	name: 'A',
 			    	role: 'input',
@@ -2682,7 +2859,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	]
 			    },{
 			    	name: 'C',
-			    	role: 'null',
+			    	role: 'structural',
 			    	type: 'stem',
 			    	polarity: '+',
 			    	segments: [
@@ -2874,6 +3051,32 @@ App.dynamic = module.exports = (function(_,DNA) {
 					   {name: 'w*', role: 'clamp'},
 				   ]
 			   }]
+			},{
+				"name":"m20",
+				"type":"hairpin",
+				"structure":".(((....)))..",
+				"domains":"A[a x:c b c]i+ s[s(1)]x B[d e y:c c*]o- C[b* x*:c f g]o+"
+			},{
+				"name":"m21",
+				"type":"hairpin",
+				"structure":".(((...))).",
+				"domains":"A[a x:c b c]i+ s[s(1)]x B[d y:c c*]o- C[b* x*:c e]o+"
+			},{
+				"name":"m22",
+				"type":"cooperative",
+				"structure":".(((((.+)))))",
+				"strands":[{
+					"name":"S1",
+					"domains":"A[a x:c b]i+ s[s(1)]x B[c y:c d]i-"
+				},{
+					"name":"S2",
+					"domains":"C[y*:c c* s*(1) b* x*:c]x"
+				}]
+			},{
+				"name":"m23",
+				"type":"initiator",
+				"structure":"....",
+				"domains":"A[a x:c b c]o+"
 			}
 		];
 		standardMotifs = _.reduce(standardMotifs,function(memo,motif) {
@@ -2928,6 +3131,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 			standardMotifs : standardMotifs,
 			domainColors: domainColors,
 			getColor : getColor,
+			expandRole: expandRole,
+			parseDomainString: parseDomainString,
+			parseDomainsString: parseDomainString,
+			parseSegmentString: parseSegmentString,
+			parseSegmentsString: parseSegmentString,  
 		}
 
 	})();

@@ -27,16 +27,19 @@ Ext.define('Workspace.objects.dna.OutputPort', {
 		if(this.complementarity) {
 			this.set('complementarity', Workspace.Components.realize(this.complementarity));
 		}
-		this.set('rotation',0)
+		//this.set('rotation',0)
 		this.callParent(arguments);
 	},
 	render: function() {
 		this.callParent(arguments);
 		this.mixins.port.render.apply(this,arguments);
+		Workspace.objects.VectorObject.prototype.updateAttr.call(this,'rotation',0);
 	},
 	updateAttr: function(attrName, value) {
 		if(attrName!='rotation') {
 			return this.callParent(arguments);
+		} else {
+			return this.callParent([attrName,0]);
 		}
 	},
 }, function() {

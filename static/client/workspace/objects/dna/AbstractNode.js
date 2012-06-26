@@ -159,7 +159,7 @@ Ext.define('Workspace.objects.dna.AbstractNode', {
 	destroy: function() {
 		if(this.errorProxy) {
 			this.errorProxy.destroy();
-			delete this.errorProxy();
+			delete this.errorProxy;
 		}
 		this.callParent(arguments);
 	}

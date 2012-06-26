@@ -56,7 +56,7 @@ Ext.define('Workspace.Label', {
 	 * Transforms the value of #object.#property to the value which is actually
 	 * displayed. Override to provide a custom formatting.
 	 * @param {Mixed} value Result of {@link #object}.{@link Machine.SerializableObject#get get}({@link #property})
-	 * @param {String} displayValue Value to be displayed
+	 * @return {String} displayValue Value to be displayed
 	 */
 	format: function(val) {
 		return val;
@@ -88,7 +88,7 @@ Ext.define('Workspace.Label', {
 			this.getEl().setHeight(this.metrics.getHeight(val) + this.padding);
 	},
 	onMove : function() {
-		this.updateSize(this.object.get(this.property));
+		this.updateSize(this.getFormattedValue());
 		Workspace.Label.superclass.onMove.apply(this, arguments);
 	},
 	/**
@@ -101,9 +101,13 @@ Ext.define('Workspace.Label', {
 			if(this.getEl()) {
 				val = this.format(val);
 				this.getEl().update(val);
-				this.updateSize(val);
+				this.onMove();
+				//this.updateSize(val);
 			}
 		}
+	},
+	getFormattedValue: function() {
+		return this.format(this.object.get(this.property));
 	},
 	destroy : function() {
 		this.object.un('change', this.onChange, this);

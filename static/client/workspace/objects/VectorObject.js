@@ -175,6 +175,7 @@ Ext.define('Workspace.objects.VectorObject', {
 			this.vectorElement.transform("");
 			//this.vectorElement.rotate(value);
 			this.vectorElement.transform("r" + (+value || 0));
+			return;
 		}
 		this.vectorElement.attr(attrName, value);
 	},

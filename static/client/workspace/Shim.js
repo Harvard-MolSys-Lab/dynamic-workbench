@@ -53,9 +53,15 @@ Ext.define('Workspace.Shim', {
 				var el = this.getEl();
 				//el.alignTo(Ext.fly(oEl),this.position,this.offsets,this.animate);
 				el.position('absolute');
-				el.setLeftTop(this.object.getX() + this.offsets[0],    this.object.getY() -    el.getHeight() + this.offsets[1]);
+				el.setLeftTop(this.getLeft(el) + this.offsets[0], this.getTop(el) + this.offsets[1]);
 			}
 		}
+	},
+	getLeft: function(el) {
+		return this.object.getX();		
+	},
+	getTop: function(el) {
+		return this.object.getY() - el.getHeight()
 	},
 	/**
 	 * Creates an element for the shim in the DOM. Automatically applied or scheduled by {@link #applyTo}

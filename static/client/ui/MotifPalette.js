@@ -9,6 +9,7 @@ Ext.define('App.ui.MotifPalette', {
 	'</div>' + '</tpl><div class="x-clear" />',
 	itemSelector : 'div.motif-template',
 	mimeType : 'ext/motif',
+	overflow: 'auto',
 	constructor : function(config) {
 		if(!config.store) {
 			//Ext.apply(this,{
@@ -54,6 +55,12 @@ Ext.define('App.ui.MotifPalette', {
 			ry : r,
 			stroke : '#000',
 			'stroke-width' : 2.5,
+		},{
+			type: 'text',
+			text: spec.name,
+			'text-anchor':'middle',
+			x: cx,
+			y: cy,
 		}]);
 		var domains = _.filter(spec.getDomains(), function(domain) {
 			return (domain.role != 'null') && (domain.role != 'structural')

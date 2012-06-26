@@ -8,7 +8,7 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 	statics: {
 		dynaml: {
 			domainProperties: ['name', 'identity','role',],
-			nodeProperties: ['name','motif',],
+			nodeProperties: ['name','motif','polarity'],
 			motifProperties: ['name','dynaml'],
 		},
 	},
@@ -82,11 +82,12 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 			 */
 			this.fireEvent('rebuild',this,lib);
 			
-			// Look for custom motifs to update in the motif store
+			// Match custom motifs in the DyNAML to their corresponding objects in the library
 			var customMotifs = _.chain(dynaml.motifs || []).map(function(motif) {
 				return _.find(lib.motifs, function(m) { return m.name == motif.name });
 			}).compact().value();
 			
+			// Sync new custom motifs with the store
 			this.syncCustomMotifStore(customMotifs);
 			
 			// Hide error proxies
@@ -272,8 +273,11 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 	 * Build a DyNAML library for a collection of {@link Workspace.objects.Object objects};
 	 * these should generally be a mix of {@link Workspace.objects.dna.Node nodes},
 	 * {@link Workspace.objects.dna.Motif motifs}, and {@link Workspace.objects.dna.Complementarity complements}.
+	 * 
 	 * @param {Workspace.objects.dna.Node[]/Workspace.objects.dna.Motif[]/Workspace.objects.dna.Complementarity[]} objects
-	 * @param {Boolean} [fromMotif=false] True if we're compiling a library from children of a motif and should therefore look for {@link Workspace.objects.dna.NodePort#exposure exposure} properties
+	 * 
+	 * @param {Boolean} [fromMotif=false] 
+	 * True if we're compiling a library from children of a motif and should therefore look for {@link Workspace.objects.dna.NodePort#exposure exposure} properties
 	 */
 	buildDynaml: function(objects,fromMotif) {
 		var workspace = this.workspace;

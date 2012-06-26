@@ -6,7 +6,7 @@
 var _ = require('underscore'), utils = require('./utils'), path = require('path'), fs = require('fs'), winston = require('winston');
 
 var types = [{
-	"type" : ["whiteboard","workspace"],
+	"type" : ["whiteboard", "workspace"],
 	"trigger" : "whiteboard",
 	"iconCls" : "whiteboard",
 	"name" : "Whiteboard",
@@ -56,7 +56,7 @@ var types = [{
 	"iconCls" : "md",
 	"name" : "Markdown File"
 }, {
-	"type" : "rst", 
+	"type" : "rst",
 	"trigger" : "rst",
 	"iconCls" : "rst",
 	"name" : "ReStructuredText File"
@@ -121,7 +121,7 @@ var types = [{
 	"iconCls" : "dd",
 	"name" : "Domain Design"
 }, {
-	"type" : ["nupack","np"],
+	"type" : ["nupack", "np"],
 	"trigger" : "nupackedit",
 	"iconCls" : "nupack",
 	"name" : "NUPACK Multi-objective Script"
@@ -131,11 +131,16 @@ var types = [{
 	"iconCls" : "ms",
 	"name" : "Multisubjective Design Script"
 }, {
+	"type" : "mso",
+	"trigger" : "msview",
+	"iconCls" : "ms",
+	"name" : "Multisubjective Output"
+}, {
 	"type" : "enum",
 	"trigger" : "enumedit",
 	"iconCls" : "enum-icon",
 	"name" : "Domain-level Enumerator Script"
-},{
+}, {
 	"type" : "enjs",
 	"trigger" : "enumview",
 	"iconCls" : "enum-icon",
@@ -206,7 +211,7 @@ var types = [{
 // };
 var triggers = {}, icons = {}
 _.each(types, function(block) {
-	if(_.isArray(block.type)) {
+	if (_.isArray(block.type)) {
 		_.each(block.type, function(ext) {
 			triggers[ext] = block.trigger;
 			icons[ext] = block.iconCls;
@@ -232,8 +237,8 @@ var packageContentsJsonKeys = {
 function contentsJson(data, contents, contentsJsonKeys) {
 	_.each(contentsJsonKeys, function(trans, key) {
 		var value = contents[key];
-		if(value) {
-			if(_.isFunction(trans)) {
+		if (value) {
+			if (_.isFunction(trans)) {
 				value = trans(data, value);
 			}
 			data[key] = value;
@@ -247,7 +252,7 @@ var transforms = {
 	'.app' : function(data, callback) {
 		var fullPath = path.join(utils.userFilePath(data.node), 'contents.json');
 		fs.readFile(fullPath, function(err, contents) {
-			if(err) {
+			if (err) {
 				callback(err, null);
 				return;
 			}
@@ -259,7 +264,7 @@ var transforms = {
 	'.package' : function(data, callback) {
 		var fullPath = path.join(utils.userFilePath(data.node), 'contents.json');
 		fs.readFile(fullPath, function(err, contents) {
-			if(err) {
+			if (err) {
 				winston.log("warn", "Couldn\'t read package.json", {
 					fullPath : fullPath,
 					code : err.code,
@@ -300,7 +305,7 @@ var contentTransforms = {
 	'.package' : function(fullPath, callback) {
 		var fullPath = path.join(fullPath, 'contents.json');
 		fs.readFile(fullPath, function(err, contents) {
-			if(err) {
+			if (err) {
 				winston.log("error", "Failed to transform package file; couldn't read contents.json", {
 					fullPath : fullPath,
 					err : err
@@ -317,9 +322,9 @@ var contentTransforms = {
 					contents : contents
 				});
 			}
-			if(contents.data) {
+			if (contents.data) {
 				callback(null, contents.data);
-			} else if(contents.redirect) {
+			} else if (contents.redirect) {
 				fs.readFile(path.join(path.dirname(fullPath), contents.redirect), function(err, data) {
 					callback(err, data);
 				});
@@ -336,8 +341,8 @@ var contentTransforms = {
 }
 
 var macros = {
-	'nodal-package': function(node) {
-		
+	'nodal-package' : function(node) {
+
 	}
 }
 

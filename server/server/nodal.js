@@ -180,11 +180,19 @@ exports.start = function(req, res, params) {
 					}
 				})
 			} catch(e) {
-				if (e instanceof dynamic.DynamlError) {
+				if (typeof e.serialize != 'undefined') {
 					res.send(e.serialize());
 					return;
 				}
 				res.send("Build completed with errors. \n\n" + e);
+				utils.log({
+					level: "error",
+					source: "nodal",
+					message: "Unknown error",
+					err: e,
+					data: data,
+				});
+				//throw(e);
 			}
 	}
 };

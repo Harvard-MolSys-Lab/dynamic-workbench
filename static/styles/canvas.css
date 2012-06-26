@@ -17,10 +17,34 @@
 	font-family: ColaborateLightRegular, Helvetica Neue, Helvetica;
 	background-color: rgba(255,255,255,0.7);
 	height: 100%;
+	z-index: 2;
+	position: relative;
+}
+
+.dashboard .gray-box {
+	background-color: rgba(239, 239, 239, 0.6);
+}
+#dashboard-table td {
+	padding: 5px
 }
 .dashboard b, .dashboard h2 {
 	font-family: ColaborateRegular;
 	font-weight: normal;
+}
+.dashboard h2 {
+	border-bottom: solid 1px silver;
+}
+
+.dashboard h3 {
+	font-family: ColaborateLight;
+	font-weight: normal;
+	border-bottom: solid 1px silver;
+	padding-bottom: 1px;
+	text-align: center
+}
+.dashboard .hero {
+	font-size: 1.7em;
+	margin: 1em 0pt;
 }
 
 .dashboard hr {
@@ -32,6 +56,7 @@
 	position: absolute;
 	bottom: 10px;
 	left: 10px;
+	z-index: 1;
 }
 .dashboard-wrap .dynamic-logo {
 	position: absolute;
@@ -39,7 +64,7 @@
 	right: 10px;
 }
 .dashboard-wrap .logos, .dashboard-wrap .dynamic-logo {
-	opacity: 0.3;
+	opacity: 0.6;
 }
 .dashboard-wrap .logos img {
 	margin-right: 5px;
@@ -51,7 +76,23 @@
 	 */
 	background-repeat: no-repeat;
 	background-position: bottom right;
+	z-index: 2;
+	position: relative;
 }
+
+.overflowing, .overflowing > .x-plain-body, .overflowing > .x-plain-body > .x-box-inner {
+	overflow: visible !important;
+}
+
+.overflowing-top {
+	z-index: 2;
+	position:relative;
+}
+
+#dashboard-quickstart td {
+	padding: 3px;
+}
+
 h1 {
 	font-size: 24pt !important;
 	font-weight: normal;
@@ -296,13 +337,34 @@ ul.dashboard-actions li a:hover {
 .compile {
 	background-image: url(/images/icons/fugue/compile.png) !important;
 }
-.sequence, .seq, .dd {
+.dd {
 	background-image: url(/images/icons/fugue/edit-diff.png) !important;
+}
+.sequence, .seq {
+	background-image: url(/images/icons/etc/sequence.png) !important;
+}
+.sequence-24, .seq-24 {
+	background-image: url(/images/icons/etc/sequence-24.png) !important;
 }
 .enumerate {
 	background-image: url(/images/icons/fugue/arrow-split.png) !important;
 }
-.simulate, .calculator, .calculate {
+.enumerate-24 {
+	background-image: url(/images/icons/icons-24/arrow-split.png) !important;
+}
+.verify {
+	background-image: url(/images/icons/fugue/tick.png) !important;
+}
+.verify-24 {
+	background-image: url(/images/icons/icons-24/tick.png) !important;
+}
+.simulate {
+	background-image: url(/images/icons/fugue/system-monitor.png) !important;
+}
+.simulate-24 {
+	background-image: url(/images/icons/icons-24/system-monitor.png) !important;
+}
+.calculator, .calculate {
 	background-image: url(/images/icons/fugue/calculator.png) !important;
 }
 .save {
@@ -329,8 +391,8 @@ ul.dashboard-actions li a:hover {
 .arrow-24 {
 	background-image: url(/images/icons/etc/arrow-24.png) !important;
 }
-.simulate-24 {
-	background-image: url(/images/icons/fugue/calculator.png) !important;
+.calculate-24 {
+	background-image: url(/images/icons/icons-24/calculator.png) !important;
 }
 .save-24 {
 	background-image: url(/images/icons/icons-24/disk-black.png) !important;
@@ -368,6 +430,12 @@ ul.dashboard-actions li a:hover {
 }
 .build-24 {
 	background-image: url(/images/icons/icons-24/wand.png) !important;
+}
+.domains-24, .domain-24 {
+	background-image: url(/images/icons/etc/domain-24.png) !important;
+}
+.behavior-24 {
+	background-image: url(/images/icons/etc/behavior-24.png) !important;
 }
 .folder-open {
 	background-image: url(/images/icons/fugue/folder-open.png) !important;
@@ -536,6 +604,30 @@ ul.dashboard-actions li a:hover {
 	width: 16px;
 	height: 16px;
 }
+
+.gradient {
+	background-image:url(/images/gradient.jpg);
+	background-position: top left;
+	background-repeat: repeat-x;
+}
+
+
+.x-view-over {
+	border-color:#ddd;
+    background-color:#efefef;
+}
+
+.x-view-selected {
+	background-color: #dfe8f6 !important;
+	border-color:#a3bae9;	
+}
+
+
+.x-tbar-borderless {
+	border-bottom: none !important;
+}
+
+
 .console-message {
 	font-family: monospace, courier, mono, sans-serif;
 	font-size: 9pt;

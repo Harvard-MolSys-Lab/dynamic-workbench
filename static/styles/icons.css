@@ -1,91 +1,11 @@
-.expando-wrap, .file-wrap, .block-wrap, .case-wrap, .position-wrap {
-	border-bottom: solid 1px silver;
-	margin: 0px;
-	padding: 5px;
-	background-color:white;	
-	font-size: 11px;
-	font-family:  arial, tahoma, helvetica;
-}
-
-.expando-wrap>span.x-editable, .file-wrap>span.x-editable, .block-wrap>span.x-editable, 
-.case-wrap>span.x-editable, .position-wrap>span.x-editable {
-	height: 20px !important;
-	vertical-align:middle;
-}
-
-.card-wrap {
-	border: solid 1px silver;
-	margin: 5px;
-	padding: 5px;
-	background-color:white;	
-	font-size: small;
-	font-family: times;
-}
-
-.card {
-	margin-left:20px;	
-}
-
-.tag {
-	font-weight:bold;	
-}
-
 .cite {
 	background-image: url(/images/icons/fugue/bookmark.png) !important;	
 }
 
-.author {
-	font-size:larger;
-	font-weight: bold;	
-}
-
-.source {
-	font-style: italic;	
-}
-
-.gradient {
-	background-image:url(/images/gradient.jpg);
-	background-position: top left;
-	background-repeat: repeat-x;
-}
 
 
-.x-view-over {
-	border-color:#ddd;
-    background-color:#efefef;
-}
-
-.x-view-selected {
-	background-color: #dfe8f6 !important;
-	border-color:#a3bae9;	
-}
-
-.x-arg {
-	display:block;
-	float:left;
-	width:90px;
-	border:solid 1px silver;
-	background-color:white;	
-}
-
-.x-arg-row {
-	display:block;
-	width:100%;
-}	
-
-.x-tbar-borderless {
-	border-bottom: none !important;
-}
 
 
-.fp-new-file, .fp-new-block {
-	font-style: italic;	
-	color: silver;
-}
-
-.fp-help-with-icon {
-	padding-left: 20px;	
-}
 
 /* Icon Classes */
 /* General */
@@ -488,13 +408,19 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 
 /* File types */
 .nodal {
-	background-image: url(/images/icons/fugue/node.png) !important;
+	background-image: url(/images/icons/etc/nodal.png) !important;
 }
 .txt {
 	background-image: url(/images/icons/fugue/document-text.png) !important;
 }
 .tex {
 	background-image: url(/images/icons/fugue/document-tex.png) !important;
+}
+.domains, .domain {
+	background-image: url(/images/icons/etc/domain.png) !important;
+}
+.domains-24, .domain-24 {
+	background-image: url(/images/icons/etc/domain-24.png) !important;
 }
 .pepper, .sys {
 	background-image: url(/images/icons/etc/Capsicum-2-icon.png) !important;
@@ -520,7 +446,9 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 .sbml {
 	background-image: url(/images/icons/etc/sbml.png) !important;
 }
-
+.crn {
+	background-image: url(/images/icons/etc/crn.png) !important;
+}
 .js {
 	background-image: url(/images/icons/fugue/script.png) !important;
 }

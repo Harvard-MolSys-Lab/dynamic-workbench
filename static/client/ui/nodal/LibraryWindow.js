@@ -23,6 +23,11 @@ Ext.define('App.ui.nodal.LibraryWindow', {
 					xtype : 'tabpanel',
 					plain : true,
 					items : [{
+						title: 'SVG',
+						xtype: 'panel',
+						name: 'svg',
+						html: this.lastLibrary.toSVGOutput()
+					},{
 						title : 'Tree',
 						xtype : 'objectbrowser',
 						data : this.lastLibrary,
@@ -64,6 +69,8 @@ Ext.define('App.ui.nodal.LibraryWindow', {
 					}],
 				}],
 			});
+			
+			
 			if(this.sourceDynaml) {
 				this.items[0].items.push({
 					title: 'DyNAML',
@@ -117,7 +124,10 @@ Ext.define('App.ui.nodal.LibraryWindow', {
 			emumPanel.setValue(this.lastLibrary.toEnumOutput());
 		}
 
-
+		var svgPanel = this.down("panel[name='svg']");
+		if(svgPanel) {
+			svgPanel.update(this.lastLibrary.toSVGOutput(true));
+		}
 
 		var strands = this.down("codemirror[name='strands']");
 		if(strands) {

@@ -119,7 +119,7 @@ Ext.define('App.ui.FilesTree', {
 				listeners: {
 					drop: {
 						fn: function() {
-							this.getStore().sync();
+							//this.getStore().sync();
 						},
 						scope: this
 					}
@@ -232,7 +232,7 @@ Ext.define('App.ui.FilesTree', {
 					v = this.fileNameField.getValue();
 					this.currentRecord.set('text',v);
 					//this.currentRecord.save();
-					this.getStore().sync();
+					//this.getStore().sync();
 					this.fileNameField.originalValue = v;
 					this.fileNameField.checkDirty();
 	
@@ -354,7 +354,7 @@ Ext.define('App.ui.FilesTree', {
 	deleteDocument: function(rec) {
 		if(rec) {
 			rec.remove(false);
-			this.getStore().sync();
+			//this.getStore().sync();
 		}
 	},
 	/**
@@ -421,8 +421,8 @@ Ext.define('App.ui.FilesTree', {
 		});
 		rec.appendChild(newRec);
 		//hack?
-		newRec.phantom = true;
-		this.getStore().sync();
+		//newRec.phantom = true;
+		//this.getStore().sync();
 		rec.expand();
 		return newRec;
 	},

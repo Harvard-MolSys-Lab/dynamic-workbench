@@ -29,9 +29,20 @@ Ext.define('App.ui.nodal.StrandPreview', {
 		}
 		//this.buildVis();
 	},
-
+	updateVis: function() {
+		
+	},
 	buildVis : function() {
-
+		if(!this.nodeLayout) {
+			if(this.value) {
+				this.setValue(this.value)
+			}
+			
+			this.nodeLayout = {
+				nodes: [],
+				links: [],
+			};
+		}
 		this.getCanvas();
 		var forceVis = this.vis;
 		forceVis.fillStyle("white");

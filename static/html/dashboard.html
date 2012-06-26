@@ -2,46 +2,55 @@
 	<div class="dashboard">
 		<span class="aa-fix">&nbsp;</span>
 		<h1>DyNAMiC <span>Workbench</span></h1>
-		<p>
-			Welcome to Workbench, <span id="fp-user-name">User</span>!
-		</p>
-		<div class="round">
-			<h2>Getting Started</h2>
-			<ul class="dashboard-actions">
-				<li class="rocket-launch">
-					Check out the <a href="javascript:App.ui.Launcher.launch('help:quickstart');">Getting Started</a> guide.
-				</li>
-				<li class="help">
-					View the <a href="javascript:App.ui.Launcher.launch('help');">Help Documentation</a>
-				</li>
-				<!--
-				<li class=""><a href="javascript:App.ui.Launcher.launch('nodal')">Design a nodal system</a></li>
-				-->
-				<!--
-				<li class="nodal"><strong>Build a nodal system: </strong></li>
-				<li class="nupack"><strong>Design sequences using NUPACK: </strong></li>
-				<li class="pepper"><strong>Create a system or component using Pepper: </strong></li>
-				<li class="seq"><strong>Edit a system of sequences: </strong></li>
-				-->
-			</ul>
-		</div>
-		<p>
-			<b>DyNAMiC Workbench</b> (The <b>D</b>ynamic <b>N</b>ucleic <b>A</b>cid <b>M</b>echan<b>i</b>sm <b>C</b>ompiler) is a project of 
-			<a href="http://yin.hms.harvard.edu/people/grun.casey/index.html">Casey Grun</a>, 
-			<a href="http://people.seas.harvard.edu/~jkwerfel/">Justin Werfel</a>, 
-			<a href="http://yin.hms.harvard.edu/people/zhang.dave/index.html">Dave Zhang</a> and 
-			<a href="http://yin.hms.harvard.edu/people/yin.peng/index.html">Peng Yin</a> in the 
-			<a href="http://www.molecular-systems.net">Molecular Systems</a> lab at Harvard University, Copyright &copy; 2012 by the authors. 
-		</p>
-		
-		<div class="green-box round">
-			<strong>Contact us</strong>:
-			Please report any bugs, questions, comments, or other thoughts to <a href="mailto:casey.grun@wyss.harvard.edu">Casey</a>.
-		</div>
-		<div class="gray-box round">
-			Please cite the software tools used by Workbench. Workbench will also display a citation bar when using software tools developed by other groups. <hr />
-			<div id="fp-citations"></div>
-		</div>
+		<table id="dashboard-table" role="presentation">
+			<tr>
+				<td>
+				<div class="round">
+					<h2>Getting Started</h2>
+					<div id="dashboard-quickstart">
+
+					</div>
+					<ul class="dashboard-actions">
+						<li class="rocket-launch">
+							Check out the <a href="javascript:App.ui.Launcher.launch('help:quickstart');">Getting Started</a> guide.
+						</li>
+						<li class="help">
+							View the <a href="javascript:App.ui.Launcher.launch('help');">Help Documentation</a>
+						</li>
+						<!--
+						<li class=""><a href="javascript:App.ui.Launcher.launch('nodal')">Design a nodal system</a></li>
+						-->
+						<!--
+						<li class="nodal"><strong>Build a nodal system: </strong></li>
+						<li class="nupack"><strong>Design sequences using NUPACK: </strong></li>
+						<li class="pepper"><strong>Create a system or component using Pepper: </strong></li>
+						<li class="seq"><strong>Edit a system of sequences: </strong></li>
+						-->
+					</ul>
+				</div></td>
+				<td>
+					<p class="hero">
+						<big><b>DyNAMiC Workbench</b> (The <b>D</b>ynamic <b>N</b>ucleic <b>A</b>cid <b>M</b>echan<b>i</b>sm <b>C</b>ompiler) is an integrated development environment for developing dynamic DNA nanosystems in-silico.</big> Workbench lets you begin with a behavioral description of a computational or assembly process, and then helps you automatically implement that process with DNA. It includes behavioral designers, sequence designers, and powerful sequence editing tools, as well as integration with industry-standard analysis tools.
+						Use the buttons in the "Getting started" box to the left to begin your adventure.
+					</p>
+				<p>
+					DyNAMiC Workbench is a project of <a href="http://yin.hms.harvard.edu/people/grun.casey/index.html">Casey Grun</a>, <a href="http://people.seas.harvard.edu/~jkwerfel/">Justin Werfel</a>, <a href="http://yin.hms.harvard.edu/people/zhang.dave/index.html">Dave Zhang</a> and <a href="http://yin.hms.harvard.edu/people/yin.peng/index.html">Peng Yin</a> in the <a href="http://www.molecular-systems.net">Molecular Systems</a> lab at Harvard University, Copyright &copy; 2012 by the authors.
+				</p>
+				<div class="green-box round">
+					<strong>Contact us</strong>:
+					Please report any bugs, questions, comments, or other thoughts to <a href="mailto:casey.grun@wyss.harvard.edu">Casey</a>.
+				</div></td>
+			</tr>
+			<tr>
+				<td colspan="2">
+				<div class="gray-box round">
+					<h2>Bibliography</h2>
+					Please cite the software tools used by Workbench. Workbench will also display a citation bar when using software tools developed by other groups.
+					<div id="fp-citations"></div>
+				</div></td>
+			</tr>
+
+		</table>
 	</div>
 	<div class="logos">
 		<a target="_blank" href="https://sysbio.med.harvard.edu/" title="Harvard Systems Biology"><img src="images/logos/external/sysbio-logo.png" /></a>

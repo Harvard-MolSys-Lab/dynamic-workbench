@@ -4,6 +4,7 @@
 Ext.define('App.ui.Dashboard', {
 	extend: 'Ext.panel.Panel',
 	requires: ['App.ui.Attribution'],
+	overflowY: 'auto',
 	initComponent: function() {
 
 		Ext.apply(this, {
@@ -18,7 +19,8 @@ Ext.define('App.ui.Dashboard', {
 		});
 
 		App.on('userNameChanged', function(name,email) {
-			Ext.get('fp-user-name').update(App.User.name+' ('+App.User.email+')');
+			var un = Ext.get('fp-user-name');
+			if(un) un.update(App.User.name+' ('+App.User.email+')');
 		});
 		this.callParent();
 	},
@@ -27,8 +29,197 @@ Ext.define('App.ui.Dashboard', {
 	 */
 	initDashboard: function() {
 		if(App.User.isLoggedIn()) {
-			Ext.get('fp-user-name').update(App.User.name+' ('+App.User.email+')');
-			Ext.get('fp-citations').update(App.ui.Attribution.printAllCitations())
+			var un = Ext.get('fp-user-name');
+			if(un) un.update(App.User.name+' ('+App.User.email+')');
 		}
+			Ext.get('fp-citations').update(App.ui.Attribution.printAllCitations())
+		var quickstart = Ext.create('Ext.panel.Panel',{
+			renderTo: Ext.get('dashboard-quickstart'),
+			width: 260,
+			height: 290,
+			baseCls:'x-plain',
+			layout: {
+	            type: 'table',
+	            columns: 3
+	        },
+	        defaults: {xtype: 'button', scale: 'medium', iconAlign: 'top', width: 80, height: 60},
+	        items: [
+	        	// Row 0.5
+		        {
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 15,
+		        	html: '<h3>Design</h3>'
+		        },{
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 15,
+		        	html: '<h3>Testing</h3>',
+		        	colspan: 2,
+		        	width: 165,
+		        	style: 'text-align: center',
+		        },
+	        
+	        
+	        	// Row 1
+		        {
+		        	text: 'Behaviors',
+		        	iconCls: 'behavior-24',
+		        	menu: [{
+		        		text: 'Nodal',
+		        		iconCls: 'nodal',
+		        	},{
+		        		text: 'Pepper',
+		        		iconCls: 'pepper',
+		        	},{
+		        		text: 'Chemical Reaction Network (CRN)',
+		        		iconCls: 'crn',
+		        		disabled: true,
+		        	}]
+		        },{
+		        	text: 'Enumerate',
+		        	iconCls: 'enumerate-24',
+		        },{
+		        	text: 'Verify',
+		        	iconCls: 'verify-24',
+		        },	
+		        
+		        // Row 1.5
+		        {
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        	cls:'overflowing',
+		        	cellCls: 'overflowing-top',
+		        	layout: {
+				        type: 'hbox',
+				        align: 'middle'
+				    },
+		        	items: [{
+		        		xtype: 'label',
+		        		html: '&nbsp;&nbsp;&nbsp;&darr;&nbsp;&nbsp;&nbsp;',
+		        	},{
+		        		xtype: 'button',
+		        		iconCls: 'domains',
+		        		text: 'Domain Design',
+		        	}]
+		        },{
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        },{
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        },
+		        
+		        
+	        	// Row 2
+		        {
+		        	text: 'Domains',
+		        	iconCls: 'domains-24',
+		        	menu: [{
+		        		text: 'Pepper Intermediate Language (PIL)',
+		        		iconCls: 'pil',
+		        	},{
+		        		text: 'Secondary Structure design',
+		        		iconCls: 'secondary',
+		        	}]
+		        },{
+		        	text: 'Enumerate',
+		        	iconCls: 'enumerate-24',
+		        },{
+		        	text: 'Simulate',
+		        	iconCls: 'simulate-24'
+		        },
+		        
+		        // Row 2.5
+		        {
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        	cls:'overflowing',
+		        	cellCls: 'overflowing-top',
+		        	layout: {
+				        type: 'hbox',
+				        align: 'middle'
+				    },
+		        	items: [{
+		        		xtype: 'label',
+		        		html: '&nbsp;&nbsp;&nbsp;&darr;&nbsp;&nbsp;&nbsp;',
+		        	},{
+		        		xtype: 'button',
+		        		text: 'Sequence Design',
+		        		iconCls: 'sequence',
+		        		menu: [{
+		        			text: 'Web DD',
+		        			iconCls: 'dd',
+		        		}, {
+		        			text: 'NUPACK Multi-objective designer',
+		        			iconCls: 'nupack-icon',
+		        		},{
+		        			text: 'Multisubjective',
+		        			iconCls: 'ms-icon',
+		        		},{
+		        			text: 'Spurious C',
+		        			iconCls: 'spuriousC spurious'
+		        		}]
+		        	}]
+		        },{
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        },{
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        },
+		        
+		        
+	        	// Row 3
+	        	{
+		        	text: 'Sequences',
+		        	iconCls: 'sequence-24',
+		        	menu: [{
+		        		text: 'Sequence editor',
+		        		iconCls: 'sequence',
+		        	},{
+						text : 'NUPACK',
+						iconCls : 'nupack-icon',
+						handler : App.ui.Launcher.makeLauncher('nupack'),
+						menu : Ext.create('App.ui.NupackMenu'),
+					}, {
+						text: 'Mfold',
+						iconCls: 'mfold-icon',
+						menu: [{
+							text: 'QuikFold',
+							iconCls: 'mfold-icon',
+							handler: function() {
+								var win = Ext.create('App.ui.mfold.QuikFoldWindow');
+								win.show();
+							}
+						}]
+					},{
+						text: 'Vienna RNA',
+						iconCls: 'tbi',
+						menu: [{
+							text: 'RNAfold Server',
+							iconCls: 'tbi',
+							handler: function() {
+								var win = Ext.create('App.ui.vienna.RNAfoldWindow');
+								win.show();
+							}
+						}]
+					}]
+		        },{
+		        	text: 'Simulate',
+		        	iconCls: 'simulate-24',
+		        	colspan: 2,
+		        	width: 165,
+		        	
+		        },
+	        ]
+
+		})
 	}
 });

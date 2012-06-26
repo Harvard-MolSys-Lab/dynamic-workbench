@@ -82,20 +82,30 @@ Ext.define('App.ui.Launcher', {
 			if(a) {
 				// mask workspace while deserializing
 				mask = this.tabPanel.setLoading('Loading...');
-				tab = Ext.create(a.cls, Ext.apply({}, a.config, {
-					document : (doc || false),
-					initialTrigger : trigger,
-					triggers : triggers,
-					closable : true,
-					listeners : {
-						afterrender : {
-							fn : function() {
-								mask.hide();
-							},
-							single : true
+				try {
+					tab = Ext.create(a.cls, Ext.apply({}, a.config, {
+						document : (doc || false),
+						initialTrigger : trigger,
+						triggers : triggers,
+						closable : true,
+						listeners : {
+							afterrender : {
+								fn : function() {
+									mask.hide();
+								},
+								single : true
+							}
 						}
-					}
-				}));
+					}));
+				} catch(e) {
+					Ext.msg('Application failed to load','An error occurred loading application {0}, see console for details. ',{params: [rootTrigger]});
+					App.log('Failed to launch application with trigger ' + trigger+'. Error details: '+e, {
+						iconCls : 'application',
+						level: 'error',
+						silent : true
+					});
+					mask.hide();
+				}
 			} else {
 				mask = this.tabPanel.setLoading('Loading...');
 				tab = Ext.createByAlias('app.' + rootTrigger);
@@ -225,6 +235,8 @@ Ext.define('App.ui.Launcher', {
 	});
 	App.ui.Launcher.register('nupackedit', 'App.ui.NupackEditor', {});
 	App.ui.Launcher.register('msedit', 'App.ui.MultisubjectiveEditor');
+	App.ui.Launcher.register('msview', 'App.ui.MultisubjectiveViewer');
+	
 	App.ui.Launcher.register('enumedit', 'App.ui.EnumEditor');
 	
 	App.ui.Launcher.register('enumview', 'App.ui.EnumViewer');

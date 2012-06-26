@@ -98,8 +98,33 @@ App.dynamic = module.exports = (function(_,DNA) {
 				dest = source;
 			}
 			return dest;
+		},
+		comprehend: function(list,iterator,initial,context) {
+			if (context) iterator = _.bind(iterator, context);
+			if (!initial) { initial = []; }
+			return _.reduce(list,function(memo,x,i) {
+				memo = memo.concat(iterator(x,i));
+				return memo;
+			},initial);
 		}
 	});
+	
+	/* ***************************************************************** */
+
+	/**
+	 * Returns a reversed shallow copy of an array if polarity == -1, else returns a 
+	 * shallow copy of the array in its original order
+	 * @param {Array} list
+	 * @param {Number} polarity
+	 * @return {Array} list
+	 */
+	function order(list,polarity) {
+		var x = _.clone(list);
+		if(polarity == -1) {
+			x.reverse();
+		}
+		return x;
+	}
 
 	/* ***************************************************************** */
 
@@ -243,7 +268,13 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * @property
 		 */
 		this.polarity = DNA.parsePolarity(this.polarity);
-
+		
+		
+		// Apply post-processor
+		if(Motif.types[this.type]) {
+			Motif.types[this.type](this);
+		}
+		
 		this.library.register('motif',this.name, this);
 	}
 
@@ -267,6 +298,16 @@ App.dynamic = module.exports = (function(_,DNA) {
 			}));
 		},
 		/**
+		 * Gets all {@link App.dynamic.Segment segments} associated with this motif/node 
+		 * in the order they appear, 5' to 3', accounting for {@link #polarity}.
+		 * @returns {App.dynamic.Segment}
+		 */
+		getOrderedSegments : function() {
+			return order(_.comprehend(this.getOrderedDomains(), function(domain) {
+				return domain.getOrderedSegments();
+			}),this.getPolarity());
+		},
+		/**
 		 * Gets all {@link App.dynamic.Domain domains} associated with this motif/node
 		 * @returns {App.dynamic.Domain[]} domains
 		 */
@@ -275,8 +316,24 @@ App.dynamic = module.exports = (function(_,DNA) {
 				return strand.getDomains();
 			}))
 		},
+		/**
+		 * Gets {@link App.dynamic.Domain}s associated with this Node/Motif 
+		 * in the order they appear, 5' to 3', accounting for {@link #polarity}
+		 */
+		getOrderedDomains: function() {
+			return order(_.comprehend(this.getOrderedStrands(),function(strand) {
+				return strand.getOrderedDomains();
+			}),this.getPolarity());
+		},
 		getStrands : function() {
 			return this.strands;
+		},
+		/**
+		 * Gets {@link App.dynamic.Strand}s associated with this Node/Motif 
+		 * in the order they appear, 5' to 3', accounting for {@link #polarity}
+		 */
+		getOrderedStrands: function() {
+			return order(this.getStrands(),this.getPolarity())
 		},
 		/**
 		 * Gets the {@link App.dynamic.Domain domain} with the provided name
@@ -298,6 +355,28 @@ App.dynamic = module.exports = (function(_,DNA) {
 		}
 	}
 	_.extend(Motif, {
+		/**
+		 * Hash of post-processors to be passed the node at the end of the constructor.
+		 * 
+		 * Current types:
+		 * -	`hairpin`
+		 * 
+		 * @static
+		 */
+		types: {
+			'hairpin': function(node) {
+				_.each(node.getDomains(),function(dom) {
+					if(dom.role == 'output' && !dom.type) {
+						if(dom.polarity == -1) {
+							dom.type == 'loop';
+						} else if(dom.polarity == 1) {
+							dom.type == 'tail';
+						}
+					}
+				});
+			}
+		},
+		
 		/**
 		 * Gets the next available motif name.
 		 * @static
@@ -557,15 +636,10 @@ App.dynamic = module.exports = (function(_,DNA) {
 				return strand.getSegmentwiseStructure();
 			}));
 		},
-		getSegmentLengths: function() {
-			return _.reduce(this.getStrands(),function(memo,strand) {
-				var lens = _.clone(strand.getSegmentLengths());
-				if(strand.polarity == -1) {
-					lens.reverse();
-				}
-				memo.concat(lens);
-				return memo;
-			})
+		getOrderedSegmentLengths: function() {
+			return _.comprehend(this.getOrderedStrands(),function(strand) {
+				return strand.getOrderedSegmentLengths();
+			});
 		},
 		serialize: function() {
 			var out = _.copy(this);
@@ -586,27 +660,12 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 */
 		types: {
 			'hairpin': function(node) {
-				_.each(node.getDomains(), function(domain) {
-					if(domain.role=='input') {
-						// all segments other than toehold will be duplex
-						_.each(domain.getSegments(),function(segment) {
-							segment.duplex = (segment.role != 'toehold');
-						});
-					} else if(domain.role=='output') {
-						if(domain.type == 'loop') {
-							// segments will be duplex if (role != 'loop') and (role of previous segment != 'loop' if role == 'clamp')
-							var previousRole = ''
-							_.each(domain.getSegments(),function(segment) {
-								segment.duplex = !(segment.role == 'loop' || (segment.role == 'clamp' && previousRole == 'loop'));
-								previousRole = segment.role;
-							});
-						} else if(domain.type == 'tail') {
-							// segments will be duplex if (role == 'toehold') or (role == 'clamp' and previous role == 'toehold')
-							var previousRole = ''
-							_.each(domain.getSegments(),function(segment) {
-								segment.duplex = (segment.role == 'toehold' || (segment.role == 'clamp' && previousRole == 'toehold'));
-								previousRole = segment.role;
-							});
+				_.each(node.getDomains(),function(dom) {
+					if(dom.role == 'output' && !dom.type) {
+						if(dom.polarity == -1) {
+							dom.type == 'loop';
+						} else if(dom.polarity == 1) {
+							dom.type == 'tail';
 						}
 					}
 				});
@@ -754,10 +813,10 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * Returns segments in the order they occur on the strand (accounting for polarity)
 		 */
 		getOrderedSegments : function() {
-			var rev = (this.getAbsolutePolarity() == -1);			
-			return _.flatten(_.map(this.getOrderedDomains(), function(domain) {
-				return rev ? _.clone(domain.getSegments()).reverse() : _.clone(domain.getSegments())
-			}));
+			return order(_.comprehend(this.getOrderedDomains(), function(domain) {
+				//return domain.getOrderedSegments();
+				return domain.getSegments();
+			}),this.getPolarity());
 		},
 		/**
 		 * @inheritdoc App.dynamic.Node#getDomains
@@ -766,14 +825,14 @@ App.dynamic = module.exports = (function(_,DNA) {
 			return this.domains;
 		},
 		/**
-		 * Returns domains in the order they occur on the strand (accounting for polarity)
+		 * Returns domains in the order they occur on the strand (accounting for {@link #polarity relative polarity})
 		 */
 		getOrderedDomains : function() {
-			if(this.getAbsolutePolarity == -1) {
-				return _.clone(this.domains).reverse();
-			} else {
-				return _.clone(this.getDomains());
+			var doms = _.clone(this.getDomains());
+			if(this.getPolarity() == -1) {
+				doms.reverse();
 			}
+			return doms;
 		},
 		/**
 		 * @inheritdoc App.dynamic.Node#getDomain
@@ -789,6 +848,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 */
 		getSegmentLengths: function() {
 			return _.map(this.getSegments(),function(segment) {
+				return segment.getLength();
+			})
+		},
+		getOrderedSegmentLengths: function() {
+			return _.map(this.getOrderedSegments(),function(segment) {
 				return segment.getLength();
 			})
 		},
@@ -820,7 +884,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 */
 		getStructure : function() {
 			try {
-				return this.structure.expand(this.getSegmentLengths());
+				return this.structure.expand(this.getOrderedSegmentLengths());
 			} catch(e) {
 				e.message = "In strand "+this.getQualifiedName()+", "+e.message;
 				throw e;
@@ -936,6 +1000,12 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 */
 		getSegments : function() {
 			return this.segments;
+		},
+		/**
+		 * Retrieves the segments associated with this domain, accounting for its {@link #polarity relative polarity}
+		 */
+		getOrderedSegments: function() {
+			return order(this.getSegments(),this.getPolarity());
 		},
 		/**
 		 * Retrieves the strand of which this domain is a part
@@ -1820,7 +1890,9 @@ App.dynamic = module.exports = (function(_,DNA) {
 		toDomainsOutput: function() {
 			return Compiler.printStrands(this,{annotations: false});
 		},
-		toSVGOutput: function() {
+		toSVGOutput: function(noHeader) {
+			
+			
 			String.prototype.format = function() {
 			  var args = arguments;
 			  return this.replace(/{(\d+)}/g, function(match, number) { 
@@ -1852,17 +1924,18 @@ App.dynamic = module.exports = (function(_,DNA) {
 			R = Math.round(Math.sqrt(this.strands.length)),
 			C = Math.ceil(this.strands.length/R);
 			
-			fid.write('<?xml version="1.0" standalone="no"?>\n<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n'+
+			fid.write((!!noHeader ? '' : '<?xml version="1.0" standalone="no"?>\n<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n')+
 			'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"\nviewBox = "0 0 ' + repr(H*C) + ' ' + repr(V*R) + '" version = "1.1">\n'+
 			'<defs><path id="arrow" d="M -7 -7 L 0 0 L -7 7"/>\n</defs>\n'+
-			'<style type="text/css">text { font-family: tahoma, helvetica, arial; }</style>')
+			'<style type="text/css">text { font-family: tahoma, helvetica, arial; font-size: 0.8em; text-shadow: 1px -1px 0px white; }</style>')
 
 			for(var svgi = 0; svgi < this.nodes.length; svgi++) {
 				var node = this.nodes[svgi];
-				
-				 var structure = node.getSegmentwiseStructure().toDotParen();
+				var strands = node.getStrands();
+				var structure = node.getSegmentwiseStructure().toDotParen();
 				
 				if(structure.match(/^\.+$/)) { //initiator, straight strand without hybridization
+					var strand = _.first(node.getStrands());
 					fid.write('<g stroke = "rgb(139,98,61)" stroke-width = "2" fill = "none">\n<path d = "M {0} {1} L {2} {3}"/>\n'.format(x+H*.15,y+V*.5,x+H*.6,y+V*.5))
 				    if (strand.getPolarity()==-1) 
 				      fid.write('<use x="{0}" y="{1}" xlink:href="#arrow" transform="rotate(180,{2},{3})"/>\n'.format(x+H*.15,y+V*.5,x+H*.15,y+V*.5))
@@ -1875,29 +1948,28 @@ App.dynamic = module.exports = (function(_,DNA) {
 				      fid.write('<text x="{0}" y="{1}" stroke="none" fill="black">{2}</text>\n'.format(x+H*.15+H*(svgj+.5)/segments.length*.45,y+V*.5-V*.05,s))
 				    }
 				    fid.write('</g>\n')
-				} else if(structure.match(/^\.+\(+\.+\)+(\.+)?$/) || structure.match(/^\.+\(+\.?\+\)+)$/)) { //hairpin loop
-			    	var segments = node.getSegments();
+				} else if(structure.match(/^\.+\(+\.*\+\)+$/)) { // cooperative complex
+			    	var segments = node.getOrderedSegments();
 					var a = structure.indexOf('(');  // number of first hybridized segment
 
 				    var b = a;
 				    while(structure[b]=='(') { b++ } // number of last hybridized segment
 					b--;
 
-				    c = structure.indexOf(')');  // number of first hybridized segment after wraparound
+				    var c = structure.indexOf(')')-1;  // number of first hybridized segment after wraparound
+				    // -1 because the + will be included in the structure
 				    
-				    var d = c; // number of last hybridized segment after wraparound
-				    while(structure[d]==')') { d++ }
-				    d--;
+				    var d = segments.length - 1; // number of last hybridized segment after wraparound
 				    
-				    var segmentLengths = node.getSegmentLengths();
+				    var segmentLengths = node.getOrderedSegmentLengths();
 				    
 				    function sum(ls) {
 				    	return _.reduce(ls,function(m,x) {return m+x},0);
 				    }
 				    
-				    var len1 = sum(segmentLengths.slice(0,a)),  // length of the initial toehold, in bases
+				    var len1 = sum(segmentLengths.slice(0,a)),  // length of the left-side toehold, in bases
 				    len2 = sum(segmentLengths.slice(a,b+1)),  // length of the duplex region, in bases
-				    len3 = sum(segmentLengths.slice(b+1,c)),  // length of the hairpin loop, in bases
+				    len3 = sum(segmentLengths.slice(b+1,c)),  // length of the right-side toehold, in bases
 				    len4 = sum(segmentLengths.slice(d+1));  // length of the trailing end, in bases
 
 
@@ -1906,11 +1978,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 			      		fid.write('<line x1 = "{0}" y1 = "{1}" x2 = "{2}" y2 = "{3}"/>\n'.format(x+H*.3+H*.3*svgj/len2,y+V*.45,x+H*.3+H*.3*svgj/len2,y+V*.5))
 				      }
 			    	fid.write('</g>\n')
-			    	fid.write('<g stroke = "black" stroke-width = "2" fill = "none">\n<path d = "M {0} {1} a {2} {3} 0 1 1 {4} {5} L {6} {7}" stroke="black"/>\n'.format(x+H*.6,y+V*.45,H*.085,V*.25,0,V*.05,x+H*.3,y+V*.5))  // loop and bottom line
-			    	fid.write('<line x1 = "{0}" y1 = "{1}" x2 = "{2}" y2 = "{3}" stroke = "rgb(241,139,17)"/>\n'.format(x+H*.15,y+V*.45,x+H*.6,y+V*.45))  // yellow top line
+			    	fid.write('<g stroke = "black" stroke-width = "2" fill = "none">\n<path d = "M {0} {1} L {2} {3}" stroke="black"/>\n'.format(x+H*.6,y+V*.50,x+H*.3,y+V*.5))  // bottom line
+			    	fid.write('<line x1 = "{0}" y1 = "{1}" x2 = "{2}" y2 = "{3}" stroke = "rgb(241,139,17)"/>\n'.format(x+H*.15,y+V*.45,x+H*.75,y+V*.45))  // yellow top line
 			    	if (len4>0)
 			      		fid.write('<path d = "M {0} {1} L {2} {3}" stroke = "black"/>\n'.format(x+H*.3,y+V*.5,x+H*.15,y+V*.8))  // trailing end
-			    	if (strand.getPolarity() == -1) {
+			    	if (node.getPolarity() == -1) {
 			      		fid.write('<use x="{0}" y="{1}" stroke="rgb(241,139,17)" xlink:href="#arrow" transform="rotate(180,{2},{3})"/>\n'.format(x+H*.15,y+V*.45,x+H*.15,y+V*.45))  // yellow top arrow
 			    	} else {
 			    	
@@ -1949,8 +2021,111 @@ App.dynamic = module.exports = (function(_,DNA) {
 				    }  // duplex region
 				    for (svgj = 0; svgj < c-(b+1); svgj++) {
 				    	
-				      labelx.push(H*(.75 - .05*cos(2*pi*(svgj+.5)/(c-(b+1)))))
-				      labely.push(V*(.45 - .25*sin(2*pi*(svgj+.5)/(c-(b+1)))))
+				      labelx.push(H*(.6 + .15*(svgj+.5)/(c-(b+1))))
+				      labely.push(V*.4)
+				    	
+				    }  // right-hand toehold
+				    for (svgj = 0; svgj < b+1-a; svgj++) {
+				    	
+				      labelx.push(H*(.6 - .3*(svgj+.5)/(b+1-a)))
+				      labely.push(V*.6)
+				    }  // duplex region again
+				    for (svgj = 0; svgj < d+1-c; svgj++) {
+				    	
+				      labelx.push(H*(.3 - .15*(svgj+.5)/(d+1-c)))
+				      labely.push(V*(.6 + .3*(svgj+.5)/(d+1-c)))
+				    }  // trailing end
+				    
+				    for (var svgj = 0; svgj < segments.length; svgj++) {
+				      var segment = segments[svgj];
+				      
+				      var s = segment.getIdentifier();
+				      // if (svgk>0)
+				        // s = repr(svgk)
+				      // else
+				        // s = repr(-svgk) + '*'
+				      fid.write('<text x="{0}" y="{1}" stroke="none" fill="black">{2}</text>\n'.format(x+labelx[svgj],y+labely[svgj],s))
+				    }
+			    	fid.write('</g>\n')
+			    	
+			    	
+				} else if(structure.match(/^\.+\(+\.+\)+(\.+)?$/)) { //hairpin loop
+			    	var strand = _.first(node.getStrands());
+			    	var segments = node.getOrderedSegments();
+					var a = structure.indexOf('(');  // number of first hybridized segment
+
+				    var b = a;
+				    while(structure[b]=='(') { b++ } // number of last hybridized segment
+					b--;
+
+				    c = structure.indexOf(')');  // number of first hybridized segment after wraparound
+				    
+				    var d = c; // number of last hybridized segment after wraparound
+				    while(structure[d]==')') { d++ }
+				    d--;
+				    
+				    var segmentLengths = node.getOrderedSegmentLengths();
+				    
+				    function sum(ls) {
+				    	return _.reduce(ls,function(m,x) {return m+x},0);
+				    }
+				    
+				    var len1 = sum(segmentLengths.slice(0,a)),  // length of the initial toehold, in bases
+				    len2 = sum(segmentLengths.slice(a,b+1)),  // length of the duplex region, in bases
+				    len3 = sum(segmentLengths.slice(b+1,c)),  // length of the hairpin loop, in bases
+				    len4 = sum(segmentLengths.slice(d+1));  // length of the trailing end, in bases
+
+
+				    fid.write('<g stroke = "black" stroke-width = "1" fill = "none">\n')
+				    for(var svgj = 0; svgj < len2; /*segments.length;*/ svgj++) { // draw cross-lines for paired bases
+			      		fid.write('<line x1 = "{0}" y1 = "{1}" x2 = "{2}" y2 = "{3}"/>\n'.format(x+H*.3+H*.3*svgj/len2,y+V*.45,x+H*.3+H*.3*svgj/len2,y+V*.5))
+				      }
+			    	fid.write('</g>\n')
+			    	fid.write('<g stroke = "black" stroke-width = "2" fill = "none">\n<path d = "M {0} {1} a {2} {3} 0 1 1 {4} {5} L {6} {7}" stroke="black"/>\n'.format(x+H*.6,y+V*.45,H*.085,V*.25,0,V*.05,x+H*.3,y+V*.5))  // loop and bottom line
+			    	fid.write('<line x1 = "{0}" y1 = "{1}" x2 = "{2}" y2 = "{3}" stroke = "rgb(241,139,17)"/>\n'.format(x+H*.15,y+V*.45,x+H*.6,y+V*.45))  // yellow top line
+			    	if (len4>0)
+			      		fid.write('<path d = "M {0} {1} L {2} {3}" stroke = "black"/>\n'.format(x+H*.3,y+V*.5,x+H*.15,y+V*.8))  // trailing end
+			    	if (strand.getAbsolutePolarity() == -1) {
+			      		fid.write('<use x="{0}" y="{1}" stroke="rgb(241,139,17)" xlink:href="#arrow" transform="rotate(180,{2},{3})"/>\n'.format(x+H*.15,y+V*.45,x+H*.15,y+V*.45))  // yellow top arrow
+			    	} else {
+			    	
+				      if (len4>0)
+				        fid.write('<use x="{0}" y="{1}" xlink:href="#arrow" transform="rotate({2},{3},{4})"/>\n'.format(x+H*.15,y+V*.8,90+180/pi*atan2(V*.3,H*.15),x+H*.15,y+V*.8))  // bottom arrow
+				      else
+				        fid.write('<use x="{0}" y="{1}" xlink:href="#arrow" transform="rotate(180,{2},{3})"/>\n'.format(x+H*.3,y+V*.5,x+H*.3,y+V*.5))
+				    }
+				    fid.write('</g>\n<g stroke="none" fill="black" font-size="16">\n')
+				    
+				    
+				    
+				    labelx = []
+				    labely = []
+				    
+				    
+				   
+				    function repr(x) {
+				    	return x;
+				    }
+				    
+				    function range(x) {
+				    	return _.range(0,x);
+				    }
+				    
+				    var cos = Math.cos, sin = Math.sin, pi = Math.PI;
+				    
+				    for (var svgj = 0; svgj < a; svgj++) {
+				      labelx.push(H*(.15 + .15*(svgj+.5)/a))
+				      labely.push(V*.4)
+				    }  // toehold
+				    for (svgj = 0; svgj < b+1-a; svgj++) {
+				    	
+				      labelx.push(H*(.3 + .3*(svgj+.5)/(b+1-a)))
+				      labely.push(V*.4)
+				    }  // duplex region
+				    for (svgj = 0; svgj < c-(b+1); svgj++) {
+				    	
+				      labelx.push(H*(.67 - .15*cos(2*pi*(svgj+.5)/(c-(b+1)))))
+				      labely.push(V*(.47 - .3*sin(2*pi*(svgj+.5)/(c-(b+1)))))
 				    }  // hairpin loop
 				    for (svgj = 0; svgj < b+1-a; svgj++) {
 				    	
@@ -1977,7 +2152,13 @@ App.dynamic = module.exports = (function(_,DNA) {
 					
 
 				}
-			  fid.write('<text x="{0}" y="{1}" style="font-size: 18px; font-weight: bold;" stroke="none">{2}</text>\n'.format(x+H*.45, y+V*.9, strand.getQualifiedName()))
+				
+
+				var name = node.getName();
+				if(strands.length > 1) {
+					name += '('+_.map(strands,function(s) {return s.getName()}).join(' + ')+')'
+				}
+			  fid.write('<text x="{0}" y="{1}" style="font-size: 18px; font-weight: bold;" stroke="none">{2}</text>\n'.format(x+H*.45, y+V*.9, name))
 			  y += V
 			  if (y>=V*R) {			  	
 			    y=0
@@ -3077,6 +3258,23 @@ App.dynamic = module.exports = (function(_,DNA) {
 				"type":"initiator",
 				"structure":"....",
 				"domains":"A[a x:c b c]o+"
+			},{
+				"name":"m24",
+				"type":"cooperative",
+				"structure":".((((.((((((.+)))+)))+))))",
+				"strands":[{
+					"name":"S1",
+					"domains":"A[a x:c b c]i+ s[s(1)]x B[d y:c e f]i+ C[g z:c h i]i-"
+				},{
+					"name":"S2",
+					"domains":"D[h* z*:c g*]x"
+				},{
+					"name":"S2",
+					"domains":"E[e* y*:c d*]x"
+				},{	
+					"name":"S3",
+					"domains":"F[s*(1) c* b* x*:c]x"
+				}]
 			}
 		];
 		standardMotifs = _.reduce(standardMotifs,function(memo,motif) {

@@ -23,12 +23,12 @@ Ext.define('App.ui.DD', {
 	 */
 	mutating : false,
 	scoreFormat : '0.00',
-	
-	dockedItems: [{
-		xtype: 'cite',
-		cite: 'zhang_2011',
+
+	dockedItems : [{
+		xtype : 'cite',
+		cite : 'zhang_2011',
 	}],
-	
+
 	initComponent : function() {
 		/**
 		 * @property {DD} designer
@@ -76,13 +76,13 @@ Ext.define('App.ui.DD', {
 		/**
 		 * @property {Ext.grid.plugin.CellEditing} cellEditor
 		 */
-		var cellEditor = this.cellEditor = Ext.create('Ext.grid.plugin.CellEditing', {
+		var cellEditor = this.cellEditor = Ext.create('Ext.grid.plugin.CellEditing2', {
 			clicksToEdit : 2,
 			autoCancel : false
 		});
 		this.cellEditor.on('edit', function(editor, e) {
 			this.designer.updateDomain(this.store.indexOf(e.record), e.record.get('sequence'), e.record.get('importance'), e.record.get('composition'));
-
+			this.grid.focus();
 		}, this);
 		this.targetColumn = Ext.create('Ext.ux.CheckColumn', {
 			header : 'Target',
@@ -93,7 +93,7 @@ Ext.define('App.ui.DD', {
 
 		this.targetColumn.on('checkchange', function(col, i, checked) {
 			var rec = this.store.getAt(i);
-			if(rec.get('target')) {
+			if (rec.get('target')) {
 				this.designer.targetDomain(i)
 			} else {
 				this.designer.untargetDomain(i)
@@ -146,7 +146,7 @@ Ext.define('App.ui.DD', {
 							nodeType : 1
 						};
 						CodeMirror.runMode(v, 'dd-sequence', x);
-						return '<span class="dd-sequence">'+x.innerHTML+'</span>';
+						return '<span class="dd-sequence">' + x.innerHTML + '</span>';
 					},
 					editor : {
 						allowBlank : false,
@@ -206,7 +206,7 @@ Ext.define('App.ui.DD', {
 						xtype : 'combobox',
 						typeAhead : true,
 						triggerAction : 'all',
-						allowBlank: false,
+						allowBlank : false,
 						forceSelection : true,
 						selectOnTab : true,
 						store : [[15, "GATC"], [7, "ATC"], [11, "GTC"], [14, "GAT"], [13, "GAC"], [12, "GA"], [6, "AT"], [9, "GC"], [10, "GT"], [5, "AC"], [3, "TC"], [8, "G"], [4, "A"], [2, "T"], [1, "C"]],
@@ -290,7 +290,7 @@ Ext.define('App.ui.DD', {
 							scope : this,
 						}, '-', {
 							text : 'Add specific domains...',
-							handler : function() { 
+							handler : function() {
 								this.addManyDomains('');
 							},
 							scope : this,
@@ -314,7 +314,7 @@ Ext.define('App.ui.DD', {
 						xtype : 'splitbutton',
 						handler : function() {
 							var rec = this.grid.getSelectionModel().getLastSelected()
-							if(rec) {
+							if (rec) {
 								this.cellEditor.startEdit(rec, this.grid.headerCt.getHeaderAtIndex(1));
 							}
 						},
@@ -387,11 +387,11 @@ Ext.define('App.ui.DD', {
 						baseText : '∆: ',
 						text : '∆: ',
 						ref : 'deltaField',
-					},'->','->',{
+					}, '->', '->', {
 						baseText : 'Score: ',
 						text : 'Score: ',
 						ref : 'scoreField',
-					}] 
+					}]
 				},
 				margin : 0, //'2 0 0 2',
 				bodyBorder : false,
@@ -401,10 +401,10 @@ Ext.define('App.ui.DD', {
 				region : 'east',
 				title : 'Structure',
 				editorType : 'Structure',
-				saveButtonText: 'Save Strands',
+				saveButtonText : 'Save Strands',
 				ref : 'structPane',
 				collapsible : true,
-				collapsed: true,
+				collapsed : true,
 				width : 200,
 				split : true,
 				margin : 0, //'2 2 0 0',
@@ -425,15 +425,15 @@ Ext.define('App.ui.DD', {
 					handler : this.updateDomainsFromSpec,
 					scope : this,
 				}],
-				listeners: {
+				listeners : {
 					'afterrender' : {
 						scope : this,
 						fn : function(structPane) {
 							structPane.header.tooltip = {
-								title: 'Structure',
-								text: 'Use this pane to thread your domains onto strands. You can use a NUPACK-like syntax to describe ' + //
-									'your strands. For example, to describe strand "M1" containing domains 1, 2, and 3*, simply enter "M1 : 1 2 3*" ' + //
-									'then click "Update." Your changes will be reflected in the "Strands" pane below'
+								title : 'Structure',
+								text : 'Use this pane to thread your domains onto strands. You can use a NUPACK-like syntax to describe ' + //
+								'your strands. For example, to describe strand "M1" containing domains 1, 2, and 3*, simply enter "M1 : 1 2 3*" ' + //
+								'then click "Update." Your changes will be reflected in the "Strands" pane below'
 							};
 							this.mixins.tip.buildTip(structPane.header);
 						}
@@ -443,22 +443,22 @@ Ext.define('App.ui.DD', {
 				region : 'south',
 				title : 'Strands',
 				editorType : 'Strands',
-				saveButtonText: 'Save Sequences',
+				saveButtonText : 'Save Sequences',
 				ref : 'strandsPane',
 				collapsible : true,
-				collapsed: true,
+				collapsed : true,
 				height : 200,
 				split : true,
 				border : true, //'1 0 0 0',
 				bodyBorder : true,
 				margin : 0, //'0 2 2 2',
-				listeners: {
+				listeners : {
 					'afterrender' : {
 						scope : this,
 						fn : function(strandsPane) {
 							strandsPane.header.tooltip = {
-								title: 'Strands',
-								text: 'This pane shows the sequences of the strands described in the "Structure" pane on the right. '
+								title : 'Strands',
+								text : 'This pane shows the sequences of the strands described in the "Structure" pane on the right. '
 							};
 							this.mixins.tip.buildTip(strandsPane.header);
 						}
@@ -489,25 +489,31 @@ Ext.define('App.ui.DD', {
 		var spec = DNA.structureSpec(CodeMirror.tokenize(this.structPane.getValue(), 'nupack'));
 		this.syncDomains(spec.domains, this.clobberOnUpdate.checked);
 		this.setStrands(spec.strands);
-		this.structPane.expand();
-		this.strandsPane.expand();
-		this.updateStrandsPane();
+		var me = this;
+		_.defer(function() {
+			me.structPane.on('expand', function() {
+				me.strandsPane.expand();
+				me.updateStrandsPane();
+			})
+			me.structPane.expand();
+
+		})
 	},
 	setStrands : function(strands) {
 		this.strands = strands;
 	},
 	getSaveData : function(ext) {
 		ext || ( ext = this.document.getExt());
-		if(ext == 'ddjs') {
+		if (ext == 'ddjs') {
 			return {
 				structure : this.structPane.getValue() || '',
 				state : this.designer.saveState(),
 			};
-		} else if(ext == 'nupack' || ext == 'domains') {
+		} else if (ext == 'nupack' || ext == 'domains') {
 			return this.structPane.getValue();
-		} else if(ext == 'seq') {
+		} else if (ext == 'seq') {
 			this.designer.printDomains().join('\n');
-		} else if(ext == 'dd') {
+		} else if (ext == 'dd') {
 			return this.designer.saveFile();
 			//this.designer.printfDomains().join('\n');
 		}
@@ -516,22 +522,22 @@ Ext.define('App.ui.DD', {
 	 * Loads the given design from a *.nupack or *.domains file
 	 */
 	onLoad : function() {
-		if(!!this.data) {
+		if (!!this.data) {
 			var ext = this.document.getExt();
-			if(ext == 'ddjs') {
+			if (ext == 'ddjs') {
 				this.data = Ext.decode(this.data);
 				this.structPane.setValue(this.data.structure || '');
 				this.designer.loadState(this.data.state || {});
 				this.addDomains(this.designer.printfDomains(), [], this.designer.getImportances(), this.designer.getCompositions(), true);
 				this.updateDomainsFromSpec();
-			} else if(ext == 'nupack' || ext == 'domains') {
+			} else if (ext == 'nupack' || ext == 'domains') {
 				this.structPane.setValue(this.data);
 				this.updateDomainsFromSpec();
 				this.structPane.bindDocument(this.document);
 				this.unbindDocument();
-			} else if(ext == 'seq') {
+			} else if (ext == 'seq') {
 				this.addManyDomains(this.data);
-			} else if(ext == 'dd') {
+			} else if (ext == 'dd') {
 				this.designer.loadFile(this.data);
 				this.addDomains(this.designer.printfDomains(), [], this.designer.getImportances(), this.designer.getCompositions(), true);
 			}
@@ -542,7 +548,7 @@ Ext.define('App.ui.DD', {
 	 */
 	reseed : function() {
 		var rec = this.grid.getSelectionModel().getLastSelected(), dom = this.store.indexOf(rec);
-		if(rec) {
+		if (rec) {
 			this.designer.reseedDomain(dom);
 			rec.set('sequence', this.designer.printfDomainById(dom));
 		}
@@ -577,7 +583,7 @@ Ext.define('App.ui.DD', {
 	 * Shows the design rules window
 	 */
 	designOptions : function() {
-		if(!this.designOptionsWindow) {
+		if (!this.designOptionsWindow) {
 			this.designOptionsWindow = Ext.create('App.ui.dd.RulesWindow', {
 				designer : this.designer,
 				closeAction : 'hide'
@@ -590,7 +596,7 @@ Ext.define('App.ui.DD', {
 	 * Shows the score parameters window
 	 */
 	scoreParams : function() {
-		if(!this.scoreParamsWindow) {
+		if (!this.scoreParamsWindow) {
 			this.scoreParamsWindow = Ext.create('App.ui.dd.ScoreParametersWindow', {
 				designer : this.designer,
 				closeAction : 'hide'
@@ -604,16 +610,14 @@ Ext.define('App.ui.DD', {
 	 */
 	updateStatusBar : function() {
 		var attempts = this.designer.getMutationAttempts(), //
-			muts = this.designer.getMutationCount(), //
-			score = this.designer.getWorstScore(), //
-			flux = this.designer.getMutationFlux(),
-			delta = this.designer.getMutationDelta(),
-			bored = this.designer.getBoredMutations();
+		muts = this.designer.getMutationCount(), //
+		score = this.designer.getWorstScore(), //
+		flux = this.designer.getMutationFlux(), delta = this.designer.getMutationDelta(), bored = this.designer.getBoredMutations();
 		this.attemptCount.setText(this.attemptCount.baseText + attempts);
 		this.mutCount.setText(this.mutCount.baseText + muts);
 		this.scoreField.setText(this.scoreField.baseText + Ext.util.Format.number(score, this.scoreFormat));
 		this.mutFlux.setText(this.mutFlux.baseText + Ext.util.Format.number(flux, this.scoreFormat));
-		this.deltaField.setText(this.deltaField.baseText + Ext.util.Format.number(delta,this.scoreFormat));
+		this.deltaField.setText(this.deltaField.baseText + Ext.util.Format.number(delta, this.scoreFormat));
 		this.boredField.setText(this.boredField.baseText + bored);
 	},
 	/**
@@ -621,7 +625,7 @@ Ext.define('App.ui.DD', {
 	 */
 	doDeleteDomains : function() {
 		var recs = this.grid.getSelectionModel().getSelection();
-		if(recs) {
+		if (recs) {
 			_.each(recs, function(rec) {
 				this.designer.removeDomain(this.store.indexOf(rec));
 				this.store.remove(rec);
@@ -642,13 +646,13 @@ Ext.define('App.ui.DD', {
 		clobber = clobber || false;
 		_.each(domains, function(spec, name) {
 			var rec = this.store.findRecord('name', name);
-			if(!rec) {// && _.isNumber(name)) {
+			if (!rec) {// && _.isNumber(name)) {
 				rec = this.store.getAt(parseInt(name) - 1);
 			}
-			if(!rec) {
+			if (!rec) {
 				this.addDomains([spec], [name]);
 			} else {
-				if(clobber) {
+				if (clobber) {
 					rec.set('sequence', spec);
 					this.updateDomain(rec);
 				}
@@ -664,7 +668,7 @@ Ext.define('App.ui.DD', {
 		 * Sequence-editing window which allows the user to add many domains by
 		 * typing or copying and pasting.
 		 */
-		if(!this.addDomainsWindow) {
+		if (!this.addDomainsWindow) {
 			this.addDomainsWindow = Ext.create('App.ui.dd.SequenceWindow', {
 				designer : this,
 				value : data || '',
@@ -677,11 +681,11 @@ Ext.define('App.ui.DD', {
 	 * @param {String} [data] If provided, seeds the
 	 */
 	loadFromDDFile : function(data) {
-		if(!this.loadDDFileWindow) {
+		if (!this.loadDDFileWindow) {
 			/**
 			 * @property {App.ui.dd.SequenceWindow} loadDDFileWindow
-			 * Allows the user to add domains by pasting from an old DD text 
-			 * format file. Also the best way to add many domains with 
+			 * Allows the user to add domains by pasting from an old DD text
+			 * format file. Also the best way to add many domains with
 			 * different importances/compositions.
 			 */
 			this.loadDDFileWindow = Ext.create('App.ui.dd.SequenceWindow', {
@@ -707,7 +711,7 @@ Ext.define('App.ui.DD', {
 		dummy = dummy || false;
 		//, start = this.designer.getDomainCount(), end;
 
-		if(!dummy) {
+		if (!dummy) {
 			this.designer.addDomains(seqs, imp, comp);
 		}
 		// end =   this.designer.getDomainCount() - 1;
@@ -737,8 +741,8 @@ Ext.define('App.ui.DD', {
 	 */
 	doAddDomain : function() {
 		var rec = this.grid.getSelectionModel().getLastSelected()
-		if(rec) {
-			var comp = rec.get('composition')	
+		if (rec) {
+			var comp = rec.get('composition')
 		} else {
 			comp = 15
 		}
@@ -769,7 +773,7 @@ Ext.define('App.ui.DD', {
 	 * Starts or stops mutations
 	 */
 	toggleMutation : function() {
-		if(this.mutating) {
+		if (this.mutating) {
 			this.pauseMutation();
 		} else {
 			this.startMutation();
@@ -790,7 +794,7 @@ Ext.define('App.ui.DD', {
 	 * started by {@link #startMutation}, paused by {@link #pauseMutation}
 	 */
 	mutationLoop : function() {
-		if(this.mutationCount > this.mutationStep) {
+		if (this.mutationCount > this.mutationStep) {
 			this.updateInterface();
 			this.mutationCount = 0;
 		}
@@ -803,37 +807,35 @@ Ext.define('App.ui.DD', {
 	/**
 	 * Updates the UI after {@link #mutationStep} mutations
 	 */
-	updateInterface : function(refreshSequences,refreshScores) {
-		refreshSequences || (refreshSequences = false);
-		refreshScores || (refreshScores = true);
+	updateInterface : function(refreshSequences, refreshScores) {
+		refreshSequences || ( refreshSequences = false);
+		refreshScores || ( refreshScores = true);
 		this.updateStatusBar();
-		
+
 		// true to force a re-tally (since domain_score[] isn't automatically updated when a
 		// mutation is rejected; we risk showing an increased score that was actually rejected)
 		var scores = this.designer.getScores(true), //
-			mut_dom = this.designer.getMutatedDomain(), //
-			mut_dom_seq = this.designer.printfDomainById(mut_dom), 
-			allSequences = (refreshSequences ? this.designer.printfDomains() : null),
-			rec;
-		for(var i = 0; i < scores.length; i++) {
+		mut_dom = this.designer.getMutatedDomain(), //
+		mut_dom_seq = this.designer.printfDomainById(mut_dom), allSequences = ( refreshSequences ? this.designer.printfDomains() : null), rec;
+		for (var i = 0; i < scores.length; i++) {
 			rec = this.store.getAt(i);
-			if(refreshScores) {			
-				if(rec.get('score') != 0 && rec.get('score') < scores[i]) {
+			if (refreshScores) {
+				if (rec.get('score') != 0 && rec.get('score') < scores[i]) {
 					//throw "Score increase";
 				}
 				rec.set('score', scores[i]);
 			}
-			if(refreshSequences) {
-				rec.set('sequence',allSequences[i]);
+			if (refreshSequences) {
+				rec.set('sequence', allSequences[i]);
 			}
 		}
 		rec = this.store.getAt(mut_dom);
 		rec.set('sequence', mut_dom_seq);
 		this.store.sync();
-		if(this.strands) {
+		if (this.strands) {
 			var segments = _.reduce(this.store.getRange(), function(memo, rec) {
 				var name = rec.get('name'), i = this.store.indexOf(rec);
-				memo[ name ? name : i+1] = this.designer.printDomainById(i);
+				memo[ name ? name : i + 1] = this.designer.printDomainById(i);
 				return memo;
 			}, {}, this);
 			this.strandsPane.setValue(_.map(this.strands, function(spec, name) {
@@ -844,7 +846,7 @@ Ext.define('App.ui.DD', {
 	updateStrandsPane : function() {
 		var segments = _.reduce(this.store.getRange(), function(memo, rec) {
 			var name = rec.get('name'), i = this.store.indexOf(rec);
-			memo[ name ? name : i+1] = this.designer.printDomainById(i);
+			memo[ name ? name : i + 1] = this.designer.printDomainById(i);
 			return memo;
 		}, {}, this);
 		this.strandsPane.setValue(_.map(this.strands, function(spec, name) {
@@ -858,7 +860,7 @@ Ext.define('App.ui.DD', {
 		this.mutateButton.setIconCls('pause');
 		_.invoke([this.modDomainButton, this.addDomainButton, this.delDomainButton], 'disable');
 		// update dirty scores in designer
-		if(!this.mutationTask || this.scoresDirty) {
+		if (!this.mutationTask || this.scoresDirty) {
 			this.designer.evaluateAllScores();
 			this.scoresDirty = false;
 		}
@@ -868,7 +870,7 @@ Ext.define('App.ui.DD', {
 		_.each(doms, function(seq, dom) {
 			this.store.getAt(dom).set('sequence', seq);
 		}, this);
-		if(!this.mutationTask) {
+		if (!this.mutationTask) {
 			this.mutationTask = Ext.TaskManager.start({
 				run : this.mutationLoop,
 				interval : 0.1,
@@ -885,7 +887,7 @@ Ext.define('App.ui.DD', {
 	pauseMutation : function() {
 		this.mutateButton.setIconCls('play');
 		_.invoke([this.modDomainButton, this.addDomainButton, this.delDomainButton], 'enable');
-		if(this.mutationTask) {
+		if (this.mutationTask) {
 			Ext.TaskManager.stop(this.mutationTask);
 		}
 		this.mutating = false;
@@ -955,7 +957,7 @@ Ext.define('Ext.ux.PreviewPlugin', {
 		}];
 
 		section.previewExpanded = this.previewExpanded;
-		if(!section.features) {
+		if (!section.features) {
 			section.features = [];
 		}
 		section.features = features.concat(section.features);

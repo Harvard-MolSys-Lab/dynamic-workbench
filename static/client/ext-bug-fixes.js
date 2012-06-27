@@ -30,6 +30,44 @@ Ext.grid.property.Store.override({
 	},
 });
 
+Ext.require('Ext.grid.plugin.CellEditing')
+Ext.define('Ext.grid.plugin.CellEditing2',{
+	extend: 'Ext.grid.plugin.CellEditing',
+    onEditComplete : function(ed, value, startValue) {
+        var me = this,
+            grid = me.grid,
+            sm = grid.getSelectionModel(),
+            activeColumn = me.getActiveColumn(),
+            record;
+
+        if (activeColumn) {
+            record = me.context.record;
+
+            me.setActiveEditor(null);
+            me.setActiveColumn(null);
+            me.setActiveRecord(null);
+
+            if (!me.validateEdit()) {
+                return;
+            }
+
+
+            if (!record.isEqual(value, startValue)) {
+                record.set(activeColumn.dataIndex, value);
+//            } else {
+//                grid.getView().getEl(activeColumn).focus();
+            }
+
+            // *** bugfix -- refocus edited cell
+            sm.setLastSelected(sm.getLastSelected());
+            grid.getView().getEl(activeColumn).focus();
+
+            me.context.value = value;
+            me.fireEvent('edit', me, me.context);
+        }
+    }
+});
+
 /*
  * This patch is necessary in the 4.0.x branch, due to this bug: 
  * http://www.sencha.com/forum/showthread.php?151211-Reloading-TreeStore-adds-all-records-to-store-getRemovedRecords&p=661157#post661157

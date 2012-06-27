@@ -69,11 +69,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * @returns {Object} destination
 		 */
 		copyTo : function(destination, source) {
-			_.each(source, function(value, key) {
+			for (var key in source) {
 				if(_.has(source,key)) {
-					destination[key] = value;
+					destination[key] = source[key];
 				}
-			});
+			};
 			return destination;
 		},
 		/**
@@ -99,6 +99,21 @@ App.dynamic = module.exports = (function(_,DNA) {
 			}
 			return dest;
 		},
+		/**
+		 * Produces a new array of values by mapping each value in the list 
+		 * to one or more values by a transformation function (`iterator`).
+		 * Iterator can return an array of multiple values, which will be
+		 * concatenated onto the final list.
+		 * 
+		 * In this way, `comprehend` acts like a 1:n version of {@link _#map map}.
+		 * @param {Array} list List to comprehend
+		 * @param {Function} iterator Transformation function
+		 * @param {Mixed} iterator.value The next value in the list
+		 * @param {Number} iterator.index The index of the current value in the original list
+		 * @param {Array} [initial=[]] The initial value of the output array
+		 * @param {Mixed} [context] Scope in which to execute the `iterator`
+		 * @return {Array} comprehension 
+		 */
 		comprehend: function(list,iterator,initial,context) {
 			if (context) iterator = _.bind(iterator, context);
 			if (!initial) { initial = []; }
@@ -106,10 +121,44 @@ App.dynamic = module.exports = (function(_,DNA) {
 				memo = memo.concat(iterator(x,i));
 				return memo;
 			},initial);
+		},
+		/**
+		 * Returns a reversed, shallow copy of a list
+		 * @param {Array} list
+		 * @return {Array} reversed
+		 */
+		reverse : function(list) {
+			var l = _.clone(list);
+			l.reverse();
+			return l;
 		}
 	});
 	
 	/* ***************************************************************** */
+	
+	function lengths(list) {
+		return _.invoke(list,'getLength')
+	}
+
+	function names(list) {
+		return _.invoke(list,'getName')
+	}
+	
+	function ids(list) {
+		return _.invoke(list,'getIdentifier')
+	}
+	
+	function sum(ls) {
+    	return _.reduce(ls,function(m,x) {return m+x},0);
+    }				    
+   
+    function repr(x) {
+    	return x;
+    }
+    
+    function range(x) {
+    	return _.range(0,x);
+    }
 
 	/**
 	 * Returns a reversed shallow copy of an array if polarity == -1, else returns a 
@@ -303,9 +352,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * @returns {App.dynamic.Segment}
 		 */
 		getOrderedSegments : function() {
-			return order(_.comprehend(this.getOrderedDomains(), function(domain) {
-				return domain.getOrderedSegments();
-			}),this.getPolarity());
+			// return order(_.comprehend(this.getStrands(), function(strand) {				// return strand.getSegments();			// }),this.getPolarity());
+			
+			return _.clone(_.comprehend(this.getOrderedStrands(),function(strand) {
+				return strand.getOrderedSegments();
+			}))
 		},
 		/**
 		 * Gets all {@link App.dynamic.Domain domains} associated with this motif/node
@@ -457,7 +508,6 @@ App.dynamic = module.exports = (function(_,DNA) {
 		if(_.isString(config.domains)) {
 			config.domains = Compiler.parseDomainString(config.domains);
 		}
-		
 		var nodeDomainProperties = _.reduce(config.domains || [], function(memo, domain) {
 			memo[domain.name] = domain;
 			return memo;
@@ -468,8 +518,10 @@ App.dynamic = module.exports = (function(_,DNA) {
 			return memo;
 		},{});
 		
-		delete config.domains;
-		delete config.strands;
+		if(config.motif) {			
+			delete config.domains;
+			delete config.strands;
+		}
 
 		// Apply configuration options with defaults to this object
 		_.copyTo(this, config), _.defaults({
@@ -484,41 +536,52 @@ App.dynamic = module.exports = (function(_,DNA) {
 			polarity : 0,
 		});
 		
+		if(this.domains && !this.strands) {
+			//var structure = strandStructures[0]; 
+			this.strands = [
+				new Strand({
+					library: this.library,
+					domains: this.domains,
+					node: this,
+					//structure: structure,
+				})
+			];
+		} else {	
 		
-		
-		this.strands = _.map(this.strands,function(strand,i) {
-			
-			// See if additional strand properties for this strand were specified by the node
-			strand = _.copyWith(strand,nodeStrandProperties[strand.name] || {});
-			// (must always copy else assigning to strand screws things up)
-			
-			// Parse compact input format
-			if(_.isString(strand.domains)) {
-				strand.domains = Compiler.parseDomainString(strand.domains);
-			}
-			
-			// See if additional domain properties for this strand were specified by the node			
-			strand.domains = _.map(strand.domains, function(domain) {
-		
-				// Find domains with matching identities in motif
-				//if(domain.identity && motifDomainsMap[domain.identity]) {
-				//	domain = _.extend(_.copy(motifDomainsMap[domain.identity]), domain);
-				//}
-				//domain.node = this;
+			this.strands = _.map(this.strands,function(strand,i) {
 				
-				if(nodeDomainProperties[domain.name]) {
-					domain = _.copyWith(domain,nodeDomainProperties[domain.name]);
+				// See if additional strand properties for this strand were specified by the node
+				strand = _.copyWith(strand,nodeStrandProperties[strand.name] || {});
+				// (must always copy else assigning to strand screws things up)
+				
+				// Parse compact input format
+				if(_.isString(strand.domains)) {
+					strand.domains = Compiler.parseDomainString(strand.domains);
 				}
 				
-				return domain //new Domain(domain);
+				// See if additional domain properties for this strand were specified by the node			
+				strand.domains = _.map(strand.domains, function(domain) {
 			
-			}, this);
-			
-			strand.name || (strand.name = (this.strands.length > 1) ? 'strand'+i : '');
-			strand.library = this.library;
-			
-			return new Strand(_.copyWith(strand,{ node: this }));
-		},this);
+					// Find domains with matching identities in motif
+					//if(domain.identity && motifDomainsMap[domain.identity]) {
+					//	domain = _.extend(_.copy(motifDomainsMap[domain.identity]), domain);
+					//}
+					//domain.node = this;
+					
+					if(nodeDomainProperties[domain.name]) {
+						domain = _.copyWith(domain,nodeDomainProperties[domain.name]);
+					}
+					
+					return domain //new Domain(domain);
+				
+				}, this);
+				
+				strand.name || (strand.name = (this.strands.length > 1) ? 'strand'+i : '');
+				strand.library = this.library;
+				
+				return new Strand(_.copyWith(strand,{ node: this }));
+			},this);
+		}
 		
 		// Construct Domain objects from specifications
 		// this.domains = 		_.map(this.domains, function(domain) {
@@ -533,7 +596,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 		// }, this);
 		
 		// TODO: compiler should do this.
-		if(this.isInitiator) {
+		if(this.isInitiator && !this.polarity) {
 			this.polarity = -1;
 		}
 		
@@ -813,10 +876,10 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * Returns segments in the order they occur on the strand (accounting for polarity)
 		 */
 		getOrderedSegments : function() {
-			return order(_.comprehend(this.getOrderedDomains(), function(domain) {
+			return order(_.comprehend(this.getDomains(), function(domain) {
 				//return domain.getOrderedSegments();
 				return domain.getSegments();
-			}),this.getPolarity());
+			}),this.getAbsolutePolarity());
 		},
 		/**
 		 * @inheritdoc App.dynamic.Node#getDomains
@@ -828,11 +891,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * Returns domains in the order they occur on the strand (accounting for {@link #polarity relative polarity})
 		 */
 		getOrderedDomains : function() {
-			var doms = _.clone(this.getDomains());
-			if(this.getPolarity() == -1) {
-				doms.reverse();
-			}
-			return doms;
+			return order(this.getDomains(),this.getPolarity())
 		},
 		/**
 		 * @inheritdoc App.dynamic.Node#getDomain
@@ -970,12 +1029,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 		}
 		
 		// Construct Segment objects from specification
-		this.segments = _.map(this.segments, function(segment) {
-			segment = _.copyWith(segment, {
+		this.segments = _.map(this.segments, function(seg) {
+			return new Segment(_.copyWith(seg, {
 				domain : this, 
 				library : this.library,
-			});
-			return new Segment(segment);
+			}));
 		}, this);
 		/**
 		 * @property {Number} polarity
@@ -1001,12 +1059,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 		getSegments : function() {
 			return this.segments;
 		},
-		/**
-		 * Retrieves the segments associated with this domain, accounting for its {@link #polarity relative polarity}
-		 */
-		getOrderedSegments: function() {
-			return order(this.getSegments(),this.getPolarity());
-		},
+		// /**		 // * Retrieves the segments associated with this domain, accounting for its {@link #polarity relative polarity}		 // */		// getOrderedSegments: function() {			// return order(this.getSegments(),this.getPolarity());		// },
 		/**
 		 * Retrieves the strand of which this domain is a part
 		 * @return {App.dynamic.Strand}
@@ -1040,6 +1093,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			if(out.library) { delete out.library; }
 			return _.serialize(out);
 		},
+		
 	};
 	
 	/**
@@ -1085,16 +1139,15 @@ App.dynamic = module.exports = (function(_,DNA) {
 		_.copyTo(this, config);
 		_.defaults(this, {
 			/**
-			 * @cfg
+			 * @cfg {Number} segmentLength
 			 * The length of this segment. If unspecified and #sequence is
 			 * specified, this field will be updated to match.
 			 */
-			segmentLength : 6,
 			/**
 			 * @cfg
 			 * One of: `"toehold"`, `"clamp"`, `"loop"`, or `"reverse"`.
 			 */
-			role : "toehold",
+			role : "",
 			/**
 			 * @cfg
 			 */
@@ -1105,6 +1158,10 @@ App.dynamic = module.exports = (function(_,DNA) {
 		}
 		if(this.sequence) {
 			this.segmentLength = this.sequence.length;
+		}
+		
+		if(!this.segmentLength) {
+			this.segmentLength = this.getParameter('segmentLength');
 		}
 
 		if(this.name && !this.identity) {
@@ -1210,6 +1267,17 @@ App.dynamic = module.exports = (function(_,DNA) {
 		},
 		getLibrary: function() {
 			return this.library;
+		},
+		getParameter: function(param) {
+			switch(param) {
+				case 'segmentLength':
+					if(this.library) {
+						return this.library.getParameter('segmentLength',this);
+					}
+					return 6;
+				default: 
+					return '';
+			}
 		}
 	}
 
@@ -1602,11 +1670,36 @@ App.dynamic = module.exports = (function(_,DNA) {
 				node: {},
 				motif: {},
 				segment: {},
-			}
+			},
+			parameters : {}
+		});
+		
+		_.defaults(this.parameters,{
+			segmentLength: 6,
+			toeholdLength: 6,
+			clampLength: 2,
 		});
 	}
 	
 	Library.prototype = {
+		getParameter : function(param, obj) {
+			switch(param) {
+				case 'segmentLength':
+					if(this.parameters) {
+						switch(obj.role) {
+							case 'clamp':
+								if(this.parameters.clampLength);
+									return this.parameters.clampLength;
+								break;
+							case 'toehold':
+								if(this.parameters.toeholdLength);
+									return this.parameters.toeholdLength;
+								break;
+						}
+						return this.parameters.segmentLength;
+					}
+			}
+		},
 		getNode: function(name) {
 			if(name instanceof Node) return name;
 			return this.objects['node'][name];
@@ -1723,6 +1816,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			// print domains (segments)
 			// e.g.: domain x = N7
 			
+			// stupid NUPACK doesn't allow numerical domain identifiers
 			function nupackifyIdentity(id) {
 				return 'd'+id;
 			}
@@ -1736,7 +1830,6 @@ App.dynamic = module.exports = (function(_,DNA) {
 
 			// print strands ("optional?")
 			// e.g.: strand J = gate_toehold1* gate_duplex1* gate_toehold2
-			// TODO: new NUPACK requires these not to be numbers... poo; need to letter domains.
 			
 			out.push(_.map(library.strands,function(strand) {
 				var segments = strand.getOrderedSegments();
@@ -1754,13 +1847,16 @@ App.dynamic = module.exports = (function(_,DNA) {
 				
 				var structs = _.map(node.getStrands(),function(strand) { 
 					var struct = strand.getStructure();
-					if(strand.getAbsolutePolarity() == -1) {
+					if(strand.getPolarity() == -1) {
 						struct = struct.reverse();
 					}
 					return struct;
 				});
 				
 				var concatamer = Structure.join(structs), concatamer_struct;
+				if(node.getPolarity() == -1) {
+					concatamer = concatamer.reverse();
+				}
 				if(!!options.multisubjective || !!options.forceDU) {
 					concatamer_struct = concatamer.toDUPlus();
 				} else {
@@ -1891,8 +1987,6 @@ App.dynamic = module.exports = (function(_,DNA) {
 			return Compiler.printStrands(this,{annotations: false});
 		},
 		toSVGOutput: function(noHeader) {
-			
-			
 			String.prototype.format = function() {
 			  var args = arguments;
 			  return this.replace(/{(\d+)}/g, function(match, number) { 
@@ -1912,9 +2006,8 @@ App.dynamic = module.exports = (function(_,DNA) {
 					return this.out.join('');
 				}
 			}
-			
-			var pi = Math.PI;
-			var atan2 = Math.atan2;
+		    
+		    var cos = Math.cos, sin = Math.sin, pi = Math.PI, atan2 = Math.atan2;
 			
 			var x = 0,
 			y = 0,
@@ -1935,7 +2028,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 				var structure = node.getSegmentwiseStructure().toDotParen();
 				
 				if(structure.match(/^\.+$/)) { //initiator, straight strand without hybridization
-					var strand = _.first(node.getStrands());
+					var strand = _.first(strands);
 					fid.write('<g stroke = "rgb(139,98,61)" stroke-width = "2" fill = "none">\n<path d = "M {0} {1} L {2} {3}"/>\n'.format(x+H*.15,y+V*.5,x+H*.6,y+V*.5))
 				    if (strand.getPolarity()==-1) 
 				      fid.write('<use x="{0}" y="{1}" xlink:href="#arrow" transform="rotate(180,{2},{3})"/>\n'.format(x+H*.15,y+V*.5,x+H*.15,y+V*.5))
@@ -1949,7 +2042,14 @@ App.dynamic = module.exports = (function(_,DNA) {
 				    }
 				    fid.write('</g>\n')
 				} else if(structure.match(/^\.+\(+\.*\+\)+$/)) { // cooperative complex
-			    	var segments = node.getOrderedSegments();
+			    	var segments = _.clone(node.getOrderedSegments());
+			    	// we're actually going to flip these back, because we're displaying from upper left, regardless
+			    	if(node.getPolarity() == -1) {
+			    		segments.reverse();
+			    	}
+			    	var strand = _.first(strands)
+			    	
+			    	
 					var a = structure.indexOf('(');  // number of first hybridized segment
 
 				    var b = a;
@@ -1961,11 +2061,9 @@ App.dynamic = module.exports = (function(_,DNA) {
 				    
 				    var d = segments.length - 1; // number of last hybridized segment after wraparound
 				    
-				    var segmentLengths = node.getOrderedSegmentLengths();
+				    var segmentLengths = _.map(segments,function(s) {return s.getLength()});
 				    
-				    function sum(ls) {
-				    	return _.reduce(ls,function(m,x) {return m+x},0);
-				    }
+
 				    
 				    var len1 = sum(segmentLengths.slice(0,a)),  // length of the left-side toehold, in bases
 				    len2 = sum(segmentLengths.slice(a,b+1)),  // length of the duplex region, in bases
@@ -1982,33 +2080,18 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	fid.write('<line x1 = "{0}" y1 = "{1}" x2 = "{2}" y2 = "{3}" stroke = "rgb(241,139,17)"/>\n'.format(x+H*.15,y+V*.45,x+H*.75,y+V*.45))  // yellow top line
 			    	if (len4>0)
 			      		fid.write('<path d = "M {0} {1} L {2} {3}" stroke = "black"/>\n'.format(x+H*.3,y+V*.5,x+H*.15,y+V*.8))  // trailing end
-			    	if (node.getPolarity() == -1) {
-			      		fid.write('<use x="{0}" y="{1}" stroke="rgb(241,139,17)" xlink:href="#arrow" transform="rotate(180,{2},{3})"/>\n'.format(x+H*.15,y+V*.45,x+H*.15,y+V*.45))  // yellow top arrow
+			    	if (strand.getAbsolutePolarity() == -1) {
+			      		fid.write('<use x="{0}" y="{1}" stroke="rgb(241,139,17)" xlink:href="#arrow" transform="rotate(180,{0},{1})"/>\n'.format(x+H*.15,y+V*.45))  // <- yellow top arrow
+				        fid.write('<use x="{0}" y="{1}" xlink:href="#arrow" transform=""/>\n'.format(x+H*.6,y+V*.50))								// black bottom arrow ->
+
 			    	} else {
-			    	
-				      if (len4>0)
-				        fid.write('<use x="{0}" y="{1}" xlink:href="#arrow" transform="rotate({2},{3},{4})"/>\n'.format(x+H*.15,y+V*.8,90+180/pi*atan2(V*.3,H*.15),x+H*.15,y+V*.8))  // bottom arrow
-				      else
-				        fid.write('<use x="{0}" y="{1}" xlink:href="#arrow" transform="rotate(180,{2},{3})"/>\n'.format(x+H*.3,y+V*.5,x+H*.3,y+V*.5))
+			    		fid.write('<use x="{0}" y="{1}" stroke="rgb(241,139,17)" xlink:href="#arrow" transform=""/>\n'.format(x+H*.75,y+V*.45))  // yellow top arrow ->
+				        fid.write('<use x="{0}" y="{1}" xlink:href="#arrow" transform="rotate(180,{0},{1})"/>\n'.format(x+H*.3,y+V*.5))								// <- black bottom arrow
 				    }
 				    fid.write('</g>\n<g stroke="none" fill="black" font-size="16">\n')
 				    
-				    
-				    
 				    labelx = []
 				    labely = []
-				    
-				    
-				   
-				    function repr(x) {
-				    	return x;
-				    }
-				    
-				    function range(x) {
-				    	return _.range(0,x);
-				    }
-				    
-				    var cos = Math.cos, sin = Math.sin, pi = Math.PI;
 				    
 				    for (var svgj = 0; svgj < a; svgj++) {
 				      labelx.push(H*(.15 + .15*(svgj+.5)/a))
@@ -2028,7 +2111,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 				    for (svgj = 0; svgj < b+1-a; svgj++) {
 				    	
 				      labelx.push(H*(.6 - .3*(svgj+.5)/(b+1-a)))
-				      labely.push(V*.6)
+				      labely.push(V*.65) // shifted down a bit because we rotate for these guys
 				    }  // duplex region again
 				    for (svgj = 0; svgj < d+1-c; svgj++) {
 				    	
@@ -2044,15 +2127,17 @@ App.dynamic = module.exports = (function(_,DNA) {
 				        // s = repr(svgk)
 				      // else
 				        // s = repr(-svgk) + '*'
-				      fid.write('<text x="{0}" y="{1}" stroke="none" fill="black">{2}</text>\n'.format(x+labelx[svgj],y+labely[svgj],s))
+				      fid.write('<text x="{0}" y="{1}" stroke="none" transform="rotate(-45 {0} {1})" fill="black">{2}</text>\n'.format(x+labelx[svgj],y+labely[svgj],s))
 				    }
 			    	fid.write('</g>\n')
 			    	
 			    	
 				} else if(structure.match(/^\.+\(+\.+\)+(\.+)?$/)) { //hairpin loop
 			    	var strand = _.first(node.getStrands());
-			    	var segments = node.getOrderedSegments();
+			    	var segments = strand.getOrderedSegments();
 					var a = structure.indexOf('(');  // number of first hybridized segment
+
+					// // we're actually going to flip these back, because we're displaying from upper left, regardless			    	// if(node.getPolarity() == -1) {			    		// segments.reverse();			    	// }
 
 				    var b = a;
 				    while(structure[b]=='(') { b++ } // number of last hybridized segment
@@ -2064,11 +2149,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 				    while(structure[d]==')') { d++ }
 				    d--;
 				    
-				    var segmentLengths = node.getOrderedSegmentLengths();
-				    
-				    function sum(ls) {
-				    	return _.reduce(ls,function(m,x) {return m+x},0);
-				    }
+				    var segmentLengths = lengths(segments);
 				    
 				    var len1 = sum(segmentLengths.slice(0,a)),  // length of the initial toehold, in bases
 				    len2 = sum(segmentLengths.slice(a,b+1)),  // length of the duplex region, in bases
@@ -2096,22 +2177,8 @@ App.dynamic = module.exports = (function(_,DNA) {
 				    }
 				    fid.write('</g>\n<g stroke="none" fill="black" font-size="16">\n')
 				    
-				    
-				    
 				    labelx = []
 				    labely = []
-				    
-				    
-				   
-				    function repr(x) {
-				    	return x;
-				    }
-				    
-				    function range(x) {
-				    	return _.range(0,x);
-				    }
-				    
-				    var cos = Math.cos, sin = Math.sin, pi = Math.PI;
 				    
 				    for (var svgj = 0; svgj < a; svgj++) {
 				      labelx.push(H*(.15 + .15*(svgj+.5)/a))
@@ -2909,7 +2976,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			var segments = str.split(/\s+/g);
 			return _.map(segments,function(seg) {
 				seg.trim();
-				var parts = seg.match(/(\w+\*?)(?:\((\d+)\))?:?(\w)?/);
+				var parts = seg.match(/(\w+\*?)(?:\((\d+)\))?:?(\w+)?/);
 				// e.g.: "a*(6):t"
 				// 	-> ["a*(6):t", "a*", "6",   "t"]
 				//		0			1     2      3
@@ -3261,10 +3328,10 @@ App.dynamic = module.exports = (function(_,DNA) {
 			},{
 				"name":"m24",
 				"type":"cooperative",
-				"structure":".((((.((((((.+)))+)))+))))",
+				"structure":".(((((((..(((+)))+)))+))))",
 				"strands":[{
 					"name":"S1",
-					"domains":"A[a x:c b c]i+ s[s(1)]x B[d y:c e f]i+ C[g z:c h i]i-"
+					"domains":"A[a x:c b c]i+ s[s(1)]x B[d y:c e f]i- C[g z:c h i]i+"
 				},{
 					"name":"S2",
 					"domains":"D[h* z*:c g*]x"

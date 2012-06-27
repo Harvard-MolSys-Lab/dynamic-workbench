@@ -1277,7 +1277,7 @@ var DNA = module.exports.DNA = (function(_) {
 		},
 
 		DUtoDotParen : function(struct) {
-			var regex = /([HhDdUu])(\d+)s?(.+)/;
+			var regex = /([+HhDdUu])(\d*)s?(.*)/;
 			//			 (1) ch    (2) d  (3) rest
 
 			function resolve(struct, stack) {

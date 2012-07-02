@@ -8,6 +8,11 @@ Ext.define('App.ui.nupack.DesignWindow',{
 	bodyBorder: false,
 	border: false,
 	closeAction: 'hide',
+	minimize : function() {
+		this.toggleCollapse();
+	},
+	minimizable : true,
+	maximizable : true,
 	initComponent: function() {
 		Ext.apply(this,{
 			layout: 'border',

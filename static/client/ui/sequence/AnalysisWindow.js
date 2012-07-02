@@ -9,6 +9,11 @@ Ext.define('App.ui.sequence.AnalysisWindow',{
 	bodyBorder: false,
 	border: false,
 	closeAction: 'hide',
+	minimize : function() {
+		this.toggleCollapse();
+	},
+	minimizable : true,
+	maximizable : true,
 	submitButtonText: 'Analyze',
 	cite: '',
 	initComponent: function() {

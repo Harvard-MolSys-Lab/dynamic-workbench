@@ -236,6 +236,12 @@
 	background-image: url(/images/icons/fugue/blue-document--pencil.png) !important;	
 }
 /* Research */
+.thread-sequence {
+	background-image: url(/images/icons/fugue/pencil-field.png) !important;		
+}
+.normalize {
+	background-image: url(/images/icons/fugue/spell-check.png) !important;		
+}
 .cutter {
 	background-image: url(/images/icons/fugue/cutter.png) !important;	
 }
@@ -391,7 +397,7 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 	background-image: url(/images/icons/etc/box-nupack.png) !important;		
 }
 
-.ui-slider {
+.tweak-score-params {
 	background-image: url(/images/icons/fugue/ui-slider.png) !important;		
 }
 

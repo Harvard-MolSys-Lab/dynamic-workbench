@@ -5,23 +5,35 @@
  */
 Ext.define('App.ui.SequenceThreader', {
 	extend : 'Ext.window.Window',
+	title: 'Thread Sequences',
+	iconCls: 'thread-sequences',
+	requires : ['App.ui.SequenceEditor','App.ui.CodeMirror',],
 	layout : 'fit',
+	minimize : function() {
+		this.toggleCollapse();
+	},
+	minimizable : true,
+	maximizable : true,
 	width : 400,
 	height : 400,
 	initComponent : function() {
 		Ext.apply(this, {
 			layout : 'border',
 			margins : 5,
+			padding: '5 5 5 5',
 			tbar : [{
 				text : 'Thread',
+				iconCls: 'thread-sequence',
 				handler : this.thread,
 				scope : this,
 			}, {
 				text : 'Normalize',
+				iconCls: 'normalize',
 				handler : this.normalize,
 				scope : this,
 			}, {
 				text : 'Truncate',
+				iconCls: 'cutter',
 				handler : this.truncate,
 				scope : this,
 			}],
@@ -36,6 +48,7 @@ Ext.define('App.ui.SequenceThreader', {
 				ref : 'sequencesPane',
 				mode : 'sequence',
 				title : 'Sequence',
+				margins: '5 0 0 5',
 
 				/**
 				 * @property {App.ui.CodeMirror} strandsPane
@@ -45,7 +58,7 @@ Ext.define('App.ui.SequenceThreader', {
 				ref : 'strandsPane',
 				mode : 'nupack',
 				title : 'Strands',
-
+				margins: '5 5 0 0',
 				/**
 				 * @property {App.ui.CodeMirror} resultsPane
 				 */
@@ -53,6 +66,7 @@ Ext.define('App.ui.SequenceThreader', {
 				region : 'south',
 				ref : 'resultsPane',
 				mode : 'sequence',
+				margins: '0 5 5 5',
 				height : 200,
 				split : true,
 				title : 'Results',
@@ -77,13 +91,33 @@ Ext.define('App.ui.SequenceThreader', {
 	 * in the #resultsPane
 	 */
 	thread : function() {
-		var seqs = this.smartSelect(this.sequencesPane), strands = this.smartSelect(this.strandsPane), strandsList = {}, namesList;
-		seqs = _.compact(_.map(seqs, function(seq) {
-			return seq.trim();
-		}));
+		var seqs = this.smartSelect(this.sequencesPane), strands = this.strandsPane.getValue().split('\n'), strandsList = {}, namesList;
+		// seqs = _.compact(_.map(seqs, function(seq) {
+			// return seq.trim();
+		// }));
+		seqs = _.reduce(seqs,function(memo,seq,i) {
+			var parts = seq.split(':');
+			if(parts.length == 2 && !!parts[0]) {
+				memo[parts[0].trim()] = parts[1].trim()
+			} else {
+				memo[i+1] = strand;
+			}
+			return memo;
+		},{});
+		
 		strandsList = DNA.normalizeSystem(_.compact(_.map(strands, function(strand) {
 			return _.last(strand.split(':')).trim();
 		})));
+		// strandsMap = _.reduce(strands,function(memo,strand,i) {
+			// var parts = strand.split(':');
+			// if(parts.length == 2 && !!parts[0]) {
+				// memo[parts[0].trim()] = parts[1].trim()
+			// } else {
+				// memo[i+1] = strand;
+			// }
+			// return memo;
+		// },{});
+		
 		//seqs.unshift('');
 		var out = '';
 		_.each(strandsList, function(spec, list, i) {

@@ -732,7 +732,11 @@ var DNA = module.exports.DNA = (function(_) {
 		delimiter || ( delimiter = ' ');
 		var list = spec.split(delimiter), out = [];
 		for (var i = 0; i < list.length; i++) {
-			out.push(parseComplement(list[i]));
+			var x = list[i];
+			x.trim();
+			if(!!x) {				
+				out.push(DNA.parseIdentifier(list[i]));
+			}
 		}
 		return out;
 	}
@@ -816,16 +820,46 @@ var DNA = module.exports.DNA = (function(_) {
 		return _.each(string.split('% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %'), function(i) {
 		});
 	};
-
+	
+	var degenerate = {
+		'A':['A'], // Adenine
+		'C':['C'], // Cytosine
+		'G':['G'], // Guanine
+		'T':['T'], // Thymine
+		'U':['U'], // Uracil
+		'R':['A', 'G'], // puRine
+		'Y':['C', 'T', 'U'], // pYrimidines
+		'K':['G', 'T','U'], // bases which are Ketones
+		'M':['A','C'], // bases with aMino groups
+		'S':['C','G'], // Strong interaction
+		'W':['A', 'T', 'U'], // Weak interaction
+		'B':['C', 'G', 'T', 'U'], // not A (B comes after A)
+		'D':['A', 'G', 'T', 'U'], // not C (D comes after C)
+		'H':['A', 'C', 'T', 'U'], // not G (H comes after G)
+		'V':['C', 'G'], // not U or T (comes after U)
+		'N':['A', 'C', 'G', 'T', 'U'], // aNy
+		'X':[], //masked
+	};
+	var degenerateRegexes = _.reduce(_.keys(degenerate),function(memo,key) {
+		memo[key] = new RegExp('/['+degenerate[key].join('')+']/i');
+		return memo;
+	},{})
+	
+	function matchDegenerate(deg,base) {
+		return degenerateRegexes[deg].test(base)
+	}
+	
 	// Exports
 	return {
 		mapUnique : mapUnique,
 		absUnique : absUnique,
 		amax : amax,
 
-		parseComplement : parseComplement,
+		parseComplement : function() { console.warn("DNA.parseComplement is deprecated; please use parseIdentifier"); parseComplement.apply(DNA,arguments) },
 		parseStrandSpec : parseStrandSpec,
-
+		
+		matchDegenerate : matchDegenerate,
+		
 		stripNupackHeaders : stripNupackHeaders,
 		indexTable : indexTable,
 		indexBy : indexBy,
@@ -1065,12 +1099,14 @@ var DNA = module.exports.DNA = (function(_) {
 			// var struct = "....(((...)))....";
 			linkStrands = linkStrands || false;
 			params || ( params = {});
-			_.extend(params, {
+			_.defaults(params, {
 				strandValue : 9,
 				hybridizationValue : 2,
+				persistenceValue : 18,
 				radius : 300,
 				segments : {},
 				segmentLabels : false,
+				persistenceLength: 2,
 			});
 
 			var nodes = [], links = [], hybridization = [], strandIndex = 0, node, n = 0, base = 0, theta = 0, dtheta = Math.PI / struct.length, currentSegment = null;
@@ -1140,6 +1176,15 @@ var DNA = module.exports.DNA = (function(_) {
 								target : n - 1,
 								value : params.strandValue,
 								type : 'strand',
+							});
+						}
+						
+						if(n > params.persistenceLength && struct[i - params.persistenceLength] != '+') {
+							links.push({
+								source : n,
+								target : n - params.persistenceLength,
+								value : params.persistenceValue,
+								type : 'persistence',
 							});
 						}
 					}
@@ -1213,6 +1258,8 @@ var DNA = module.exports.DNA = (function(_) {
 								base : sequence[j],
 								domain : segment.getDomain().getName(),
 								role : segment.getDomain().role,
+								segment_index : j,
+								segment_length : segmentSpec.length,
 
 								//nodeName : (strands && strands[strandIndex]) ? strands[strandIndex][base] : false,
 								//base: (strands && strands[strandIndex]) ? strands[strandIndex][base] : false,
@@ -1362,8 +1409,8 @@ var DNA = module.exports.DNA = (function(_) {
 		},
 		
 		parseDotParen : function(struct) {
-			var last = '';
-			count = 0, list = [];
+			var open_paren_count = 0, close_paren_count = 0, //
+			last = '', count = 0, list = [];
 			_.each(struct.split('').concat(null), function(ch) {
 				if (ch === ' ') {
 					return;
@@ -1371,12 +1418,20 @@ var DNA = module.exports.DNA = (function(_) {
 				if (ch == last) {
 					count++;
 				} else {
-					if (count != 0)
+					if (count != 0) {
 						list.push([last, count]);
+						if(last == '(') open_paren_count+=count
+						if(last == ')') close_paren_count+=count
+					}
 					last = ch;
 					count = 1;
 				}
 			});
+			
+			if(open_paren_count != close_paren_count) {
+				throw Error("Structure parsing error: In dot-paren structure '" +struct+ "', unmatched parentheses: "+open_paren_count+" open, "+close_paren_count+" close parenthesis");
+			}
+			
 
 			function resolve(list) {
 				var out = [];
@@ -1602,32 +1657,48 @@ var DNA = module.exports.DNA = (function(_) {
 		},
 		/**
 		 * Accepts a set of domains and a strand specification, and produces a sequence to represent the strand
-		 * @param {String[]}
+		 * 
+		 * @param {Object} segments
+		 * Hash mapping segment names to sequences, e.g. `{ 'd1': 'ATACG', 'd2':'GCTTA', ... }`
+		 * 
+		 * @param {String/Array} strand
+		 * String strand spec (e.g. `d1 d2* d3 d4*`, `d1 d2' d3' d4`, etc.), or array of 
+		 * {@link #getIdentifier identifier} objects (e.g. `[{identity: 'd1', polarity: -1}, ...]`)
+		 * 
+		 * @returns {String} The complete sequence
 		 */
 		threadSegments : function(segments, strand) {
-			var strandList = _.isArray(strand) ? strand : parseStrandSpec(strand, ' '), sequence = '', id;
-			if (_.isArray(segments)) {
-				if (segments.length < amax(strandList)) {
-					return '';
+			var strandList = _.isArray(strand) ? _.map(strand,function(x) {
+				if(_.isObject(x)) {
+					return x;
+				} else if(_.isNumber(x)) {
+					return { identity: Math.abs(x), polarity: sign(x) }
+				} else {
+					return DNA.parseIdentifier(x);
 				}
+			}) : parseStrandSpec(strand, ' '), sequence = '', id;
+			if (_.isArray(segments)) {
 				for (var i = 0; i < strandList.length; i++) {
 					id = strandList[i];
-					if (segments[Math.abs(id) - 1]) {
-						if (id > 0) {
-							sequence += segments[id - 1];
+					if (segments[parseInt(id.identity) - 1]) {
+						if (id.polarity > 0) {
+							sequence += segments[parseInt(id.identity) - 1];
 						} else {
-							sequence += reverseComplement(segments[Math.abs(id) - 1]);
+							sequence += reverseComplement(segments[parseInt(id.identity) - 1]);
 						}
+					} else {
+						throw Error('Threading error: Undefined segment '+id);
 					}
 				}
 			} else {
 				for (var i = 0; i < strandList.length; i++) {
 					id = strandList[i];
-					if (segments[Math.abs(id)]) {
-						if (id > 0) {
-							sequence += segments[id];
+					
+					if (segments[id.identity]) {
+						if (id.polarity == 1) {
+							sequence += segments[id.identity];
 						} else {
-							sequence += reverseComplement(segments[Math.abs(id)]);
+							sequence += reverseComplement(segments[id.identity]);
 						}
 					}
 				}
@@ -1741,6 +1812,7 @@ var DNA = module.exports.DNA = (function(_) {
 		 * @return {Object} spec.polarity
 		 */
 		parseIdentifier : function(identifier) {
+			identifier = identifier.trim();
 			return {
 				identity : this.normalizeIdentity(identifier),
 				polarity : this.getPolarity(identifier),

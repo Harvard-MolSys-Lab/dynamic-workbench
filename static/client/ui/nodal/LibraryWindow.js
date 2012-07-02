@@ -13,6 +13,7 @@ Ext.define('App.ui.nodal.LibraryWindow', {
 	bodyBorder : false,
 	border : false,
 	plain : true,
+	showTree: false,
 	layout : 'fit',
 	closeAction: 'hide',
 	initComponent : function() {
@@ -27,10 +28,6 @@ Ext.define('App.ui.nodal.LibraryWindow', {
 						xtype: 'panel',
 						name: 'svg',
 						html: this.lastLibrary.toSVGOutput()
-					},{
-						title : 'Tree',
-						xtype : 'objectbrowser',
-						data : this.lastLibrary,
 					}, {
 						title : 'NUPACK',
 						xtype : 'codemirror',
@@ -77,6 +74,14 @@ Ext.define('App.ui.nodal.LibraryWindow', {
 					xtype: 'codemirror',
 					mode: 'javascript',
 					value: this.dynamlToString(),
+				})
+			}
+			
+			if(this.showTree) {
+				this.items[0].items.push({
+					title : 'Tree',
+					xtype : 'objectbrowser',
+					data : this.lastLibrary,
 				})
 			}
 			

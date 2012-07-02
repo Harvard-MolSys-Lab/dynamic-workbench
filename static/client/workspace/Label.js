@@ -31,6 +31,9 @@ Ext.define('Workspace.Label', {
 	property : 'name',
 	padding : 5,
 	editable : true,
+	textWidth: false,
+	textHeight: 13,
+	buildMetrics : false,
 	render : function() {
 		Workspace.Label.superclass.render.apply(this, arguments);
 
@@ -44,8 +47,11 @@ Ext.define('Workspace.Label', {
 		} else {
 		}
 		this.element.unselectable();
-		// pre-build metrics object to perform sizing in #updateSize
-		this.metrics = new Ext.util.TextMetrics(this.getEl());
+		
+		if(this.buildMetrics) {			
+			// pre-build metrics object to perform sizing in #updateSize
+			this.metrics = new Ext.util.TextMetrics(this.getEl());
+		}
 
 		// load data into label
 		var val = this.object.get(this.property);
@@ -84,8 +90,12 @@ Ext.define('Workspace.Label', {
 	 * @private
 	 */
 	updateSize : function(val) {
-		if(this.getEl())
-			this.getEl().setHeight(this.metrics.getHeight(val) + this.padding);
+		if(!!this.textHeight) {
+			this.getEl().setHeight(this.textHeight + this.padding);
+		} else {	
+			if(this.getEl())
+				this.getEl().setHeight(this.metrics.getHeight(val) + this.padding);
+		}
 	},
 	onMove : function() {
 		this.updateSize(this.getFormattedValue());

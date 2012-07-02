@@ -36,6 +36,7 @@ Ext.define('Workspace.tools.PointerTool', {
 	dragged: false,
 	threshold: 10,
 	dragCount: 0,
+	proxifyAllThreshold: 5,
 	click: function(e, item) {
 		if(!item) {
 			this.workspace.deselect();
@@ -181,7 +182,7 @@ Ext.define('Workspace.tools.PointerTool', {
 				// replace objects with proxies if it's not already been done
 				if (this.workspace.hasSelection()) {
 					if (!this.proxified) {
-						this.proxify();
+						this.proxify((selection.length > this.proxifyAllThreshold));
 					}
 
 					// move selection
@@ -233,11 +234,11 @@ Ext.define('Workspace.tools.PointerTool', {
 	 * proxify
 	 * replaces objects in the selection with {@link Workspace.Proxy}s
 	 */
-	proxify: function() {
+	proxify: function(proxifyAll) {
 		//return;
 		var selection = this.workspace.getSelection();
 		Ext.each(selection, function(selected) {
-			if(selected.get('movable') && selected.proxifyOnMove) {
+			if(proxifyAll || (selected.get('movable') && selected.proxifyOnMove)) {
 				selected.proxify();
 			}
 		});

@@ -75,4 +75,17 @@ Ext.define('App.ui.TextEditor', {
 	getSelection: function() {
 		return this.editor.codemirror.getSelection();
 	},
+	getSelectionOrValue: function() {
+		var sel = this.editor.codemirror.getSelection();
+		if(sel=='') {
+			sel = this.editor.getValue();
+		}
+		return sel;
+	},
+	getCursor: function(start) {
+		return this.editor.codemirror.getCursor(start);
+	},
+	getCursorRange: function() {
+		return [this.editor.codemirror.getCursor(true),this.editor.codemirror.getCursor(false)];
+	}
 });

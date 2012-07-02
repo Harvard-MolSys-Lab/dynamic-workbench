@@ -30,7 +30,7 @@ Ext.define('App.ui.SequenceEditor', {
 						tooltip: {
 							anchor: 'bottom',
 							title: 'Sequence Statistics',
-							html: 'Displays various statistics about the base composition of the sequence.'
+							text: 'Displays various statistics about the base composition of the sequence.'
 						},
 						ref: 'stats'
 					},{
@@ -38,7 +38,7 @@ Ext.define('App.ui.SequenceEditor', {
 						tooltip: {
 							anchor: 'bottom',
 							title: 'Levenshtein distance',
-							html: 'The <a href="http://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein Distance</a> '+ //
+							text: 'The <a href="http://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein Distance</a> '+ //
 							'between two strings measures the minimum number of changes, or "edits" (insertions,  '+ //
 							'deletions, and substitutions) necessary two make the two strings equal.',
 						},
@@ -51,7 +51,7 @@ Ext.define('App.ui.SequenceEditor', {
 						tooltip: {
 							anchor: 'bottom',
 							title: 'Hamming Distance',
-							html: 'The <a href="http://en.wikipedia.org/wiki/Hamming_distance">Hamming Distance</a> '+ //
+							text: 'The <a href="http://en.wikipedia.org/wiki/Hamming_distance">Hamming Distance</a> '+ //
 							'between two strings of equal length measures the number of positions at which they are different; '+ //
 							'(i.e. it considers substitutions, but not insertions, deletions, or truncations.).'
 						},
@@ -67,7 +67,7 @@ Ext.define('App.ui.SequenceEditor', {
 						tooltip: {
 							anchor: 'bottom',
 							title: 'Shannon Entropy',
-							html: 'The <a href="http://en.wikipedia.org/wiki/Entropy_(information_theory)">Shannon Entropy</a> '+ 								'of a string measures the information complexity of that string. This can be used to approximate the '+
+							text: 'The <a href="http://en.wikipedia.org/wiki/Entropy_(information_theory)">Shannon Entropy</a> '+ 								'of a string measures the information complexity of that string. This can be used to approximate the '+
 							'base diversity in a sequence (higher is better).'
 						},
 						menu: Ext.create('App.ui.StatMenu',{
@@ -712,13 +712,6 @@ Ext.define('App.ui.SequenceEditor', {
 	populateStats: function() {
 		this.statsPanel.loadSequence(this.getSelectionOrValue().replace(/[^atcgu]/gi,''));
 		//this.statsPanel.show();
-	},
-	getSelectionOrValue: function() {
-		var sel = this.editor.codemirror.getSelection();
-		if(sel=='') {
-			sel = this.editor.getValue();
-		}
-		return sel;
 	},
 	toggleComment: function() {
 		var strands = this.smartSelect();

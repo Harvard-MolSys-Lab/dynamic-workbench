@@ -128,10 +128,12 @@ Ext.define('Workspace.objects.Path', {
 	 */
 	updateDimensions : function() {
 		var box = this.vectorElement.getBBox(true);
+		//this.ignoreChangeDimensions = true;
 		this.set('x', box.x);
 		this.set('y', box.y);
 		this.set('height', box.height);
 		this.set('width', box.width);
+		//this.ignoreChangeDimensions = false;
 	},
 	/**
 	 * appendPoint

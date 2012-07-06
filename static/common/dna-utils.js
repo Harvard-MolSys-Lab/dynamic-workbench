@@ -1521,20 +1521,37 @@ var DNA = module.exports.DNA = (function(_) {
 		
 		
 		layoutStructure: function(struct) {
-			var theta = Math.PI/2, x = 0, y = 0;
-			
-			var stemWidth = baseLength = breakWidth = 40;
+			var debug = true;
+			var theta = 0, //Math.PI/2,
+				x = 0, y = 0,
+				baseLength = breakWidth = 40, stemWidth = 2*baseLength,
+				pi2 = 2*Math.PI;
 			
 			return drawLoop(struct,x,y,theta,breakWidth)
 			
 			function sum(list) {
 				return _.reduce(list,function(x,y) { return x+y; },0);
 			}
+			
+			function deg(theta) {
+				return (theta * 180/Math.PI).toFixed(2);
+			}
+			
+			function coords(pair) {
+				return pair[0].toFixed(2)+','+pair[1].toFixed(2);
+			}
+			
+			function arc2angle(arc,radius) {
+				var c = radius * pi2;
+				return arc/c * pi2;
+			}
 				
 			function drawLoop(struct,x,y,theta,space) {
-				var out = [];
+				if(debug) {
+					console.group('Loop : '+coords([x,y])+' '+deg(theta)+'° = '+DNA.printDUPlus(struct));
+				}
 				
-				var pi2 = 2*Math.PI;
+				var out = [];
 				
 				// Contribution of each chunk to the circumference
 				var dcirc = _.map(struct,function(chunk) {
@@ -1549,21 +1566,31 @@ var DNA = module.exports.DNA = (function(_) {
 				var loopCirc = sum(dcirc)+space;
 				
 				// Loop radius
-				var loopRadius = loopCirc / (2*Math.PI);
+				var loopRadius = loopCirc / pi2;
 				
 				var cx = x + Math.cos(theta) * loopRadius,
 					cy = y + Math.sin(theta) * loopRadius;
 					
 					
 				theta += Math.PI
-				//theta = Math.PI/2 + theta;
 				
 				_.each(struct,function(chunk,i) {
-					var dtheta = dcirc[i] / loopCirc * 2 * Math.PI; 
+					var dtheta = dcirc[i] / loopCirc * pi2; 
 					switch(chunk[0]) {
 						case 'H':
 						case 'D':
-							out = out.concat(drawDuplex(chunk,x,y,theta,dtheta,loopRadius))
+							// center of duplex should be at theta + dtheta/2
+							var theta_duplexCenter = theta + dtheta/2, 
+								duplexCenter = [Math.cos(theta_duplexCenter) * loopRadius + cx, Math.sin(theta_duplexCenter) * loopRadius + cy ];
+							
+							// first base should be at theta + dtheta/4
+							var theta_firstBase = theta + dtheta/4, theta_lastBase = theta + dtheta*3/4,
+								firstBase = [Math.cos(theta_firstBase) * loopRadius + cx, Math.sin(theta_firstBase) * loopRadius + cy ],
+								lastBase = [Math.cos(theta_lastBase) * loopRadius + cx, Math.sin(theta_lastBase) * loopRadius + cy ];
+							
+							out = out.concat(drawDuplex(chunk,duplexCenter[0],duplexCenter[1],
+									theta_duplexCenter,firstBase[0],firstBase[1],
+									lastBase[0],lastBase[1],dtheta,loopRadius))
 							break;
 						case '.':							
 						case 'U':
@@ -1577,57 +1604,74 @@ var DNA = module.exports.DNA = (function(_) {
 					y = Math.sin(theta) * loopRadius + cy;
 				});
 				
+				if(debug) {
+					console.groupEnd();
+				}
+				
 				return out;
 				
-				function drawArc(len,cx,cy,theta,sweep,radius) {
-					var dtheta = sweep / len;
-					
-					return _.map(_.range(0,len),function(i) {
-						theta += dtheta;
-						var x = Math.cos(theta) * radius + cx,
-							y = Math.sin(theta) * radius + cy;
-						
-						return [x,y]
-					});
+			}
+			function drawArc(len,cx,cy,theta,sweep,radius) {
+				var dtheta = sweep / len;
+				
+				if(debug) {						
+					console.log('Arc : '+coords([cx,cy])+' '+deg(theta)+'° + '+deg(sweep)+' (dtheta='+dtheta+'°), r: '+radius+' len: '+len);					
 				}
 				
-				function drawDuplex(chunk,x,y,theta,sweep,radius) {
-					//theta -= (Math.PI / 2)
-					
-					var x0 = x, y0 = y;
-					
-					// Draw first side of duplex
-					var dx = Math.cos(theta) * baseLength,
-						dy = Math.sin(theta) * baseLength;
-					
-					var out = _.map(_.range(0,chunk[1]),function(i) {
-						x += dx
-						y += dy;
-						return [x,y]
-					});
-					
-					var x1 = x, y1 = y;
+				theta += dtheta/2;
+				return _.map(_.range(0,len),function(i) {
+					var x = Math.cos(theta) * radius + cx,
+						y = Math.sin(theta) * radius + cy;
+					theta += dtheta;						
+					return [x,y]
+				});
+			}
+			
+			function drawDuplex(chunk,cx,cy,theta,firstBaseX,firstBaseY,lastBaseX,lastBaseY,sweep,radius) {
+				if(debug) {
+					console.group('Duplex : '+coords([cx,cy])+' '+deg(theta)+'° + '+deg(sweep)+', r: '+radius+' = '+chunk);
+				}
+				
+				//theta -= (Math.PI / 2)
+				
+				var len = chunk[1],
+					x0 = x = firstBaseX, 
+					y0 = y = firstBaseY,
+					dx = Math.cos(theta) * baseLength,
+					dy = Math.sin(theta) * baseLength;
+				
+				// Draw first side of duplex
+				var out = [firstBaseX,firstBaseY].concat(_.map(_.range(1,len),function(i) {
 					x += dx
 					y += dy;
-					
-					// Draw loop
-					out = out.concat(drawLoop(chunk[2],x,y,theta,stemWidth))
-												
-					// Draw second side of duplex
-					//theta += sweep;
-					
-					x = x1 + Math.cos(theta + (Math.PI/2)) * stemWidth;
-					y = y1 + Math.sin(theta + (Math.PI/2)) * stemWidth;
+					return [x,y]
+				}));
+				
+				var x1 = x, y1 = y;
+				// x += dx;				// y += dy;
+				
+				// Draw loop
+				out = out.concat(drawLoop(chunk[2],x,y,theta,stemWidth))
+											
+				// Draw second side of duplex
+				
+				
+				x = x1 + Math.cos(theta + (Math.PI/2)) * stemWidth;
+				y = y1 + Math.sin(theta + (Math.PI/2)) * stemWidth;
 
-					out = out.concat(_.map(_.range(0,chunk[1]),function(i) {
-						x -= dx
-						y -= dy;
-						return [x,y]
-					}));
-					
-					return out;
-					
+				out = out.concat([x,y]).concat(_.map(_.range(1,len),function(i) {
+					x -= dx
+					y -= dy;
+					return [x,y]
+				}));
+				
+				
+				if(debug) {
+					console.groupEnd();
 				}
+				
+				return out;
+				
 			}
 		},
 		
@@ -1665,9 +1709,13 @@ var DNA = module.exports.DNA = (function(_) {
 		 * String strand spec (e.g. `d1 d2* d3 d4*`, `d1 d2' d3' d4`, etc.), or array of 
 		 * {@link #getIdentifier identifier} objects (e.g. `[{identity: 'd1', polarity: -1}, ...]`)
 		 * 
+		 * @param {Boolean} [concat=true]
+		 * True to return a concatenated string, false to return an array of sequences in order
+		 * 
 		 * @returns {String} The complete sequence
 		 */
-		threadSegments : function(segments, strand) {
+		threadSegments : function(segments, strand, concat) {
+			concat = concat && true;
 			var strandList = _.isArray(strand) ? _.map(strand,function(x) {
 				if(_.isObject(x)) {
 					return x;
@@ -1676,15 +1724,15 @@ var DNA = module.exports.DNA = (function(_) {
 				} else {
 					return DNA.parseIdentifier(x);
 				}
-			}) : parseStrandSpec(strand, ' '), sequence = '', id;
+			}) : parseStrandSpec(strand, ' '), sequence = [], id;
 			if (_.isArray(segments)) {
 				for (var i = 0; i < strandList.length; i++) {
 					id = strandList[i];
 					if (segments[parseInt(id.identity) - 1]) {
 						if (id.polarity > 0) {
-							sequence += segments[parseInt(id.identity) - 1];
+							sequence.push( segments[parseInt(id.identity) - 1] );
 						} else {
-							sequence += reverseComplement(segments[parseInt(id.identity) - 1]);
+							sequence.push( reverseComplement(segments[parseInt(id.identity) - 1]) );
 						}
 					} else {
 						throw Error('Threading error: Undefined segment '+id);
@@ -1696,14 +1744,17 @@ var DNA = module.exports.DNA = (function(_) {
 					
 					if (segments[id.identity]) {
 						if (id.polarity == 1) {
-							sequence += segments[id.identity];
+							sequence.push( segments[id.identity] );
 						} else {
-							sequence += reverseComplement(segments[id.identity]);
+							sequence.push( reverseComplement(segments[id.identity]) );
 						}
 					}
 				}
 			}
-			return sequence;
+			if (concat)
+				return sequence.join('');
+			else
+				return sequence;
 		},
 		unthreadSegments : function(sequence, strand) {
 

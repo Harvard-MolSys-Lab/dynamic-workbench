@@ -1639,7 +1639,7 @@ var DNA = module.exports.DNA = (function(_) {
 				});
 				
 				// Total loop circumference
-				var loopCirc = sum(dcirc)+space;
+				var loopCirc = sum(dcirc) + space;
 				
 				// Loop radius
 				var loopRadius = loopCirc / pi2;
@@ -1650,6 +1650,8 @@ var DNA = module.exports.DNA = (function(_) {
 					x, y;
 					
 				theta += Math.PI;
+				theta += (.5 * space / loopCirc) * pi2;
+				
 				x = Math.cos(theta) * loopRadius + cx;
 				y = Math.sin(theta) * loopRadius + cy;
 				
@@ -1665,15 +1667,13 @@ var DNA = module.exports.DNA = (function(_) {
 								duplexCenter = center.addPolar(theta_duplexCenter,loopRadius);
 								
 							// 
-							var theta_firstBase = theta + (dtheta * baseLength/(duplexWidth)), 
-								theta_lastBase = theta + dtheta - (dtheta * baseLength/(duplexWidth)),
+							var theta_firstBase = theta_duplexCenter - (dtheta * 0.5 * stemWidth/duplexWidth), 
+								//theta_lastBase = theta + dtheta - (dtheta * baseLength/(duplexWidth)),
 								
 								firstBase = center.addPolar(theta_firstBase,loopRadius),
-								lastBase = center.addPolar(theta_lastBase,loopRadius);
+								//lastBase = center.addPolar(theta_lastBase,loopRadius);
 								
-							out = out.concat(drawDuplex(chunk,duplexCenter,
-									theta_duplexCenter,firstBase,
-									lastBase,dtheta,loopRadius))
+							out = out.concat(drawDuplex(chunk,theta_duplexCenter,firstBase,dtheta,loopRadius))
 							break;
 						case '.':							
 						case 'U':
@@ -1712,16 +1712,15 @@ var DNA = module.exports.DNA = (function(_) {
 				return out;
 			}
 			
-			function drawDuplex(chunk,center,theta,firstBase,lastBase,sweep,radius) {
+			function drawDuplex(chunk,theta,firstBase,sweep,radius) {
 				if(debug) {
-					console.group('Duplex : '+coords(center)+' '+deg(theta)+'° + '+deg(sweep)+', r: '+radius+' = '+chunk);
+					console.group('Duplex : '+coords(firstBase)+' '+deg(theta)+'° + '+deg(sweep)+', r: '+radius+' = '+chunk);
 				}
 				
 				//theta -= (Math.PI / 2)
 				
 				var len = chunk[1],
-					cx = center.x,
-					cy = center.y,
+					// cx = center.x,					// cy = center.y,
 					x0 = x = firstBase.x, 
 					y0 = y = firstBase.y,
 					x1, y1,
@@ -1741,6 +1740,8 @@ var DNA = module.exports.DNA = (function(_) {
 				y1 = y;
 
 				// Draw loop
+				x = x1 + Math.cos(theta + (Math.PI/2)) * (stemWidth/2);
+				y = y1 + Math.sin(theta + (Math.PI/2)) * (stemWidth/2);
 				out = out.concat(drawLoop(chunk[2],Point.create(x,y),theta,duplexWidth))
 											
 				// Draw second side of duplex				

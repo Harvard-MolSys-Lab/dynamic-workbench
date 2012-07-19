@@ -27,7 +27,7 @@
 #dashboard-table td {
 	padding: 5px
 }
-.dashboard b, .dashboard h2 {
+.dashboard b, .dashboard h2, .dashboard strong {
 	font-family: ColaborateRegular;
 	font-weight: normal;
 }
@@ -179,9 +179,11 @@ ul.dashboard-actions li a:hover {
 	border-color: green;
 	background-color: #8f8;
 }
+/*
 .warning-box strong, .green-box strong {
 	font-weight: bold;
 }
+*/
 .build-done-tip {
 	border: solid 2px #0A0;
 }
@@ -269,7 +271,7 @@ ul.dashboard-actions li a:hover {
 .line, .primary {
 	background-image: url(/images/icons/fugue/layer-shape-line.png) !important;
 }
-.path, .polyline, .secondary {
+.path, .polyline {
 	background-image: url(/images/icons/fugue/layer-shape-polyline.png) !important;
 }
 .curve {
@@ -337,9 +339,7 @@ ul.dashboard-actions li a:hover {
 .compile {
 	background-image: url(/images/icons/fugue/compile.png) !important;
 }
-.dd {
-	background-image: url(/images/icons/fugue/edit-diff.png) !important;
-}
+
 .sequence, .seq {
 	background-image: url(/images/icons/etc/sequence.png) !important;
 }
@@ -885,7 +885,9 @@ ul.dashboard-actions li a:hover {
 .cm-sequence-g, .cm-sequence-g-lock {
 	color: black;
 }
-.cm-sequence-n {
+.cm-sequence-n, .cm-sequence-r, .cm-sequence-y, .cm-sequence-k, .cm-sequence-m, 
+.cm-sequence-s, .cm-sequence-w, .cm-sequence-b, .cm-sequence-d, .cm-sequence-h,
+.cm-sequence-v {
 	color: orange;
 }
 
@@ -893,6 +895,10 @@ ul.dashboard-actions li a:hover {
 	/* font-weight: bold; */
 	text-decoration: underline;
 }
+
+	  
+ span.CodeMirror-matchhighlight { background: #ffc; }
+ .CodeMirror-focused span.CodeMirror-matchhighlight { background-color: #ffa !important; }
 
 .dd-sequence {
 	text-transform: uppercase;

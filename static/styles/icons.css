@@ -182,6 +182,19 @@
 .lock {
 	background-image: url(/images/icons/fugue/lock.png) !important;
 }
+.unlock {
+	background-image: url(/images/icons/fugue/lock-unlock.png) !important;
+}
+.bomb {
+	background-image: url(/images/icons/fugue/bomb.png) !important;
+}
+.reseed {
+	background-image: url(/images/icons/fugue/bean-small.png) !important;
+}
+.reseed-all {
+	background-image: url(/images/icons/fugue/beans.png) !important;
+}
+
 /* Tournament */
 .sitemap {
 	background-image: url(/images/icons/fugue/sitemap.png) !important;	
@@ -236,7 +249,7 @@
 	background-image: url(/images/icons/fugue/blue-document--pencil.png) !important;	
 }
 /* Research */
-.thread-sequence {
+.thread-sequence, .thread-sequences {
 	background-image: url(/images/icons/fugue/pencil-field.png) !important;		
 }
 .normalize {
@@ -425,8 +438,14 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 .domains, .domain {
 	background-image: url(/images/icons/etc/domain.png) !important;
 }
+.dd {
+	background-image: url(/images/icons/etc/dd.png) !important;
+}
 .domains-24, .domain-24 {
 	background-image: url(/images/icons/etc/domain-24.png) !important;
+}
+.secondary {
+	background-image: url(/images/icons/etc/secondary.png) !important;
 }
 .pepper, .sys {
 	background-image: url(/images/icons/etc/Capsicum-2-icon.png) !important;

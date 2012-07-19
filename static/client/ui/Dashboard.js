@@ -31,18 +31,25 @@ Ext.define('App.ui.Dashboard', {
 		if(App.User.isLoggedIn()) {
 			var un = Ext.get('fp-user-name');
 			if(un) un.update(App.User.name+' ('+App.User.email+')');
+			
+			if(App.User.isGuest()) {
+				var guest_banner = Ext.get('guest-user-welcome');
+				if(guest_banner) {
+					guest_banner.show()
+				}
+			}
 		}
 			Ext.get('fp-citations').update(App.ui.Attribution.printAllCitations())
 		var quickstart = Ext.create('Ext.panel.Panel',{
 			renderTo: Ext.get('dashboard-quickstart'),
 			width: 260,
-			height: 290,
+			height: 270,
 			baseCls:'x-plain',
 			layout: {
 	            type: 'table',
 	            columns: 3
 	        },
-	        defaults: {xtype: 'button', scale: 'medium', iconAlign: 'top', width: 80, height: 60},
+	        defaults: {xtype: 'button', scale: 'medium', iconAlign: 'top', width: 70, height: 50},
 	        items: [
 	        	// Row 0.5
 		        {
@@ -68,20 +75,25 @@ Ext.define('App.ui.Dashboard', {
 		        	menu: [{
 		        		text: 'Nodal',
 		        		iconCls: 'nodal',
+		        		handler: App.ui.Launcher.makeLauncher('nodal'),
 		        	},{
 		        		text: 'Pepper',
 		        		iconCls: 'pepper',
+		        		handler: App.ui.Launcher.makeLauncher('pepper'),
 		        	},{
 		        		text: 'Chemical Reaction Network (CRN)',
 		        		iconCls: 'crn',
 		        		disabled: true,
+		        		handler: App.ui.Launcher.makeLauncher('crn'),
 		        	}]
 		        },{
 		        	text: 'Enumerate',
 		        	iconCls: 'enumerate-24',
+		        	disabled: true,
 		        },{
 		        	text: 'Verify',
 		        	iconCls: 'verify-24',
+		        	disabled: true,
 		        },	
 		        
 		        // Row 1.5
@@ -119,7 +131,12 @@ Ext.define('App.ui.Dashboard', {
 		        	text: 'Domains',
 		        	iconCls: 'domains-24',
 		        	menu: [{
+		        		text: 'Strand editor',
+		        		handler: App.ui.Launcher.makeLauncher('strandedit'),
+		        		iconCls: 'domains',
+		        	},{
 		        		text: 'Pepper Intermediate Language (PIL)',
+		        		handler: App.ui.Launcher.makeLauncher('pepper'),
 		        		iconCls: 'pil',
 		        	},{
 		        		text: 'Secondary Structure design',
@@ -128,9 +145,15 @@ Ext.define('App.ui.Dashboard', {
 		        },{
 		        	text: 'Enumerate',
 		        	iconCls: 'enumerate-24',
+		        	handler: App.ui.Launcher.makeLauncher('enumedit'),
 		        },{
 		        	text: 'Simulate',
-		        	iconCls: 'simulate-24'
+		        	iconCls: 'simulate-24',
+		        	menu: [{
+		        		text: 'SBML',
+		        		iconCls: 'sbml',
+		        		handler: App.ui.Launcher.makeLauncher('sbml'),
+		        	}]
 		        },
 		        
 		        // Row 2.5
@@ -154,15 +177,22 @@ Ext.define('App.ui.Dashboard', {
 		        		menu: [{
 		        			text: 'Web DD',
 		        			iconCls: 'dd',
+		        			handler: App.ui.Launcher.makeLauncher('dd')
 		        		}, {
 		        			text: 'NUPACK Multi-objective designer',
 		        			iconCls: 'nupack-icon',
+		        			handler: function() {
+								var win = Ext.create('App.ui.nupack.DesignWindow');
+								win.show();
+							}
 		        		},{
 		        			text: 'Multisubjective',
 		        			iconCls: 'ms-icon',
+		        			handler: App.ui.Launcher.makeLauncher('msedit')
 		        		},{
 		        			text: 'Spurious C',
-		        			iconCls: 'spuriousC spurious'
+		        			iconCls: 'spuriousC spurious',
+		        			disabled: true,
 		        		}]
 		        	}]
 		        },{
@@ -216,6 +246,7 @@ Ext.define('App.ui.Dashboard', {
 		        	iconCls: 'simulate-24',
 		        	colspan: 2,
 		        	width: 165,
+		        	disabled: true,
 		        	
 		        },
 	        ]

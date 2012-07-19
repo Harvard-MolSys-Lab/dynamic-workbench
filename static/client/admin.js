@@ -98,6 +98,7 @@ Ext.onReady(function() {
 		layout : 'border',
 		title : "Administration for " + App.name,
 		iconCls : 'lock',
+		overflow: 'auto',
 		items : [{
 			html : 'Edit users who have access to ' + App.name + '.',
 			frame : true,

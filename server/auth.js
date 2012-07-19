@@ -185,33 +185,28 @@ exports.configure = function(app, express) {
 			res.redirect('/login?logout=true');
 		});
 	});
-	app.get('/login', function(req, res) {
-		if(req.session.user) {
-			res.redirect('/')
-			//res.send('Authenticated as ' + req.session.user.name + ' click to <a href="/logout">logout</a>. ' + ' You may now access <a href="/restricted">/restricted</a>.');
-		} else {
-			var msg = req.flash('info') || " ";
-			if(req.param('logout')) {
-				msg += "You have been logged out successfully.";
-			}
-			res.render('login.jade', {
-				layout : false,
-				message : msg
-			});
-		}
-	});
-	app.post('/login', function(req, res) {
+	
+	function doAuthenticate(req,res,doRedirect) {
 		authenticate(req.param('email'), req.param('password'), function(err, user) {
 			if(user) {
 				login(req, user, function(err) {
-					if(err) {
-						res.send({
-							success : false,
-						});
+					if(doRedirect) { 
+						if(err) {
+							req.flash('info','Incorrect login credentials; please try again.')
+							res.redirect('/login')							
+						} else {
+							res.redirect('/')
+						}
 					} else {
-						res.send({
-							success : true,
-						});
+						if(err) {
+							res.send({
+								success : false,
+							});
+						} else {
+							res.send({
+								success : true,
+							});
+						}
 					}
 				})
 			} else {
@@ -223,6 +218,28 @@ exports.configure = function(app, express) {
 				// res.redirect('back');
 			}
 		});
+	}
+	
+	app.get('/login', function(req, res) {
+		if(req.session.user && !req.param('action')) {
+			res.redirect('/')
+			//res.send('Authenticated as ' + req.session.user.name + ' click to <a href="/logout">logout</a>. ' + ' You may now access <a href="/restricted">/restricted</a>.');
+		} else if(req.param('email') && req.param('password')) {
+			doAuthenticate(req,res,true);
+		} else {
+			var msg = req.flash('info') || " ";
+			if(req.param('logout')) {
+				msg += "You have been logged out successfully.";
+			}
+			res.render('login.jade', {
+				layout : false,
+				message : msg
+			});
+			
+		}
+	});
+	app.post('/login', function(req, res) {
+		doAuthenticate(req,res)
 	});
 	app.get('/user', restrict('json'), function(req, res) {
 		res.render('user.ejs', userData(req, {

@@ -275,6 +275,9 @@ App.User = {
 	isLoggedIn : function() {
 		return App.User.id != -1;
 	},
+	isGuest : function() {
+		return !!App.User.name && (App.User.name.match(/guest/g) != null)
+	},
 	/**
 	 * Loads data about the logged-in user. This method is invoked automatically by controller code; do not call
 	 * directly.

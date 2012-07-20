@@ -8,7 +8,7 @@
 var express = require('express'), 
 app = express.createServer(), 
 winston = require('winston'), 
-fm = require('./server/file-manager'), tools = require('./server/server-tools'), auth = require('./server/auth');
+fm = require('./server/file-manager'), tools = require('./server/server-tools'), auth = require('./server/node_modules/auth');
 
 // var Schema = mongoose.Schema,
 // UserSchema = new Schema({});
@@ -73,6 +73,15 @@ app.configure(function() {
 		});
 	});
 
+
+	// TODO: Add to local configuration environment
+	app.get('/tests.html', function(req, res) {
+		res.render('tests.jade', {
+			manifest: require('./server/manifest'),
+			env: app.set('env'),
+			layout : false
+		});
+	});
 	
 	// configure file manager
 	fm.configure(app, express);

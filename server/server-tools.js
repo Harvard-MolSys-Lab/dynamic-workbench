@@ -5,9 +5,21 @@
  * PRE-RELEASE CODE. DISTRIBUTION IS PROHIBITED.
  */
 
-var utils = require('./utils'), auth = require('./auth'), proc = require('child_process'), fs = require('fs'), _ = require('underscore'), async = require('async'), path = require('path'), DNA = require('../static/common/dna-utils').DNA, validate = require('validator'), winston = require('winston');
+var utils = require('utils'), //
+	auth = require('auth'), //
+	DNA = require('dna'), //
+	proc = require('child_process'), //
+	fs = require('fs'), //
+	path = require('path'), //
+	_ = require('underscore'), //
+	async = require('async'), //
+	validate = require('validator'), //
+	winston = require('winston');
+	
+// Validate abbreviations
 var check = validate.check, sanitize = validate.sanitize;
 
+// Utils abbreviations
 var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath, getCommand = utils.getCommand;
 
 /*

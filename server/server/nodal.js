@@ -1,29 +1,14 @@
-var utils = require('../utils'), //
+var utils = require('utils'), //
 proc = require('child_process'), //
 fs = require('fs'), //
 _ = require('underscore'), // 
 async = require('async'), //
 path = require('path'), //
 winston = require('winston'), //
-dynamic = require('../../static/common/dynamic');
+dynamic = require('dynamic');
 
-var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath, getCommand = utils.getCommand;
-
-function prefix(str) {
-	var x = path.basename(str).split('.');
-	if(x.length > 1) {
-		x.pop();
-	}
-	return x.join('.');
-}
-
-function postfix(str, ext) {
-	return [str, ext].join('.');
-}
-
-function quote(str) {
-	return "'" + str + "'";
-}
+// Utils abbreviations
+var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath, getCommand = utils.getCommand, prefix = utils.prefix, quote = utils.quote, postfix = utils.postfix; 
 
 var commands = {
 	nodal : {
@@ -37,7 +22,7 @@ exports.iconCls = 'nodal';
 exports.params = ['node', 'data', 'action'];
 exports.start = function(req, res, params) {
 	var node = params['node'], // fullPath = path.resolve(utils.userFilePath(node)),
-	pre = prefix(node), fullPath = path.resolve(utils.userFilePath(path.join(path.dirname(node), pre))), inFileName = postfix(fullPath, 'txt'), inFile = params['data'];
+	pre = prefix(node), fullPath = path.resolve(utils.userFilePath(utils.fullPrefix(node))), inFileName = postfix(fullPath, 'txt'), inFile = params['data'];
 	switch(params.action) {
 		case 'clean':
 			async.parallel(_.map(['txt','domains','svg','nupack','np','ms','dynaml','pil','enum'],function(ext) { 
@@ -146,6 +131,16 @@ exports.start = function(req, res, params) {
 					msOut = lib.toMSOutput(),
 					svgOut = lib.toSVGOutput(),
 					enumOut = lib.toEnumOutput();
+					
+				var msDirPath = path.join(fullPath,pre+'-ms'),
+					msPath = path.join(msDirPath,pre);
+				async.series([function(cb) {
+					fs.mkdir(msPath,cb);
+				},function(cb) {
+					fs.writeFile(postfix(msPath, 'np'),nupackOut,'utf8',cb);
+				},function(cb) {
+					fs.writeFile(postfix(msPath, 'ms'),msOut,'utf8',cb);
+				}])
 				async.parallel([function(cb) {
 					fs.writeFile(postfix(fullPath, 'domains'),ddOut,'utf8',cb);
 				},function(cb) {

@@ -1,9 +1,9 @@
-var utils = require('../utils'), proc = require('child_process'), //
+var utils = require('utils'), proc = require('child_process'), //
 fs = require('fs'), _ = require('underscore'), async = require('async'), //
-path = require('path'), winston = require('winston'), //
-DNA = require('../../static/common/dna-utils');
+path = require('path'), winston = require('winston'); //
 
-var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath, getCommand = utils.getCommand;
+// Utils abbreviations
+var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath, getCommand = utils.getCommand, prefix = utils.prefix, quote = utils.quote, postfix = utils.postfix; 
 
 var commands = {
 	// python enumerator.py --infile test_files/test_input_standard_SLC.in -i standard --outfile temporary_test_output.out -o standard
@@ -11,23 +11,6 @@ var commands = {
 		command : 'python',
 		arguments : [utils.toolPath('enumerator/enumerator.py')],
 	},
-}
-
-
-function prefix(str) {
-	var x = path.basename(str).split('.');
-	if(x.length > 1) {
-		x.pop();
-	}
-	return x.join('.');
-}
-
-function postfix(str, ext) {
-	return [str, ext].join('.');
-}
-
-function quote(str) {
-	return "'" + str + "'";
 }
 
 var maxBuffer = 1000*1024;

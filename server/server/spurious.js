@@ -1,4 +1,4 @@
-var utils = require('../utils'), proc = require('child_process'), fs = require('fs'), _ = require('underscore'), async = require('async'), winston = require('winston');
+var utils = require('utils'), proc = require('child_process'), fs = require('fs'), _ = require('underscore'), async = require('async'), winston = require('winston');
 sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath, getCommand = utils.getCommand;
 
 exports.name = 'SpuriousC Sequence Design';

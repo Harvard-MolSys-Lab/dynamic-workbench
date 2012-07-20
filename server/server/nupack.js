@@ -1,19 +1,18 @@
-var utils = require('../utils'),
-proc = require('child_process'),
-fs = require('fs'),
-_ = require('underscore'),
-async = require('async'),
-path = require('path'),
-winston = require('winston'),
-DNA = require('../../static/common/dna-utils').DNA;
+var utils = require('utils'), //
+	DNA = require('dna'), //
+	proc = require('child_process'), //
+	path = require('path'), //
+	fs = require('fs'), //
+	_ = require('underscore'), //
+	async = require('async'), //
+	winston = require('winston'); //
 
-var sendError = utils.sendError,
-forbidden = utils.forbidden,
-allowedPath = utils.allowedPath;
+var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath;
 
-exports.DNA = DNA;
 var nupackPath =  exports.nupackPath = exports.path = path.resolve('tools/nupack3');
 var maxBuffer = 800*1024;
+
+exports.DNA = DNA;
 
 var commands = {
 	nupackAnalysis: {
@@ -36,8 +35,7 @@ function permute(prev,alphabet) {
 	});
 	return o;
 }
-
-function permutations(length) {	
+var permutations = exports.permutations = function permutations(length) {	
 	var out = ['A','T','C','G'], alph = ['A','T','C','G'];
 	for(var i=1;i<length;i++) {
 		out = permute(out,alph);
@@ -45,7 +43,7 @@ function permutations(length) {
 	return out;
 }
 
-function combinations(strands) {
+var combinations = exports.combinations = function combinations(strands) {
 	var s1, s2, combs = [];
 	for (i=0;i<strands.length;i++) {
 		s1 = strands[i];
@@ -360,7 +358,5 @@ function nupackAnalysis(strandPair,name,fullPath,options,callback) {
 	});
 }
 
-exports.combinations = combinations;
-exports.permutations = permutations;
 exports.packageOut = exports.packageOutput = packageNupackOut; 
 exports.analysis = nupackAnalysis;

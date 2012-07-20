@@ -20,8 +20,8 @@ libPath + '/ChemDoodleWeb/install/ChemDoodleWeb',libPath + '/ChemDoodleWeb/insta
 var libs = ['jquery-1.5.1.min', 'underscore', 'string', 'color-field-1.0.0/color-field', //
 'raphael-'+raphaelVersion+'/raphael-min', 'raphael-'+raphaelVersion+'//plugins/raphael.primitives', //
 'zaach-jsonlint/web/jsonlint',//
-'CodeMirror-'+codeMirrorVersion+'/lib/codemirror', 'CodeMirror-'+codeMirrorVersion+'/lib/util/runmode', 
-'CodeMirror-'+codeMirrorVersion+'/lib/util/formatting', //
+'CodeMirror-'+codeMirrorVersion+'/lib/codemirror', 
+// 'CodeMirror-'+codeMirrorVersion+'/lib/util/runmode', // 'CodeMirror-'+codeMirrorVersion+'/lib2/util/formatting', //
 'valums-file-uploader/client/fileuploader', // 
 'jquery-animate-css-rotate-scale/jquery-css-transform', //
 'jquery-animate-css-rotate-scale/jquery-animate-css-rotate-scale', 'Ext.ux.StatusBar', //
@@ -32,11 +32,12 @@ var libs = ['jquery-1.5.1.min', 'underscore', 'string', 'color-field-1.0.0/color
 'ChemDoodleWeb/install/sketcher/jquery-ui-1.8.7.custom.min',
 'ChemDoodleWeb/src/ChemDoodleWeb-sketcher-unpacked',
 //'ChemDoodleWeb/install/sketcher/ChemDoodleWeb-sketcher',//
+'naturalSort',
 ];//
 
 var uxs = ['RowExpander', 'CheckColumn'];
 var modes = ['javascript', 'stex', 'gfm','rst', 'xml', 'diff', 'htmlmixed', 'css', 'clike','python','ruby','coffeescript',];
-
+var cm_utils = ['runmode','foldcode','dialog','searchcursor',/*'search'*/,'match-highlighter']
 var scripts = ['ext-bug-fixes','core','canvas','workspace',]; 
 scripts = scripts.concat(['console','codemirror-modes']);
 
@@ -78,6 +79,14 @@ function getResources(staticOnly,env) {
 	    if(mode == 'diff')
 	        links.push(codeMirrorPath+"/mode/"+mode+"/"+mode+".css")
 	});
+	
+	// CodeMirror utilities	
+	_.each( cm_utils, function( util ) {
+		js.push(codeMirrorPath+'/lib/util/'+util+'.js');
+		if(util=='dialog' || util=='simple-hint') 
+			links.push(codeMirrorPath+'/lib/util/'+util+'.css');
+		
+	})
 	
 	// Mathquill
 	js.push(libPath+'/mathquill/build/mathquill.js');

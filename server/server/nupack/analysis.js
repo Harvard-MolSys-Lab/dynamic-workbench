@@ -1,4 +1,4 @@
-var utils = require('../../utils'),
+var utils = require('utils'),
 proc = require('child_process'),
 fs = require('fs'),
 _ = require('underscore'),

@@ -697,9 +697,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * 	[{strand: {Strand}, structure:strand.getAnnotatedStructure()},...]
 		 */
 		getAnnotatedStructure: function() {
-			return _.map(this.getStrands(),function(strand) {
-				return {strand: strand, structure: strand.getAnnotatedStructure()};
+			var s = _.map(this.getStrands(),function(strand) {
+				return { strand: strand, structure: strand.getAnnotatedStructure(), dotParen: strand.getStructure().toDotParen() };
 			});
+			s.dotParen = this.getStructure().toDotParen();
+			return s;
 		},
 		getSegmentwiseStructure: function() {
 			return Structure.join(_.map(this.getStrands(),function(strand) {

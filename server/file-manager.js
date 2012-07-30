@@ -5,16 +5,26 @@
  * PRE-RELEASE CODE. DISTRIBUTION IS PROHIBITED.
  */
 
-var auth = require('auth'), config = require('config'), version = require('./version');
-var form = require('connect-form'), fs = require('fs'), path = require('path'), _ = require('underscore');
-var utils = require('utils'), async = require('async'), rm = require("./rm-rf"), fileTypes = require('./file-types'), winston = require('winston');
+var auth = require('auth'), //
+config = require('config'), //
+version = require('./version'), //
+utils = require('utils'), //
+fileTypes = require('./file-types'), //
+
+fs = require('fs'), //
+path = require('path'), //
+_ = require('underscore'),
+form = require('connect-form'), 
+async = require('async'), //
+rm = require("./rm-rf"), //
+winston = require('winston');
 var md = require('markdown').markdown, validate = require('validator');
 var check = validate.check, sanitize = validate.sanitize;
 
 var sendError = utils.sendError, forbidden = utils.forbidden, allowedPathSync = utils.allowedPath;
 var restrict = auth.restrict;
 
-var folderPermission = 0770;
+var folderPermission = utils.folderPermission;
 
 
 function reportError(options,res) {

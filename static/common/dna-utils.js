@@ -14,6 +14,103 @@ if(typeof module.exports == 'undefined') {
  * `require('static/lib/dna-utils').DNA`.
  */
 var DNA = module.exports.DNA = (function(_) {
+	function sum(list) {
+		return _.reduce(list,function(x,y) { return x+y; },0);
+	}
+	
+	function deg(theta) {
+		return ((theta * 180/Math.PI) % 360).toFixed(2);
+	}
+	
+	function coords(pair) {
+		return pair.x.toFixed(2)+','+pair.y.toFixed(2);
+	}
+	
+	function arc2angle(arc,radius) {
+		var c = radius * pi2;
+		return arc/c * pi2;
+	}
+		
+	function Point(cfg) {
+		this.x = cfg.x;
+		this.y = cfg.y;
+	}
+	
+	_.extend(Point.prototype,{
+		toArray: function() {
+			return [this.x,this.y];
+		},
+		toPos: function() {
+			return {x: this.x, y: this.y};
+		},
+		add : function(cfg) {
+			var pt = Point.fromMixed(cfg);
+			return new Point({x :this.x + pt.x, y: this.y + pt.y});
+		},
+		subtract : function(cfg) {
+			var pt = Point.fromMixed(cfg);
+			return new Point({x :this.x - pt.x, y: this.y - pt.y}); 
+		},
+		distance :  function(cfg) {
+			var pt = Point.fromMixed(cfg);
+			return Math.sqrt(Math.pow(this.x - pt.x, 2) + Math.pow(this.y - pt.y, 2));
+		},
+		angle : function(cfg) {
+			if(cfg) {
+				var pt = Point.fromMixed(cfg);
+				return Math.atan2(pt.y - this.y, pt.x - this.x);
+			} else {
+				return Math.atan2(this.y,this.x);
+			}
+		},
+		addPolar : function(theta, radius) {
+			
+			return new Point({
+				x : this.x + Math.cos(theta)*radius, 
+				y : this.y + Math.sin(theta)*radius,
+			});
+			return this;
+		},
+		midpoint : function(cfg) {
+			var pt = Point.fromMixed(cfg);
+			return new Point({
+				x : this.x+(pt.x - this.x) / 2,
+				y : this.y+(pt.y - this.y) / 2,
+			});
+		}
+	});
+	
+	_.extend(Point,{
+		create: function(x,y) {
+			return new Point({
+				x:x, y:y
+			});
+		},
+		fromArray: function(cfg) {
+			return new Point({
+				x: cfg[0],
+				y: cfg[1],
+			});
+		},
+		fromPos: function(cfg) {
+			return new Point(cfg);
+		},
+		fromMixed: function(cfg) {
+			if(cfg instanceof Point) {
+				return cfg;
+			}
+			if(_.isArray(cfg)) {
+				return Point.fromArray(cfg);
+			} else if (_.isObject(cfg) && cfg.x && cfg.y) {
+				return Point.fromPos(cfg);
+			}
+		}
+	});
+	
+			
+	
+	
+	
 	//Written by Paul Stothard, University of Alberta, Canada
 
 	//This class performs alignments in linear space, by recursively dividing
@@ -1179,7 +1276,7 @@ var DNA = module.exports.DNA = (function(_) {
 							});
 						}
 						
-						if(n > params.persistenceLength && struct[i - params.persistenceLength] != '+') {
+						if(!!params.persistenceLength && n > params.persistenceLength && struct[i - params.persistenceLength] != '+') {
 							links.push({
 								source : n,
 								target : n - params.persistenceLength,
@@ -1316,6 +1413,172 @@ var DNA = module.exports.DNA = (function(_) {
 
 				}
 			}
+
+			return {
+				nodes : nodes,
+				links : links
+			};
+		},
+		
+		generateAdjacency3 : function(struct, strands, params) {
+			// var struct = "....(((...)))....";
+			params || ( params = {});
+			_.defaults(params, {
+				sequences : {},
+				strandValue : 9,
+				hybridizationValue : 2,
+				persistenceValue : 18,
+				radius : 300,
+				segments : {},
+				segmentLabels : false,
+				persistenceLength: 2,
+				linkStrands: true,
+			});
+
+			var nodes = [], links = [], hybridization = [], 
+			sequences = params.sequences || {},
+			strandIndex = 0, node, n = 0, base = 0;
+			
+			// Remove spaces from structure
+			struct = _.filter(struct.split(''),function(ch) {
+				return !!(ch.trim())
+			});
+			
+			
+			/*
+			 * strands = [{
+			 * 		name: 'S1',
+			 * 		domains: [{
+			 * 			name: 'd1',
+			 * 			segments: ['1*', '2', '2*']
+			 * 		}, ... ]
+			 * }, ...]
+			 * 
+			 * or
+			 * 
+			 * strands = [[
+			 *		{
+			 * 			name: 'd1',
+			 * 			segments: ['1*', '2', ... ]
+			 * 		}, ...
+			 * ], ...]
+			 * 
+			 * or 
+			 * 
+			 * strands = [[['1*', '2', ...], ... ], ... ]
+			 */
+			strands = _.map(strands,function(s,i) {
+				if(_.isArray(s)) {
+					s = { name: 'S'+i, domains: s }
+				}
+				s.domains = _.map(s.domains,function(d,j) {
+					if(_.isArray(d)) {
+						d = { name: 'd'+j, segments: d, role: null }
+					}
+					d.segments = _.map(d.segments,function(g,k) {
+						if(_.isString(g)) {
+							g = { name: g, role: null };
+						} else if(_.isNumber(g)) {
+							g = { name: ''+g, role: null };
+						}
+						return g;
+					})
+					return d;
+				});
+				return s;
+			});
+			
+			
+			var i = 0, // segment-wise counter (tracks position along structure)
+				j = 0; // base-wise counter (tracks position along structure)
+				
+			// for each strand
+			for (var s = 0; s < strands.length; s++) {
+				
+				var strand = strands[s], 
+				n = 0; // base-wise, per-strand counter
+				
+				// for each domain
+				for(var d = 0; d < strand.domains.length; d++) {
+					
+					var dom = strand.domains[d],
+					m = 0; // base-wise, per-domain counter
+					
+					// for each segment
+					for(var g = 0; g < dom.segments.length; g++) {
+						
+						var seg = dom.segments[g], 
+						id = DNA.parseIdentifier(seg.name), 
+						seq = seg.sequence ? seg.sequence : sequences[seg.name];
+						
+						// for each base
+						for(var k = 0; k < seq.length; k++) {
+							node = {
+								strand : strand.name,
+								domain : dom.name,
+								domain_role: dom.role,
+								segment : seg.name,
+								segment_role : seg.role,
+								segment_identity : id.identity,
+								base : seq[k],
+								
+								segment_index: k,
+								domain_index: m,
+								strand_index: n,
+							};
+							
+							if (struct[i] == '(') {
+								hybridization.push(j);
+							} else if (struct[i] == ')') {
+								var link = {
+									source : hybridization.pop(),
+									target : j,
+									value : params.hybridizationValue,
+									type : 'wc'
+								};
+								links.push(link);
+							}
+		
+							nodes.push(node);
+							
+							if (params.linkStrands) {
+								if (n > 0 ) {
+									links.push({
+										source : j,
+										target : j - 1,
+										type : 'strand',
+										value : params.strandValue,
+										
+										segment: g > 0 ? seg.name : null,
+										segment_identity : g > 0 ? id.identity : null,
+										domain:  m > 0 ? dom.name : null,
+										domain_role : m > 0 ? dom.role : null,
+									});
+								}
+								
+								if(!!params.persistenceLength && n > params.persistenceLength) {
+									links.push({
+										source : j,
+										target : j - params.persistenceLength,
+										value : params.persistenceValue,
+										type : 'persistence',
+									});
+								}
+							}
+							n++;
+							m++;
+							j++;
+							
+						} // next base
+						i++;
+					} // next segment
+				} // next domain
+				if(!!struct[i] && struct[i] != '+') {
+					throw Error('Structure specification does not match strand specification. ');
+				}
+				i++;
+				
+			} // next strand
 
 			return {
 				nodes : nodes,
@@ -1520,13 +1783,12 @@ var DNA = module.exports.DNA = (function(_) {
 		},
 		
 		
-		layoutStructure: function(structure) {
+		layoutStructure: function(structure,options) {
 			var debug = true;
 			var theta = 0, //Math.PI/2,
 				x = 0, y = 0,
 				baseLength = breakWidth = 20, stemWidth = 1.5*baseLength, duplexWidth = stemWidth + baseLength,
 				pi2 = 2*Math.PI;
-			
 			
 			function getBounds(list) {
 				var xmin = list[0][0], xmax = list[0][0], ymin = list[0][1], ymax = list[0][1];
@@ -1541,108 +1803,49 @@ var DNA = module.exports.DNA = (function(_) {
 				return [[xmin,xmax],[ymin,ymax]]
 			}
 			
-			function centerLayout(list) {
+			function arrangeLayout(list,options) {
+				options || (options = {});
+				_.defaults(options,{
+					center: true,
+					scale: false,
+					offsets: false,
+					maintainAspect: true,
+				});
+				
 				var bounds = getBounds(list);
-				var dx = Math.abs(list[0][0]), dy = Math.abs(list[1][0]);
+				var dx, dy,	width,height,xscale = 1, yscale = 1;
+				if(options.scale) {
+					width = bounds[0][1] - bounds[0][0];
+					height = bounds[1][1] - bounds[1][0];
+					
+					if(options.maintainAspect) {
+						if(options.scale[0] < options.scale[1]) {
+							xscale = yscale = options.scale[0]/width;
+						} else if (options.scale[0] >= options.scale[1]) {
+							xscale = yscale = options.scale[1]/height; 
+						}
+					
+					} else {						
+						xscale = options.scale[0]/width;
+						yscale = options.scale[1]/height;
+					}
+				}
+				if(options.center) {
+					dx = bounds[0][0];
+					dy = bounds[1][0];
+				}
+				if(options.offsets) {
+					dx -= options.offsets[0]
+					dy -= options.offsets[1]
+				}
 				
 				return _.map(list,function(pair) {
-					pair[0] += dx; pair[1] += dy;
-					return pair;
-				})
-			}
-			
-			function sum(list) {
-				return _.reduce(list,function(x,y) { return x+y; },0);
-			}
-			
-			function deg(theta) {
-				return ((theta * 180/Math.PI) % 360).toFixed(2);
-			}
-			
-			function coords(pair) {
-				return pair.x.toFixed(2)+','+pair.y.toFixed(2);
-			}
-			
-			function arc2angle(arc,radius) {
-				var c = radius * pi2;
-				return arc/c * pi2;
-			}
-				
-			function Point(cfg) {
-				this.x = cfg.x;
-				this.y = cfg.y;
-			}
-			
-			_.extend(Point.prototype,{
-				toArray: function() {
-					return [this.x,this.y];
-				},
-				toPos: function() {
-					return {x: this.x, y: this.y};
-				},
-				add : function(cfg) {
-					var pt = Point.fromMixed(cfg);
-					return new Point({x :this.x + pt.x, y: this.y + pt.y});
-				},
-				subtract : function(cfg) {
-					var pt = Point.fromMixed(cfg);
-					return new Point({x :this.x - pt.x, y: this.y - pt.y}); 
-				},
-				distance :  function(cfg) {
-					var pt = Point.fromMixed(cfg);
-					return Math.sqrt(Math.pow(this.x - pt.x, 2) + Math.pow(this.y - pt.y, 2));
-				},
-				angle : function(cfg) {
-					if(cfg) {
-						var pt = Point.fromMixed(cfg);
-						return Math.atan2(pt.y - this.y, pt.x - this.x);
-					} else {
-						return Math.atan2(this.y,this.x);
-					}
-				},
-				addPolar : function(theta, radius) {
+					pair[0] -= dx; pair[1] -= dy;
+					pair[0] *= xscale; pair[1] *= yscale; 
 					
-					return new Point({
-						x : this.x + Math.cos(theta)*radius, 
-						y : this.y + Math.sin(theta)*radius,
-					});
-					return this;
-				},
-				midpoint : function(cfg) {
-					var pt = Point.fromMixed(cfg);
-					return new Point({
-						x : this.x+(pt.x - this.x) / 2,
-						y : this.y+(pt.y - this.y) / 2,
-					});
-				}
-			});
-			
-			_.extend(Point,{
-				create: function(x,y) {
-					return new Point({
-						x:x, y:y
-					});
-				},
-				fromArray: function(cfg) {
-					return new Point({
-						x: cfg[0],
-						y: cfg[1],
-					});
-				},
-				fromPos: function(cfg) {
-					return new Point(cfg);
-				},
-				fromMixed: function(cfg) {
-					if(cfg instanceof Point) {
-						return cfg;
-					}
-					if(_.isArray(cfg)) {
-						return Point.fromArray(cfg);
-					} else if (_.isObject(cfg) && cfg.x && cfg.y) {
-						return Point.fromPos(cfg);
-					}
-				}
-			});
+					return pair;
+				});
+			}
 			
 				
 			function drawLoop(struct,start,theta,space,mode) {
@@ -1735,8 +1938,8 @@ var DNA = module.exports.DNA = (function(_) {
 				for(var i = 0; i<len; i++) {
 					x = Math.cos(theta) * radius + cx,
 					y = Math.sin(theta) * radius + cy;
-					theta += dtheta;						
 					out.push([x,y,theta]);
+					theta += dtheta;						
 				}
 				return out;
 			}
@@ -1759,7 +1962,7 @@ var DNA = module.exports.DNA = (function(_) {
 					out;
 				
 				// Draw first side of duplex
-				out = [[firstBase.x,firstBase.y]];
+				out = [[firstBase.x,firstBase.y,theta_normal]];
 				for(var i = 1; i<len; i++) {					
 					x += dx
 					y += dy;
@@ -1779,7 +1982,7 @@ var DNA = module.exports.DNA = (function(_) {
 				x = x1 + Math.cos(theta_normal) * stemWidth;
 				y = y1 + Math.sin(theta_normal) * stemWidth;
 
-				out.push([x,y]);
+				out.push([x,y,theta_normal]);
 				
 				for(var i = 1; i<len; i++) {					
 					x -= dx
@@ -1793,9 +1996,15 @@ var DNA = module.exports.DNA = (function(_) {
 				
 				return out;			
 			}
-			
-			return drawLoop(structure,Point.create(x,y),theta,breakWidth)
 
+			if(structure.length==0) { return []; }
+			
+			var points = drawLoop(structure,Point.create(x,y),theta,breakWidth)
+			if(options) {
+				return arrangeLayout(points,options)
+			} else {
+				return points;
+			}
 		},
 		
 		normalizeSystem : function(strands) {
@@ -1838,7 +2047,7 @@ var DNA = module.exports.DNA = (function(_) {
 		 * @returns {String} The complete sequence
 		 */
 		threadSegments : function(segments, strand, concat) {
-			concat = concat && true;
+			concat = (concat == undefined) ? true : concat;
 			var strandList = _.isArray(strand) ? _.map(strand,function(x) {
 				if(_.isObject(x)) {
 					return x;

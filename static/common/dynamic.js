@@ -404,6 +404,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 		serialize: function() {
 			var out = _.copy(this);
 			if(out.library) { delete out.library; }
+			if(out.domains) { delete out.domains; }
 			return _.serialize(out);
 		}
 	}
@@ -715,7 +716,8 @@ App.dynamic = module.exports = (function(_,DNA) {
 		},
 		serialize: function() {
 			var out = _.copy(this);
-			if(out.motif) { out.motif = out.motif.getName(); }
+			if(out.motif && !_.isString(out.motif) && out.motif.getName) { out.motif = out.motif.getName(); }
+			if(out.domains) { delete out.domains; }
 			if(out.library) { delete out.library; }
 			return _.serialize(out);
 		}
@@ -964,6 +966,16 @@ App.dynamic = module.exports = (function(_,DNA) {
 			}
 	
 		},
+		getSequence: function() {
+			var seq = _.map(this.getSegments(),function(seg) { return seg.getSequence() }).join('');
+			if(this.getAbsolutePolarity() == -1) {
+				return DNA.reverse(seq);
+			}
+			return seq;
+		},
+		printDomains: function(omitLengths) {
+			return Compiler.printDomainString(this.getDomains(),this.getPolarity(),omitLengths);
+		},
 		orphan: function() {
 			this.polarity = this.getAbsolutePolarity();
 			delete this.node;
@@ -971,7 +983,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 		},
 		serialize: function() {
 			var out = _.copy(this);
-			if(out.node) { delete out.node }
+			if(out.node) { delete out.node; }
 			if(out.library) { delete out.library; }
 			return _.serialize(out);
 		},
@@ -1149,9 +1161,26 @@ App.dynamic = module.exports = (function(_,DNA) {
 		if(!this.segmentLength) {
 			this.segmentLength = this.getParameter('segmentLength');
 		}
-
+		
+		/**
+		 * @cfg {String} name
+		 * A name for this segment, plus an optional polarity specifier. If given, this will be parsed to
+		 * populate the #identity and #polarity properties.
+		 */
 		if(this.name && !this.identity) {
 			_.extend(this, DNA.parseIdentifier(this.name));
+		
+		/**
+		 * @cfg {String} identity
+		 */
+		/**
+		 * @cfg {Number} polarity
+		 * The polarity of the segment: 1 or -1. A polarity of -1 implies
+		 * this segment has a sequence complementary to a segment which
+		 * shares this segment's #identity, but whose #polarity is 1.
+		 */
+		} else if(this.identity && this.polarity && !this.name) {
+			this.name = DNA.makeIdentifier(this.identity,this.polarity);
 		}
 		this.id = Segment.getId();
 		this.getLibrary().register('segment',this.id, this);
@@ -1202,8 +1231,14 @@ App.dynamic = module.exports = (function(_,DNA) {
 		/**
 		 * Returns the identifier (segment + polarity specifier) for this segment
 		 */
-		getIdentifier : function(name, polarity) {
+		getIdentifier : function() {
 			return this.identity + ((this.polarity == -1) ? DNA.defaultPolaritySpecifier : '');
+		},
+		/**
+		 * Returns the polarity of the segment
+		 */
+		getPolarity : function() {
+			return this.polarity;
 		},
 		/**
 		 * @return {Node} node The node which contains this segment
@@ -1571,6 +1606,12 @@ App.dynamic = module.exports = (function(_,DNA) {
 		},
 		serialize: function() {
 			var out = _.copy(this);
+			
+			if(out.sourceNode && !_.isString(out.sourceNode)) { out.sourceNode = out.sourceNode.getName() }
+			if(out.targetNode && !_.isString(out.targetNode)) { out.targetNode = out.targetNode.getName() }
+			if(out.sourcePort && !_.isString(out.sourcePort)) { out.sourcePort = out.sourcePort.getName() }
+			if(out.targetPort && !_.isString(out.targetPort)) { out.targetPort = out.targetPort.getName() }
+			
 			if(out.strand) { delete out.strand }
 			if(out.domain) { delete out.domain }
 			if(out.node) { delete out.node }
@@ -1668,6 +1709,107 @@ App.dynamic = module.exports = (function(_,DNA) {
 	}
 	
 	Library.prototype = {
+		/**
+		 * Sets up the Library by creating {@link App.dynamic.Node Node} and
+		 * {@link App.dynamic.Motif Motif} objects from the #nodes, #motifs,
+		 * and #import configs.
+		 * 
+		 * @param {Boolean} [fromDil=false]
+		 * True to do a `bare import' of nodes--that is, don't copy over any
+		 * properties from the node's specified {@link App.dynamic.Node#motif}.
+		 * This is desirable if importing from a serialized library which has
+		 * already been compiled, since we don't want to overwrite things like
+		 * compiled {@link App.dynamic.Segment#identity segment identities} to
+		 * be overwritten. 
+		 */
+		setup: function(fromDil) {
+			fromDil || (fromDil = false)
+			
+			var library = this;
+			
+			// Import motifs first
+			if(library['import']) {
+				_.each(library['import'],function(statement) {
+					if(statement.type && statement.name) {
+						switch(statement.type) {
+							case 'motif':
+								library.motifs.unshift(Compiler.importObject(statement.type,statement.name));
+								break;
+							case 'node':
+								library.nodes.unshift(Compiler.importObject(statement.type,statement.name));
+								break;
+							default:
+								break;
+						}
+					}
+				},this);
+			}
+
+			// Instantiate motifs to Motif objects
+			library.motifs = _.reduce(library.motifs, function(memo,motif) {
+				motif = _.copyWith(motif,{
+					library: library,
+					//externalMotifs: memo,
+				});
+				memo.push(new Motif(motif))
+				return memo;
+			},[]);
+			
+			// Instantiate nodes to Node objects
+			library.nodes = _.map(library.nodes, function(node) {
+				// if(node.polarity) {					// delete node.polarity;				// }
+				
+				if(fromDil) {
+					node._motif = node.motif
+					delete node.motif;
+				}
+				node.library = library;
+				return new Node(node);
+			});
+			
+		},
+		updateOutputProperties: function() {
+			var library = this;
+			// Build array of all Segment objects, assign Segment objects to their identity in labels
+				library.allSegments = [];
+				
+				
+				for(var i=0; i<library.nodes.length; i++) {
+					var node = library.nodes[i], strands = node.getStrands();
+					for(var j=0; j<strands.length; j++) {
+						var strand = strands[j];
+						library.allSegments = library.allSegments.concat(strand.getSegments());
+					}
+				}
+								
+				// Build an array of new Segment objects, each representing a unique segment identity.
+				// This is mostly for the benefit of output generators like DD or NUPACK which
+				// need to generate a list of each unique segment in the ensemble
+				library.segments = _.chain(library.allSegments).uniq(false, function(segment) {
+					return segment.identity;
+				}).map(function(segment) {
+					var duplicate = segment.duplicate();
+					
+					// These new Segments are deliberately divorced from their 
+					// original "name", parent node, and polarity, since the purpose
+					// of these objects is to describe each unique segment identity 
+					// and its sequence, length, etc (salient properties for sequence
+					// designers mostly). 
+					delete duplicate.name;
+					delete duplicate.node;
+					delete duplicate.polarity;
+					return new Segment(duplicate);
+				}).value();
+
+				// Build an array of strands with properly numbered segments.
+				library.strands = _.chain(library.nodes).map(function(node) {
+					return node.getStrands();
+					
+					// return _.map(node.getStrands(),function(strand) {
+						// return new Strand(strand);
+					// }); //new Strand(node);
+				}).flatten().value();
+		},
 		getParameter : function(param, obj) {
 			switch(param) {
 				case 'segmentLength':
@@ -1703,7 +1845,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 				this.objects[type][name] = object;
 			} else {
 				throw new DynamlError({
-					type: 'duplicate object',
+					type: 'Duplicate object',
 					message: 'Attempt to define <%= kind %> <%= name %> twice in same library',
 					kind: type,
 					name: name,
@@ -1728,7 +1870,12 @@ App.dynamic = module.exports = (function(_,DNA) {
 		printStrands: function(config) {
 			return Compiler.printStrands(this,config);
 		},
-		
+		toDilOutput: function() {
+			var out = this.serialize();
+			if(out.imports) { delete out.imports; }
+			if(out['import']) { delete out['import']; }
+			return JSON.stringify(out,null,'\t');
+		},
 		toEnumOutput: function() {
 			
 			var library = this;
@@ -2299,7 +2446,42 @@ App.dynamic = module.exports = (function(_,DNA) {
 				return newStrand; //.serialize();
 			});
 			return {strands: strands};
-		}
+		},
+		serialize: function() {
+			var out = _.copy(this);
+			if(out.objects) { delete out.objects; }
+			return _.serialize(out);
+		},
+		update: function(data) {
+			var me = this;
+			
+			// if(data.motifs) {				// for(var name in data.motifs) {					// var myObj = me.get('motif',name),						// newData = data.motifs[name];// 										// _.extend(myObj,newData);				// }			// } // 			// if(data.nodes) {				// for(var name in data.nodes) {					// var myObj = me.get('node',name),						// newData = data.nodes[name];// 										// if(newData.strands) {						// for(var strandName in newData.strands) {							// var newStrand						// }					// }// 										// _.extend(myObj,newData);				// }			// }
+			
+			if(data.segments) {
+				var indexedSegments = {};
+				for(var i=0;i<me.allSegments.length;i++) {
+					var seg = me.allSegments[i], segId = seg.getIdentity(); 
+					if(!indexedSegments[segId]) {
+						indexedSegments[segId] = [];
+					}
+					indexedSegments[segId].push(seg);
+				}
+				
+				for(var name in data.segments) {
+					var newData = data.segments[name];
+					if(indexedSegments[name]) {
+						var mySegments = indexedSegments[name];
+						for(var i=0;i<indexedSegments[name].length;i++) {
+							_.extend(mySegments[i],newData);
+						}
+					} else {
+						var newSegSpec = _.clone(data.segments[name]);
+						newSegSpec.library = me;
+						me.allSegments.push(new Segment(newSegSpec));
+					}
+				}
+			}
+		},
 	};
 	
 	_.extend(Library,{
@@ -2313,7 +2495,21 @@ App.dynamic = module.exports = (function(_,DNA) {
 			var duplicate = _.copy(motif);
 			delete duplicate.library;
 			return new Library(duplicate);
-		}
+		},
+		/**
+		 * Produces a {@link App.dynamic.Library Library} object from a DIL object
+		 * (a serialized Library).
+		 * 
+		 * @param {Object} dil
+		 * 
+		 * @return {App.dynamic.Library} lib
+		 */
+		fromDil: function(dil) {
+			var lib = new Library(dil);
+			lib.setup(/*fromDil*/true);
+			lib.updateOutputProperties();
+			return lib;
+		},
 	});
 	
 	
@@ -2386,50 +2582,25 @@ App.dynamic = module.exports = (function(_,DNA) {
 				
 				library = new Library(library);
 				
-				// Import motifs first
-				if(library['import']) {
-					_.each(library['import'],function(statement) {
-						if(statement.type && statement.name) {
-							switch(statement.type) {
-								case 'motif':
-									library.motifs.unshift(importObject(statement.type,statement.name));
-									break;
-								case 'node':
-									library.nodes.unshift(importObject(statement.type,statement.name));
-									break;
-								default:
-									break;
-							}
-						}
-					},this);
+				// Import Motifs, build Node, Motif objects
+				library.setup();
+				
+				// Blast node polarities
+				for(var i=0;i<library.nodes.length;i++) {
+					if(!library.nodes[i].isInitiator) {
+						delete library.nodes[i].polarity;						
+					}
 				}
 
-				// Instantiate motifs to Motif objects
-				library.motifs = _.reduce(library.motifs, function(memo,motif) {
-					motif = _.copyWith(motif,{
-						library: library,
-						//externalMotifs: memo,
-					});
-					memo.push(new Motif(motif))
-					return memo;
-				},[]);
-				
-				// Instantiate nodes to Node objects
-				library.nodes = _.map(library.nodes, function(node) {
-					if(node.polarity) {
-						delete node.polarity;
-					}
-					node.library = library;
-					return new Node(node);
-				});
-				
 				// Generate array of Complement objects
 				var complementarities = _.chain(library.nodes).map(function(node) {
-					return _.map(node.complementarities || [], function(complement) {
+					node.complementarities = _.map(node.complementarities || [], function(complement) {
 						complement.sourceNode = node;
 						complement.library = library;
 						return new Complement(complement);
 					});
+					
+					return node.complementarities;
 				}).compact().flatten().value();
 
 				/* ************************************************************
@@ -2788,57 +2959,26 @@ App.dynamic = module.exports = (function(_,DNA) {
 				/* ************************************************************
 				 * Generate output properties of compiled library
 				 */
-
-				// Build array of all Segment objects, assign Segment objects to their identity in labels
-				library.allSegments = [];
-
+				
+				// Properly number segments
 				_.each(library.nodes, function(node) {
 					_.each(node.getStrands(), function(strand) {
 						_.each(strand.getSegments(), function(segment) {
 							segment.identity = Math.abs(labels[segment.getId()]);
 							segment.polarity = DNA.signum(labels[segment.getId()]);
-							library.allSegments.push(segment);
 						})
 					});
-					// _.each(node.getSegments(), function(segment) {
-						// segment.identity = Math.abs(labels[segment.getId()]);
-						// segment.polarity = DNA.signum(labels[segment.getId()]);
-						// library.allSegments.push(segment);
-					// })
 				});
-				
-				// Build an array of new Segment objects, each representing a unique segment identity.
-				// This is mostly for the benefit of output generators like DD or NUPACK which
-				// need to generate a list of each unique segment in the ensemble
-				library.segments = _.chain(library.allSegments).uniq(false, function(segment) {
-					return segment.identity;
-				}).map(function(segment) {
-					var duplicate = segment.duplicate();
-					
-					// These new Segments are deliberately divorced from their 
-					// original "name", parent node, and polarity, since the purpose
-					// of these objects is to describe each unique segment identity 
-					// and its sequence, length, etc (salient properties for sequence
-					// designers mostly). 
-					delete duplicate.name;
-					delete duplicate.node;
-					delete duplicate.polarity;
-					return new Segment(duplicate);
-				}).value();
 
-				// Build an array of strands with properly numbered segments.
-				library.strands = _.chain(library.nodes).map(function(node) {
-					return node.getStrands();
-					
-					// return _.map(node.getStrands(),function(strand) {
-						// return new Strand(strand);
-					// }); //new Strand(node);
-				}).flatten().value();
+				library.updateOutputProperties();
+				
 			} else {
 				library = {};
 			}
 			return library;
 		}
+		
+		
 		
 		/**
 		 * Prints a textual description of a given library for sequence design
@@ -2989,6 +3129,49 @@ App.dynamic = module.exports = (function(_,DNA) {
 			}
 		};
 		
+		var abbrevRoles = {
+			'domain' : {
+				'input': 'i',
+				'output': 'o',
+				'bridge': 'b',
+				'structural': 'x',
+			},
+			'segment' : {
+				'toehold': 't',
+				'clamp': 'c',
+			}
+		}
+		
+		function printPolarity(pol) {
+			if(pol == -1) {
+				return '-';
+			} else if(pol == 1) {
+				return '+';
+			} else {
+				return '0';
+			}
+		}
+		
+		/**
+		 * Given a role name, abbreviates to a compact "role specifier"; inverse of
+		 * #expandRole. 
+		 * 
+		 * @param {String} type 
+		 * `domain` or `segment
+		 * 
+		 * @param {String} str
+		 * The role name to be abbreviated
+		 * 
+		 * @return {String} abbrev
+		 * The role specifier; see #expandRole for values.
+		 */
+		function abbrevRole(type,str) {
+			if(abbrevRoles[type]) {
+				if(abbrevRoles[type][str]) return abbrevRoles[type][str]
+			}
+			return str;
+		}
+		
 		/**
 		 * Expands a compact "role specifier" to a full role name. Allows shorthand role names
 		 * to be used to reduce typing. Short-hand names available:
@@ -3029,9 +3212,15 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * 	-	`polarity` is an optional {@link App.dynamic.Domain#polarity} polarity specifier: `+` or `-`
 		 * 
 		 * @param {String} str
+		 * The domain string to parse
+		 * 
+		 * @param {Boolean} [parseIdentifier=false] 
+		 * See #parseSegmentString.
+		 * 
 		 * @return {App.dynamic.Domain[]}
 		 */
-		function parseDomainString(str) {
+		function parseDomainString(str,parseIdentifier) {
+			parseIdentifier || (parseIdentifier = false)
 			var domains = str.match(/(\w+\[[\w\(\)\*'\s:]+\]\w?[\+-]?)\s?/g);
 			return _.map(domains,function(dom) {
 				var parts = dom.match(/(\w+)\[([\w\(\)\*'\s:]+)](\w?)([\+-]?)/);
@@ -3040,13 +3229,35 @@ App.dynamic = module.exports = (function(_,DNA) {
 				//       0                       1     2                3    4
 				var d = {
 					name: parts[1],
-					segments: parseSegmentString(parts[2]),
+					segments: parseSegmentString(parts[2],parseIdentifier),
 				};
 				var role = expandRole('domain',parts[3]);
 				if(!!role) {d.role = role;}
 				if(!!parts[4]) {d.polarity = parts[4];}
 				return d;		
 			})
+		}
+		
+		/**
+		 * Accepts an array of App.Compiler.Domain objects, and produces a compact,
+		 * text-based representation. Inverse of #parseDomainString.
+		 * 
+		 * @param {App.Compiler.Domain[]} doms
+		 * @param {Number} [polarity=1] Set to -1 to flip the output segmentwise
+		 * @param {Boolean} [omitLengths=false] True to output the domain string without parenthesized length specifiers
+		 * 
+		 */
+		function printDomainString(doms,polarity,omitLengths) {
+			polarity || (polarity = 1);
+			omitLengths || (omitLengths = false);
+			
+			return order(_.map(doms,function(dom) {
+				return [dom.getName(),'[',printSegmentString(order(dom.getSegments())),']',abbrevRole('domain',dom.role || ''),printPolarity(dom.getPolarity())].join('')
+			}),polarity).join(' ')
+		}
+		
+		function printStrandString(strand) {
+			return strand.getName() + ' : ' + printDomainString(strand.getDomains(),strand.getPolarity());
 		}
 		
 		/**
@@ -3062,8 +3273,16 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * 	-	`length` is the length of the Segment in bases
 		 * 	-	`role` is a {@link App.dynamic.Segment#role role name} or {@link #expandRole role specifier}. If 
 		 * 
+		 * @param {String} str
+		 * Space-separated segment string to be parsed
+		 * 
+		 * @param {Boolean} [parseIdentifier=false]
+		 * True to parse the `name` portion into an `identity` and `polarity` using DNA#parseIdentifier 
+		 * 
+		 * @return {App.dynamic.Segment[]} segments
 		 */
-		function parseSegmentString(str) {
+		function parseSegmentString(str,parseIdentifier) {
+			parseIdentifier || (parseIdentifier = false);
 			var segments = str.split(/\s+/g);
 			return _.map(segments,function(seg) {
 				seg.trim();
@@ -3073,9 +3292,14 @@ App.dynamic = module.exports = (function(_,DNA) {
 				//		0			1     2      3
 				//		full		name length  role
 				
-				var s = {
-					name: parts[1],
-				};
+				var s = { };
+				
+				if(parseIdentifier) {					
+					_.extend(s, DNA.parseIdentifier(parts[1]));
+				} else {
+					s.name = parts[1];
+				}
+			
 				var role = expandRole('segment',parts[3]);
 				if(!!role) {s.role = role;}
 				if(!!parts[2]) {
@@ -3087,6 +3311,25 @@ App.dynamic = module.exports = (function(_,DNA) {
 				}
 				return s;
 			})
+		}
+		
+		/**
+		 * Accepts a list of segments and prints compact segment specifiers.
+		 * Inverse of #parseSegmentString.
+		 * 
+		 * @param {App.dynamic.Segment[]} segments
+		 * 
+		 * @return {String} str
+		 * Space-separated segment string to be parsed
+		 */
+		function printSegmentString(segs,omitLengths) {
+			omitLengths || (omitLengths = false)
+			return _.chain(segs).compact().map(function(seg) {
+				if(omitLengths) {
+					return [seg.getIdentifier(),':',abbrevRole('segment',seg.role || '')].join('')
+				}
+				return [seg.getIdentifier(),'(',seg.getLength(),')',abbrevRole('segment',seg.role || '')].join('')
+			}).value().join(' ');
 		}
 		
 		
@@ -3143,7 +3386,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	type: 'loop',
 			    	polarity: '-',
 			    	segments: [
-				      	{name: 'c', role: 'loop'},
+				      	{name: 'c', },
 				        {name: 'b*', role: ''},
 			    	]
 			    }]
@@ -3166,8 +3409,8 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	type: 'loop',
 			    	polarity: '-',
 			    	segments: [
-				      	{name: 'd', role: 'loop'},
-				        {name: 'e', role: 'loop'},
+				      	{name: 'd', },
+				        {name: 'e', },
 				        {name: 'c*', role: ''},
 			    	]
 			    },{
@@ -3200,7 +3443,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	type: 'loop',
 			    	polarity: '+',
 			    	segments: [
-				      	{name: 'd', role: 'loop'},
+				      	{name: 'd', },
 			    	]
 			    },{
 			    	name: 'C',
@@ -3231,7 +3474,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	type: 'loop',
 			    	polarity: '+',
 			    	segments: [
-				      	{name: 'd', role: 'loop'},
+				      	{name: 'd', },
 			    	]
 			    },{
 			    	name: 'C',
@@ -3239,10 +3482,10 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	type: 'loop',
 			    	polarity: '-',
 			    	segments: [
-				      	{name: 'e', role: 'loop'},
-				      	{name: 'f', role: 'loop'},
-				      	{name: 'g', role: 'loop'},
-				      	{name: 'c*', role: 'loop'},
+				      	{name: 'e', },
+				      	{name: 'f', },
+				      	{name: 'g', },
+				      	{name: 'c*', },
 			    	]
 			    },{
 			    	name: 'D',
@@ -3274,8 +3517,8 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	type: 'loop',
 			    	polarity: '-',
 			    	segments: [
-				      	{name: 'd', role: 'loop'},
-				      	{name: 'e', role: 'loop'},
+				      	{name: 'd', },
+				      	{name: 'e', },
 				      	{name: 'c*', role: ''},
 			    	]
 			    },{
@@ -3308,7 +3551,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	type: 'loop',
 			    	polarity: '+',
 			    	segments: [
-				      	{name: 'd', role: 'loop'},
+				      	{name: 'd', },
 				      	{name: 'c*', role: ''},
 			    	]
 			    },{
@@ -3341,7 +3584,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	type: 'loop',
 			    	polarity: '+',
 			    	segments: [
-				      	{name: 'd', role: 'loop'},
+				      	{name: 'd', },
 				      	{name: 'c*', role: ''},
 			    	]
 			    },{
@@ -3381,7 +3624,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	segments:  [
 			      		{name: 'a', role: 'toehold'},
 				      	{name: 'w', role: 'clamp'},
-				        {name: 'b', role: 'reverse'},
+				        {name: 'b', },
 				      	{name: 'x', role: 'clamp'},
 			    	]
 			   },{
@@ -3390,7 +3633,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 				   polarity: '-',
 				   segments: [
 					   {name: 'y', role: 'clamp'},
-					   {name: 'c', role: 'loop'},
+					   {name: 'c', },
 					   {name: 'x*', role: 'clamp'},
 					   {name: 'b*', role: 'toehold'},
 					   {name: 'w*', role: 'clamp'},
@@ -3492,6 +3735,9 @@ App.dynamic = module.exports = (function(_,DNA) {
 			parseDomainsString: parseDomainString,
 			parseSegmentString: parseSegmentString,
 			parseSegmentsString: parseSegmentString,  
+			printDomainString: printDomainString,
+			printStrandString : printStrandString,
+			printSegmentString : printSegmentString,
 		}
 
 	})();
@@ -3500,6 +3746,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 		Node : Node,
 		Motif : Motif,
 		Strand : Strand,
+		Domain : Domain,
 		Segment : Segment,
 		Library : Library,
 		Compiler : Compiler,

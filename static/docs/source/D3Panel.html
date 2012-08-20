@@ -95,11 +95,20 @@ Ext.define('App.ui.D3Panel', {
 		//this.vis.render();
 	},
 	doAutoSize : function() {
-		this.vis
+		if(this.vis != this.svg) {
+			this.vis
+			.attr('width', this.getBodyWidth() - this.visPadding)
+			.attr('height', this.getBodyHeight() - this.visPadding)
+			.style('top', this.visPadding/2)
+			.style('left', this.visPadding/2);
+		}
+
+		this.svg
 		.attr('width', this.getBodyWidth() - this.visPadding)
 		.attr('height', this.getBodyHeight() - this.visPadding)
-		.style('top', this.visPadding)
-		.style('left', this.visPadding);
+		.style('top', this.visPadding/2)
+		.style('left', this.visPadding/2);
+
 		
 		if(this.rect) {
 			this.rect
@@ -145,12 +154,12 @@ Ext.define('App.ui.D3Panel', {
 	 */
 	getCanvas : function() {
 <span id='App-ui-D3Panel-property-vis'>		/**
-</span>		 * @property {pv.Panel} vis
+</span>		 * @property {d3.selection} vis
 		 * The visualization panel to which you can write. Ensure it is built
 		 * by calling {@link #getCanvas}.
 		 */
 		if (!this.vis) {
-			this.vis = d3.select(&quot;#&quot; + this.getEl().id).append(&quot;svg&quot;).style('position', 'absolute').attr(&quot;pointer-events&quot;, &quot;all&quot;);
+			this.vis = this.svg = d3.select(this.body.dom).append(&quot;svg&quot;).style('position', 'absolute').attr(&quot;pointer-events&quot;, &quot;all&quot;);
 			
 			if (this.autoSize) {
 				this.doAutoSize();

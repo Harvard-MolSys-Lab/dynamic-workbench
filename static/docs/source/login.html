@@ -293,7 +293,14 @@ Ext.onReady(function() {
 	});
 	regWindow = new App.RegWindow();
 	loginWindow.show();
-
+	
+	var query = document.location.href.split('?'); 
+	if(query.length &gt; 1) {
+		query = Ext.Object.fromQueryString(query[1]);
+		if(query.action=='register') {
+			createAccount()
+		}
+	}
 });
 // Add the additional 'advanced' VTypes
 Ext.apply(Ext.form.field.VTypes, {

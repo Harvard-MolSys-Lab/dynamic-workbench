@@ -15,10 +15,14 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">if( typeof require === 'function') {
+  <pre class="prettyprint lang-js">if ( typeof _ === 'undefined') {
 	_ = require('underscore')
-} else {
-	exports = {};
+}
+if(typeof module == 'undefined') {
+	module = {};
+}
+if(typeof module.exports == 'undefined') {
+	module.exports = {};
 }
 <span id='DNA'>/**
 </span> * @class DNA
@@ -26,7 +30,104 @@
  * This class is available client-side as `DNA` or server-side as
  * `require('static/lib/dna-utils').DNA`.
  */
-exports.DNA = (function() {
+var DNA = module.exports.DNA = (function(_) {
+	function sum(list) {
+		return _.reduce(list,function(x,y) { return x+y; },0);
+	}
+	
+	function deg(theta) {
+		return ((theta * 180/Math.PI) % 360).toFixed(2);
+	}
+	
+	function coords(pair) {
+		return pair.x.toFixed(2)+','+pair.y.toFixed(2);
+	}
+	
+	function arc2angle(arc,radius) {
+		var c = radius * pi2;
+		return arc/c * pi2;
+	}
+		
+	function Point(cfg) {
+		this.x = cfg.x;
+		this.y = cfg.y;
+	}
+	
+	_.extend(Point.prototype,{
+		toArray: function() {
+			return [this.x,this.y];
+		},
+		toPos: function() {
+			return {x: this.x, y: this.y};
+		},
+		add : function(cfg) {
+			var pt = Point.fromMixed(cfg);
+			return new Point({x :this.x + pt.x, y: this.y + pt.y});
+		},
+		subtract : function(cfg) {
+			var pt = Point.fromMixed(cfg);
+			return new Point({x :this.x - pt.x, y: this.y - pt.y}); 
+		},
+		distance :  function(cfg) {
+			var pt = Point.fromMixed(cfg);
+			return Math.sqrt(Math.pow(this.x - pt.x, 2) + Math.pow(this.y - pt.y, 2));
+		},
+		angle : function(cfg) {
+			if(cfg) {
+				var pt = Point.fromMixed(cfg);
+				return Math.atan2(pt.y - this.y, pt.x - this.x);
+			} else {
+				return Math.atan2(this.y,this.x);
+			}
+		},
+		addPolar : function(theta, radius) {
+			
+			return new Point({
+				x : this.x + Math.cos(theta)*radius, 
+				y : this.y + Math.sin(theta)*radius,
+			});
+			return this;
+		},
+		midpoint : function(cfg) {
+			var pt = Point.fromMixed(cfg);
+			return new Point({
+				x : this.x+(pt.x - this.x) / 2,
+				y : this.y+(pt.y - this.y) / 2,
+			});
+		}
+	});
+	
+	_.extend(Point,{
+		create: function(x,y) {
+			return new Point({
+				x:x, y:y
+			});
+		},
+		fromArray: function(cfg) {
+			return new Point({
+				x: cfg[0],
+				y: cfg[1],
+			});
+		},
+		fromPos: function(cfg) {
+			return new Point(cfg);
+		},
+		fromMixed: function(cfg) {
+			if(cfg instanceof Point) {
+				return cfg;
+			}
+			if(_.isArray(cfg)) {
+				return Point.fromArray(cfg);
+			} else if (_.isObject(cfg) &amp;&amp; cfg.x &amp;&amp; cfg.y) {
+				return Point.fromPos(cfg);
+			}
+		}
+	});
+	
+			
+	
+	
+	
 	//Written by Paul Stothard, University of Alberta, Canada
 
 	//This class performs alignments in linear space, by recursively dividing
@@ -45,21 +146,21 @@ exports.DNA = (function() {
 	var AlignPairLinear = (function() {
 		//AlignPairLinear class align() method
 		function align() {
-			if(this.M.length == 0) {
+			if (this.M.length == 0) {
 
-				for(var j = 1; j &lt;= this.N.length; j++) {
+				for (var j = 1; j &lt;= this.N.length; j++) {
 					this.alignedM.push(&quot;-&quot;);
 					this.alignedN.push(this.N[j - 1]);
 					this.score = this.score + this.scoreSet.gap;
 				}
-			} else if(this.N.length == 0) {
-				for(var j = 1; j &lt;= this.M.length; j++) {
+			} else if (this.N.length == 0) {
+				for (var j = 1; j &lt;= this.M.length; j++) {
 					this.alignedN.push(&quot;-&quot;);
 					this.alignedM.push(this.M[j - 1]);
 					this.score = this.score + this.scoreSet.gap;
 				}
 
-			} else if((this.M.length == 0) &amp;&amp; (this.N.length == 0)) {
+			} else if ((this.M.length == 0) &amp;&amp; (this.N.length == 0)) {
 				//do nothing
 			} else {
 				this.path(0, 0, this.M.length, this.N.length);
@@ -71,26 +172,26 @@ exports.DNA = (function() {
 
 			//alert (&quot;i1, j1, : i2, j2 &quot; + i1 +&quot;, &quot; + j1 + &quot;, &quot; + i2 + &quot;, &quot; + j2);
 
-			if((i1 + 1 == i2) || (j1 == j2)) {
+			if ((i1 + 1 == i2) || (j1 == j2)) {
 				//align using quadratic space alignment
 				var subM = new Array();
 				var subN = new Array();
 
-				for(var i = i1 + 1; i &lt;= i2; i++) {
+				for (var i = i1 + 1; i &lt;= i2; i++) {
 					subM.push(this.M[i - 1]);
 				}
 
-				for(var j = j1 + 1; j &lt;= j2; j++) {
+				for (var j = j1 + 1; j &lt;= j2; j++) {
 					subN.push(this.N[j - 1]);
 				}
 
 				var alignment = new AlignPairQuad();
 				subScoreSet = new ScoreSet();
-				if(j1 == j2) {
+				if (j1 == j2) {
 
-					if(j1 == 0) {
+					if (j1 == 0) {
 						subScoreSet.setScoreSetParam(this.scoreSet.scoringMatrix, this.scoreSet.beginGap, this.scoreSet.beginGap, this.scoreSet.beginGap);
-					} else if(j1 == this.N.length) {
+					} else if (j1 == this.N.length) {
 						subScoreSet.setScoreSetParam(this.scoreSet.scoringMatrix, this.scoreSet.endGap, this.scoreSet.endGap, this.scoreSet.endGap);
 					} else {
 						subScoreSet.setScoreSetParam(this.scoreSet.scoringMatrix, this.scoreSet.gap, this.scoreSet.gap, this.scoreSet.gap);
@@ -103,19 +204,19 @@ exports.DNA = (function() {
 					subScoreSet.useEndGapBottom = false;
 					subScoreSet.useEndGapRight = false;
 
-					if(i1 == 0) {
+					if (i1 == 0) {
 						subScoreSet.useBeginGapTop = true;
 					}
 
-					if(j1 == 0) {
+					if (j1 == 0) {
 						subScoreSet.useBeginGapLeft = true;
 					}
 
-					if(j2 == this.N.length) {
+					if (j2 == this.N.length) {
 						subScoreSet.useEndGapRight = true;
 					}
 
-					if(i2 == this.M.length) {
+					if (i2 == this.M.length) {
 						subScoreSet.useEndGapBottom = true;
 					}
 				}
@@ -138,12 +239,12 @@ exports.DNA = (function() {
 
 				this.Sn[j1] = 0;
 
-				if(i1 == 0) {
-					for(var j = j1 + 1; j &lt;= j2; j++) {
+				if (i1 == 0) {
+					for (var j = j1 + 1; j &lt;= j2; j++) {
 						this.Sn[j] = this.Sn[j - 1] - this.scoreSet.beginGap;
 					}
 				} else {
-					for(var j = j1 + 1; j &lt;= j2; j++) {
+					for (var j = j1 + 1; j &lt;= j2; j++) {
 						this.Sn[j] = this.Sn[j - 1] - this.scoreSet.gap;
 					}
 				}
@@ -152,9 +253,10 @@ exports.DNA = (function() {
 				var diag;
 				var left;
 				//for (var i = i1 + 1; i &lt;= i2; i++) {
-				for(var i = i1 + 1; i &lt;= middle; i++) {
-					diag = this.Sn[j1]; left;
-					if(j1 == 0) {
+				for (var i = i1 + 1; i &lt;= middle; i++) {
+					diag = this.Sn[j1];
+					left;
+					if (j1 == 0) {
 						left = this.Sn[j1] - this.scoreSet.beginGap;
 					} else {
 						left = this.Sn[j1] - this.scoreSet.gap;
@@ -163,16 +265,16 @@ exports.DNA = (function() {
 					this.Sn[j1] = left;
 
 					//we need three values to set the score: diag, left, and above to fill in the row
-					for(var j = j1 + 1; j &lt;= j2; j++) {
+					for (var j = j1 + 1; j &lt;= j2; j++) {
 						//above will be in the this.Sn array, which is holding a mixture of the previous row and the new row
 						//var above = this.Sn[j];
 
 						//pick max of three and store in next left
-						if((j == this.N.length) &amp;&amp; (i == this.M.length)) {
+						if ((j == this.N.length) &amp;&amp; (i == this.M.length)) {
 							left = Math.max(this.Sn[j] - this.scoreSet.endGap, Math.max((left - this.scoreSet.endGap), diag + this.scoreSet.getScore(this.M[i - 1], this.N[j - 1])));
-						} else if(i == this.M.length) {
+						} else if (i == this.M.length) {
 							left = Math.max(this.Sn[j] - this.scoreSet.gap, Math.max((left - this.scoreSet.endGap), diag + this.scoreSet.getScore(this.M[i - 1], this.N[j - 1])));
-						} else if(j == this.N.length) {
+						} else if (j == this.N.length) {
 							left = Math.max(this.Sn[j] - this.scoreSet.endGap, Math.max((left - this.scoreSet.gap), diag + this.scoreSet.getScore(this.M[i - 1], this.N[j - 1])));
 						} else {
 							left = Math.max(this.Sn[j] - this.scoreSet.gap, Math.max((left - this.scoreSet.gap), diag + this.scoreSet.getScore(this.M[i - 1], this.N[j - 1])));
@@ -192,12 +294,12 @@ exports.DNA = (function() {
 
 				this.Sp[j2] = 0;
 
-				if(i2 == this.M.length) {
-					for(var j = j2 - 1; j &gt;= j1; j--) {
+				if (i2 == this.M.length) {
+					for (var j = j2 - 1; j &gt;= j1; j--) {
 						this.Sp[j] = this.Sp[j + 1] - this.scoreSet.endGap;
 					}
 				} else {
-					for(var j = j2 - 1; j &gt;= j1; j--) {
+					for (var j = j2 - 1; j &gt;= j1; j--) {
 						this.Sp[j] = this.Sp[j + 1] - this.scoreSet.gap;
 					}
 				}
@@ -205,9 +307,9 @@ exports.DNA = (function() {
 				//now continue up rows to middle row
 				var right;
 				//for (var i = i2 - 1; i &gt;= i1; i--) {
-				for(var i = i2 - 1; i &gt;= middle; i--) {
+				for (var i = i2 - 1; i &gt;= middle; i--) {
 					diag = this.Sp[j2];
-					if(j2 == this.N.length) {
+					if (j2 == this.N.length) {
 						right = this.Sp[j2] - this.scoreSet.endGap;
 					} else {
 						right = this.Sp[j2] - this.scoreSet.gap;
@@ -216,16 +318,16 @@ exports.DNA = (function() {
 					this.Sp[j2] = right;
 
 					//we need three values to set the score: diag, right, and below to fill in the row
-					for(var j = j2 - 1; j &gt;= j1; j--) {
+					for (var j = j2 - 1; j &gt;= j1; j--) {
 						//below will be in the this.Sp array, which is holding a mixture of the previous row and the new row
 						//var below = this.Sp[j];
 
 						//pick max of three and store in next right
-						if((j == 0) &amp;&amp; (i == 0)) {
+						if ((j == 0) &amp;&amp; (i == 0)) {
 							right = Math.max(this.Sp[j] - this.scoreSet.beginGap, Math.max((right - this.scoreSet.beginGap), diag + this.scoreSet.getScore(this.M[i + 1 - 1], this.N[j + 1 - 1])));
-						} else if(j == 0) {
+						} else if (j == 0) {
 							right = Math.max(this.Sp[j] - this.scoreSet.beginGap, Math.max((right - this.scoreSet.gap), diag + this.scoreSet.getScore(this.M[i + 1 - 1], this.N[j + 1 - 1])));
-						} else if(i == 0) {
+						} else if (i == 0) {
 							right = Math.max(this.Sp[j] - this.scoreSet.gap, Math.max((right - this.scoreSet.beginGap), diag + this.scoreSet.getScore(this.M[i + 1 - 1], this.N[j + 1 - 1])));
 						} else {
 							right = Math.max(this.Sp[j] - this.scoreSet.gap, Math.max((right - this.scoreSet.gap), diag + this.scoreSet.getScore(this.M[i + 1 - 1], this.N[j + 1 - 1])));
@@ -243,8 +345,8 @@ exports.DNA = (function() {
 				var maxValue = this.Sn[j1] + this.Sp[j1];
 				var maxJ = j1;
 
-				for(var j = j1 + 1; j &lt;= j2; j++) {
-					if(this.Sn[j] + this.Sp[j] &gt;= maxValue) {
+				for (var j = j1 + 1; j &lt;= j2; j++) {
+					if (this.Sn[j] + this.Sp[j] &gt;= maxValue) {
 						maxValue = this.Sn[j] + this.Sp[j];
 						maxJ = j;
 					}
@@ -341,10 +443,10 @@ exports.DNA = (function() {
 			this.nodes = new Array(this.M.length + 1);
 
 			//row i
-			for(var i = 0; i &lt; this.nodes.length; i++) {
+			for (var i = 0; i &lt; this.nodes.length; i++) {
 				this.nodes[i] = new Array(this.N.length + 1);
 				//column j
-				for(var j = 0; j &lt; this.nodes[i].length; j++) {
+				for (var j = 0; j &lt; this.nodes[i].length; j++) {
 					this.nodes[i][j] = new Node();
 				}
 			}
@@ -352,8 +454,8 @@ exports.DNA = (function() {
 			this.nodes[0][0].value = 0;
 
 			//i rows
-			for(var i = 1; i &lt; this.nodes.length; i++) {
-				if(this.scoreSet.useBeginGapLeft) {
+			for (var i = 1; i &lt; this.nodes.length; i++) {
+				if (this.scoreSet.useBeginGapLeft) {
 					this.nodes[i][0].value = this.nodes[i - 1][0].value - this.scoreSet.beginGap;
 				} else {
 					this.nodes[i][0].value = this.nodes[i - 1][0].value - this.scoreSet.gap;
@@ -363,8 +465,8 @@ exports.DNA = (function() {
 			}
 
 			//j columns
-			for(var j = 1; j &lt; this.nodes[0].length; j++) {
-				if(this.scoreSet.useBeginGapTop) {
+			for (var j = 1; j &lt; this.nodes[0].length; j++) {
+				if (this.scoreSet.useBeginGapTop) {
 					this.nodes[0][j].value = this.nodes[0][j - 1].value - this.scoreSet.beginGap;
 				} else {
 					this.nodes[0][j].value = this.nodes[0][j - 1].value - this.scoreSet.gap;
@@ -379,15 +481,15 @@ exports.DNA = (function() {
 		function dumpMatrix() {
 			outputWindow.document.write(&quot;Dynamic programming matrix i=&quot; + this.nodes.length + &quot; and j=&quot; + this.nodes[0].length);
 			outputWindow.document.write(&quot;\n&quot;);
-			for(var i = 0; i &lt; this.nodes.length; i++) {
-				for(var j = 0; j &lt; this.nodes[i].length; j++) {
+			for (var i = 0; i &lt; this.nodes.length; i++) {
+				for (var j = 0; j &lt; this.nodes[i].length; j++) {
 					var traceI = this.nodes[i][j].tracebackI;
 					var traceJ = this.nodes[i][j].tracebackJ;
 
-					if(traceI == undefined) {
+					if (traceI == undefined) {
 						traceI = &quot;u&quot;;
 					}
-					if(traceJ == undefined) {
+					if (traceJ == undefined) {
 						traceJ = &quot;u&quot;;
 					}
 					var output = &quot;(&quot; + i + &quot;,&quot; + j + &quot;)[&quot; + traceI + &quot;,&quot; + traceJ + &quot;]=&quot; + this.nodes[i][j].value;
@@ -403,9 +505,9 @@ exports.DNA = (function() {
 		function fillMatrix() {
 
 			//i rows
-			for(var i = 1; i &lt; this.nodes.length; i++) {
+			for (var i = 1; i &lt; this.nodes.length; i++) {
 				//j columns
-				for(var j = 1; j &lt; this.nodes[0].length; j++) {
+				for (var j = 1; j &lt; this.nodes[0].length; j++) {
 
 					var a;
 					var b;
@@ -413,27 +515,27 @@ exports.DNA = (function() {
 
 					//handle end gaps here
 
-					if((i == this.nodes.length - 1) &amp;&amp; (j == this.nodes[0].length - 1)) {
-						if(this.scoreSet.useEndGapRight) {
+					if ((i == this.nodes.length - 1) &amp;&amp; (j == this.nodes[0].length - 1)) {
+						if (this.scoreSet.useEndGapRight) {
 							a = this.nodes[i - 1][j].value - this.scoreSet.endGap;
 						} else {
 							a = this.nodes[i - 1][j].value - this.scoreSet.gap;
 						}
 
-						if(this.scoreSet.useEndGapBottom) {
+						if (this.scoreSet.useEndGapBottom) {
 							b = this.nodes[i][j - 1].value - this.scoreSet.endGap;
 						} else {
 							b = this.nodes[i][j - 1].value - this.scoreSet.gap;
 						}
-					} else if(i == this.nodes.length - 1) {
+					} else if (i == this.nodes.length - 1) {
 						a = this.nodes[i - 1][j].value - this.scoreSet.gap;
-						if(this.scoreSet.useEndGapBottom) {
+						if (this.scoreSet.useEndGapBottom) {
 							b = this.nodes[i][j - 1].value - this.scoreSet.endGap;
 						} else {
 							b = this.nodes[i][j - 1].value - this.scoreSet.gap;
 						}
-					} else if(j == this.nodes[0].length - 1) {
-						if(this.scoreSet.useEndGapRight) {
+					} else if (j == this.nodes[0].length - 1) {
+						if (this.scoreSet.useEndGapRight) {
 							a = this.nodes[i - 1][j].value - this.scoreSet.endGap;
 						} else {
 							a = this.nodes[i - 1][j].value - this.scoreSet.gap;
@@ -445,11 +547,11 @@ exports.DNA = (function() {
 					}
 					c = this.nodes[i - 1][j - 1].value + this.scoreSet.getScore(this.M[i - 1], this.N[j - 1]);
 
-					if((a &gt;= b) &amp;&amp; (a &gt;= c)) {
+					if ((a &gt;= b) &amp;&amp; (a &gt;= c)) {
 						this.nodes[i][j].value = a;
 						this.nodes[i][j].tracebackI = i - 1;
 						this.nodes[i][j].tracebackJ = j;
-					} else if((b &gt;= c) &amp;&amp; (b &gt;= a)) {
+					} else if ((b &gt;= c) &amp;&amp; (b &gt;= a)) {
 						this.nodes[i][j].value = b;
 						this.nodes[i][j].tracebackI = i;
 						this.nodes[i][j].tracebackJ = j - 1;
@@ -474,12 +576,12 @@ exports.DNA = (function() {
 
 			var currentNode = this.nodes[this.nodes.length - 1][this.nodes[0].length - 1];
 
-			while((currentNode.tracebackI != undefined) &amp;&amp; (currentNode.tracebackJ != undefined)) {
+			while ((currentNode.tracebackI != undefined) &amp;&amp; (currentNode.tracebackJ != undefined)) {
 
-				if((currentNode.tracebackI == currentI - 1) &amp;&amp; (currentNode.tracebackJ == currentJ - 1)) {
+				if ((currentNode.tracebackI == currentI - 1) &amp;&amp; (currentNode.tracebackJ == currentJ - 1)) {
 					this.alignedM.push(this.M.pop());
 					this.alignedN.push(this.N.pop());
-				} else if(currentNode.tracebackJ == currentJ - 1) {
+				} else if (currentNode.tracebackJ == currentJ - 1) {
 					this.alignedM.push(&quot;-&quot;);
 					this.alignedN.push(this.N.pop());
 				} else {
@@ -573,7 +675,7 @@ exports.DNA = (function() {
 	function scoringMatrix_getScore(r1, r2) {
 		r1 = r1.toLowerCase();
 		r2 = r2.toLowerCase();
-		if(r1 == r2) {
+		if (r1 == r2) {
 			return this.match;
 		} else {
 			return this.mismatch;
@@ -690,7 +792,7 @@ exports.DNA = (function() {
 	 */
 	function reverse(dnaSequence) {
 		var tempDnaArray = new Array();
-		if(dnaSequence.search(/./) != -1) {
+		if (dnaSequence.search(/./) != -1) {
 			tempDnaArray = dnaSequence.match(/./g);
 			tempDnaArray = tempDnaArray.reverse();
 			dnaSequence = tempDnaArray.join(&quot;&quot;);
@@ -721,8 +823,8 @@ exports.DNA = (function() {
 	 */
 	function parseComplement(identifier) {
 		identifier = identifier.trim();
-		if(identifier.length &gt; 1) {
-			if(identifier[identifier.length - 1] == '*' || identifier[identifier.length - 1] == &quot;'&quot;) {
+		if (identifier.length &gt; 1) {
+			if (identifier[identifier.length - 1] == '*' || identifier[identifier.length - 1] == &quot;'&quot;) {
 				return -1 * parseInt(identifier.substr(0, identifier.length - 1));
 			}
 		}
@@ -743,8 +845,12 @@ exports.DNA = (function() {
 	function parseStrandSpec(spec, delimiter) {
 		delimiter || ( delimiter = ' ');
 		var list = spec.split(delimiter), out = [];
-		for(var i = 0; i &lt; list.length; i++) {
-			out.push(parseComplement(list[i]));
+		for (var i = 0; i &lt; list.length; i++) {
+			var x = list[i];
+			x.trim();
+			if(!!x) {				
+				out.push(DNA.parseIdentifier(list[i]));
+			}
 		}
 		return out;
 	}
@@ -798,7 +904,7 @@ exports.DNA = (function() {
 	function indexTable(table) {
 		var out = {};
 		_.each(table, function(row) {
-			if(row.length &gt; 1) {
+			if (row.length &gt; 1) {
 				out[row[0]] || (out[row[0]] = {});
 				out[row[0]][row[1]] = (row.length &gt; 3 ? row.slice(2) : row[2]);
 			}
@@ -814,10 +920,241 @@ exports.DNA = (function() {
 		});
 		return out;
 	}
+	
+	/*
+	 * Secondary structure layout
+	 */
+	
+	var debug = true;
+	var baseLength = breakWidth = 20, stemWidth = 1.5*baseLength, duplexWidth = stemWidth + baseLength,
+		pi2 = 2*Math.PI;
+					
+	function getBounds(list) {
+		var xmin = list[0][0], xmax = list[0][0], ymin = list[0][1], ymax = list[0][1];
+		
+		for(var i=0;i&lt;list.length;i++) {
+			if(list[i][0] &lt; xmin) { xmin = list[i][0] }
+			if(list[i][0] &gt; xmax) { xmax = list[i][0] }
+			
+			if(list[i][1] &lt; ymin) { ymin = list[i][1] }
+			if(list[i][1] &gt; ymax) { ymax = list[i][1] }
+		}
+		return [[xmin,xmax],[ymin,ymax]]
+	}
+	
+	function getScale(bounds,scale,maintainAspect) {
+		var xscale = 1, yscale = 1, 
+			width = bounds[0][1]-bounds[0][0], height = bounds[1][1] - bounds[1][0];
+		if(maintainAspect) {
+			if(scale[0] &lt; scale[1]) {
+				xscale = yscale = scale[0]/width;
+			} else if (scale[0] &gt;= scale[1]) {
+				xscale = yscale = scale[1]/height; 
+			}
+		
+		} else {						
+			xscale = scale[0]/width;
+			yscale = scale[1]/height;
+		}
+		return [xscale, yscale];
+	}
+	
+	function arrangeLayout(list,options) {
+		options || (options = {});
+		_.defaults(options,{
+			center: true,
+			scale: false,
+			offsets: false,
+			maintainAspect: true,
+		});
+		
+		var bounds = getBounds(list),
+			dx, dy,	width,height,scale,xscale = 1, yscale = 1;
+		if(options.scale) {			
+			scale = getScale(bounds,options.scale,options.maintainAspect);
+			xscale = scale[0], yscale = scale[1];
+		}
+		
+		if(options.center) {
+			dx = bounds[0][0];
+			dy = bounds[1][0];
+		}
+		if(options.offsets) {
+			dx -= options.offsets[0]
+			dy -= options.offsets[1]
+		}
+		
+		return {
+			scale: [xscale,yscale],
+			offsets: [dx,dy],
+			bounds: bounds,
+			pairs: _.map(list,function(pair) {
+				pair[0] -= dx; pair[1] -= dy;
+				pair[0] *= xscale; pair[1] *= yscale; 
+				
+				return pair;
+			})
+		}
+	}
+	
+		
+	function drawLoop(struct,start,theta,space,mode) {
+		mode || (mode = 'circular');
+		
+		if(debug) {
+			console.group('Loop : '+coords(start)+' '+deg(theta)+'° = '+DNA.printDUPlus(struct));
+		}
+		
+		var out = [];
+		
+		if(mode == 'circular') {
+			
+			// Contribution of each chunk to the circumference
+			var dcirc = _.map(struct,function(chunk) {
+				switch(chunk[0]) {
+					case 'H': case 'D': return duplexWidth;
+					case '.': case 'U': return baseLength * chunk[1];
+					case '+': return breakWidth;
+				}
+			});
+			
+			// Total loop circumference
+			var loopCirc = sum(dcirc) + space;
+			
+			// Loop radius
+			var loopRadius = loopCirc / pi2;
+			
+			// Center, starting point
+			var center = start.addPolar(theta,loopRadius),
+				cx = center.x, cy = center.y,
+				x, y;
+				
+			theta += Math.PI;
+			theta += (.5 * space / loopCirc) * pi2;
+			
+			x = Math.cos(theta) * loopRadius + cx;
+			y = Math.sin(theta) * loopRadius + cy;
+			
+			for(var i = 0; i&lt;struct.length; i++) {
+				var chunk = struct[i],
+					dtheta = dcirc[i] / loopCirc * pi2; 
+				
+				switch(chunk[0]) {
+					case 'H':
+					case 'D':
+						// center of duplex should be at theta + dtheta/2
+						var theta_duplexCenter = theta + dtheta/2, 
+							duplexCenter = center.addPolar(theta_duplexCenter,loopRadius);
+							
+						// 
+						var theta_firstBase = theta_duplexCenter - (dtheta * 0.5 * stemWidth/duplexWidth), 
+							//theta_lastBase = theta + dtheta - (dtheta * baseLength/(duplexWidth)),
+							
+							firstBase = center.addPolar(theta_firstBase,loopRadius),
+							//lastBase = center.addPolar(theta_lastBase,loopRadius);
+							
+						out = out.concat(drawDuplex(chunk,theta_duplexCenter,firstBase,dtheta,loopRadius))
+						break;
+					case '.':							
+					case 'U':
+						out = out.concat(drawArc(chunk[1],Point.create(cx,cy),theta,dtheta,loopRadius));
+						break;
+					case '+':
+						break;
+				}
+				theta += dtheta;
+				x = Math.cos(theta) * loopRadius + cx;
+				y = Math.sin(theta) * loopRadius + cy;
+			}
+		
+		}
+		
+		if(debug) {
+			console.groupEnd();
+		}
+		
+		return out;
+		
+	}
+	function drawArc(len,center,theta,sweep,radius) {
+		var dtheta = sweep / len,
+			cx = center.x, cy = center.y, x, y, out = [];
+			
+		if(debug) {						
+			console.log('Arc : '+coords(center)+' '+deg(theta)+'° + '+deg(sweep)+' (dtheta='+dtheta+'°), r: '+radius+' len: '+len);					
+		}
+		
+		theta += dtheta/2;
+		for(var i = 0; i&lt;len; i++) {
+			x = Math.cos(theta) * radius + cx,
+			y = Math.sin(theta) * radius + cy;
+			out.push([x,y,theta]);
+			theta += dtheta;						
+		}
+		return out;
+	}
+	
+	function drawDuplex(chunk,theta,firstBase,sweep,radius) {
+		if(debug) {
+			console.group('Duplex : '+coords(firstBase)+' '+deg(theta)+'° + '+deg(sweep)+', r: '+radius+' = '+chunk);
+		}
+		
+		//theta -= (Math.PI / 2)
+		
+		var len = chunk[1],
+			// cx = center.x,
+			// cy = center.y,
+			x0 = x = firstBase.x, 
+			y0 = y = firstBase.y,
+			x1, y1,
+			dx = Math.cos(theta) * baseLength,
+			dy = Math.sin(theta) * baseLength,
+			theta_normal = theta - (Math.PI/2),
+			out;
+		
+		// Draw first side of duplex
+		out = [[firstBase.x,firstBase.y,theta_normal]];
+		for(var i = 1; i&lt;len; i++) {					
+			x += dx
+			y += dy;
+			out.push([x,y,theta_normal]);
+		}
+		
+		x1 = x;
+		y1 = y;
+
+		// Draw loop
+		theta_normal = theta + (Math.PI/2);
+		x = x1 + Math.cos(theta_normal) * (stemWidth/2);
+		y = y1 + Math.sin(theta_normal) * (stemWidth/2);
+		out = out.concat(drawLoop(chunk[2],Point.create(x,y),theta,duplexWidth))
+									
+		// Draw second side of duplex				
+		x = x1 + Math.cos(theta_normal) * stemWidth;
+		y = y1 + Math.sin(theta_normal) * stemWidth;
+
+		out.push([x,y,theta_normal]);
+		
+		for(var i = 1; i&lt;len; i++) {					
+			x -= dx
+			y -= dy;
+			out.push([x,y,theta_normal]);
+		}
+										
+		if(debug) {
+			console.groupEnd();
+		}
+		
+		return out;			
+	}
+	
+	/*
+	 * NUPACK
+	 */
 
 	function stripNupackHeaders(string) {
 		var arr = string.split('\n');
-		while(arr[0] &amp;&amp; arr[0][0] == '%') {
+		while (arr[0] &amp;&amp; arr[0][0] == '%') {
 			arr.shift();
 		}
 		return arr.join('\n');
@@ -828,15 +1165,49 @@ exports.DNA = (function() {
 		return _.each(string.split('% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %'), function(i) {
 		});
 	};
-
+	
+	/*
+	 * Degenerate bases
+	 */
+	
+	var degenerate = {
+		'A':['A'], // Adenine
+		'C':['C'], // Cytosine
+		'G':['G'], // Guanine
+		'T':['T'], // Thymine
+		'U':['U'], // Uracil
+		'R':['A', 'G'], // puRine
+		'Y':['C', 'T', 'U'], // pYrimidines
+		'K':['G', 'T','U'], // bases which are Ketones
+		'M':['A','C'], // bases with aMino groups
+		'S':['C','G'], // Strong interaction
+		'W':['A', 'T', 'U'], // Weak interaction
+		'B':['C', 'G', 'T', 'U'], // not A (B comes after A)
+		'D':['A', 'G', 'T', 'U'], // not C (D comes after C)
+		'H':['A', 'C', 'T', 'U'], // not G (H comes after G)
+		'V':['C', 'G'], // not U or T (comes after U)
+		'N':['A', 'C', 'G', 'T', 'U'], // aNy
+		'X':[], //masked
+	};
+	var degenerateRegexes = _.reduce(_.keys(degenerate),function(memo,key) {
+		memo[key] = new RegExp('/['+degenerate[key].join('')+']/i');
+		return memo;
+	},{})
+	
+	function matchDegenerate(deg,base) {
+		return degenerateRegexes[deg].test(base)
+	}
+	
 	// Exports
 	return {
 		mapUnique : mapUnique,
 		absUnique : absUnique,
 		amax : amax,
-		
-		parseComplement : parseComplement,
+
+		parseComplement : function() { console.warn(&quot;DNA.parseComplement is deprecated; please use parseIdentifier&quot;); parseComplement.apply(DNA,arguments) },
 		parseStrandSpec : parseStrandSpec,
+		
+		matchDegenerate : matchDegenerate,
 		
 		stripNupackHeaders : stripNupackHeaders,
 		indexTable : indexTable,
@@ -870,7 +1241,7 @@ exports.DNA = (function() {
 
 			var alignment;
 
-			if(useLinearSpace) {
+			if (useLinearSpace) {
 				alignment = new AlignPairLinear();
 				alignment.setAlignParam(newDnaOne, newDnaTwo, scoreSet);
 				alignment.align();
@@ -881,7 +1252,7 @@ exports.DNA = (function() {
 				};
 			}
 
-			if(useQuadraticSpace) {
+			if (useQuadraticSpace) {
 				alignment = new AlignPairQuad();
 				alignment.initializeMatrix(newDnaOne, newDnaTwo, scoreSet);
 				alignment.fillMatrix();
@@ -948,15 +1319,15 @@ exports.DNA = (function() {
 				&quot;r,y,s,w,k,m,b,d,h,v,n&quot; : [&quot;/r|y|s|w|k|m|b|d|h|v|n/&quot;, 1]
 			};
 			var originalLength = sequence.length, full = [], abbr = [];
-			for(var name in list) {
+			for (var name in list) {
 				var tempNumber = 0;
 				var matchExp = list[name][0]
 				matchExp = eval(matchExp + 'gi');
-				if(sequence.search(matchExp) != -1) {
+				if (sequence.search(matchExp) != -1) {
 					tempNumber = ((sequence.match(matchExp)).length);
 				}
 				var percentage = 0, atcguPercent = 0;
-				if((originalLength + 1 - parseFloat(list[name][1])) &gt; 0) {
+				if ((originalLength + 1 - parseFloat(list[name][1])) &gt; 0) {
 					percentage = (tempNumber / (originalLength + 1 - list[name][1]));
 				}
 				full.push({
@@ -964,7 +1335,7 @@ exports.DNA = (function() {
 					count : tempNumber,
 					percent : percentage.toFixed(2),
 				});
-				if('a c g t u'.indexOf(name) != -1 &amp;&amp; tempNumber &gt; 0) {
+				if ('a c g t u'.indexOf(name) != -1 &amp;&amp; tempNumber &gt; 0) {
 					abbr.push({
 						name : name,
 						count : tempNumber,
@@ -993,16 +1364,16 @@ exports.DNA = (function() {
 			// + reimplemented by: Alexander M Beedie
 			// *                example 1: levenshtein('Kevin van Zonneveld', 'Kevin van Sommeveld');
 			// *                returns 1: 3
-			if(s1 == s2) {
+			if (s1 == s2) {
 				return 0;
 			}
 
 			var s1_len = s1.length;
 			var s2_len = s2.length;
-			if(s1_len === 0) {
+			if (s1_len === 0) {
 				return s2_len;
 			}
-			if(s2_len === 0) {
+			if (s2_len === 0) {
 				return s1_len;
 			}
 
@@ -1015,7 +1386,7 @@ exports.DNA = (function() {
 				// Earlier IE may not support access by string index
 			}
 			// END STATIC
-			if(split) {
+			if (split) {
 				s1 = s1.split('');
 				s2 = s2.split('');
 			}
@@ -1024,24 +1395,24 @@ exports.DNA = (function() {
 			var v1 = new Array(s1_len + 1);
 
 			var s1_idx = 0, s2_idx = 0, cost = 0;
-			for( s1_idx = 0; s1_idx &lt; s1_len + 1; s1_idx++) {
+			for ( s1_idx = 0; s1_idx &lt; s1_len + 1; s1_idx++) {
 				v0[s1_idx] = s1_idx;
 			}
 			var char_s1 = '', char_s2 = '';
-			for( s2_idx = 1; s2_idx &lt;= s2_len; s2_idx++) {
+			for ( s2_idx = 1; s2_idx &lt;= s2_len; s2_idx++) {
 				v1[0] = s2_idx;
 				char_s2 = s2[s2_idx - 1];
 
-				for( s1_idx = 0; s1_idx &lt; s1_len; s1_idx++) {
+				for ( s1_idx = 0; s1_idx &lt; s1_len; s1_idx++) {
 					char_s1 = s1[s1_idx];
 					cost = (char_s1 == char_s2) ? 0 : 1;
 					var m_min = v0[s1_idx + 1] + 1;
 					var b = v1[s1_idx] + 1;
 					var c = v0[s1_idx] + cost;
-					if(b &lt; m_min) {
+					if (b &lt; m_min) {
 						m_min = b;
 					}
-					if(c &lt; m_min) {
+					if (c &lt; m_min) {
 						m_min = c;
 					}
 					v1[s1_idx + 1] = m_min;
@@ -1077,65 +1448,69 @@ exports.DNA = (function() {
 			// var struct = &quot;....(((...)))....&quot;;
 			linkStrands = linkStrands || false;
 			params || ( params = {});
-			_.extend(params, {
+			_.defaults(params, {
 				strandValue : 9,
 				hybridizationValue : 2,
+				persistenceValue : 18,
 				radius : 300,
-				segments: {},
-				segmentLabels: false,
+				segments : {},
+				segmentLabels : false,
+				persistenceLength: 2,
 			});
 
 			var nodes = [], links = [], hybridization = [], strandIndex = 0, node, n = 0, base = 0, theta = 0, dtheta = Math.PI / struct.length, currentSegment = null;
 
-			if(params.segmentLabels) {
+			if (params.segmentLabels) {
 				var segmentIndicies = _.keys(params.segments);
 				var labels = {};
-				for(var i = 0; i&lt;(segmentIndicies.length-1); i++) {
-					labels[Math.round((segmentIndicies[i]+segmentIndicies[i+1])/2)] = params.segments[segmentIndicies[i]];
+				for (var i = 0; i &lt; (segmentIndicies.length - 1); i++) {
+					labels[Math.round((segmentIndicies[i] + segmentIndicies[i + 1]) / 2)] = params.segments[segmentIndicies[i]];
 				}
 			}
 
-			for(var i = 0; i &lt; struct.length; i++) {
+			for (var i = 0; i &lt; struct.length; i++) {
 
-				if(struct[i] == '+') {
+				if (struct[i] == '+') {
 					strandIndex++;
 					n--;
 					base = 0;
 				} else {
-					if(params.segments[i]) { currentSegment = params.segments[i]; }
+					if (params.segments[i]) {
+						currentSegment = params.segments[i];
+					}
 					node = {
 						strand : strandIndex,
 						nodeName : (strands &amp;&amp; strands[strandIndex]) ? strands[strandIndex][base] : false,
-						base: (strands &amp;&amp; strands[strandIndex]) ? strands[strandIndex][base] : false,
-						segment: currentSegment,
+						base : (strands &amp;&amp; strands[strandIndex]) ? strands[strandIndex][base] : false,
+						segment : currentSegment,
 						//x: Math.sin(theta)*params.radius,
 						//y: Math.cos(theta)*params.radius,
 					};
 
-					if(struct[i] == '(') {
+					if (struct[i] == '(') {
 						hybridization.push(n);
-					} else if(struct[i] == ')') {
+					} else if (struct[i] == ')') {
 						var link = {
 							source : hybridization.pop(),
 							target : n,
 							value : params.hybridizationValue,
 							type : 'wc'
 						};
-						if(params.ppairs) {
-							if(params.ppairs[link.source + 1] &amp;&amp; params.ppairs[link.source+1][link.target + 1]) {
+						if (params.ppairs) {
+							if (params.ppairs[link.source + 1] &amp;&amp; params.ppairs[link.source+1][link.target + 1]) {
 								link.probability = parseFloat(params.ppairs[link.source+1][link.target + 1]);
 								node.probability = link.probability;
-								if(nodes[link.source]) {
+								if (nodes[link.source]) {
 									nodes[link.source].probability = link.probability;
 								}
-							} else if(params.ppairs[link.target + 1] &amp;&amp; params.ppairs[link.target+1][link.source + 1]) {
+							} else if (params.ppairs[link.target + 1] &amp;&amp; params.ppairs[link.target+1][link.source + 1]) {
 								link.probability = parseFloat(params.ppairs[link.target+1][link.source + 1]);
 								node.probability = link.probability;
-								if(nodes[link.target]) {
+								if (nodes[link.target]) {
 									nodes[link.target].probability = link.probability;
 								}
 							}
-							if(link.probability) {
+							if (link.probability) {
 
 							}
 						}
@@ -1143,8 +1518,8 @@ exports.DNA = (function() {
 					}
 
 					nodes.push(node);
-					if(linkStrands) {
-						if(n &gt; 0 &amp;&amp; (struct[i - 1] != '+')) {
+					if (linkStrands) {
+						if (n &gt; 0 &amp;&amp; (struct[i - 1] != '+')) {
 							links.push({
 								source : n,
 								target : n - 1,
@@ -1152,14 +1527,23 @@ exports.DNA = (function() {
 								type : 'strand',
 							});
 						}
+						
+						if(!!params.persistenceLength &amp;&amp; n &gt; params.persistenceLength &amp;&amp; struct[i - params.persistenceLength] != '+') {
+							links.push({
+								source : n,
+								target : n - params.persistenceLength,
+								value : params.persistenceValue,
+								type : 'persistence',
+							});
+						}
 					}
 					// if(labels[n]) {
-						// links.push({
-							// source : n,
-							// target : 
-						// })
+					// links.push({
+					// source : n,
+					// target :
+					// })
 					// }
-					
+
 					theta += dtheta;
 				}
 				n++;
@@ -1174,68 +1558,68 @@ exports.DNA = (function() {
 <span id='DNA-method-generateAdjacency2'>		/**
 </span>		 * Generates an adjacency network for use with Protovis network visualizations
 		 */
-		generateAdjacency2 : function(strands,params) {
+		generateAdjacency2 : function(strands, params) {
 			// var struct = &quot;....(((...)))....&quot;;
-			
+
 			params || ( params = {});
 			_.defaults(params, {
 				strandValue : 9,
 				hybridizationValue : 2,
 				radius : 300,
-				segments: {},
-				segmentLabels: false,
-				linkStrands: false,
+				segments : {},
+				segmentLabels : false,
+				linkStrands : false,
 			});
 			var linkStrands = params.linkStrands;
 
-			var nodes = [], links = [], hybridization = [], strandIndex = 0, node, n = 0, base = 0,
-			theta = 0, 
-			//dtheta = Math.PI / struct.length, 
+			var nodes = [], links = [], hybridization = [], strandIndex = 0, node, n = 0, base = 0, theta = 0,
+			//dtheta = Math.PI / struct.length,
 			currentSegment = null;
 
 			// if(params.segmentLabels) {
-				// var segmentIndicies = _.keys(params.segments);
-				// var labels = {};
-				// for(var i = 0; i&lt;(segmentIndicies.length-1); i++) {
-					// labels[Math.round((segmentIndicies[i]+segmentIndicies[i+1])/2)] = params.segments[segmentIndicies[i]];
-				// }
+			// var segmentIndicies = _.keys(params.segments);
+			// var labels = {};
+			// for(var i = 0; i&lt;(segmentIndicies.length-1); i++) {
+			// labels[Math.round((segmentIndicies[i]+segmentIndicies[i+1])/2)] = params.segments[segmentIndicies[i]];
 			// }
-			
+			// }
+
 			var n = 0;
-			
+
 			// for each strand
-			for(var strandIndex=0; strandIndex &lt; strands.length; strandIndex++) {
-				var strandSpec = strands[strandIndex],
-					strand = strandSpec.strand;
-				
-				if(strandSpec.structure) {
-					
+			for (var strandIndex = 0; strandIndex &lt; strands.length; strandIndex++) {
+				var strandSpec = strands[strandIndex], strand = strandSpec.strand;
+
+				if (strandSpec.structure) {
+
 					// for each segment
-					for(var i=0; i&lt;strandSpec.structure.length; i++) {
+					for (var i = 0; i &lt; strandSpec.structure.length; i++) {
 						var segmentSpec = strandSpec.structure[i];
 						var segment = segmentSpec.segment;
 						var ch = segmentSpec.type;
 						var sequence = segment.getSequence();
-	
+
 						// for each base
-						for(var j=0; j&lt;segmentSpec.length; j++) {
+						for (var j = 0; j &lt; segmentSpec.length; j++) {
 							node = {
 								strand : strand,
-								segment: segment.getIdentifier(),
-								base: sequence[j],
-								domain: segment.getDomain().getName(),
-								role: segment.getDomain().role,
-								
+								segment : segment.getIdentifier(),
+								base : sequence[j],
+								domain : segment.getDomain().getName(),
+								role : segment.getDomain().role,
+								segment_index : j,
+								segment_length : segmentSpec.length,
+
 								//nodeName : (strands &amp;&amp; strands[strandIndex]) ? strands[strandIndex][base] : false,
 								//base: (strands &amp;&amp; strands[strandIndex]) ? strands[strandIndex][base] : false,
 								//segment: currentSegment,
 								//x: Math.sin(theta)*params.radius,
 								//y: Math.cos(theta)*params.radius,
 							};
-							
-							if(ch== '(') {
+
+							if (ch == '(') {
 								hybridization.push(n);
-							} else if(ch == ')') {
+							} else if (ch == ')') {
 								var link = {
 									source : hybridization.pop(),
 									target : n,
@@ -1243,29 +1627,29 @@ exports.DNA = (function() {
 									type : 'wc'
 								};
 								// if(params.ppairs) {
-									// if(params.ppairs[link.source + 1] &amp;&amp; params.ppairs[link.source+1][link.target + 1]) {
-										// link.probability = parseFloat(params.ppairs[link.source+1][link.target + 1]);
-										// node.probability = link.probability;
-										// if(nodes[link.source]) {
-											// nodes[link.source].probability = link.probability;
-										// }
-									// } else if(params.ppairs[link.target + 1] &amp;&amp; params.ppairs[link.target+1][link.source + 1]) {
-										// link.probability = parseFloat(params.ppairs[link.target+1][link.source + 1]);
-										// node.probability = link.probability;
-										// if(nodes[link.target]) {
-											// nodes[link.target].probability = link.probability;
-										// }
-									// }
-									// if(link.probability) {
-// 
-									// }
+								// if(params.ppairs[link.source + 1] &amp;&amp; params.ppairs[link.source+1][link.target + 1]) {
+								// link.probability = parseFloat(params.ppairs[link.source+1][link.target + 1]);
+								// node.probability = link.probability;
+								// if(nodes[link.source]) {
+								// nodes[link.source].probability = link.probability;
+								// }
+								// } else if(params.ppairs[link.target + 1] &amp;&amp; params.ppairs[link.target+1][link.source + 1]) {
+								// link.probability = parseFloat(params.ppairs[link.target+1][link.source + 1]);
+								// node.probability = link.probability;
+								// if(nodes[link.target]) {
+								// nodes[link.target].probability = link.probability;
+								// }
+								// }
+								// if(link.probability) {
+								//
+								// }
 								// }
 								links.push(link);
 							}
 
 							nodes.push(node);
-							if(linkStrands) {
-								if(i+j&gt;0) {
+							if (linkStrands) {
+								if (i + j &gt; 0) {
 									links.push({
 										source : n,
 										target : n - 1,
@@ -1277,8 +1661,8 @@ exports.DNA = (function() {
 							n++;
 
 						}
-					} 
-					
+					}
+
 				}
 			}
 
@@ -1288,150 +1672,438 @@ exports.DNA = (function() {
 			};
 		},
 		
-		DUtoDotParen: function(struct) {
-			var regex = /([HhDdUu])(\d+)s?(.+)/;
-			//			 (1) ch    (2) d  (3) rest
+		generateAdjacency3 : function(struct, strands, params) {
+			// var struct = &quot;....(((...)))....&quot;;
+			params || ( params = {});
+			_.defaults(params, {
+				sequences : {},
+				strandValue : 9,
+				hybridizationValue : 2,
+				persistenceValue : 18,
+				radius : 300,
+				segments : {},
+				segmentLabels : false,
+				persistenceLength: 2,
+				linkStrands: true,
+			});
+
+			var nodes = [], links = [], hybridization = [], 
+			sequences = DNA.hashComplements(params.sequences) || {},
+			strandIndex = 0, node, n = 0, base = 0;
 			
+			// Remove spaces from structure
+			struct = _.filter(struct.split(''),function(ch) {
+				return !!(ch.trim())
+			});			
 			
-			function resolve(struct,stack) {
-				if(!stack) {stack = [];}
+			var i = 0, // segment-wise counter (tracks position along structure)
+				j = 0; // base-wise counter (tracks position along structure)
 				
-				struct = struct.trim();
+			// for each strand
+			for (var s = 0; s &lt; strands.length; s++) {
 				
-				var lst = struct.match(regex);
-				if(!lst || lst.length != 4) {
-					return '';
-				}
-				var ch = lst[1],
-					d = parseInt(lst[2]),
-					rest = lst[3];
+				var strand = strands[s], 
+				n = 0; // base-wise, per-strand counter
+				
+				// for each domain
+				for(var d = 0; d &lt; strand.domains.length; d++) {
 					
+					var dom = strand.domains[d],
+					m = 0; // base-wise, per-domain counter
+					
+					// for each segment
+					for(var g = 0; g &lt; dom.segments.length; g++) {
+						
+						var seg = dom.segments[g], 
+						id = DNA.parseIdentifier(seg.name), 
+						seq = seg.sequence ? seg.sequence : sequences[seg.name];
+						
+						// for each base
+						for(var k = 0; k &lt; seq.length; k++) {
+							node = {
+								strand : strand.name,
+								domain : dom.name,
+								domain_role: dom.role,
+								segment : seg.name,
+								segment_role : seg.role,
+								segment_identity : id.identity,
+								base : seq[k],
+								
+								segment_index: k,
+								domain_index: m,
+								strand_index: n,
+							};
+							
+							if (struct[i] == '(') {
+								hybridization.push(j);
+							} else if (struct[i] == ')') {
+								var link = {
+									source : hybridization.pop(),
+									target : j,
+									value : params.hybridizationValue,
+									type : 'wc'
+								};
+								links.push(link);
+							}
+		
+							nodes.push(node);
+							
+							if (params.linkStrands) {
+								if (n &gt; 0 ) {
+									links.push({
+										source : j,
+										target : j - 1,
+										type : 'strand',
+										value : params.strandValue,
+										
+										segment: g &gt; 0 ? seg.name : null,
+										segment_identity : g &gt; 0 ? id.identity : null,
+										domain:  m &gt; 0 ? dom.name : null,
+										domain_role : m &gt; 0 ? dom.role : null,
+									});
+								}
+								
+								if(!!params.persistenceLength &amp;&amp; n &gt; params.persistenceLength) {
+									links.push({
+										source : j,
+										target : j - params.persistenceLength,
+										value : params.persistenceValue,
+										type : 'persistence',
+									});
+								}
+							}
+							n++;
+							m++;
+							j++;
+							
+						} // next base
+						i++;
+					} // next segment
+				} // next domain
+				if(!!struct[i] &amp;&amp; struct[i] != '+') {
+					throw Error('Structure specification does not match strand specification. ');
+				}
+				i++;
+				
+			} // next strand
+
+			return {
+				nodes : nodes,
+				links : links,
+				strands : strands,
+			};
+		},
+		
+<span id='DNA-method-expandStructure'>		/**
+</span>		 * @param {String} structure 
+		 * Structure, in dot-paren
+		 * 
+		 * @param {Array} strands
+		 * A parsed {@link #expandStrands strand spec}
+		 * 
+		 * @param {Object} segments
+		 * A name to sequence mapping
+		 */
+		expandStructure: function(structure,strands,sequences) {
+			strands = _.map(strands,function(strand) {
+				return _.comprehend(strand.domains, function(dom) {
+					return dom.segments;
+				});
+			});
+			
+			var structure = _.map(structure.split('+'),function(strandStructure) {
+				return _.filter(strandStructure.split(''),function(ch) { return !!ch &amp;&amp; (ch != ' '); });
+			}), 
+			newStructure = [];
+			
+			// for each strand
+			for(var i = 0; i&lt;strands.length; i++) {
+				var strandStruct = structure[i], strand = strands[i], newStrandStruct = [];
+								
+				for(var j=0; j&lt;strand.length; j++) {
+					var segmentId = strand[j].identity ? strand[j].identity : DNA.parseIdentifier(strand[j].name).identity,
+						segmentSeq = sequences[segmentId],
+						ch = strandStruct[j];
+					
+					newStrandStruct.push(Array(segmentSeq.length+1).join(ch));
+				}
+				
+				newStructure.push(newStrandStruct.join(''));
+			}
+			
+			return newStructure.join('+');			
+		},
+		
+		expandStrands: function(strands) {
+			/*
+			 * strands = [{
+			 * 		name: 'S1',
+			 * 		domains: [{
+			 * 			name: 'd1',
+			 * 			segments: ['1*', '2', '2*']
+			 * 		}, ... ]
+			 * }, ...]
+			 * 
+			 * or
+			 * 
+			 * strands = [[
+			 *		{
+			 * 			name: 'd1',
+			 * 			segments: ['1*', '2', ... ]
+			 * 		}, ...
+			 * ], ...]
+			 * 
+			 * or 
+			 * 
+			 * strands = [[['1*', '2', ...], ... ], ... ]
+			 */
+			return _.map(strands,function(s,i) {
+				if(_.isArray(s)) {
+					s = { name: 'S'+i, domains: s }
+				} else {
+					s = _.clone(s);
+				}
+				s.domains = _.map(s.domains,function(d,j) {
+					if(_.isArray(d)) {
+						d = { name: 'd'+j, segments: d, role: null }
+					} else {
+						d = _.clone(d);
+					}
+					d.segments = _.map(d.segments,function(g,k) {
+						if(_.isString(g)) {
+							g = { name: g, role: null };
+						} else if(_.isNumber(g)) {
+							g = { name: ''+g, role: null };
+						} else {
+							g = _.clone(g);
+						}
+ 						if(g.name &amp;&amp; !g.identity) {
+							var id = DNA.parseIdentifier(g.name);
+							g.identity = id.identity; g.polarity = id.polarity;						
+ 						} else if(g.identity &amp;&amp; g.polarity &amp;&amp; !g.name) {
+ 							g.name = DNA.makeIdentifier(g.identity, g.polarity);
+ 						}
+						
+						return g;
+					})
+					return d;
+				});
+				return s;
+			});
+		},
+
+		DUtoDotParen : function(struct) {
+			var regex = /([+HhDdUu])(\d*)s?(.*)/;
+			//			 (1) ch    (2) d  (3) rest
+
+			function resolve(struct, stack) {
+				if (!stack) {
+					stack = [];
+				}
+
+				struct = struct.trim();
+
+				var lst = struct.match(regex);
+				if (!lst || lst.length != 4) {
+					return {
+						rest: '',
+						stack: stack,
+					};
+				}
+				var ch = lst[1], d = parseInt(lst[2]), rest = lst[3];
+
 				// e.g. struct = &quot;H6( U5 + H2 (U3) )&quot;, &quot;H&quot;, &quot;6&quot;, &quot;( U5 + H2 (U3) )&quot;]
 				// =&gt; [&quot;H6( U5 + H2 (U3) )&quot;, &quot;H&quot;, &quot;6&quot;, &quot;( U5 + H2 (U3) )&quot;]
 				//		0					  1	   2	3
 				//							  ch   d  rest
-				
+
 				switch(ch) {
 					case 'D':
 					case 'H':
 						rest = rest.trim();
-						if(rest[0] == '(') {
+						if (rest[0] == '(') {
 							stack.push(d);
-							var o = parse(rest,stack);
-							o.dp = Array(d+1).join('(') + o.dp + Array(d+1).join(')');
+							var o = parse(rest, stack);
+							o.dp = Array(d + 1).join('(') + o.dp + Array(d + 1).join(')');
 							return o;
 						} else {
-							var o = resolve(rest,stack);
-							o.dp = Array(d+1).join('(') + o.dp + Array(d+1).join(')');
+							var o = resolve(rest, stack);
+							o.dp = Array(d + 1).join('(') + o.dp + Array(d + 1).join(')');
 							return o;
 						}
-						
+
 					case 'U':
-						return {rest: rest, dp: Array(d+1).join('.'), stack: stack};
+						return {
+							rest : rest,
+							dp : Array(d + 1).join('.'),
+							stack : stack
+						};
 					case '+':
-						return {rest: rest, dp:'+', stack: stack};
+						return {
+							rest : rest,
+							dp : '+',
+							stack : stack
+						};
 				}
 			}
-			
-			function parse(struct,stack) {
+
+			function parse(struct, stack) {
 				var rest = struct, out = [];
 				do {
 					rest = rest.trim();
-					if(rest[0] == ')') {
-						var d = stack.pop(),
-							rest = rest.substr(1);
-							
+					if (rest[0] == ')') {
+						var d = stack.pop(), rest = rest.substr(1);
+
 						return {
-							rest: rest,
-							dp: out.join(''),
-							stack: stack
+							rest : rest,
+							dp : out.join(''),
+							stack : stack
 						}
 					}
-					var o = resolve(rest,stack);
+					var o = resolve(rest, stack);
 					stack = o.stack;
 					rest = o.rest;
 					out.push(o.dp);
-				} while(rest != '')	
-				
+				} while(rest != '')
+
 				return {
-					rest: rest,
-					dp: out.join(''),
-					stack: stack
+					rest : rest,
+					dp : out.join(''),
+					stack : stack
 				};
 			}
-			
-			var o = parse(struct,[]);
+
+			var o = parse(struct, []);
 			return o.dp;
 		},
 		
-		dotParenToDU: function(struct) {
-
-			var last = '';
-				count = 0,
-				list = [];
-			
-			_.each(struct.split('').concat(null),function(ch) {
-				if(ch == last) {
-					count ++;
+		parseDotParen : function(struct) {
+			var open_paren_count = 0, close_paren_count = 0, //
+			last = '', count = 0, list = [];
+			_.each(struct.split('').concat(null), function(ch) {
+				if (ch === ' ') {
+					return;
+				}
+				if (ch == last) {
+					count++;
 				} else {
-					if (count != 0)	list.push([last,count]);
+					if (count != 0) {
+						list.push([last, count]);
+						if(last == '(') open_paren_count+=count
+						if(last == ')') close_paren_count+=count
+					}
 					last = ch;
 					count = 1;
 				}
 			});
 			
-			function resolve(struct_list) {
-				if(struct_list.length &gt; 1) {
-					var left = struct_list.shift(),
-						right = struct_list.pop();
-					var left_list = [], right_list = [];
-					
-					while(struct_list.length &gt; 1 &amp;&amp; (left[0] != '(' || right[0] != ')')) {
-						if(left[0] != '(') {
-							left_list.push(resolve([left]));
-							left = struct_list.shift();
-						} 
-						
-						if(right[0] != ')') {
-							right_list.unshift(resolve([right]));
-							right = struct_list.pop();
-						}
-					}
-					
-					// If we now have a duplex
-					if(left[0] == '(' &amp;&amp; right[0] == ')') {
-						if(left[1] &gt; right[1]) {
-							// There's a bulge to the right, so consume (right) paired bases 
-							// for this duplex, return (left - right) paired bases to the 
-							// left side.
-							struct_list.unshift(['(',left[1]-right[1]]);
-							left[1] = right[1];
-						} else if(right[1] &gt; left[1]) {
-							// There's a bulge to the left, so consume (left) paired bases 
-							// for this duplex, return (right - left) paired bases to the 
-							// right side.
-							struct_list.push([')',right[1]-left[1]]);
-							right[1] = left[1];
-						}
-						left_list.push('D'+right[1]+'(');
-						right_list.unshift(')');
-					} else {
-						left_list.push('');
-						right_list.unshift('');
-					}
-					return left_list.join(' ') + resolve(struct_list) + right_list.join(' ') 
-				} else {
-					if(struct_list.length == 0) { 
-						return ''; 
-					} else if(struct_list[0][0] == '.') {
-						return 'U'+struct_list[0][1];
-					} else {
-						// + or space
-						return struct_list[0][0];
-					}
-				}
+			if(open_paren_count != close_paren_count) {
+				throw Error(&quot;Structure parsing error: In dot-paren structure '&quot; +struct+ &quot;', unmatched parentheses: &quot;+open_paren_count+&quot; open, &quot;+close_paren_count+&quot; close parenthesis&quot;);
 			}
-			return resolve(list);
+			
+
+			function resolve(list) {
+				var out = [];
+				while(list.length &gt; 0) {
+					out = out.concat(resolve_loop(list,0));					
+				}
+				return out;
+			}
+
+			function resolve_loop(struct_list, stack) {
+				var inner = [], hd;
+				do {
+					hd = struct_list.shift();
+					while(struct_list.length &gt; 0 &amp;&amp; hd[0] !='(' &amp;&amp; hd[0] !=')') {
+						inner.push(hd)
+						hd = struct_list.shift()
+					} 
+					if(hd) {	
+						if (hd[0] == ')') {
+							var left = stack, right = hd;
+							if (left &gt; right[1]) {
+								/*
+								There's a bulge to the right, so consume (right) paired bases
+								for this duplex, return (left - right) paired bases to the
+								left-side stack.
+								*/
+								stack = left - right[1];
+								//stack = left = right[1];
+								inner = [['D', right[1], inner]];
+							} else if (right[1] &gt; left) {
+								/* There's a bulge to the left, so consume (left) paired bases
+								for this duplex, return (right - left) paired bases to the
+								structure for the outer resolve_loop to handle
+								*/
+								struct_list.unshift([')', right[1] - left]);
+								// right[1] = left;
+								
+								
+								// we'll be done with this loop, and the remaining (right-left) 
+								// bases will be dealt with by 
+								stack = 0; // right[1] - left;
+								
+								
+								inner = [['D', left, inner]];
+							} else {
+								stack = 0;
+								inner = [['D', right[1], inner]];
+								
+							}
+		
+						} else if (hd[0] == '(') {
+							inner = inner.concat(resolve_loop(struct_list, hd[1]));
+						} else {
+							inner = inner.concat([hd]);
+						}
+					}
+				} while (stack &gt; 0 &amp;&amp; struct_list.length &gt; 0)
+				if((stack &gt; 0) &amp;&amp; (struct_list.length == 0)) {
+					throw Error();
+				}
+				return inner
+			}
+			return resolve(list, []);
+		},
+		
+		dotParenToDU : function(struct) {
+			var o = DNA.parseDotParen(struct);
+			return DNA.printDUPlus(o);
+		},
+		
+		printDUPlus: function (loop) {
+			return _.map(loop, function(item) {
+				switch(item[0]) {
+					case 'U':
+					case '.':
+						return 'U' + item[1];
+					case '+':
+						return '+';
+					case 'H':
+					case 'D':
+						if (item[2] &amp;&amp; item[2].length &gt; 0) {
+							return 'D' + item[1] + '(' + DNA.printDUPlus(item[2]) + ')'
+						}
+				}
+			}).join(' ');
+		},
+		
+		getScale: getScale,
+		getBounds: getBounds,
+		arrangeLayout: arrangeLayout,
+		
+		layoutStructure: function(structure,options) {
+			var theta = 0, //Math.PI/2,
+				x = 0, y = 0;
+					
+			if(structure.length==0) { return []; }
+				
+			var points = drawLoop(structure,Point.create(x,y),theta,breakWidth)
+			if(options) {
+				return arrangeLayout(points,options).pairs;
+			} else {
+				return points;
+			}	
 		},
 		
 		normalizeSystem : function(strands) {
@@ -1460,41 +2132,113 @@ exports.DNA = (function() {
 		},
 <span id='DNA-method-threadSegments'>		/**
 </span>		 * Accepts a set of domains and a strand specification, and produces a sequence to represent the strand
-		 * @param {String[]}
+		 * 
+		 * @param {Object} segments
+		 * Hash mapping segment names to sequences, e.g. `{ 'd1': 'ATACG', 'd2':'GCTTA', ... }`
+		 * 
+		 * @param {String/Array} strand
+		 * String strand spec (e.g. `d1 d2* d3 d4*`, `d1 d2' d3' d4`, etc.), or array of 
+		 * {@link #getIdentifier identifier} objects (e.g. `[{identity: 'd1', polarity: -1}, ...]`)
+		 * 
+		 * @param {Boolean} [concat=true]
+		 * True to return a concatenated string, false to return an array of sequences in order
+		 * 
+		 * @returns {String} The complete sequence
 		 */
-		threadSegments : function(segments, strand) {
-			var strandList = _.isArray(strand) ? strand : parseStrandSpec(strand, ' '), sequence = '', id;
-			if(_.isArray(segments)) {
-				if(segments.length &lt; amax(strandList)) {
-					return '';
+		threadSegments : function(segments, strand, concat) {
+			concat = (concat == undefined) ? true : concat;
+			var strandList = _.isArray(strand) ? _.map(strand,function(x) {
+				if(_.isObject(x)) {
+					return x;
+				} else if(_.isNumber(x)) {
+					return { identity: Math.abs(x), polarity: sign(x) }
+				} else {
+					return DNA.parseIdentifier(x);
 				}
-				for(var i = 0; i &lt; strandList.length; i++) {
+			}) : parseStrandSpec(strand, ' '), sequence = [], id;
+			if (_.isArray(segments)) {
+				for (var i = 0; i &lt; strandList.length; i++) {
 					id = strandList[i];
-					if(segments[Math.abs(id) - 1]) {
-						if(id &gt; 0) {
-							sequence += segments[id - 1];
+					if (segments[parseInt(id.identity) - 1]) {
+						if (id.polarity &gt; 0) {
+							sequence.push( segments[parseInt(id.identity) - 1] );
 						} else {
-							sequence += reverseComplement(segments[Math.abs(id) - 1]);
+							sequence.push( reverseComplement(segments[parseInt(id.identity) - 1]) );
 						}
+					} else {
+						throw Error('Threading error: Undefined segment '+id);
 					}
 				}
 			} else {
-				for(var i = 0; i &lt; strandList.length; i++) {
+				for (var i = 0; i &lt; strandList.length; i++) {
 					id = strandList[i];
-					if(segments[Math.abs(id)]) {
-						if(id &gt; 0) {
-							sequence += segments[id];
+					
+					if (segments[id.identity]) {
+						if (id.polarity == 1) {
+							sequence.push( segments[id.identity] );
 						} else {
-							sequence += reverseComplement(segments[Math.abs(id)]);
+							sequence.push( reverseComplement(segments[id.identity]) );
 						}
 					}
 				}
 			}
-			return sequence;
+			if (concat)
+				return sequence.join('');
+			else
+				return sequence;
 		},
 		unthreadSegments : function(sequence, strand) {
 
 		},
+<span id='DNA-method-parseSequences'>		/**
+</span>		 * @param {String} sequences
+		 * @param {String} mode
+		 * 	-	`'nupack'` : `&quot;sequence a = NNNNNN&quot;`
+		 *  -	`'msq' : `&quot;sequence a = NNNNNN&quot;`
+		 *  -	'fasta' : `&quot;&gt;a \n NNNNNNN&quot;`
+		 *  -	`'colon' or `':'` : `&quot;a : NNNNNNN&quot;`
+		 *  -	`'equals' or '=' : `&quot;a = NNNNNNN&quot;`
+		 * 
+		 */
+		parseSequences: function(sequences, mode, options) {
+			
+		},
+<span id='DNA-method-hashComplements'>		/**
+</span>		 * Given a hash mapping names to sequences, e.g.:
+		 * 
+		 *     {
+		 * 	       'a': 'AAATACG',
+		 *         'b': 'TTAAAGAAC',
+		 *         ...
+		 *     }
+		 * 
+		 * Returns an augmented hash which also includes the sequences of the
+		 * reverse complements; e.g.:
+		 * 
+		 *     {
+		 * 	       'a': 'AAATACG',
+		 *         'a*': 'CGTATTT',
+		 *         'b': 'TTAAAGAAC',
+		 *         'b*': 'GTTCTTTAA',
+		 *         ...
+		 *     }
+		 * 
+		 * @param {Object} sequences
+		 * @return {Object} sequencesWithComplement
+		 */
+		hashComplements: function(sequences) {
+			sequences = _.clone(sequences);
+			for(var key in sequences) {
+				if(_.has(sequences,key)) {
+					var id = DNA.makeIdentifier(key,-1);
+					if(!sequences[id]) {
+						sequences[id] = DNA.reverseComplement(sequences[key]);
+					}
+				}
+			}
+			return sequences;
+		},
+		
 <span id='DNA-method-structureSpec'>		/**
 </span>		 * Converts a CodeMirror-parsed NUPACK file into a structure specification.
 		 * @param {Array} lines Result of running CodeMirror#tokenize(string, 'nupack') on a structure specification
@@ -1505,10 +2249,10 @@ exports.DNA = (function() {
 		structureSpec : function(lines) {
 			var sequences = {}, strands = {};
 			_.each(lines, function(line) {
-				if(line.length &gt; 0) {
-					if(line[0][1] == 'structure') {
+				if (line.length &gt; 0) {
+					if (line[0][1] == 'structure') {
 
-					} else if(line[0][1] == 'sequence') {
+					} else if (line[0][1] == 'sequence') {
 						/*
 						 * e.g.:
 						 *     sequence a = 7N
@@ -1517,7 +2261,7 @@ exports.DNA = (function() {
 						var name = line[1][1], spec = _.select(line.slice(3), function(x) {
 							return (x[0] == 'number' || (x[0].indexOf('sequence') != -1));
 						});
-						if(spec[0][0] == 'number') {
+						if (spec[0][0] == 'number') {
 							var base = spec[1][1], times = spec[0][1], spec = '';
 							_.times(times, function() {
 								spec += base;
@@ -1531,7 +2275,7 @@ exports.DNA = (function() {
 						 * e.g.:
 						 *     M1 : 1 2* 3 4
 						 */
-					} else if(line[0][0] == 'variable' &amp;&amp; line[1] &amp;&amp; line[1][1] == ':') {
+					} else if (line[0][0] == 'variable' &amp;&amp; line[1] &amp;&amp; line[1][1] == ':') {
 						var name = line[0][1], spec = _.select(line.slice(2), function(x) {
 							return x[0] == 'string';
 						});
@@ -1571,13 +2315,13 @@ exports.DNA = (function() {
 		 * @returns {Number} polarity Numerical polarity (1 for 5' -&gt; 3', -1 for 3' -&gt; 5')
 		 */
 		parsePolarity : function(polarityString) {
-			if(_.isNumber(polarityString)) {
+			if (_.isNumber(polarityString)) {
 				return this.signum(polarityString);
 			}
 
-			if(polarityString == &quot;-&quot;) {
+			if (polarityString == &quot;-&quot;) {
 				return -1;
-			} else if(polarityString == &quot;+&quot;) {
+			} else if (polarityString == &quot;+&quot;) {
 				return 1;
 			}
 			return 0;
@@ -1599,6 +2343,7 @@ exports.DNA = (function() {
 		 * @return {Object} spec.polarity
 		 */
 		parseIdentifier : function(identifier) {
+			identifier = identifier.trim();
 			return {
 				identity : this.normalizeIdentity(identifier),
 				polarity : this.getPolarity(identifier),
@@ -1612,7 +2357,7 @@ exports.DNA = (function() {
 		 * @returns {String} identity
 		 */
 		normalizeIdentity : function(identifier) {
-			if(this.getPolarity(identifier) == -1) {
+			if (this.getPolarity(identifier) == -1) {
 				return identifier.substring(0, identifier.length - 1);
 			}
 			return identifier;
@@ -1644,10 +2389,8 @@ exports.DNA = (function() {
 		signum : function(number) {
 			return sign(number)
 		},
-		sign: sign,
+		sign : sign,
 	};
-})();
-DNA = exports.DNA;
-</pre>
+})(_);</pre>
 </body>
 </html>

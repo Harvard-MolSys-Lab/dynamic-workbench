@@ -179,19 +179,23 @@ Ext.define('Workspace.objects.VectorObject', {
 	updateAttr : function(attrName, value) {
 		// positioning attributes get treated differently
 		if(attrName == 'x' || attrName == 'y' || attrName == 'width' || attrName == 'height') {
-
-			// hack to prevent anti-aliasing for rectangular things
-			if(attrName == 'x' || attrName == 'y') {
-				value = Math.round(value) + 0.5;
+			
+			if(!this.ignoreChangeDimensions) {
+				
+				// hack to prevent anti-aliasing for rectangular things
+				if(attrName == 'x' || attrName == 'y') {
+					value = Math.round(value) + 0.5;
+				}
+				this.vectorElement.transform(&quot;&quot;);
+				this.vectorElement.attr(attrName, value);
+				this.vectorElement.transform(this.getTransform());
 			}
-			this.vectorElement.transform(&quot;&quot;);
-			this.vectorElement.attr(attrName, value);
-			this.vectorElement.transform(this.getTransform());
 			return;
 		} else if(attrName == &quot;rotation&quot;) {
 			this.vectorElement.transform(&quot;&quot;);
 			//this.vectorElement.rotate(value);
 			this.vectorElement.transform(&quot;r&quot; + (+value || 0));
+			return;
 		}
 		this.vectorElement.attr(attrName, value);
 	},

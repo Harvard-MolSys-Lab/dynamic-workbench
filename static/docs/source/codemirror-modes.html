@@ -309,28 +309,55 @@ CodeMirror.defineMode(&quot;sequence&quot;, function() {
 					stream.skipToEnd();
 					return 'sequence-name';
 				case 'a':
-					return 'sequence-a';
 				case 'A':
 					return 'sequence-a';
 				case 'u':
-					return 'sequence-u';
 				case 'U':
 					return 'sequence-u';
 				case 't':
-					return 'sequence-t';
 				case 'T':
 					return 'sequence-t';
 				case 'c':
-					return 'sequence-c';
 				case 'C':
 					return 'sequence-c';
 				case 'g':
-					return 'sequence-g';
 				case 'G':
 					return 'sequence-g';
+				
+				// Degenerate bases
 				case 'n':
 				case 'N':
-						return 'sequence-n';
+					return 'sequence-n';
+				case 'r':
+				case 'R':
+					return 'sequence-r';
+				case 'y':
+				case 'Y':
+					return 'sequence-y';
+				case 'k':
+				case 'K':
+					return 'sequence-k';
+				case 'm':
+				case 'M':
+					return 'sequence-m';
+				case 's':
+				case 'S':
+					return 'sequence-s'; 
+				case 'w':
+				case 'W':
+					return 'sequence-w';
+				case 'b':
+				case 'B':
+					return 'sequence-b';
+				case 'd':
+				case 'D':
+					return 'sequence-d';
+				case 'h':
+				case 'H':
+					return 'sequence-h';
+				case 'v':
+				case 'V':
+					return 'sequence-v';
 				
 			}
 			if(ch.match(/\d/)) {
@@ -389,7 +416,7 @@ CodeMirror.defineMode(&quot;dd-sequence&quot;, function() {
 
 CodeMirror.defineMode(&quot;nupack&quot;, function(config) {
 	var sequenceMode = CodeMirror.getMode(config,'sequence');
-	var ms = !!config.mode.multisubjective;
+	var ms = !!config &amp;&amp; !!config.mode &amp;&amp; !!config.mode.multisubjective;
 	return {
 		startState: function() {
 			return {value:''};
@@ -428,7 +455,7 @@ CodeMirror.defineMode(&quot;nupack&quot;, function(config) {
 							state.value = 'ms-definition-left';
 							return 'keyword';
 						} else if(stream.match('static',true,true)) {
-							state.value = 'ms-definition-left';
+							state.value = 'ms-definition-key';
 							return 'keyword';
 						} else if(stream.match('length',true,true)) {
 							state.value = 'sequence-definition-left';
@@ -450,7 +477,10 @@ CodeMirror.defineMode(&quot;nupack&quot;, function(config) {
 			} else if(state.value=='ms-definition-right') {
 				state.value='';
 				return '';
-			
+			} else if(state.value=='ms-definition-key') {
+				stream.eatWhile(/\S/);
+				state.value = '';
+				return 'string';
 			// structure (name) = (spec in HU+)
 			} else if(state.value=='structure-definition-left') {
 				stream.eatWhile(/\S/);
@@ -517,6 +547,93 @@ CodeMirror.defineMode(&quot;nupack&quot;, function(config) {
 	};
 });
 
+CodeMirror.defineMode(&quot;dil-domains&quot;, function(config) {
+	var sequenceMode = CodeMirror.getMode(config,'sequence');
+	return {
+		startState: function() {
+			return {expects:''};
+		},
+		token: function(stream,state) {
+
+			
+			switch(state.expects) {
+				// Beginning of line
+				case '':
+					if(stream.eatSpace()) {
+						return '';
+					} else if(stream.eatWhile(/^\w+/)) {						
+						state.expects = 'domain-block-open';
+						return 'variable'
+					}
+					return '';
+				case 'domain-block-open':
+					if(stream.eat('[')) {
+						state.expects = 'domain-block'
+						return 'bracket';
+					}
+					
+					stream.skipToEnd();
+					state.expects = '';
+					return 'error';
+					
+				case 'domain-block':
+					if(stream.eatSpace()) {
+						return '';
+					}
+					
+					if(stream.eat(']')) {
+						state.expects = 'domain-block-specifier'
+						return 'bracket'
+					} else if(stream.match(/^[\w\*']+/)) {
+						state.expects = 'segment-block'
+						return 'variable-2'
+					}
+					
+					stream.skipToEnd();
+					state.expects = '';
+					return 'error';
+					
+				case 'segment-block':
+					if(stream.match(/^\(\d+\)/)) {
+						state.expects = 'segment-block-specifier'
+						return 'number'
+					} else if(stream.eat(':')) {
+						state.expects = 'segment-block-specifier'
+						return 'operator'
+					} 
+					stream.eatSpace();
+					state.expects = 'domain-block';
+					return '';
+				case 'segment-block-specifier':
+					if(stream.match(/^\w+/)) {
+						state.expects = 'domain-block';
+						return 'keyword'
+					} 
+					stream.eatSpace()
+					state.expects = 'domain-block';
+					return '';
+				case 'domain-block-specifier':
+					if(stream.match(/^\w+/)) {
+						state.expects = 'domain-block-polarity'
+						return 'keyword'
+					}
+					state.expects = 'domain-block-polarity';
+					return '';
+				case 'domain-block-polarity':
+					if(stream.eat(/[\+-0]/)) {
+						state.expects = '';
+						return 'atom'
+					}
+					state.expects = '';
+					return '';
+					
+			}
+	
+		}
+	};
+});
+
+
 	
 CodeMirror.tokenize = function(string,modespec,callback) {
 	var mode = CodeMirror.getMode({indentUnit: 2}, modespec);
@@ -533,6 +650,31 @@ CodeMirror.tokenize = function(string,modespec,callback) {
 		}
 	}
 	return out;
+}
+
+CodeMirror.modeRenderer = function(mode,wrapperCls) {
+	wrapperCls || (wrapperCls = ''); 
+	return function(v) {
+		var x = {
+			innerHTML : '',
+			nodeType : 1
+		};
+		CodeMirror.runMode(v, mode, x);
+		if(!!wrapperCls) {
+			return '&lt;span class=&quot;' + wrapperCls + '&quot;&gt;' + x.innerHTML + '&lt;/span&gt;';			
+		} else {
+			return x.innerHTML;
+		}
+	}
+}
+
+CodeMirror.renderMode = function(mode,v) {
+	var x = {
+		innerHTML : '',
+		nodeType : 1
+	};
+	CodeMirror.runMode(v, mode, x);
+	return x.innerHTML;
 }
 </pre>
 </body>

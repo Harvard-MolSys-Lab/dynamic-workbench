@@ -15,11 +15,12 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">if( typeof require === 'function') {
-	_ = require('underscore');
+  <pre class="prettyprint lang-js">if ( typeof require === 'function') {
+	_ = require('underscore')
 	DNA = require('./dna-utils.js').DNA;
-} else {
-	module = {}; module.exports = {};
+}
+if(typeof module == 'undefined') {
+	module = {};
 }
 if( typeof App == 'undefined') {
 	App = {};
@@ -85,11 +86,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * @returns {Object} destination
 		 */
 		copyTo : function(destination, source) {
-			_.each(source, function(value, key) {
+			for (var key in source) {
 				if(_.has(source,key)) {
-					destination[key] = value;
+					destination[key] = source[key];
 				}
-			});
+			};
 			return destination;
 		},
 <span id='_-method-copyWith'>		/**
@@ -114,8 +115,82 @@ App.dynamic = module.exports = (function(_,DNA) {
 				dest = source;
 			}
 			return dest;
+		},
+<span id='_-method-comprehend'>		/**
+</span>		 * Produces a new array of values by mapping each value in the list 
+		 * to one or more values by a transformation function (`iterator`).
+		 * Iterator can return an array of multiple values, which will be
+		 * concatenated onto the final list.
+		 * 
+		 * In this way, `comprehend` acts like a 1:n version of {@link _#map map}.
+		 * @param {Array} list List to comprehend
+		 * @param {Function} iterator Transformation function
+		 * @param {Mixed} iterator.value The next value in the list
+		 * @param {Number} iterator.index The index of the current value in the original list
+		 * @param {Array} [initial=[]] The initial value of the output array
+		 * @param {Mixed} [context] Scope in which to execute the `iterator`
+		 * @return {Array} comprehension 
+		 */
+		comprehend: function(list,iterator,initial,context) {
+			if (context) iterator = _.bind(iterator, context);
+			if (!initial) { initial = []; }
+			return _.reduce(list,function(memo,x,i) {
+				memo = memo.concat(iterator(x,i));
+				return memo;
+			},initial);
+		},
+<span id='_-method-reverse'>		/**
+</span>		 * Returns a reversed, shallow copy of a list
+		 * @param {Array} list
+		 * @return {Array} reversed
+		 */
+		reverse : function(list) {
+			var l = _.clone(list);
+			l.reverse();
+			return l;
 		}
 	});
+	
+	/* ***************************************************************** */
+	
+	function lengths(list) {
+		return _.invoke(list,'getLength')
+	}
+
+	function names(list) {
+		return _.invoke(list,'getName')
+	}
+	
+	function ids(list) {
+		return _.invoke(list,'getIdentifier')
+	}
+	
+	function sum(ls) {
+    	return _.reduce(ls,function(m,x) {return m+x},0);
+    }				    
+   
+    function repr(x) {
+    	return x;
+    }
+    
+    function range(x) {
+    	return _.range(0,x);
+    }
+
+<span id='_-method-order'>	/**
+</span>	 * Returns a reversed shallow copy of an array if polarity == -1, else returns a 
+	 * shallow copy of the array in its original order
+	 * @param {Array} list
+	 * @param {Number} polarity
+	 * @return {Array} list
+	 */
+	function order(list,polarity) {
+		var x = _.clone(list);
+		if(polarity == -1) {
+			x.reverse();
+		}
+		return x;
+	}
 
 	/* ***************************************************************** */
 
@@ -230,7 +305,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 		}
 		
 
-<span id='App-dynamic-Motif-property-each'>		/**
+<span id='App-dynamic-Motif-property-'>		/**
 </span>		 * @property {App.dynamic.Domain[]}
 		 * @private
 		 * Use #getDomains
@@ -259,7 +334,13 @@ App.dynamic = module.exports = (function(_,DNA) {
 </span>		 * @property
 		 */
 		this.polarity = DNA.parsePolarity(this.polarity);
-
+		
+		
+		// Apply post-processor
+		if(Motif.types[this.type]) {
+			Motif.types[this.type](this);
+		}
+		
 		this.library.register('motif',this.name, this);
 	}
 
@@ -282,6 +363,20 @@ App.dynamic = module.exports = (function(_,DNA) {
 				return domain.getSegments();
 			}));
 		},
+<span id='App-dynamic-Motif-method-getOrderedSegments'>		/**
+</span>		 * Gets all {@link App.dynamic.Segment segments} associated with this motif/node 
+		 * in the order they appear, 5' to 3', accounting for {@link #polarity}.
+		 * @returns {App.dynamic.Segment}
+		 */
+		getOrderedSegments : function() {
+			// return order(_.comprehend(this.getStrands(), function(strand) {
+				// return strand.getSegments();
+			// }),this.getPolarity());
+			
+			return _.clone(_.comprehend(this.getOrderedStrands(),function(strand) {
+				return strand.getOrderedSegments();
+			}))
+		},
 <span id='App-dynamic-Motif-method-getDomains'>		/**
 </span>		 * Gets all {@link App.dynamic.Domain domains} associated with this motif/node
 		 * @returns {App.dynamic.Domain[]} domains
@@ -291,8 +386,24 @@ App.dynamic = module.exports = (function(_,DNA) {
 				return strand.getDomains();
 			}))
 		},
+<span id='App-dynamic-Motif-method-getOrderedDomains'>		/**
+</span>		 * Gets {@link App.dynamic.Domain}s associated with this Node/Motif 
+		 * in the order they appear, 5' to 3', accounting for {@link #polarity}
+		 */
+		getOrderedDomains: function() {
+			return order(_.comprehend(this.getOrderedStrands(),function(strand) {
+				return strand.getOrderedDomains();
+			}),this.getPolarity());
+		},
 		getStrands : function() {
 			return this.strands;
+		},
+<span id='App-dynamic-Motif-method-getOrderedStrands'>		/**
+</span>		 * Gets {@link App.dynamic.Strand}s associated with this Node/Motif 
+		 * in the order they appear, 5' to 3', accounting for {@link #polarity}
+		 */
+		getOrderedStrands: function() {
+			return order(this.getStrands(),this.getPolarity())
 		},
 <span id='App-dynamic-Motif-method-getDomain'>		/**
 </span>		 * Gets the {@link App.dynamic.Domain domain} with the provided name
@@ -310,10 +421,33 @@ App.dynamic = module.exports = (function(_,DNA) {
 		serialize: function() {
 			var out = _.copy(this);
 			if(out.library) { delete out.library; }
+			if(out.domains) { delete out.domains; }
 			return _.serialize(out);
 		}
 	}
 	_.extend(Motif, {
+<span id='App-dynamic-Motif-static-property-types'>		/**
+</span>		 * Hash of post-processors to be passed the node at the end of the constructor.
+		 * 
+		 * Current types:
+		 * -	`hairpin`
+		 * 
+		 * @static
+		 */
+		types: {
+			'hairpin': function(node) {
+				_.each(node.getDomains(),function(dom) {
+					if(dom.role == 'output' &amp;&amp; !dom.type) {
+						if(dom.polarity == -1) {
+							dom.type == 'loop';
+						} else if(dom.polarity == 1) {
+							dom.type == 'tail';
+						}
+					}
+				});
+			}
+		},
+		
 <span id='App-dynamic-Motif-static-method-nextName'>		/**
 </span>		 * Gets the next available motif name.
 		 * @static
@@ -389,6 +523,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 		// }, {});
 
 		// Capture any domain/strand properties specified on the nodes
+		
+		// Parse compact input format
+		if(_.isString(config.domains)) {
+			config.domains = Compiler.parseDomainString(config.domains);
+		}
 		var nodeDomainProperties = _.reduce(config.domains || [], function(memo, domain) {
 			memo[domain.name] = domain;
 			return memo;
@@ -399,8 +538,10 @@ App.dynamic = module.exports = (function(_,DNA) {
 			return memo;
 		},{});
 		
-		delete config.domains;
-		delete config.strands;
+		if(config.motif) {			
+			delete config.domains;
+			delete config.strands;
+		}
 
 		// Apply configuration options with defaults to this object
 		_.copyTo(this, config), _.defaults({
@@ -415,39 +556,52 @@ App.dynamic = module.exports = (function(_,DNA) {
 			polarity : 0,
 		});
 		
+		if(this.domains &amp;&amp; !this.strands) {
+			//var structure = strandStructures[0]; 
+			this.strands = [
+				new Strand({
+					library: this.library,
+					domains: this.domains,
+					node: this,
+					//structure: structure,
+				})
+			];
+		} else {	
 		
-		
-		this.strands = _.map(this.strands,function(strand,i) {
-			
-			// See if additional strand properties for this strand were specified by the node
-			strand = _.copyWith(strand,nodeStrandProperties[strand.name] || {});
-			// (must always copy else assigning to strand screws things up)
-			
-			// if(nodeStrandProperties[strand.name]) {
-			// }
-
-			// See if additional domain properties for this strand were specified by the node			
-			strand.domains = _.map(strand.domains, function(domain) {
-		
-				// Find domains with matching identities in motif
-				//if(domain.identity &amp;&amp; motifDomainsMap[domain.identity]) {
-				//	domain = _.extend(_.copy(motifDomainsMap[domain.identity]), domain);
-				//}
-				//domain.node = this;
+			this.strands = _.map(this.strands,function(strand,i) {
 				
-				if(nodeDomainProperties[domain.name]) {
-					domain = _.copyWith(domain,nodeDomainProperties[domain.name]);
+				// See if additional strand properties for this strand were specified by the node
+				strand = _.copyWith(strand,nodeStrandProperties[strand.name] || {});
+				// (must always copy else assigning to strand screws things up)
+				
+				// Parse compact input format
+				if(_.isString(strand.domains)) {
+					strand.domains = Compiler.parseDomainString(strand.domains);
 				}
 				
-				return domain //new Domain(domain);
+				// See if additional domain properties for this strand were specified by the node			
+				strand.domains = _.map(strand.domains, function(domain) {
 			
-			}, this);
-			
-			strand.name || (strand.name = (this.strands.length &gt; 1) ? 'strand'+i : '');
-			strand.library = this.library;
-			
-			return new Strand(_.copyWith(strand,{ node: this }));
-		},this);
+					// Find domains with matching identities in motif
+					//if(domain.identity &amp;&amp; motifDomainsMap[domain.identity]) {
+					//	domain = _.extend(_.copy(motifDomainsMap[domain.identity]), domain);
+					//}
+					//domain.node = this;
+					
+					if(nodeDomainProperties[domain.name]) {
+						domain = _.copyWith(domain,nodeDomainProperties[domain.name]);
+					}
+					
+					return domain //new Domain(domain);
+				
+				}, this);
+				
+				strand.name || (strand.name = (this.strands.length &gt; 1) ? 'strand'+i : '');
+				strand.library = this.library;
+				
+				return new Strand(_.copyWith(strand,{ node: this }));
+			},this);
+		}
 		
 		// Construct Domain objects from specifications
 		// this.domains = 		_.map(this.domains, function(domain) {
@@ -462,7 +616,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 		// }, this);
 		
 		// TODO: compiler should do this.
-		if(this.isInitiator) {
+		if(this.isInitiator &amp;&amp; !this.polarity) {
 			this.polarity = -1;
 		}
 		
@@ -547,27 +701,40 @@ App.dynamic = module.exports = (function(_,DNA) {
 
 		},
 		getStructure: function() {
-			return Structure.join(_.map(this.getStrands(),function(strand) {
+			var concatamer = Structure.join(_.map(this.getStrands(),function(strand) {
 				return strand.getStructure();
 			}));
+			
+			if(this.getPolarity() == -1) {
+				return concatamer.reverse();
+			}
+			return concatamer;
 		},
 <span id='App-dynamic-Node-method-getAnnotatedStructure'>		/**
 </span>		 * Returns object like:
 		 * 	[{strand: {Strand}, structure:strand.getAnnotatedStructure()},...]
 		 */
 		getAnnotatedStructure: function() {
-			return _.map(this.getStrands(),function(strand) {
-				return {strand: strand, structure: strand.getAnnotatedStructure()};
+			var s = _.map(this.getStrands(),function(strand) {
+				return { strand: strand, structure: strand.getAnnotatedStructure(), dotParen: strand.getStructure().toDotParen() };
 			});
+			s.dotParen = this.getStructure().toDotParen();
+			return s;
 		},
 		getSegmentwiseStructure: function() {
 			return Structure.join(_.map(this.getStrands(),function(strand) {
 				return strand.getSegmentwiseStructure();
 			}));
 		},
+		getOrderedSegmentLengths: function() {
+			return _.comprehend(this.getOrderedStrands(),function(strand) {
+				return strand.getOrderedSegmentLengths();
+			});
+		},
 		serialize: function() {
 			var out = _.copy(this);
-			if(out.motif) { out.motif = out.motif.getName(); }
+			if(out.motif &amp;&amp; !_.isString(out.motif) &amp;&amp; out.motif.getName) { out.motif = out.motif.getName(); }
+			if(out.domains) { delete out.domains; }
 			if(out.library) { delete out.library; }
 			return _.serialize(out);
 		}
@@ -584,27 +751,12 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 */
 		types: {
 			'hairpin': function(node) {
-				_.each(node.getDomains(), function(domain) {
-					if(domain.role=='input') {
-						// all segments other than toehold will be duplex
-						_.each(domain.getSegments(),function(segment) {
-							segment.duplex = (segment.role != 'toehold');
-						});
-					} else if(domain.role=='output') {
-						if(domain.type == 'loop') {
-							// segments will be duplex if (role != 'loop') and (role of previous segment != 'loop' if role == 'clamp')
-							var previousRole = ''
-							_.each(domain.getSegments(),function(segment) {
-								segment.duplex = !(segment.role == 'loop' || (segment.role == 'clamp' &amp;&amp; previousRole == 'loop'));
-								previousRole = segment.role;
-							});
-						} else if(domain.type == 'tail') {
-							// segments will be duplex if (role == 'toehold') or (role == 'clamp' and previous role == 'toehold')
-							var previousRole = ''
-							_.each(domain.getSegments(),function(segment) {
-								segment.duplex = (segment.role == 'toehold' || (segment.role == 'clamp' &amp;&amp; previousRole == 'toehold'));
-								previousRole = segment.role;
-							});
+				_.each(node.getDomains(),function(dom) {
+					if(dom.role == 'output' &amp;&amp; !dom.type) {
+						if(dom.polarity == -1) {
+							dom.type == 'loop';
+						} else if(dom.polarity == 1) {
+							dom.type == 'tail';
 						}
 					}
 				});
@@ -656,12 +808,21 @@ App.dynamic = module.exports = (function(_,DNA) {
 		_.defaults(this, {
 		});
 		
-<span id='App-dynamic-Strand-property-domains'>		/**
+<span id='App-dynamic-Strand-property-'>		/**
 </span>		 * @property {App.dynamic.Domain[]}
 		 * @private
 		 * Use #getDomains
 		 */
+		
+		if(_.isString(this.domains)) {
+			this.domains = Compiler.parseDomainString(this.domains);
+		}
+		
 		this.domains = _.map(this.domains, function(domain) {
+			if(_.isString(domain)) {
+				domain = _.first(Compiler.parseDomainString(domain));
+			}
+			
 			return new Domain(_.copyWith(domain,{ strand: this, library: this.library, }));
 			// return new Domain(_.copyTo(_.copy(domain),{
 				// strand: this
@@ -735,18 +896,18 @@ App.dynamic = module.exports = (function(_,DNA) {
 </span>		 * @inheritdoc App.dynamic.Node#getSegments
 		 */
 		getSegments : function() {
-			return _.flatten(_.map(this.getDomains(), function(domain) {
+			return _.comprehend(this.getDomains(), function(domain) {
 				return domain.getSegments();
-			}));
+			});
 		},
 <span id='App-dynamic-Strand-method-getOrderedSegments'>		/**
 </span>		 * Returns segments in the order they occur on the strand (accounting for polarity)
 		 */
 		getOrderedSegments : function() {
-			var rev = (this.getAbsolutePolarity() == -1);			
-			return _.flatten(_.map(this.getOrderedDomains(), function(domain) {
-				return rev ? _.clone(domain.getSegments()).reverse() : domain.getSegments()
-			}));
+			return order(_.comprehend(this.getDomains(), function(domain) {
+				//return domain.getOrderedSegments();
+				return domain.getSegments();
+			}),this.getAbsolutePolarity());
 		},
 <span id='App-dynamic-Strand-method-getDomains'>		/**
 </span>		 * @inheritdoc App.dynamic.Node#getDomains
@@ -755,14 +916,10 @@ App.dynamic = module.exports = (function(_,DNA) {
 			return this.domains;
 		},
 <span id='App-dynamic-Strand-method-getOrderedDomains'>		/**
-</span>		 * Returns domains in the order they occur on the strand (accounting for polarity)
+</span>		 * Returns domains in the order they occur on the strand (accounting for {@link #polarity relative polarity})
 		 */
 		getOrderedDomains : function() {
-			if(this.getAbsolutePolarity == -1) {
-				return _.clone(this.domains).reverse();
-			} else {
-				return _.clone(this.getDomains());
-			}
+			return order(this.getDomains(),this.getPolarity())
 		},
 <span id='App-dynamic-Strand-method-getDomain'>		/**
 </span>		 * @inheritdoc App.dynamic.Node#getDomain
@@ -777,9 +934,13 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * @return {Number[]}
 		 */
 		getSegmentLengths: function() {
-			return _.map(this.getSegments(),function(segment) {
-				return segment.getLength();
-			})
+			return lengths(this.getSegments());
+		},
+		getOrderedSegmentLengths: function() {
+			return lengths(this.getOrderedSegments());
+		},
+		getLength: function() {
+			return sum(this.getSegmentLengths());
 		},
 <span id='App-dynamic-Strand-method-getSegmentwiseStructure'>		/**
 </span>		 * Returns the structure of the strand, representing each segment
@@ -808,42 +969,29 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * @return {App.dynamic.Structure} structure
 		 */
 		getStructure : function() {
-			return this.structure.expand(this.getSegmentLengths());
-			
-				// var duplex = false, lastDuplex = false, regionLength = 0, out = [];
-// 				
-				// // This code isn't right
-				// _.each(this.getSegments(),function(segment) {
-// 					
-// 					
-					// if(!!segment.duplex != duplex) {
-						// if(regionLength &gt; 0) {						
-							// out.push((duplex ? 'D' : 'U') +regionLength);
-// 							
-							// // silence the next duplex 
-							// if(duplex) {
-								// lastDuplex = !lastDuplex;								
-							// }
-						// }
-						// duplex = !duplex;
-						// regionLength = 0;
-					// }
-// 
-					// if(!!segment.duplex == duplex) {
-						// if(duplex &amp;&amp; lastDuplex) {
-							// return;
-						// }
-						// regionLength += segment.getLength();
-					// }
-// 					
-				// });
-// 				
-				// // Finish the remaining segment
-				// if(regionLength &gt; 0) {
-					// out.push((duplex ? 'D' : 'U') +regionLength);
-				// }
-// 				
-				// return out.join(' ')				
+			try {
+				var struct = this.structure;
+				var exp = struct.expand(this.getSegmentLengths());				
+				if(this.getPolarity() == -1) {
+					exp = exp.reverse();
+				}
+				return exp;
+				
+			} catch(e) {
+				e.message = &quot;In strand &quot;+this.getQualifiedName()+&quot;, &quot;+e.message;
+				throw e;
+			}
+	
+		},
+		getSequence: function() {
+			var seq = _.map(this.getSegments(),function(seg) { return seg.getSequence() }).join('');
+			if(this.getAbsolutePolarity() == -1) {
+				return DNA.reverse(seq);
+			}
+			return seq;
+		},
+		printDomains: function(omitLengths) {
+			return Compiler.printDomainString(this.getDomains(),this.getPolarity(),omitLengths);
 		},
 		orphan: function() {
 			this.polarity = this.getAbsolutePolarity();
@@ -852,7 +1000,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 		},
 		serialize: function() {
 			var out = _.copy(this);
-			if(out.node) { delete out.node }
+			if(out.node) { delete out.node; }
 			if(out.library) { delete out.library; }
 			return _.serialize(out);
 		},
@@ -884,14 +1032,18 @@ App.dynamic = module.exports = (function(_,DNA) {
 </span>		 * @property {App.dynamic.Segment[]} segments
 		 * @private
 		 */
-
+		
+		// Parse string representation
+		if(_.isString(this.segments)) {
+			this.segments = Compiler.parseSegmentString(this.segments);
+		}
+		
 		// Construct Segment objects from specification
-		this.segments = _.map(this.segments, function(segment) {
-			segment = _.copyWith(segment, {
+		this.segments = _.map(this.segments, function(seg) {
+			return new Segment(_.copyWith(seg, {
 				domain : this, 
 				library : this.library,
-			});
-			return new Segment(segment);
+			}));
 		}, this);
 <span id='App-dynamic-Domain-property-polarity'>		/**
 </span>		 * @property {Number} polarity
@@ -917,6 +1069,12 @@ App.dynamic = module.exports = (function(_,DNA) {
 		getSegments : function() {
 			return this.segments;
 		},
+		// /**
+		 // * Retrieves the segments associated with this domain, accounting for its {@link #polarity relative polarity}
+		 // */
+		// getOrderedSegments: function() {
+			// return order(this.getSegments(),this.getPolarity());
+		// },
 <span id='App-dynamic-Domain-method-getStrand'>		/**
 </span>		 * Retrieves the strand of which this domain is a part
 		 * @return {App.dynamic.Strand}
@@ -952,6 +1110,23 @@ App.dynamic = module.exports = (function(_,DNA) {
 		},
 		
 	};
+	
+<span id='App-dynamic-Domain-method-fromString'>	/**
+</span>	 * Produces a domain from the {@link App.dynamic.Compiler.parseDomainString compact string representation}.
+	 * 
+	 * @param {String} str
+	 * The domain string
+	 * 
+	 * @param {App.dynamic.Library} library
+	 * The library reference
+	 * 
+	 * @returns {App.dynamic.Domain} domain 
+	 */
+	Domain.fromString = function(str,library) {
+		var o = Compiler.parseDomainString(str);
+		o.library = library;
+		return new Domain(o)
+	}
 
 	/* ***************************************************************** */
 
@@ -979,27 +1154,50 @@ App.dynamic = module.exports = (function(_,DNA) {
 		_.copyTo(this, config);
 		_.defaults(this, {
 <span id='App-dynamic-Segment-cfg-segmentLength'>			/**
-</span>			 * @cfg
+</span>			 * @cfg {Number} segmentLength
 			 * The length of this segment. If unspecified and #sequence is
 			 * specified, this field will be updated to match.
 			 */
-			segmentLength : 6,
 <span id='App-dynamic-Segment-cfg-role'>			/**
 </span>			 * @cfg
 			 * One of: `&quot;toehold&quot;`, `&quot;clamp&quot;`, `&quot;loop&quot;`, or `&quot;reverse&quot;`.
 			 */
-			role : &quot;toehold&quot;,
+			role : &quot;&quot;,
 <span id='App-dynamic-Segment-cfg-sequence'>			/**
 </span>			 * @cfg
 			 */
 			sequence : '',
 		});
+		if(this.length) {
+			this.segmentLength = this.length;
+		}
 		if(this.sequence) {
 			this.segmentLength = this.sequence.length;
 		}
-
+		
+		if(!this.segmentLength) {
+			this.segmentLength = this.getParameter('segmentLength');
+		}
+		
+<span id='App-dynamic-Segment-cfg-name'>		/**
+</span>		 * @cfg {String} name
+		 * A name for this segment, plus an optional polarity specifier. If given, this will be parsed to
+		 * populate the #identity and #polarity properties.
+		 */
 		if(this.name &amp;&amp; !this.identity) {
 			_.extend(this, DNA.parseIdentifier(this.name));
+		
+<span id='App-dynamic-Segment-cfg-identity'>		/**
+</span>		 * @cfg {String} identity
+		 */
+<span id='App-dynamic-Segment-cfg-polarity'>		/**
+</span>		 * @cfg {Number} polarity
+		 * The polarity of the segment: 1 or -1. A polarity of -1 implies
+		 * this segment has a sequence complementary to a segment which
+		 * shares this segment's #identity, but whose #polarity is 1.
+		 */
+		} else if(this.identity &amp;&amp; this.polarity &amp;&amp; !this.name) {
+			this.name = DNA.makeIdentifier(this.identity,this.polarity);
 		}
 		this.id = Segment.getId();
 		this.getLibrary().register('segment',this.id, this);
@@ -1050,8 +1248,14 @@ App.dynamic = module.exports = (function(_,DNA) {
 <span id='App-dynamic-Segment-method-getIdentifier'>		/**
 </span>		 * Returns the identifier (segment + polarity specifier) for this segment
 		 */
-		getIdentifier : function(name, polarity) {
+		getIdentifier : function() {
 			return this.identity + ((this.polarity == -1) ? DNA.defaultPolaritySpecifier : '');
+		},
+<span id='App-dynamic-Segment-method-getPolarity'>		/**
+</span>		 * Returns the polarity of the segment
+		 */
+		getPolarity : function() {
+			return this.polarity;
 		},
 <span id='App-dynamic-Segment-method-getNode'>		/**
 </span>		 * @return {Node} node The node which contains this segment
@@ -1101,6 +1305,17 @@ App.dynamic = module.exports = (function(_,DNA) {
 		},
 		getLibrary: function() {
 			return this.library;
+		},
+		getParameter: function(param) {
+			switch(param) {
+				case 'segmentLength':
+					if(this.library) {
+						return this.library.getParameter('segmentLength',this);
+					}
+					return 6;
+				default: 
+					return '';
+			}
 		}
 	}
 
@@ -1205,7 +1420,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 			if(lengths.length != spec.length) {
 				throw new DynamlError({
 					type: &quot;structure size mismatch&quot;,
+					message: &quot;Structure '&lt;%= structure %&gt;' (length: &lt;%= structureLength %&gt;) is &lt;%= rel %&gt; than segment count (&lt;%= segmentLength %&gt;)&quot;,
 					structure: spec,
+					structureLength: spec.length,
+					rel: (spec.length &gt; lengths.length) ? 'longer' : 'shorter',
+					segmentLength: lengths.length,
 					lengths: lengths,
 				});
 			}
@@ -1404,6 +1623,12 @@ App.dynamic = module.exports = (function(_,DNA) {
 		},
 		serialize: function() {
 			var out = _.copy(this);
+			
+			if(out.sourceNode &amp;&amp; !_.isString(out.sourceNode)) { out.sourceNode = out.sourceNode.getName() }
+			if(out.targetNode &amp;&amp; !_.isString(out.targetNode)) { out.targetNode = out.targetNode.getName() }
+			if(out.sourcePort &amp;&amp; !_.isString(out.sourcePort)) { out.sourcePort = out.sourcePort.getName() }
+			if(out.targetPort &amp;&amp; !_.isString(out.targetPort)) { out.targetPort = out.targetPort.getName() }
+			
 			if(out.strand) { delete out.strand }
 			if(out.domain) { delete out.domain }
 			if(out.node) { delete out.node }
@@ -1489,11 +1714,137 @@ App.dynamic = module.exports = (function(_,DNA) {
 				node: {},
 				motif: {},
 				segment: {},
-			}
+			},
+			parameters : {}
+		});
+		
+		_.defaults(this.parameters,{
+			segmentLength: 8,
+			toeholdLength: 8,
+			clampLength: 2,
 		});
 	}
 	
 	Library.prototype = {
+<span id='App-dynamic-Library-method-setup'>		/**
+</span>		 * Sets up the Library by creating {@link App.dynamic.Node Node} and
+		 * {@link App.dynamic.Motif Motif} objects from the #nodes, #motifs,
+		 * and #import configs.
+		 * 
+		 * @param {Boolean} [fromDil=false]
+		 * True to do a `bare import' of nodes--that is, don't copy over any
+		 * properties from the node's specified {@link App.dynamic.Node#motif}.
+		 * This is desirable if importing from a serialized library which has
+		 * already been compiled, since we don't want to overwrite things like
+		 * compiled {@link App.dynamic.Segment#identity segment identities} to
+		 * be overwritten. 
+		 */
+		setup: function(fromDil) {
+			fromDil || (fromDil = false)
+			
+			var library = this;
+			
+			// Import motifs first
+			if(library['import']) {
+				_.each(library['import'],function(statement) {
+					if(statement.type &amp;&amp; statement.name) {
+						switch(statement.type) {
+							case 'motif':
+								library.motifs.unshift(Compiler.importObject(statement.type,statement.name));
+								break;
+							case 'node':
+								library.nodes.unshift(Compiler.importObject(statement.type,statement.name));
+								break;
+							default:
+								break;
+						}
+					}
+				},this);
+			}
+
+			// Instantiate motifs to Motif objects
+			library.motifs = _.reduce(library.motifs, function(memo,motif) {
+				motif = _.copyWith(motif,{
+					library: library,
+					//externalMotifs: memo,
+				});
+				memo.push(new Motif(motif))
+				return memo;
+			},[]);
+			
+			// Instantiate nodes to Node objects
+			library.nodes = _.map(library.nodes, function(node) {
+				// if(node.polarity) {					// delete node.polarity;				// }
+				
+				if(fromDil) {
+					node._motif = node.motif
+					delete node.motif;
+				}
+				node.library = library;
+				return new Node(node);
+			});
+			
+		},
+		updateOutputProperties: function() {
+			var library = this;
+			// Build array of all Segment objects, assign Segment objects to their identity in labels
+				library.allSegments = [];
+				
+				
+				for(var i=0; i&lt;library.nodes.length; i++) {
+					var node = library.nodes[i], strands = node.getStrands();
+					for(var j=0; j&lt;strands.length; j++) {
+						var strand = strands[j];
+						library.allSegments = library.allSegments.concat(strand.getSegments());
+					}
+				}
+								
+				// Build an array of new Segment objects, each representing a unique segment identity.
+				// This is mostly for the benefit of output generators like DD or NUPACK which
+				// need to generate a list of each unique segment in the ensemble
+				library.segments = _.chain(library.allSegments).uniq(false, function(segment) {
+					return segment.identity;
+				}).map(function(segment) {
+					var duplicate = segment.duplicate();
+					
+					// These new Segments are deliberately divorced from their 
+					// original &quot;name&quot;, parent node, and polarity, since the purpose
+					// of these objects is to describe each unique segment identity 
+					// and its sequence, length, etc (salient properties for sequence
+					// designers mostly). 
+					delete duplicate.name;
+					delete duplicate.node;
+					delete duplicate.polarity;
+					return new Segment(duplicate);
+				}).value();
+
+				// Build an array of strands with properly numbered segments.
+				library.strands = _.chain(library.nodes).map(function(node) {
+					return node.getStrands();
+					
+					// return _.map(node.getStrands(),function(strand) {
+						// return new Strand(strand);
+					// }); //new Strand(node);
+				}).flatten().value();
+		},
+		getParameter : function(param, obj) {
+			switch(param) {
+				case 'segmentLength':
+					if(this.parameters) {
+						switch(obj.role) {
+							case 'clamp':
+								if(this.parameters.clampLength);
+									return this.parameters.clampLength;
+								break;
+							case 'toehold':
+								if(this.parameters.toeholdLength);
+									return this.parameters.toeholdLength;
+								break;
+						}
+						return this.parameters.segmentLength;
+					}
+			}
+		},
 		getNode: function(name) {
 			if(name instanceof Node) return name;
 			return this.objects['node'][name];
@@ -1511,7 +1862,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 				this.objects[type][name] = object;
 			} else {
 				throw new DynamlError({
-					type: 'duplicate object',
+					type: 'Duplicate object',
 					message: 'Attempt to define &lt;%= kind %&gt; &lt;%= name %&gt; twice in same library',
 					kind: type,
 					name: name,
@@ -1536,7 +1887,12 @@ App.dynamic = module.exports = (function(_,DNA) {
 		printStrands: function(config) {
 			return Compiler.printStrands(this,config);
 		},
-		
+		toDilOutput: function() {
+			var out = this.serialize();
+			if(out.imports) { delete out.imports; }
+			if(out['import']) { delete out['import']; }
+			return JSON.stringify(out,null,'\t');
+		},
 		toEnumOutput: function() {
 			
 			var library = this;
@@ -1592,8 +1948,15 @@ App.dynamic = module.exports = (function(_,DNA) {
 			return out.join('\n\n');
 			
 		},
+<span id='App-dynamic-Library-method-toNupackOutput'>		/**
+</span>		 * Formats the library as (NUPACK)[http://www.nupack.org/] multi-objective design script
+		 * @param {Object} options
+		 * @param {Boolean} [options.multisubjective = true] True to surround domains with comment-backtick blocks for Multisubjective
+		 * @param {Boolean} [options.forceDU = true] True to convert all structures to DU+
+		 * @param {Boolean} [options.segmentsInStructure = false] True to export the `(structure_name).seq =` followed by lists of segments, rather than lists of strands 
+		 */
 		toNupackOutput: function(options) {
-			options = options || {multisubjective: true,forceDU: true};
+			options = options || {multisubjective: true,forceDU: true,segmentsInStructure: false};
 			
 			var library = this;
 
@@ -1610,6 +1973,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			// print domains (segments)
 			// e.g.: domain x = N7
 			
+			// stupid NUPACK doesn't allow numerical domain identifiers
 			function nupackifyIdentity(id) {
 				return 'd'+id;
 			}
@@ -1623,7 +1987,6 @@ App.dynamic = module.exports = (function(_,DNA) {
 
 			// print strands (&quot;optional?&quot;)
 			// e.g.: strand J = gate_toehold1* gate_duplex1* gate_toehold2
-			// TODO: new NUPACK requires these not to be numbers... poo; need to letter domains.
 			
 			out.push(_.map(library.strands,function(strand) {
 				var segments = strand.getOrderedSegments();
@@ -1639,15 +2002,21 @@ App.dynamic = module.exports = (function(_,DNA) {
 			
 			out.push(_.map(library.nodes,function(node) {
 				
-				var structs = _.map(node.getStrands(),function(strand) { 
-					var struct = strand.getStructure();
-					if(strand.getAbsolutePolarity() == -1) {
-						struct = struct.reverse();
-					}
-					return struct;
-				});
+				// var structs = _.map(node.getStrands(),function(strand) { 
+					// var struct = strand.getStructure();
+					// if(strand.getPolarity() == -1) {
+						// struct = struct.reverse();
+					// }
+					// return struct;
+				// });
 				
-				var concatamer = Structure.join(structs), concatamer_struct;
+				var concatamer = node.getStructure(), //Structure.join(structs), 
+				concatamer_struct;
+				
+				// Concatamer is automatically reversed by node if polarity == -1
+				// if(node.getPolarity() == -1) {
+					// concatamer = concatamer.reverse();
+				// }
 				if(!!options.multisubjective || !!options.forceDU) {
 					concatamer_struct = concatamer.toDUPlus();
 				} else {
@@ -1675,8 +2044,12 @@ App.dynamic = module.exports = (function(_,DNA) {
 				
 				out.push(_.map(library.nodes,function(node) {
 					var names = _.map(node.getStrands(),function(strand) {
-						return _.map(strand.getOrderedSegments(),
-							function(seg) { return nupackifyIdentity(seg.getIdentifier()) }).join(' ')
+						if(options.segmentsInStructure) {							
+							return _.map(strand.getOrderedSegments(),
+								function(seg) { return nupackifyIdentity(seg.getIdentifier()) }).join(' ')
+						} else {
+							return strand.getQualifiedName();
+						}
 					});
 					return [node.getName()+'_structure.seq','='].concat(names).join(' ');
 				}).join('\n'));
@@ -1699,6 +2072,10 @@ App.dynamic = module.exports = (function(_,DNA) {
 				return 'd'+id;
 			}
 			
+			function structureName(nodeName) {
+				return nodeName + '_structure';
+			}
+			
 			out.push(_.map(library.segments,function(segment) {
 				return ['length',nupackifyIdentity(segment.identity),'=','N'+segment.getLength()].join(' ');
 			}).join('\n'));
@@ -1710,9 +2087,12 @@ App.dynamic = module.exports = (function(_,DNA) {
 			
 			out.push(_.map(library.nodes,function(node) {
 				if(node.type == 'hairpin') {
-					return ['hairpin',node.getName()+'_structure',':',(node.getPolarity() &lt; 0 ? '-' : '+')].join(' ');
+					return ['hairpin',structureName(node.getName()),':',(node.getPolarity() &lt; 0 ? '-' : '+')].join(' ');
+				} else if(node.type=='cooperative' || node.type=='coop') {
+					var len = _.max(_.map(node.getStrands(),function(strand) { return strand.getLength() }))
+					return ['coop',structureName(node.getName()),'=',len].join(' ');
 				} else {
-					return ['static',node.getName()+'_structure'].join(' ');
+					return ['static',structureName(node.getName())].join(' ');
 				}
 			}).join('\n'));
 			
@@ -1777,7 +2157,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 		toDomainsOutput: function() {
 			return Compiler.printStrands(this,{annotations: false});
 		},
-		toSVGOutput: function() {
+		toSVGOutput: function(noHeader) {
 			String.prototype.format = function() {
 			  var args = arguments;
 			  return this.replace(/{(\d+)}/g, function(match, number) { 
@@ -1797,9 +2177,15 @@ App.dynamic = module.exports = (function(_,DNA) {
 					return this.out.join('');
 				}
 			}
-			
-			var pi = Math.PI;
-			var atan2 = Math.atan2;
+		    
+		    var defaultSegmentLength = this.parameters.segmentLength;
+		    
+		    var roleColors = {
+		    	'toehold': '#f00',
+		    	'clamp': '#800',
+		    }
+		    
+		    var cos = Math.cos, sin = Math.sin, pi = Math.PI, atan2 = Math.atan2;
 			
 			var x = 0,
 			y = 0,
@@ -1809,32 +2195,148 @@ App.dynamic = module.exports = (function(_,DNA) {
 			R = Math.round(Math.sqrt(this.strands.length)),
 			C = Math.ceil(this.strands.length/R);
 			
-			fid.write('&lt;?xml version=&quot;1.0&quot; standalone=&quot;no&quot;?&gt;\n&lt;!DOCTYPE svg PUBLIC &quot;-//W3C//DTD SVG 1.1//EN&quot; &quot;http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd&quot;&gt;\n'+
+			fid.write((!!noHeader ? '' : '&lt;?xml version=&quot;1.0&quot; standalone=&quot;no&quot;?&gt;\n&lt;!DOCTYPE svg PUBLIC &quot;-//W3C//DTD SVG 1.1//EN&quot; &quot;http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd&quot;&gt;\n')+
 			'&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot;\nviewBox = &quot;0 0 ' + repr(H*C) + ' ' + repr(V*R) + '&quot; version = &quot;1.1&quot;&gt;\n'+
-			'&lt;defs&gt;&lt;path id=&quot;arrow&quot; d=&quot;M -7 -7 L 0 0 L -7 7&quot;/&gt;\n&lt;/defs&gt;\n'+
-			'&lt;style type=&quot;text/css&quot;&gt;text { font-family: tahoma, helvetica, arial; }&lt;/style&gt;')
+			'&lt;defs&gt;&lt;path id=&quot;svgout-arrow&quot; d=&quot;M -7 -7 L 0 0 L -7 7&quot;/&gt;\n&lt;marker id=&quot;Triangle&quot; viewBox=&quot;0 0 10 10&quot; refX=&quot;0&quot; refY=&quot;5&quot; markerUnits=&quot;strokeWidth&quot; markerWidth=&quot;4&quot; markerHeight=&quot;3&quot; orient=&quot;auto&quot;&gt;\n'+
+ 			'&lt;path d=&quot;M 0 0 L 10 5 L 0 10 z&quot; /&gt;&lt;/marker&gt;&lt;/defs&gt;\n'+
+			'&lt;style type=&quot;text/css&quot;&gt;text { font-family: tahoma, helvetica, arial; font-size: 0.8em; text-shadow: 1px -1px 0px white; }&lt;/style&gt;')
 
-			for(var svgi = 0; svgi &lt; this.strands.length; svgi++) {
-				var strand = this.strands[svgi];
-				
-				 var structure = strand.getSegmentwiseStructure().toDotParen();
+			for(var svgi = 0; svgi &lt; this.nodes.length; svgi++) {
+				var node = this.nodes[svgi];
+				var strands = node.getStrands();
+				var structure = node.getSegmentwiseStructure().toDotParen();
 				
 				if(structure.match(/^\.+$/)) { //initiator, straight strand without hybridization
-					fid.write('&lt;g stroke = &quot;rgb(139,98,61)&quot; stroke-width = &quot;2&quot; fill = &quot;none&quot;&gt;\n&lt;path d = &quot;M {0} {1} L {2} {3}&quot;/&gt;\n'.format(x+H*.15,y+V*.5,x+H*.6,y+V*.5))
+					var strand = _.first(strands);
+					fid.write('&lt;g stroke = &quot;rgb(139,98,61)&quot; stroke-width = &quot;2&quot; fill = &quot;none&quot;&gt;\n&lt;path d = &quot;M {0} {1} L {2} {3}&quot; /&gt;\n'.format(x+H*.15,y+V*.5,x+H*.6,y+V*.5))
 				    if (strand.getPolarity()==-1) 
-				      fid.write('&lt;use x=&quot;{0}&quot; y=&quot;{1}&quot; xlink:href=&quot;#arrow&quot; transform=&quot;rotate(180,{2},{3})&quot;/&gt;\n'.format(x+H*.15,y+V*.5,x+H*.15,y+V*.5))
+				      fid.write('&lt;use x=&quot;{0}&quot; y=&quot;{1}&quot; xlink:href=&quot;#svgout-arrow&quot; transform=&quot;rotate(180,{2},{3})&quot;/&gt;\n'.format(x+H*.15,y+V*.5,x+H*.15,y+V*.5))
 				    else
-				      fid.write('&lt;use x=&quot;{0}&quot; y=&quot;{1}&quot; xlink:href=&quot;#arrow&quot;/&gt;\n'.format(x+H*.6,y+V*.5))
+				      fid.write('&lt;use x=&quot;{0}&quot; y=&quot;{1}&quot; xlink:href=&quot;#svgout-arrow&quot;/&gt;\n'.format(x+H*.6,y+V*.5))
 				    fid.write('&lt;/g&gt;\n&lt;g stroke=&quot;none&quot; fill=&quot;black&quot; font-size=&quot;16&quot;&gt;\n')
-				    var segments = strand.getSegments();
+				    var segments = strand.getOrderedSegments();
 				    for(var svgj = 0; svgj &lt; segments.length; svgj++) {
-				      var s = segments[svgj].getIdentifier();
-				      fid.write('&lt;text x=&quot;{0}&quot; y=&quot;{1}&quot; stroke=&quot;none&quot; fill=&quot;black&quot;&gt;{2}&lt;/text&gt;\n'.format(x+H*.15+H*(svgj+.5)/segments.length*.45,y+V*.5-V*.05,s))
+					  var segment = segments[svgj];
+				      var s = segment.getIdentifier();
+				      var color = (segment.role &amp;&amp; roleColors[segment.role]) ? roleColors[segment.role] : 'black'
+				      var len = '';
+				      if(segment.getLength() != defaultSegmentLength) {
+				      	len = &quot; (&quot;+segment.getLength()+&quot;)&quot;;
+				      }
+				      fid.write('&lt;text x=&quot;{0}&quot; y=&quot;{1}&quot; stroke=&quot;none&quot; transform=&quot;rotate({2} {0} {1})&quot; fill=&quot;{5}&quot;&gt;{3}&lt;tspan fill=&quot;grey&quot; style=&quot;font-size: 0.8em&quot;&gt;{4}&lt;/tspan&gt;&lt;/text&gt;\n'.format(x+H*.15+H*(svgj+.5)/segments.length*.45,y+V*.5-V*.05,-45,s,len,color))
 				    }
 				    fid.write('&lt;/g&gt;\n')
-				} else if(structure.match(/^\.+\(+\.+\)+(\.+)?$/)) { //hairpin loop
-			    	var segments = strand.getSegments();
+				} else if(structure.match(/^\.+\(+\.*\+\)+$/)) { // cooperative complex
+			    	var segments = node.getOrderedSegments();
+			    	// we're actually going to flip these back, because we're displaying from upper left, regardless
+			    	if(node.getPolarity() == -1) {
+			    		segments.reverse();
+			    	}
+			    	var strand = _.first(strands)
+			    	
+			    	
 					var a = structure.indexOf('(');  // number of first hybridized segment
+
+				    var b = a;
+				    while(structure[b]=='(') { b++ } // number of last hybridized segment
+					b--;
+
+				    var c = structure.indexOf(')')-1;  // number of first hybridized segment after wraparound
+				    // -1 because the + will be included in the structure
+				    
+				    var d = segments.length - 1; // number of last hybridized segment after wraparound
+				    
+				    var segmentLengths = _.map(segments,function(s) {return s.getLength()});
+				    
+
+				    
+				    var len1 = sum(segmentLengths.slice(0,a)),  // length of the left-side toehold, in bases
+				    len2 = sum(segmentLengths.slice(a,b+1)),  // length of the duplex region, in bases
+				    len3 = sum(segmentLengths.slice(b+1,c)),  // length of the right-side toehold, in bases
+				    len4 = sum(segmentLengths.slice(d+1));  // length of the trailing end, in bases
+
+
+				    fid.write('&lt;g stroke = &quot;black&quot; stroke-width = &quot;1&quot; fill = &quot;none&quot;&gt;\n')
+				    for(var svgj = 0; svgj &lt; len2; /*segments.length;*/ svgj++) { // draw cross-lines for paired bases
+			      		fid.write('&lt;line x1 = &quot;{0}&quot; y1 = &quot;{1}&quot; x2 = &quot;{2}&quot; y2 = &quot;{3}&quot;/&gt;\n'.format(x+H*.3+H*.3*svgj/len2,y+V*.45,x+H*.3+H*.3*svgj/len2,y+V*.5))
+				      }
+			    	fid.write('&lt;/g&gt;\n')
+			    	fid.write('&lt;g stroke = &quot;black&quot; stroke-width = &quot;2&quot; fill = &quot;none&quot;&gt;\n&lt;path d = &quot;M {0} {1} L {2} {3}&quot; stroke=&quot;black&quot;/&gt;\n'.format(x+H*.6,y+V*.50,x+H*.3,y+V*.5))  // bottom line
+			    	fid.write('&lt;line x1 = &quot;{0}&quot; y1 = &quot;{1}&quot; x2 = &quot;{2}&quot; y2 = &quot;{3}&quot; stroke = &quot;rgb(241,139,17)&quot;/&gt;\n'.format(x+H*.15,y+V*.45,x+H*.75,y+V*.45))  // yellow top line
+			    	if (len4&gt;0)
+			      		fid.write('&lt;path d = &quot;M {0} {1} L {2} {3}&quot; stroke = &quot;black&quot;/&gt;\n'.format(x+H*.3,y+V*.5,x+H*.15,y+V*.8))  // trailing end
+			    	if (strand.getAbsolutePolarity() == -1) {
+			      		fid.write('&lt;use x=&quot;{0}&quot; y=&quot;{1}&quot; stroke=&quot;rgb(241,139,17)&quot; xlink:href=&quot;#svgout-arrow&quot; transform=&quot;rotate(180,{0},{1})&quot;/&gt;\n'.format(x+H*.15,y+V*.45))  // &lt;- yellow top arrow
+				        fid.write('&lt;use x=&quot;{0}&quot; y=&quot;{1}&quot; xlink:href=&quot;#svgout-arrow&quot; transform=&quot;&quot;/&gt;\n'.format(x+H*.6,y+V*.50))								// black bottom arrow -&gt;
+
+			    	} else {
+			    		fid.write('&lt;use x=&quot;{0}&quot; y=&quot;{1}&quot; stroke=&quot;rgb(241,139,17)&quot; xlink:href=&quot;#svgout-arrow&quot; transform=&quot;&quot;/&gt;\n'.format(x+H*.75,y+V*.45))  // yellow top arrow -&gt;
+				        fid.write('&lt;use x=&quot;{0}&quot; y=&quot;{1}&quot; xlink:href=&quot;#svgout-arrow&quot; transform=&quot;rotate(180,{0},{1})&quot;/&gt;\n'.format(x+H*.3,y+V*.5))								// &lt;- black bottom arrow
+				    }
+				    fid.write('&lt;/g&gt;\n&lt;g stroke=&quot;none&quot; fill=&quot;black&quot; font-size=&quot;16&quot;&gt;\n')
+				    
+				    labelx = []
+				    labely = []
+				    labelr = [];
+				    
+				    for (var svgj = 0; svgj &lt; a; svgj++) {
+				      labelx.push(H*(.15 + .15*(svgj+.5)/a))
+				      labely.push(V*.4)
+				      labelr.push(-45)
+				    }  // toehold
+				    for (svgj = 0; svgj &lt; b+1-a; svgj++) {
+				    	
+				      labelx.push(H*(.3 + .3*(svgj+.5)/(b+1-a)))
+				      labely.push(V*.4)
+				      labelr.push(-45)
+				    }  // duplex region
+				    for (svgj = 0; svgj &lt; c-(b+1); svgj++) {
+				    	
+				      labelx.push(H*(.6 + .15*(svgj+.5)/(c-(b+1))))
+				      labely.push(V*.4)
+				      labelr.push(-45)
+				    	
+				    }  // right-hand toehold
+				    for (svgj = 0; svgj &lt; b+1-a; svgj++) {
+				    	
+				      labelx.push(H*(.6 - .3*(svgj+.5)/(b+1-a)))
+				      labely.push(V*.6) // shifted down a bit because we rotate for these guys
+				      labelr.push(45)
+				    }  // duplex region again
+				    for (svgj = 0; svgj &lt; d+1-c; svgj++) {
+				    	
+				      labelx.push(H*(.3 - .15*(svgj+.5)/(d+1-c)))
+				      labely.push(V*(.6 + .3*(svgj+.5)/(d+1-c)))
+				      labelr.push(0)
+				    }  // trailing end
+				    
+				    for (var svgj = 0; svgj &lt; segments.length; svgj++) {
+				      var segment = segments[svgj];
+				      
+				      var s = segment.getIdentifier();
+				      // if (svgk&gt;0)
+				        // s = repr(svgk)
+				      // else
+				        // s = repr(-svgk) + '*'
+				      var color = (segment.role &amp;&amp; roleColors[segment.role]) ? roleColors[segment.role] : 'black'
+				      var len = '';
+				      if(segment.getLength() != defaultSegmentLength) {
+				      	len = &quot; (&quot;+segment.getLength()+&quot;)&quot;;
+				      }
+				      fid.write('&lt;text x=&quot;{0}&quot; y=&quot;{1}&quot; stroke=&quot;none&quot; transform=&quot;rotate({2} {0} {1})&quot; fill=&quot;{5}&quot;&gt;{3}&lt;tspan fill=&quot;grey&quot; style=&quot;font-size: 0.8em&quot;&gt;{4}&lt;/tspan&gt;&lt;/text&gt;\n'.format(x+labelx[svgj],y+labely[svgj],labelr[svgj],s,len,color))
+				    }
+			    	fid.write('&lt;/g&gt;\n')
+			    	
+			    	
+				} else if(structure.match(/^\.+\(+\.+\)+(\.+)?$/)) { //hairpin loop
+			    	var strand = _.first(node.getStrands());
+			    	var segments = strand.getOrderedSegments();
+					var a = structure.indexOf('(');  // number of first hybridized segment
+
+					// we're actually going to flip these back, because we're displaying from upper left, regardless
+			    	if(node.getPolarity() == -1) {
+			    		segments.reverse();
+			    	}
 
 				    var b = a;
 				    while(structure[b]=='(') { b++ } // number of last hybridized segment
@@ -1846,11 +2348,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 				    while(structure[d]==')') { d++ }
 				    d--;
 				    
-				    var segmentLengths = strand.getSegmentLengths();
-				    
-				    function sum(ls) {
-				    	return _.reduce(ls,function(m,x) {return m+x},0);
-				    }
+				    var segmentLengths = lengths(segments);
 				    
 				    var len1 = sum(segmentLengths.slice(0,a)),  // length of the initial toehold, in bases
 				    len2 = sum(segmentLengths.slice(a,b+1)),  // length of the duplex region, in bases
@@ -1867,74 +2365,70 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	fid.write('&lt;line x1 = &quot;{0}&quot; y1 = &quot;{1}&quot; x2 = &quot;{2}&quot; y2 = &quot;{3}&quot; stroke = &quot;rgb(241,139,17)&quot;/&gt;\n'.format(x+H*.15,y+V*.45,x+H*.6,y+V*.45))  // yellow top line
 			    	if (len4&gt;0)
 			      		fid.write('&lt;path d = &quot;M {0} {1} L {2} {3}&quot; stroke = &quot;black&quot;/&gt;\n'.format(x+H*.3,y+V*.5,x+H*.15,y+V*.8))  // trailing end
-			    	if (strand.getPolarity() == -1) {
-			      		fid.write('&lt;use x=&quot;{0}&quot; y=&quot;{1}&quot; stroke=&quot;rgb(241,139,17)&quot; xlink:href=&quot;#arrow&quot; transform=&quot;rotate(180,{2},{3})&quot;/&gt;\n'.format(x+H*.15,y+V*.45,x+H*.15,y+V*.45))  // yellow top arrow
+			    	if (strand.getAbsolutePolarity() == -1) {
+			      		fid.write('&lt;use x=&quot;{0}&quot; y=&quot;{1}&quot; stroke=&quot;rgb(241,139,17)&quot; xlink:href=&quot;#svgout-arrow&quot; transform=&quot;rotate(180,{2},{3})&quot;/&gt;\n'.format(x+H*.15,y+V*.45,x+H*.15,y+V*.45))  // yellow top arrow
 			    	} else {
 			    	
 				      if (len4&gt;0)
-				        fid.write('&lt;use x=&quot;{0}&quot; y=&quot;{1}&quot; xlink:href=&quot;#arrow&quot; transform=&quot;rotate({2},{3},{4})&quot;/&gt;\n'.format(x+H*.15,y+V*.8,90+180/pi*atan2(V*.3,H*.15),x+H*.15,y+V*.8))  // bottom arrow
+				        fid.write('&lt;use x=&quot;{0}&quot; y=&quot;{1}&quot; xlink:href=&quot;#svgout-arrow&quot; transform=&quot;rotate({2},{3},{4})&quot;/&gt;\n'.format(x+H*.15,y+V*.8,90+180/pi*atan2(V*.3,H*.15),x+H*.15,y+V*.8))  // bottom arrow
 				      else
-				        fid.write('&lt;use x=&quot;{0}&quot; y=&quot;{1}&quot; xlink:href=&quot;#arrow&quot; transform=&quot;rotate(180,{2},{3})&quot;/&gt;\n'.format(x+H*.3,y+V*.5,x+H*.3,y+V*.5))
+				        fid.write('&lt;use x=&quot;{0}&quot; y=&quot;{1}&quot; xlink:href=&quot;#svgout-arrow&quot; transform=&quot;rotate(180,{2},{3})&quot;/&gt;\n'.format(x+H*.3,y+V*.5,x+H*.3,y+V*.5))
 				    }
 				    fid.write('&lt;/g&gt;\n&lt;g stroke=&quot;none&quot; fill=&quot;black&quot; font-size=&quot;16&quot;&gt;\n')
 				    
-				    
-				    
-				    labelx = []
-				    labely = []
-				    
-				    
-				   
-				    function repr(x) {
-				    	return x;
-				    }
-				    
-				    function range(x) {
-				    	return _.range(0,x);
-				    }
-				    
-				    var cos = Math.cos, sin = Math.sin, pi = Math.PI;
+				    labelx = [];
+				    labely = [];
+				    labelr = [];
 				    
 				    for (var svgj = 0; svgj &lt; a; svgj++) {
 				      labelx.push(H*(.15 + .15*(svgj+.5)/a))
 				      labely.push(V*.4)
+				      labelr.push(-45)
 				    }  // toehold
 				    for (svgj = 0; svgj &lt; b+1-a; svgj++) {
 				    	
 				      labelx.push(H*(.3 + .3*(svgj+.5)/(b+1-a)))
 				      labely.push(V*.4)
+				      labelr.push(-45)
 				    }  // duplex region
 				    for (svgj = 0; svgj &lt; c-(b+1); svgj++) {
 				    	
-				      labelx.push(H*(.75 - .05*cos(2*pi*(svgj+.5)/(c-(b+1)))))
-				      labely.push(V*(.45 - .25*sin(2*pi*(svgj+.5)/(c-(b+1)))))
+				      labelx.push(H*(.67 - .15*cos(2*pi*(svgj+.5)/(c-(b+1)))))
+				      labely.push(V*(.49 - .35*sin(2*pi*(svgj+.5)/(c-(b+1)))))
+				      labelr.push(0)
 				    }  // hairpin loop
 				    for (svgj = 0; svgj &lt; b+1-a; svgj++) {
-				    	
 				      labelx.push(H*(.6 - .3*(svgj+.5)/(b+1-a)))
-				      labely.push(V*.6)
+				      labely.push(V*.58)
+				      labelr.push(45)
 				    }  // duplex region again
 				    for (svgj = 0; svgj &lt; d+1-c; svgj++) {
-				    	
 				      labelx.push(H*(.3 - .15*(svgj+.5)/(d+1-c)))
 				      labely.push(V*(.6 + .3*(svgj+.5)/(d+1-c)))
+				      labelr.push(45)
 				    }  // trailing end
 				    
 				    for (var svgj = 0; svgj &lt; segments.length; svgj++) {
 				      var segment = segments[svgj];
-				      
 				      var s = segment.getIdentifier();
-				      // if (svgk&gt;0)
-				        // s = repr(svgk)
-				      // else
-				        // s = repr(-svgk) + '*'
-				      fid.write('&lt;text x=&quot;{0}&quot; y=&quot;{1}&quot; stroke=&quot;none&quot; fill=&quot;black&quot;&gt;{2}&lt;/text&gt;\n'.format(x+labelx[svgj],y+labely[svgj],s))
+				      var color = (segment.role &amp;&amp; roleColors[segment.role]) ? roleColors[segment.role] : 'black'
+				      var len = '';
+				      if(segment.getLength() != defaultSegmentLength) {
+				      	len = &quot; (&quot;+segment.getLength()+&quot;)&quot;;
+				      }
+				      fid.write('&lt;text x=&quot;{0}&quot; y=&quot;{1}&quot; stroke=&quot;none&quot; transform=&quot;rotate({2} {0} {1})&quot; fill=&quot;{5}&quot;&gt;{3}&lt;tspan fill=&quot;grey&quot; style=&quot;font-size: 0.8em&quot;&gt;{4}&lt;/tspan&gt;&lt;/text&gt;\n'.format(x+labelx[svgj],y+labely[svgj],labelr[svgj],s,len,color))
 				    }
 			    	fid.write('&lt;/g&gt;\n')
 					
 
 				}
-			  fid.write('&lt;text x=&quot;{0}&quot; y=&quot;{1}&quot; style=&quot;font-size: 18px; font-weight: bold;&quot; stroke=&quot;none&quot;&gt;{2}&lt;/text&gt;\n'.format(x+H*.45, y+V*.9, strand.getQualifiedName()))
+				
+
+				var name = node.getName();
+				if(strands.length &gt; 1) {
+					name += '('+_.map(strands,function(s) {return s.getName()}).join(' + ')+')'
+				}
+			  fid.write('&lt;text x=&quot;{0}&quot; y=&quot;{1}&quot; style=&quot;font-size: 18px; font-weight: bold;&quot; stroke=&quot;none&quot;&gt;{2}&lt;/text&gt;\n'.format(x+H*.45, y+V*.9, name))
 			  y += V
 			  if (y&gt;=V*R) {			  	
 			    y=0
@@ -1969,7 +2463,42 @@ App.dynamic = module.exports = (function(_,DNA) {
 				return newStrand; //.serialize();
 			});
 			return {strands: strands};
-		}
+		},
+		serialize: function() {
+			var out = _.copy(this);
+			if(out.objects) { delete out.objects; }
+			return _.serialize(out);
+		},
+		update: function(data) {
+			var me = this;
+			
+			// if(data.motifs) {				// for(var name in data.motifs) {					// var myObj = me.get('motif',name),						// newData = data.motifs[name];// 										// _.extend(myObj,newData);				// }			// } // 			// if(data.nodes) {				// for(var name in data.nodes) {					// var myObj = me.get('node',name),						// newData = data.nodes[name];// 										// if(newData.strands) {						// for(var strandName in newData.strands) {							// var newStrand						// }					// }// 										// _.extend(myObj,newData);				// }			// }
+			
+			if(data.segments) {
+				var indexedSegments = {};
+				for(var i=0;i&lt;me.allSegments.length;i++) {
+					var seg = me.allSegments[i], segId = seg.getIdentity(); 
+					if(!indexedSegments[segId]) {
+						indexedSegments[segId] = [];
+					}
+					indexedSegments[segId].push(seg);
+				}
+				
+				for(var name in data.segments) {
+					var newData = data.segments[name];
+					if(indexedSegments[name]) {
+						var mySegments = indexedSegments[name];
+						for(var i=0;i&lt;indexedSegments[name].length;i++) {
+							_.extend(mySegments[i],newData);
+						}
+					} else {
+						var newSegSpec = _.clone(data.segments[name]);
+						newSegSpec.library = me;
+						me.allSegments.push(new Segment(newSegSpec));
+					}
+				}
+			}
+		},
 	};
 	
 	_.extend(Library,{
@@ -1983,7 +2512,21 @@ App.dynamic = module.exports = (function(_,DNA) {
 			var duplicate = _.copy(motif);
 			delete duplicate.library;
 			return new Library(duplicate);
-		}
+		},
+<span id='App-dynamic-Library-method-fromDil'>		/**
+</span>		 * Produces a {@link App.dynamic.Library Library} object from a DIL object
+		 * (a serialized Library).
+		 * 
+		 * @param {Object} dil
+		 * 
+		 * @return {App.dynamic.Library} lib
+		 */
+		fromDil: function(dil) {
+			var lib = new Library(dil);
+			lib.setup(/*fromDil*/true);
+			lib.updateOutputProperties();
+			return lib;
+		},
 	});
 	
 	
@@ -2056,50 +2599,25 @@ App.dynamic = module.exports = (function(_,DNA) {
 				
 				library = new Library(library);
 				
-				// Import motifs first
-				if(library['import']) {
-					_.each(library['import'],function(statement) {
-						if(statement.type &amp;&amp; statement.name) {
-							switch(statement.type) {
-								case 'motif':
-									library.motifs.unshift(importObject(statement.type,statement.name));
-									break;
-								case 'node':
-									library.nodes.unshift(importObject(statement.type,statement.name));
-									break;
-								default:
-									break;
-							}
-						}
-					},this);
+				// Import Motifs, build Node, Motif objects
+				library.setup();
+				
+				// Blast node polarities
+				for(var i=0;i&lt;library.nodes.length;i++) {
+					if(!library.nodes[i].isInitiator) {
+						delete library.nodes[i].polarity;						
+					}
 				}
 
-				// Instantiate motifs to Motif objects
-				library.motifs = _.reduce(library.motifs, function(memo,motif) {
-					motif = _.copyWith(motif,{
-						library: library,
-						//externalMotifs: memo,
-					});
-					memo.push(new Motif(motif))
-					return memo;
-				},[]);
-				
-				// Instantiate nodes to Node objects
-				library.nodes = _.map(library.nodes, function(node) {
-					if(node.polarity) {
-						delete node.polarity;
-					}
-					node.library = library;
-					return new Node(node);
-				});
-				
 				// Generate array of Complement objects
 				var complementarities = _.chain(library.nodes).map(function(node) {
-					return _.map(node.complementarities || [], function(complement) {
+					node.complementarities = _.map(node.complementarities || [], function(complement) {
 						complement.sourceNode = node;
 						complement.library = library;
 						return new Complement(complement);
 					});
+					
+					return node.complementarities;
 				}).compact().flatten().value();
 
 				/* ************************************************************
@@ -2119,9 +2637,14 @@ App.dynamic = module.exports = (function(_,DNA) {
 						// If the sourceNode's polarity has been set
 						if(complement.sourceNode.polarity != 0) {
 
-							// Downstream node should have polarity opposite the sourcePort's absolute polarity
-							// (absolute polarity) = (relative port polarity) * (relative strand polarity) * (node polarity)
-							var targetPolarity = -1 * complement.sourcePort.polarity * complement.sourcePort.getStrand().getPolarity() * complement.sourceNode.polarity
+							// Calculate downstream node polarity such that targetPort's absolute polarity is opposite 
+							// sourcePort's absolute polarity.
+							// Recall (absolute polarity) = (relative port polarity) * (relative strand polarity) * (node polarity)
+							// Therefore if (targetPort abs polarity)  = (targetPort rel port polarity) * (targetPort strand polarity) * (targetPort node polarity)
+							//										  := -1 (sourcePort rel port polarity) * (sourcePort strand polarity) * (sourcePort node polarity)
+							// -&gt; (targetPort node polarity) = -1 * [(sourcePort rel port polarity) * (sourcePort strand polarity) * (sourcePort node polarity)] *
+							//										[(targetPort rel port polarity) * (targetPort strand polarity)]
+							var targetPolarity = -1 * complement.sourcePort.polarity * complement.sourcePort.getStrand().getPolarity() * complement.sourceNode.polarity  * complement.targetPort.polarity * complement.targetPort.getStrand().getPolarity()
 							
 							if(isNaN(targetPolarity)) {
 								if(isNaN(complement.sourcePort.polarity)) {									
@@ -2151,7 +2674,8 @@ App.dynamic = module.exports = (function(_,DNA) {
 							if(complement.targetNode.polarity != 0 &amp;&amp; complement.targetNode.polarity == -targetPolarity) {
 								throw new DynamlError({
 									type : 'polarity conflict',
-									message : _.template('Complementarity statement in node &lt;%= source %&gt; implies node &lt;%= target %&gt; ' + 'should have polarity &lt;%= expected %&gt;, but instead it has polarity &lt;%= encountered %&gt;', {
+									message : _.template('Complementarity statement in node &lt;%= source %&gt; implies node &lt;%= target %&gt; ' + //
+									'should have polarity &lt;%= expected %&gt;, but instead it has polarity &lt;%= encountered %&gt;', {
 										source : complement.sourceNode.name,
 										target : complement.targetNode.name,
 										expected : targetPolarity,
@@ -2215,12 +2739,13 @@ App.dynamic = module.exports = (function(_,DNA) {
 					var targetSegments = _.clone(complement.getTargetDomain().getSegments());
 					var complementType = complement.getType();
 					
+					
 					// flip domains for output ports, but not for bridges
 					if(complementType=='output') {
 						
-						if((complement.sourcePort.getStrand().getAbsolutePolarity() == complement.targetPort.getStrand().getAbsolutePolarity()) != (complement.sourceNode.polarity == complement.targetNode.polarity)) {
-							throw 'wut';
-						}
+						// if((complement.sourcePort.getStrand().getAbsolutePolarity() == complement.targetPort.getStrand().getAbsolutePolarity()) != (complement.sourceNode.polarity == complement.targetNode.polarity)) {
+							// throw 'wut';
+						// }
 						
 						if(complement.sourcePort.getStrand().getAbsolutePolarity() == complement.targetPort.getStrand().getAbsolutePolarity()) {
 						//if(complement.sourceNode.polarity == complement.targetNode.polarity) {
@@ -2228,38 +2753,89 @@ App.dynamic = module.exports = (function(_,DNA) {
 						}
 					}
 					
-					// Two complementary ports should have the same length
-					if(sourceSegments.length != targetSegments.length) {
+					var sourceDomainLength = lengths(sourceSegments);
+					var targetDomainLength = lengths(targetSegments);
 
-						// If there's just an extra clamp for outputs, that's okay
-						if(complementType=='output' &amp;&amp; sourceSegments.length - targetSegments.length == 1 &amp;&amp; _.last(sourceSegments).role == 'clamp') {
-							sourceSegments.pop();
-						} else if(complementType=='output' &amp;&amp; targetSegments.length - sourceSegments.length == 1 &amp;&amp; _.last(targetSegments).role == 'clamp') {
-							targetSegments.pop();
-
+					// Two complementary ports should have the same basewise length
+					// If they don't, try to determine the cause
+					if(sum(sourceDomainLength) != sum(targetDomainLength)) {
+					
+						// Either the total number of segments is mismatched
+						if(sourceSegments.length != targetSegments.length) {
+	
+							// If there's just an extra clamp for outputs, that's okay
+							if(complementType=='output' &amp;&amp; sourceSegments.length - targetSegments.length == 1 &amp;&amp; _.last(sourceSegments).role == 'clamp') {
+								sourceSegments.pop();
+							} else if(complementType=='output' &amp;&amp; targetSegments.length - sourceSegments.length == 1 &amp;&amp; _.last(targetSegments).role == 'clamp') {
+								targetSegments.pop();
+	
+							} else {
+								// Otherwise complain
+								throw new DynamlError({
+									type : 'domain length mismatch',
+									message : _.template('Complementarity statement (&lt;%= sourceNode %&gt;.&lt;%= sourcePort %&gt; * &lt;%= targetNode %&gt;.&lt;%= targetPort %&gt;) '+
+									'in node &lt;%= sourceNode %&gt; implies domain &lt;%= targetNode %&gt;.&lt;%= targetPort %&gt; ' + //
+									'should have &lt;%= expected %&gt; segments, but instead it has &lt;%= encountered %&gt; segments', {
+										sourceNode : complement.sourceNode.getName(),
+										targetNode : complement.targetNode.getName(),
+										targetPort : complement.targetPort.getName(),
+										expected : sourceSegments.length,
+										encountered : targetSegments.length,
+									}),
+									nodes : [complement.sourceNode, complement.targetNode],
+									sourceNode : complement.sourceNode,
+									targetNode : complement.targetNode,
+									sourcePort : complement.getSourcePort(),
+									targetPort : complement.getTargetPort(),
+									ports : [complement.getSourcePort(),complement.getTargetPort(),],
+								});
+							}
+						
+						// ... or maybe some of the segments are of different lengths
 						} else {
-							// Otherwise complain
-							throw new DynamlError({
-								type : 'domain length mismatch',
-								message : _.template('Complementarity statement in node &lt;%= sourceNode %&gt; implies domain &lt;%= targetNode %&gt;.&lt;%= targetPort %&gt; ' + //
-								'should have &lt;%= expected %&gt; segments, but instead it has &lt;%= encountered %&gt; segments', {
-									sourceNode : complement.sourceNode.getName(),
-									targetNode : complement.targetNode.getName(),
-									targetPort : complement.targetPort.getName(),
-									expected : sourceSegments.length,
-									encountered : targetSegments.length,
-								}),
-								nodes : [complement.sourceNode, complement.targetNode],
-								sourceNode : complement.sourceNode,
-								targetNode : complement.targetNode,
-								sourcePort : complement.getSourcePort(),
-								targetPort : complement.getTargetPort(),
-								ports : [complement.getSourcePort(),complement.getTargetPort(),],
-								
-							});
-						}
-					}
+							// For each segment
+							for(var i = 0; i&lt;sourceSegments.length;i++) {
+								var sourceSegment = sourceSegments[i],
+									targetSegment = targetSegments[i];
+									
+								if(sourceDomainLength[i] != targetDomainLength[i]) {
+									throw new DynamlError({
+									type : 'segment length mismatch',
+										message : _.template('Complementarity statement (&lt;%= sourceNode %&gt;.&lt;%= sourcePort %&gt; * &lt;%= targetNode %&gt;.&lt;%= targetPort %&gt;) '+
+										'in node &lt;%= sourceNode %&gt; implies segment &lt;%= targetNode %&gt;.&lt;%= targetPort %&gt;.&lt;%= targetSegment %&gt; (&lt;%= targetSegmentIndex %&gt;/&lt;%= targetSegmentCount %&gt;)' + //
+										'should have same length as &lt;%= sourceNode %&gt;.&lt;%= sourcePort %&gt;.&lt;%= sourceSegment %&gt; (&lt;%= sourceSegmentIndex %&gt;/&lt;%= sourceSegmentCount %&gt;): '+
+										'&lt;%= expected %&gt; segments, but instead it has &lt;%= encountered %&gt; segments.', {
+											sourceNode : complement.sourceNode.getName(),
+											sourcePort : complement.sourcePort.getName(),
+											sourceSegment : sourceSegment.getName(),
+											sourceSegmentIndex : i,
+											sourceSegmentCount : sourceSegments.length,
+											
+											targetNode : complement.targetNode.getName(),
+											targetPort : complement.targetPort.getName(),
+											targetSegment : targetSegment.getName(),
+											targetSegmentIndex : i,
+											targetSegmentCount : targetSegments.length,
+											
+											expected : sourceDomainLength[i],
+											encountered : targetDomainLength[i],
+										}),
+										nodes : [complement.sourceNode, complement.targetNode],
+										sourceNode : complement.sourceNode,
+										sourcePort : complement.getSourcePort(),
+										sourceSegment : sourceSegment,
 
+										targetNode : complement.targetNode,
+										targetPort : complement.getTargetPort(),
+										targetSegment : targetSegment,
+										
+										ports : [complement.getSourcePort(),complement.getTargetPort(),],
+									});
+								}
+							}
+						}
+
+					}
 					// Merges happen left (source) to right (target)
 					// For each segment in sourceSegments
 					for(var i = 0; i &lt; sourceSegments.length; i++) {
@@ -2400,57 +2976,26 @@ App.dynamic = module.exports = (function(_,DNA) {
 				/* ************************************************************
 				 * Generate output properties of compiled library
 				 */
-
-				// Build array of all Segment objects, assign Segment objects to their identity in labels
-				library.allSegments = [];
-
+				
+				// Properly number segments
 				_.each(library.nodes, function(node) {
 					_.each(node.getStrands(), function(strand) {
 						_.each(strand.getSegments(), function(segment) {
 							segment.identity = Math.abs(labels[segment.getId()]);
 							segment.polarity = DNA.signum(labels[segment.getId()]);
-							library.allSegments.push(segment);
 						})
 					});
-					// _.each(node.getSegments(), function(segment) {
-						// segment.identity = Math.abs(labels[segment.getId()]);
-						// segment.polarity = DNA.signum(labels[segment.getId()]);
-						// library.allSegments.push(segment);
-					// })
 				});
-				
-				// Build an array of new Segment objects, each representing a unique segment identity.
-				// This is mostly for the benefit of output generators like DD or NUPACK which
-				// need to generate a list of each unique segment in the ensemble
-				library.segments = _.chain(library.allSegments).uniq(false, function(segment) {
-					return segment.identity;
-				}).map(function(segment) {
-					var duplicate = segment.duplicate();
-					
-					// These new Segments are deliberately divorced from their 
-					// original &quot;name&quot;, parent node, and polarity, since the purpose
-					// of these objects is to describe each unique segment identity 
-					// and its sequence, length, etc (salient properties for sequence
-					// designers mostly). 
-					delete duplicate.name;
-					delete duplicate.node;
-					delete duplicate.polarity;
-					return new Segment(duplicate);
-				}).value();
 
-				// Build an array of strands with properly numbered segments.
-				library.strands = _.chain(library.nodes).map(function(node) {
-					return node.getStrands();
-					
-					// return _.map(node.getStrands(),function(strand) {
-						// return new Strand(strand);
-					// }); //new Strand(node);
-				}).flatten().value();
+				library.updateOutputProperties();
+				
 			} else {
 				library = {};
 			}
 			return library;
 		}
+		
+		
 		
 <span id='App-dynamic-Compiler-method-printStrands'>		/**
 </span>		 * Prints a textual description of a given library for sequence design
@@ -2585,6 +3130,226 @@ App.dynamic = module.exports = (function(_,DNA) {
 			return out;
 		}
 		
+		var roleAbbrevs = {
+			'domain':{
+				'i': 'input',
+				'o': 'output',
+				'b': 'bridge',
+				's': 'structural',
+				'x': 'structural',
+			},
+			'segment':{
+				't':'toehold',
+				'th':'toehold',
+				'c':'clamp',
+				'cl':'clamp',
+			}
+		};
+		
+		var abbrevRoles = {
+			'domain' : {
+				'input': 'i',
+				'output': 'o',
+				'bridge': 'b',
+				'structural': 'x',
+			},
+			'segment' : {
+				'toehold': 't',
+				'clamp': 'c',
+			}
+		}
+		
+		function printPolarity(pol) {
+			if(pol == -1) {
+				return '-';
+			} else if(pol == 1) {
+				return '+';
+			} else {
+				return '0';
+			}
+		}
+		
+<span id='App-dynamic-Compiler-method-abbrevRole'>		/**
+</span>		 * Given a role name, abbreviates to a compact &quot;role specifier&quot;; inverse of
+		 * #expandRole. 
+		 * 
+		 * @param {String} type 
+		 * `domain` or `segment
+		 * 
+		 * @param {String} str
+		 * The role name to be abbreviated
+		 * 
+		 * @return {String} abbrev
+		 * The role specifier; see #expandRole for values.
+		 */
+		function abbrevRole(type,str) {
+			if(abbrevRoles[type]) {
+				if(abbrevRoles[type][str]) return abbrevRoles[type][str]
+			}
+			return str;
+		}
+		
+<span id='App-dynamic-Compiler-method-expandRole'>		/**
+</span>		 * Expands a compact &quot;role specifier&quot; to a full role name. Allows shorthand role names
+		 * to be used to reduce typing. Short-hand names available:
+		 * 
+		 * -	For {@link App.dynamic.Domain Domains}:
+		 * 		-	`i` : input
+		 * 		-	`o` : output
+		 * 		-	`b` : bridge
+		 * 		-	`s` or `x` : structural
+		 * -	For {@link App.dynamic.Segment Segments}:
+		 * 		-	`t` or `th` : toehold
+		 * 		-	`c` or `cl` : clamp
+		 * 
+		 * @param {String} type 
+		 * `domain` or `segment
+		 * 
+		 * @param {String} str
+		 * The role specifier to be expanded
+		 */
+		function expandRole(type,str) {
+			if(roleAbbrevs[type]) {
+				if(roleAbbrevs[type][str]) return roleAbbrevs[type][str]
+			}
+			return str;
+		}
+		
+<span id='App-dynamic-Compiler-method-parseDomainString'>		/**
+</span>		 * Accepts a domain list in a compact, string representation. 
+		 * 
+		 * ex: d1[a*(8) b* c(2)]i- d2[d:t e f*]o
+		 * 
+		 * The format is as follows: 
+		 * _name_ [_segments_] _role (optional)_ _polarity (optional)_
+		 * 
+		 * 	-	`name` is any alphanumeric string (underscores allowed),
+		 * 	-	`segments` is a space-separated list of segments in {@link #parseSegmentString string format}
+		 * 	-	`role` is a {@link App.dynamic.Domain#role role name} or {@link #expandRole role specifier}
+		 * 	-	`polarity` is an optional {@link App.dynamic.Domain#polarity} polarity specifier: `+` or `-`
+		 * 
+		 * @param {String} str
+		 * The domain string to parse
+		 * 
+		 * @param {Boolean} [parseIdentifier=false] 
+		 * See #parseSegmentString.
+		 * 
+		 * @return {App.dynamic.Domain[]}
+		 */
+		function parseDomainString(str,parseIdentifier) {
+			parseIdentifier || (parseIdentifier = false)
+			var domains = str.match(/(\w+\[[\w\(\)\*'\s:]+\]\w?[\+-]?)\s?/g);
+			return _.map(domains,function(dom) {
+				var parts = dom.match(/(\w+)\[([\w\(\)\*'\s:]+)](\w?)([\+-]?)/);
+				//	e.g. &quot;d1[a*(1) b* c(2)]i-&quot;
+				//	-&gt;  [&quot;d1[a*(1) b* c(2)]i-&quot;, &quot;d1&quot;, &quot;a*(1) b* c(2)&quot;, &quot;i&quot;, &quot;-&quot;]
+				//       0                       1     2                3    4
+				var d = {
+					name: parts[1],
+					segments: parseSegmentString(parts[2],parseIdentifier),
+				};
+				var role = expandRole('domain',parts[3]);
+				if(!!role) {d.role = role;}
+				if(!!parts[4]) {d.polarity = parts[4];}
+				return d;		
+			})
+		}
+		
+<span id='App-dynamic-Compiler-method-printDomainString'>		/**
+</span>		 * Accepts an array of App.Compiler.Domain objects, and produces a compact,
+		 * text-based representation. Inverse of #parseDomainString.
+		 * 
+		 * @param {App.Compiler.Domain[]} doms
+		 * @param {Number} [polarity=1] Set to -1 to flip the output segmentwise
+		 * @param {Boolean} [omitLengths=false] True to output the domain string without parenthesized length specifiers
+		 * 
+		 */
+		function printDomainString(doms,polarity,omitLengths) {
+			polarity || (polarity = 1);
+			omitLengths || (omitLengths = false);
+			
+			return order(_.map(doms,function(dom) {
+				return [dom.getName(),'[',printSegmentString(order(dom.getSegments())),']',abbrevRole('domain',dom.role || ''),printPolarity(dom.getPolarity())].join('')
+			}),polarity).join(' ')
+		}
+		
+		function printStrandString(strand) {
+			return strand.getName() + ' : ' + printDomainString(strand.getDomains(),strand.getPolarity());
+		}
+		
+<span id='App-dynamic-Compiler-method-parseSegmentString'>		/**
+</span>		 * Accepts a segment list in a compact, string representation
+		 * and converts it to valid DyNAML
+		 * 
+		 * ex: a*(8) b*t c(2) d:c
+		 * 
+		 * The format is as follows:
+		 * _name_ (_length (optional)_) _role_
+		 * 
+		 * -	`name` is any alphanumeric string (underscores allowed) with an optional {@link App.dynamic.Segment#polarity polarity specifier}
+		 * 	-	`length` is the length of the Segment in bases
+		 * 	-	`role` is a {@link App.dynamic.Segment#role role name} or {@link #expandRole role specifier}. If 
+		 * 
+		 * @param {String} str
+		 * Space-separated segment string to be parsed
+		 * 
+		 * @param {Boolean} [parseIdentifier=false]
+		 * True to parse the `name` portion into an `identity` and `polarity` using DNA#parseIdentifier 
+		 * 
+		 * @return {App.dynamic.Segment[]} segments
+		 */
+		function parseSegmentString(str,parseIdentifier) {
+			parseIdentifier || (parseIdentifier = false);
+			var segments = str.split(/\s+/g);
+			return _.map(segments,function(seg) {
+				seg.trim();
+				var parts = seg.match(/(\w+\*?)(?:\(([aAtTcCgGuUnN\d]+)\))?:?(\w+)?/);
+				// e.g.: &quot;a*(6):t&quot;
+				// 	-&gt; [&quot;a*(6):t&quot;, &quot;a*&quot;, &quot;6&quot;,   &quot;t&quot;]
+				//		0			1     2      3
+				//		full		name length  role
+				
+				var s = { };
+				
+				if(parseIdentifier) {					
+					_.extend(s, DNA.parseIdentifier(parts[1]));
+				} else {
+					s.name = parts[1];
+				}
+			
+				var role = expandRole('segment',parts[3]);
+				if(!!role) {s.role = role;}
+				if(!!parts[2]) {
+					if(parts[2].match(/[aAtTcCgGuUnN]+/)) {
+						s.sequence = parts[2]
+					} else if (parts[2].match(/\d+/)) {					
+						s.length = parseInt(parts[2])
+					}
+				}
+				return s;
+			})
+		}
+		
+<span id='App-dynamic-Compiler-method-printSegmentString'>		/**
+</span>		 * Accepts a list of segments and prints compact segment specifiers.
+		 * Inverse of #parseSegmentString.
+		 * 
+		 * @param {App.dynamic.Segment[]} segments
+		 * 
+		 * @return {String} str
+		 * Space-separated segment string to be parsed
+		 */
+		function printSegmentString(segs,omitLengths) {
+			omitLengths || (omitLengths = false)
+			return _.chain(segs).compact().map(function(seg) {
+				if(omitLengths) {
+					return [seg.getIdentifier(),':',abbrevRole('segment',seg.role || '')].join('')
+				}
+				return [seg.getIdentifier(),'(',seg.getLength(),')',abbrevRole('segment',seg.role || '')].join('')
+			}).value().join(' ');
+		}
+		
+		
 <span id='App-dynamic-Compiler-property-standardMotifs'>		/**
 </span>		 * @property {Object} standardMotifs
 		 * Hash containing configuration objects for each of the standard motifs, indexed by name.
@@ -2638,7 +3403,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	type: 'loop',
 			    	polarity: '-',
 			    	segments: [
-				      	{name: 'c', role: 'loop'},
+				      	{name: 'c', },
 				        {name: 'b*', role: ''},
 			    	]
 			    }]
@@ -2661,8 +3426,8 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	type: 'loop',
 			    	polarity: '-',
 			    	segments: [
-				      	{name: 'd', role: 'loop'},
-				        {name: 'e', role: 'loop'},
+				      	{name: 'd', },
+				        {name: 'e', },
 				        {name: 'c*', role: ''},
 			    	]
 			    },{
@@ -2679,7 +3444,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			},{
 				name: 'm5',
 				type: 'hairpin',
-				structure: '.((.)).',
+				structure: '.((.))',
 			    domains: [{
 			    	name: 'A',
 			    	role: 'input',
@@ -2695,11 +3460,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	type: 'loop',
 			    	polarity: '+',
 			    	segments: [
-				      	{name: 'd', role: 'loop'},
+				      	{name: 'd', },
 			    	]
 			    },{
 			    	name: 'C',
-			    	role: 'null',
+			    	role: 'structural',
 			    	type: 'stem',
 			    	polarity: '+',
 			    	segments: [
@@ -2726,7 +3491,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	type: 'loop',
 			    	polarity: '+',
 			    	segments: [
-				      	{name: 'd', role: 'loop'},
+				      	{name: 'd', },
 			    	]
 			    },{
 			    	name: 'C',
@@ -2734,10 +3499,10 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	type: 'loop',
 			    	polarity: '-',
 			    	segments: [
-				      	{name: 'e', role: 'loop'},
-				      	{name: 'f', role: 'loop'},
-				      	{name: 'g', role: 'loop'},
-				      	{name: 'c*', role: 'loop'},
+				      	{name: 'e', },
+				      	{name: 'f', },
+				      	{name: 'g', },
+				      	{name: 'c*', },
 			    	]
 			    },{
 			    	name: 'D',
@@ -2769,8 +3534,8 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	type: 'loop',
 			    	polarity: '-',
 			    	segments: [
-				      	{name: 'd', role: 'loop'},
-				      	{name: 'e', role: 'loop'},
+				      	{name: 'd', },
+				      	{name: 'e', },
 				      	{name: 'c*', role: ''},
 			    	]
 			    },{
@@ -2803,7 +3568,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	type: 'loop',
 			    	polarity: '+',
 			    	segments: [
-				      	{name: 'd', role: 'loop'},
+				      	{name: 'd', },
 				      	{name: 'c*', role: ''},
 			    	]
 			    },{
@@ -2836,7 +3601,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	type: 'loop',
 			    	polarity: '+',
 			    	segments: [
-				      	{name: 'd', role: 'loop'},
+				      	{name: 'd', },
 				      	{name: 'c*', role: ''},
 			    	]
 			    },{
@@ -2876,7 +3641,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			    	segments:  [
 			      		{name: 'a', role: 'toehold'},
 				      	{name: 'w', role: 'clamp'},
-				        {name: 'b', role: 'reverse'},
+				        {name: 'b', },
 				      	{name: 'x', role: 'clamp'},
 			    	]
 			   },{
@@ -2885,12 +3650,49 @@ App.dynamic = module.exports = (function(_,DNA) {
 				   polarity: '-',
 				   segments: [
 					   {name: 'y', role: 'clamp'},
-					   {name: 'c', role: 'loop'},
+					   {name: 'c', },
 					   {name: 'x*', role: 'clamp'},
 					   {name: 'b*', role: 'toehold'},
 					   {name: 'w*', role: 'clamp'},
 				   ]
 			   }]
+			},{
+				&quot;name&quot;:&quot;m20&quot;,
+				&quot;type&quot;:&quot;hairpin&quot;,
+				&quot;structure&quot;:&quot;.(((....)))..&quot;,
+				&quot;domains&quot;:&quot;A[a:t x:c b c]i+ s[s(1)]x B[d e y:c c*:t]o- C[b*:t x*:c f g]o+&quot;
+			},{
+				&quot;name&quot;:&quot;m21&quot;,
+				&quot;type&quot;:&quot;hairpin&quot;,
+				&quot;structure&quot;:&quot;.(((...))).&quot;,
+				&quot;domains&quot;:&quot;A[a:t x:c b c]i+ s[s(1)]x B[d(16) y:c c*:t]o- C[b*:t x*:c e(16)]o+&quot;
+			},{
+				&quot;name&quot;:&quot;m22&quot;,
+				&quot;type&quot;:&quot;cooperative&quot;,
+				&quot;structure&quot;:&quot;.(((((.+)))))&quot;,
+				&quot;strands&quot;:[{
+					&quot;name&quot;:&quot;S1&quot;,
+					&quot;domains&quot;:&quot;A[a:t x:c b(16)]i+ s[s(1)]x B[c(16) y:c d:t]i-&quot;
+				},{
+					&quot;name&quot;:&quot;S2&quot;,
+					&quot;domains&quot;:&quot;C[y*:c c*(16) s*(1) b*(16) x*:c]x&quot;
+				}]
+			},{
+				&quot;name&quot;:&quot;m23&quot;,
+				&quot;type&quot;:&quot;initiator&quot;,
+				&quot;structure&quot;:&quot;....&quot;,
+				&quot;domains&quot;:&quot;A[a x:c b c]o+&quot;
+			},{
+				&quot;name&quot;:&quot;m24&quot;,
+				&quot;type&quot;:&quot;cooperative&quot;,
+				&quot;structure&quot;:&quot;.(((((((((((.+)))))))))))&quot;,
+				&quot;strands&quot;:[{
+					&quot;name&quot;:&quot;S1&quot;,
+					&quot;domains&quot;:&quot;A[a:t x:c b c]i+ s[s(1)]x B[d y:c e f]i- C[g z:c h i:t]i+&quot;
+				},{
+					&quot;name&quot;:&quot;S2&quot;,
+					&quot;domains&quot;:&quot;D[h* z*:c g*]x E[f* e* y*:c d*]x F[s*(1) c* b* x*:c]x&quot;
+				}]
 			}
 		];
 		standardMotifs = _.reduce(standardMotifs,function(memo,motif) {
@@ -2945,6 +3747,14 @@ App.dynamic = module.exports = (function(_,DNA) {
 			standardMotifs : standardMotifs,
 			domainColors: domainColors,
 			getColor : getColor,
+			expandRole: expandRole,
+			parseDomainString: parseDomainString,
+			parseDomainsString: parseDomainString,
+			parseSegmentString: parseSegmentString,
+			parseSegmentsString: parseSegmentString,  
+			printDomainString: printDomainString,
+			printStrandString : printStrandString,
+			printSegmentString : printSegmentString,
 		}
 
 	})();
@@ -2953,6 +3763,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 		Node : Node,
 		Motif : Motif,
 		Strand : Strand,
+		Domain : Domain,
 		Segment : Segment,
 		Library : Library,
 		Compiler : Compiler,

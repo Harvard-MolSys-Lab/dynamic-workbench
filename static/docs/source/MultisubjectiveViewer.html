@@ -49,6 +49,10 @@ Ext.define('App.ui.MultisubjectiveViewer', {
 		var data = JSON.parse(this.data);
 		var panel = this.getCanvas();
 
+		function range(arr) {
+			return _.range(arr[0], arr[1] + 1)
+		}
+
 		/*
 		 &quot;immutable&quot;:[17,308,309, ... ]
 		 */
@@ -97,7 +101,7 @@ Ext.define('App.ui.MultisubjectiveViewer', {
 		 */
 
 		var prevented = _.reduce(data['prevented'], function(memo, p) {
-			_.each(_.range(p.range[0], p.range[1]), function(i) {
+			_.each(range(p.range), function(i) {
 				memo[i] = p;
 			});
 			return memo;
@@ -116,20 +120,24 @@ Ext.define('App.ui.MultisubjectiveViewer', {
 		 { &quot;name&quot;:&quot;A2&quot;, &quot;length&quot;:79, &quot;range&quot;:[80,158] },
 		 ]
 		 */
-		var nodes = [];
-		var strand_links = [];
-		var undesired_links = [];
-		var desired_links = [];
+
+		var strands = [];
 
 		_.each(data['strands'], function(s, i) {
 			// i = strand index
 
-			_.each(_.range(s.range[0], s.range[1]), function(j, k) {
+			var nodes = [];
+			var strand_links = [];
+			var undesired_links = [];
+			var desired_links = [];
+			
+			var offset = s.range[0];
+			_.each(range(s.range), function(j, k) {
 				// j = absolute base index
 				// k = strand-wise base index
 
 				var node = {
-					abs_index : j,
+					abs_index : j - 1,
 					strand_index : i,
 					strand : s.name
 				};
@@ -148,8 +156,8 @@ Ext.define('App.ui.MultisubjectiveViewer', {
 				// desired
 				if (desired[j]) {
 					desired_links.push({
-						source : j,
-						target : desired[j],
+						source : j - offset,
+						target : desired[j] - offset,
 						_type : 'desired'
 					});
 				}
@@ -157,8 +165,8 @@ Ext.define('App.ui.MultisubjectiveViewer', {
 				// undesired
 				if (undesired[j]) {
 					var l = {
-						source : j,
-						target : undesired[j].target,
+						source : j - offset,
+						target : undesired[j].target - offset,
 						_type : 'undesired'
 					}
 					if (undesired[j].changed) {
@@ -167,99 +175,142 @@ Ext.define('App.ui.MultisubjectiveViewer', {
 					undesired_links.push(l);
 				}
 
-				if (k &lt; (strand.length - 1)) {
+				if (k &lt; (s.length - 1)) {
 					strand_links.push({
-						source : j,
-						target : j + 1,
+						source : j - offset,
+						target : j - offset + 1,
 						_type : 'strand'
 					})
 				}
 			});
+
+			strands.push({
+				name: s.name,
+				nodes : nodes,
+				strand_links : strand_links,
+				undesired_links : undesired_links,
+				desired_links : desired_links
+			})
+		});
+
+		
+	
+		var w = this.getWidth(), h = this.getHeight();	
+		var views = strands.length, viewSize = viewSizeX = viewSizeY = 400, viewCountX = Math.floor(w / viewSizeX), viewCountY = Math.floor(h / viewSizeY);
+		var fade_in_duration = 1000, panel_wait_duration = 1000, simultaneous_panels = 2;
+		
+		
+		panel.append(&quot;rect&quot;).attr(&quot;fill&quot;,&quot;#fff&quot;).attr(&quot;width&quot;,viewSizeX * viewCountX).attr(&quot;height&quot;,viewSizeY * viewCountY);
+		panel.call(d3.behavior.zoom());
+		
+		this.strandViews = panel.selectAll(&quot;g.view&quot;).data(strands).enter().append('g').attr(&quot;class&quot;, &quot;view&quot;).attr(&quot;transform&quot;, function(d,i) {
+			return &quot;translate(&quot; + (i % viewCountX) * viewSize + &quot;,&quot; + (Math.floor(i / viewCountX) * viewSize) + &quot;)&quot;;
+		}).attr('width',viewSizeX).attr('height',viewSizeY).each(function(d,strand_index) {
+			var nodes = d.nodes, strand_links = d.strand_links, undesired_links = d.undesired_links, desired_links = d.desired_links;
+			
+			var l = nodes.length
+			nodes = _.map(nodes,function(n,i) {
+				theta = 2*Math.PI*(i/l)
+				n.x = viewSizeX/2 + Math.cos(theta) * viewSizeX/2
+				n.y = viewSizeY/2 + Math.sin(theta) * viewSizeY/2
+				return n;
+			});
+			
+			var links = desired_links.concat(strand_links).concat(undesired_links);
+			
+			var panel = d3.select(this);
+			
+			var force = d3.layout.force().charge(-50).linkDistance(viewSize / 100).size([viewSizeX,viewSizeY]).linkStrength(function(l, i) {
+				if (l._type == 'strand') {
+					return 0.6
+				} else if(l._type == 'desired') {
+					return 0.5
+				} else {
+					return 0
+				}
+			}).gravity(0.1);
+
+			force.nodes(nodes).links(links)
+
+			var line_stroke = '#aaa';
+			strokes = {
+				'desired':line_stroke,
+				'strand':line_stroke,
+				'undesired':'#a00',
+			}
+			
+			// Links
+			var link = panel.selectAll(&quot;line.link&quot;).data(links).enter().append(&quot;line&quot;).attr(&quot;class&quot;, function(d) {
+				var cls = [&quot;link&quot;]
+				cls.push(&quot;source-&quot; + d.source.name);
+				cls.push(&quot;target-&quot; + d.target.name);
+				return cls.join(' ');
+			}).style(&quot;stroke-width&quot;, 2).style('stroke', function(d){
+				return strokes[d._type]
+			});
+
+			// Node Groups
+			var node = panel.selectAll(&quot;g.node&quot;).data(nodes).enter().append('g').attr(&quot;class&quot;, &quot;node&quot;).call(force.drag);
+
+			// Node circle
+
+			node.append(&quot;circle&quot;).attr(&quot;r&quot;, 5).style(&quot;fill&quot;, '#aaa').attr('stroke-width', 2).attr('stroke', '#fff')
+
+			// Node text
+			node.append('text').attr('class', 'node_label')
+			//.style('stroke','#111')
+			.style('fill', '#111')//.style('text-shadow','1px 1px 2px #222')
+			.style('text-shadow', '2px 2px 2px white')
+			//.attr('text-anchor','middle').attr('dy','.35em')
+			.attr(&quot;dx&quot;, function(d) {
+				return 5 + 5
+			}).attr(&quot;dy&quot;, &quot;.35em&quot;).text(function(d) {
+				return ''
+			});
+			
+			var doTick = function() {
+				link.attr(&quot;x1&quot;, function(d) {
+					return d.source.x;
+				}).attr(&quot;y1&quot;, function(d) {
+					return d.source.y;
+				}).attr(&quot;x2&quot;, function(d) {
+					return d.target.x;
+				}).attr(&quot;y2&quot;, function(d) {
+					return d.target.y;
+				});
+
+				node.attr(&quot;transform&quot;, function(d) {
+					return &quot;translate(&quot; + d.x + &quot;,&quot; + d.y + &quot;)&quot;;
+				});
+			}
+			
+			doTick();
+			
+			
+			
+			_.delay(function() {
+				force.start()
+				
+				panel.style(&quot;opacity&quot;, 1e-6)
+				  .transition()
+				    .duration(fade_in_duration)
+				    .style(&quot;opacity&quot;, 1);
+				
+				force.on(&quot;tick&quot;, doTick);
+				
+				_.delay(function() {
+					force.stop();
+				},panel_wait_duration * simultaneous_panels)
+			},panel_wait_duration * strand_index)
 		});
 		
-		
-		var links = desired_links.concat(strand_links);
-		
-
-		panel.call(d3.behavior.zoom());
-
-		this.force = d3.layout.force().charge(-100).linkDistance(20)
-		.size([this.getWidth(), this.getHeight()])
-		.linkStrength(function(l,i) {
-			if(l._type == 'strand') {
-				return 0.7
-			} else {
-				return 0.4
-			}
-		}).gravity(0.01);
-
-		this.force.nodes(allNodes).links(links).start();
-
-		var line_stroke = '#aaa';
-
-		// Links
-		this.link = panel.selectAll(&quot;line.link&quot;).data(links).enter().append(&quot;line&quot;).attr(&quot;class&quot;, function(d) {
-			var cls = [&quot;link&quot;]
-			cls.push(&quot;source-&quot; + d.source.name);
-			cls.push(&quot;target-&quot; + d.target.name);
-			return cls.join(' ');
-		})
-		.style(&quot;stroke-width&quot;, 2)
-		.style('stroke', line_stroke);
-
-		// Node Groups
-		this.node = panel.selectAll(&quot;g.node&quot;).data(allNodes).enter().append('g').attr(&quot;class&quot;, &quot;node&quot;)
-		.call(this.force.drag);
-		
-		// Node circle
-
-		this.node.append(&quot;circle&quot;).attr(&quot;r&quot;, 5)
-		.style(&quot;fill&quot;, '#aaa')
-		.attr('stroke-width', 2)
-		.attr('stroke', '#fff')
-
-		// Node text
-		this.node.append('text').attr('class', 'node_label')
+		this.strandViews.append('text').attr('class', 'node_label')
 		//.style('stroke','#111')
 		.style('fill', '#111')//.style('text-shadow','1px 1px 2px #222')
 		.style('text-shadow', '2px 2px 2px white')
 		//.attr('text-anchor','middle').attr('dy','.35em')
-		.attr(&quot;dx&quot;, function(d) {
-			return radius(d) + 5
-		}).attr(&quot;dy&quot;, &quot;.35em&quot;).text(function(d) {
-			return ''
-		});
-		
-		
-		
-		var me = this;
-		this.force.on(&quot;tick&quot;, function() {
-			me.link.attr(&quot;x1&quot;, function(d) {
-				return d.source.x;
-			}).attr(&quot;y1&quot;, function(d) {
-				return d.source.y;
-			}).attr(&quot;x2&quot;, function(d) {
-				return d.target.x;
-			}).attr(&quot;y2&quot;, function(d) {
-				return d.target.y;
-			});
-			// me.link.attr(&quot;d&quot;, function(d) {
-			// var dx = d.target.x - d.source.x, dy = d.target.y - d.source.y, dr = Math.sqrt(dx * dx + dy * dy);
-			// return &quot;M&quot; + d.source.x + &quot;,&quot; + d.source.y + &quot;A&quot; + dr + &quot;,&quot; + dr + &quot; 0 0,1 &quot; + d.target.x + &quot;,&quot; + d.target.y;
-			// });
-			
-			me.node.attr(&quot;transform&quot;, function(d) { return &quot;translate(&quot; + d.x + &quot;,&quot; + d.y + &quot;)&quot;; });
-			// me.node.attr(&quot;cx&quot;, function(d) {
-				// return d.x;
-			// }).attr(&quot;cy&quot;, function(d) {
-				// return d.y;
-			// });
-// 			
-			// me.node_label.attr(&quot;x&quot;, function(d) {
-				// return d.x;
-			// }).attr(&quot;y&quot;, function(d) {
-				// return d.y;
-			// });
+		.attr(&quot;dx&quot;, &quot;2em&quot;).attr(&quot;dy&quot;, &quot;1em&quot;).text(function(d) {
+			return d.name
 		});
 	},
 	initComponent : function() {

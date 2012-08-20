@@ -213,6 +213,9 @@ Ext.define('App.ui.Canvas', {
 		 * Reference to the {@link Workspace} object which manages objects on the canvas.
 		 */
 
+		// TEMPORARY PROFILING
+		//console.profile('Workspace loading')
+
 		// build workspace, using loaded data bootstrapped from App.loadData
 		this.workspace = new Workspace(this.bodyPanel.body, this.workspaceData);
 		this.workspace.on('afterload', function() {
@@ -240,9 +243,11 @@ Ext.define('App.ui.Canvas', {
 
 			this.workspace.bodyResize(this.bodyPanel,this.bodyPanel.body.getWidth()-10,this.bodyPanel.body.getHeight()-10);
 
+			//console.profileEnd('Workspace loading')
 		}, this, {
 			single: true
 		});
+		
 	},
 <span id='App-ui-Canvas-method-setupWorkspace'>	/**
 </span>	 * Called after the #workspace is created and loaded. Override to provide custom logic on workspace creation.

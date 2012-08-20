@@ -1550,13 +1550,13 @@ var DD = function() {
 							else
 								mut_new[k] = 4;
 							// Undo mutation if new base is not allowed
-							if((mut_new[k] == 1) &amp;&amp; (Math.floor(domain_gatc_avail[mut_domain] / 8) == 0))
+							if((mut_new[k] == 1) &amp;&amp; (domain_gatc_avail[mut_domain] &amp; 8) == 0)
 								mut_new[k] = mut_old[k];
-							if((mut_new[k] == 2) &amp;&amp; (Math.floor(domain_gatc_avail[mut_domain] / 4) % 2 == 0))
+							if((mut_new[k] == 2) &amp;&amp; (domain_gatc_avail[mut_domain] &amp; 4) == 0)
 								mut_new[k] = mut_old[k];
-							if((mut_new[k] == 3) &amp;&amp; (Math.floor(domain_gatc_avail[mut_domain] / 2) % 2 == 0))
+							if((mut_new[k] == 3) &amp;&amp; (domain_gatc_avail[mut_domain] &amp; 2) == 0)
 								mut_new[k] = mut_old[k];
-							if((mut_new[k] == 4) &amp;&amp; (domain_gatc_avail[mut_domain] % 2 == 0))
+							if((mut_new[k] == 4) &amp;&amp; (domain_gatc_avail[mut_domain] &amp; 1) == 0)
 								mut_new[k] = mut_old[k];
 
 						} while (mut_new[k] == mut_old[k]);
@@ -1573,13 +1573,13 @@ var DD = function() {
 							else
 								mut_new[k] = 4;
 							// Undo mutation if new base is not allowed
-							if((mut_new[k] == 1) &amp;&amp; (Math.floor(domain_gatc_avail[mut_domain] / 8) == 0))
+							if((mut_new[k] == 1) &amp;&amp; (domain_gatc_avail[mut_domain] &amp; 8) == 0)
 								mut_new[k] = mut_old[k];
-							if((mut_new[k] == 2) &amp;&amp; (Math.floor(domain_gatc_avail[mut_domain] / 4) % 2 == 0))
+							if((mut_new[k] == 2) &amp;&amp; (domain_gatc_avail[mut_domain] &amp; 4) == 0)
 								mut_new[k] = mut_old[k];
-							if((mut_new[k] == 3) &amp;&amp; (Math.floor(domain_gatc_avail[mut_domain] / 2) % 2 == 0))
+							if((mut_new[k] == 3) &amp;&amp; (domain_gatc_avail[mut_domain] &amp; 2) == 0)
 								mut_new[k] = mut_old[k];
-							if((mut_new[k] == 4) &amp;&amp; (domain_gatc_avail[mut_domain] % 2 == 0))
+							if((mut_new[k] == 4) &amp;&amp; (domain_gatc_avail[mut_domain] &amp; 1) == 0)
 								mut_new[k] = mut_old[k];
 						} while (mut_new[k] == mut_old[k]);
 					}
@@ -1714,9 +1714,7 @@ var DD = function() {
 			
 			setupScoreMatricies();
 		},
-		resetCounters: function() {
-			
-		},
+		resetCounters: resetCounters,
 		serialize : function() {
 			this.saveState.apply(this, arguments);
 		},

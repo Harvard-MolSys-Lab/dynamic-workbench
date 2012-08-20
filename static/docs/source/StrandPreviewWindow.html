@@ -16,7 +16,7 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js">Ext.define('App.ui.StrandPreviewWindow',{
-	require: ['App.ui.nodal.StrandPreview'],
+	requires: ['App.ui.StrandPreview'],
 	extend:'Ext.window.Window',
 	width: 400,
 	height: 400,
@@ -34,22 +34,22 @@
 				mode: 'nupack',
 				
 				//height: 100,
-				title: 'Design',
+				title: 'Structure',
 				//margin: '0 0 5 0',
-				fieldLabel: 'Design',
+				fieldLabel: 'Structure',
 				// name: 'design_job[target_structure]',
 				labelAlign: 'top',
-				region: 'center',
-				//frame: true,
-			},Ext.create('App.ui.nodal.StrandPreview',{
+				region: 'north',
 				split: true,
-				region: 'south',
+				//frame: true,
+			},Ext.create('App.ui.StrandPreview',{
+				region: 'center',
 				height: 200,
 				frame: true,
 				adjacencyMode: 1,
 			})],
 			buttons: [{
-				text: 'Design',
+				text: 'Preview',
 				handler: this.doSubmit,
 				scope: this,
 			}]
@@ -57,40 +57,14 @@
 		//this.on('afterrender',this.afterrender,this);
 		this.callParent(arguments);
 	},
-	// afterrender : function() {
-		// var textarea = this.getEl().down('textarea').dom,
-			// textareaCmp = this.down('textarea');
-		// if(textarea &amp;&amp; textareaCmp) {
-			// var me = this;
-			// this.codemirror = CodeMirror.fromTextArea(textarea, {
-				// matchBrackets:      false,
-	            // electricChars:      false,
-	            // indentUnit:         false,
-	            // smartIndent:        false,
-	            // indentWithTabs:     true,
-	            // lineNumbers:        true,
-	            // lineWrapping:       true,
-	            // firstLineNumber:    1,
-	            // mode: 'nupack',
-// 				
-			// });
-			// this.codemirror.setValue(textareaCmp.getValue());
-		// }
-	// },
+
 	doSubmit: function() {
 		var codemirror = this.down('codemirror');
 		var targetStructure = codemirror.getValue();
 		
-		var form = this.down('form').getForm();
-		form.doAction('standardsubmit',{
-			target: '_blank',
-			url: 'http://www.nupack.org/design/new',
-			method: 'post',
-			enctype:'multipart/form-data',
-			params: {
-				'design_job[target_structure]':targetStructure,
-			}
-		})
+		var strandPreview = this.down('strandpreview');
+		
+		strandPreview.setValue(targetStructure)
 	},
 	updateDesign: function(design) {
 		var designField = this.down('codemirror');
@@ -98,23 +72,6 @@
 	}
 })
 
-/*
-&lt;form target=&quot;_blank&quot; action=&quot;http://www.nupack.org/design/new&quot; method=&quot;post&quot; enctype=&quot;multipart/form-data&quot; id=&quot;&lt;%= id %&gt;&quot;&gt;
-&lt;textarea name=&quot;design_job[target_structure]&quot;&gt;&lt;%= target_structure %&gt;&lt;/textarea&gt;&lt;/label&gt;
-&lt;input type=&quot;text&quot; name=&quot;preview_token&quot; value=&quot;&quot;&gt;&lt;/input&gt;
-&lt;input type=&quot;text&quot; name=&quot;design_job[nucleic_acid_type]&quot; value=&quot;&lt;%= nucleic_acid_type %&gt;&quot;&gt;&lt;/input&gt;
-&lt;input type=&quot;text&quot; name=&quot;design_job[temperature]&quot; value=&quot;&lt;%= temperature %&gt;&quot;&gt;&lt;/input&gt;
-&lt;input type=&quot;text&quot; name=&quot;design_job[number_of_trials]&quot; value=&quot;&lt;%= number_of_trials %&gt;&quot;&gt;&lt;/input&gt;
-&lt;input type=&quot;text&quot; name=&quot;design_job[rna_parameter_file]&quot; value=&quot;&lt;%= rna_parameter_file %&gt;&quot;&gt;&lt;/input&gt;
-&lt;input type=&quot;text&quot; name=&quot;design_job[dna_parameter_file]&quot; value=&quot;&lt;%= dna_parameter_file %&gt;&quot;&gt;&lt;/input&gt;
-&lt;input type=&quot;text&quot; name=&quot;design_job[dangle_level]&quot; value=&quot;&lt;%= dangle_level %&gt;&quot;&gt;&lt;/input&gt;
-&lt;input type=&quot;text&quot; name=&quot;design_job[na_salt]&quot; value=&quot;&lt;%= na_salt %&gt;&quot;&gt;&lt;/input&gt;
-&lt;input type=&quot;text&quot; name=&quot;design_job[mg_salt]&quot; value=&quot;&lt;%= mg_salt %&gt;&quot;&gt;&lt;/input&gt;
-&lt;input type=&quot;text&quot; name=&quot;design_job[dotplot_target]&quot; value=&quot;&lt;%= dotplot_target %&gt;&quot;&gt;&lt;/input&gt;
-&lt;input type=&quot;text&quot; name=&quot;design_job[email_address]&quot; value=&quot;&lt;%= email_address %&gt;&quot;&gt;&lt;/input&gt;
-&lt;input type=&quot;text&quot; name=&quot;commit&quot; value=&quot;Design&quot;&gt;&lt;/input&gt;
-&lt;input type=&quot;submit&quot; name=&quot;&quot; /&gt;
-&lt;/form&gt;
- */</pre>
+</pre>
 </body>
 </html>

@@ -30,6 +30,7 @@ Ext.define('App.ui.nodal.LibraryWindow', {
 	bodyBorder : false,
 	border : false,
 	plain : true,
+	showTree: false,
 	layout : 'fit',
 	closeAction: 'hide',
 	initComponent : function() {
@@ -40,13 +41,21 @@ Ext.define('App.ui.nodal.LibraryWindow', {
 					xtype : 'tabpanel',
 					plain : true,
 					items : [{
-						title : 'Tree',
-						xtype : 'objectbrowser',
-						data : this.lastLibrary,
+						title: 'SVG',
+						xtype: 'panel',
+						name: 'svg',
+						html: this.lastLibrary.toSVGOutput()
 					}, {
+						title: 'DIL',
+						xtype : 'codemirror',
+						mode : {'name': 'javascript', 'json':true},
+						name: 'dil',
+						value: this.lastLibrary.toDilOutput(),
+					},{
 						title : 'NUPACK',
 						xtype : 'codemirror',
 						mode : 'nupack',
+						name : 'nupack',
 						value : this.lastLibrary.toNupackOutput()
 					}, {
 						title : 'DD',
@@ -81,12 +90,22 @@ Ext.define('App.ui.nodal.LibraryWindow', {
 					}],
 				}],
 			});
+			
+			
 			if(this.sourceDynaml) {
 				this.items[0].items.push({
 					title: 'DyNAML',
 					xtype: 'codemirror',
 					mode: 'javascript',
 					value: this.dynamlToString(),
+				})
+			}
+			
+			if(this.showTree) {
+				this.items[0].items.push({
+					title : 'Tree',
+					xtype : 'objectbrowser',
+					data : this.lastLibrary,
 				})
 			}
 			
@@ -114,13 +133,18 @@ Ext.define('App.ui.nodal.LibraryWindow', {
 			xtype : 'objectbrowser',
 			data : this.lastLibrary,
 		});
-
-		var nupack = this.down(&quot;codemirror[mode='nupack']&quot;);
+		
+		var dilPanel = this.down(&quot;codemirror[name='dil']&quot;);
+		if(dilPanel) {
+			dilPanel.setValue(this.lastLibrary.toDilOutput())
+		}
+		
+		var nupack = this.down(&quot;codemirror[name='nupack']&quot;);
 		if(nupack) {
 			nupack.setValue(this.lastLibrary.toNupackOutput());
 		}
 
-		var ddPanel = this.down(&quot;codemirror[mode='dd']&quot;);
+		var ddPanel = this.down(&quot;codemirror[name='dd']&quot;);
 		if(ddPanel) {
 			ddPanel.setValue(this.lastLibrary.toDomainsOutput());
 		}
@@ -134,7 +158,10 @@ Ext.define('App.ui.nodal.LibraryWindow', {
 			emumPanel.setValue(this.lastLibrary.toEnumOutput());
 		}
 
-
+		var svgPanel = this.down(&quot;panel[name='svg']&quot;);
+		if(svgPanel) {
+			svgPanel.update(this.lastLibrary.toSVGOutput(true));
+		}
 
 		var strands = this.down(&quot;codemirror[name='strands']&quot;);
 		if(strands) {

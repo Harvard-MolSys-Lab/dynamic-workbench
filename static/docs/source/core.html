@@ -297,13 +297,15 @@ Ext.define('Machine.core.Serializable', {
 	set: function(property, value, options) {
 		options || (options = {});
 		options.silent || (options.silent = false);
-		var old = this.get(property);
-		this._previous[property] = old;
-		if (this._writeable[property]) {
-			options.silent = this._writeable[property].apply(this, Array.prototype.slice.call(arguments, 1)) || options.silent;
-		}
-		if(!options.silent) {
-			this.change(property,value,old);	
+		if(value != this._previous[property]) {
+			var old = this.get(property);
+			this._previous[property] = old;
+			if (this._writeable[property]) {
+				options.silent = this._writeable[property].apply(this, Array.prototype.slice.call(arguments, 1)) || options.silent;
+			}
+			if(!options.silent) {
+				this.change(property,value,old);	
+			}
 		}
 	},
 <span id='Machine-core-Serializable-method-change'>	/**

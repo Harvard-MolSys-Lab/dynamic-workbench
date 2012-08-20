@@ -224,6 +224,12 @@ App.Path = App.path = {
 	extname: function(path) {
 		return _.last(App.Path.basename(path).split('.'));
 	},
+<span id='App-Path-method-getExt'>	/**
+</span>	 * @alias #extname
+	 */
+	getExt: function(path) {
+		return App.Path.extname(path);
+	},
 <span id='App-Path-method-basename'>	/**
 </span>	 * Returns the last portion of the path (the portion following the final &lt;var&gt;/&lt;/var&gt;)
 	 */
@@ -292,6 +298,9 @@ App.User = {
 	isLoggedIn : function() {
 		return App.User.id != -1;
 	},
+	isGuest : function() {
+		return !!App.User.name &amp;&amp; (App.User.name.match(/guest/g) != null)
+	},
 <span id='App-User-method-setUser'>	/**
 </span>	 * Loads data about the logged-in user. This method is invoked automatically by controller code; do not call
 	 * directly.
@@ -305,6 +314,42 @@ App.User = {
 		}
 	}
 };
+
+<span id='App-Files'>/**
+</span> * @class App.Files
+ * Manages file-related metadata (e.g. file types)
+ */
+Ext.define('App.Files',{
+	singleton: true,
+	getType:function(ext) {
+		return App.fileTypes[ext]
+	},
+	getDescription: function(ext) {
+		if(ext == '') { return ''; }
+		return this.getTypeProperty(ext,'description');
+	},
+	getDesc: function(ext) {
+		return this.getDescription(ext);
+	},
+	getTypeDescription: function(ext) {
+		return this.getDescription(ext);
+	},
+	getTypeDesc: function(ext) {
+		return this.getDescription(ext);
+	},
+	getName: function(ext) {
+		if(ext == '') { return 'Folder'; }
+		return this.getTypeProperty(ext,'name');
+	},
+	getTypeName: function(ext) {
+		return this.getName(ext);
+	},
+	getTypeProperty: function(ext,prop) {
+		var t = this.getType(ext);
+		if(t) { return t[prop]; }
+	}
+});
+
 
 <span id='App-TaskRunner'>/**
 </span> * @class App.TaskRunner
@@ -347,6 +392,23 @@ Ext.define('App.TaskRunner', {
 				task.start(args, callback);
 			}
 		},
+		
+<span id='App-TaskRunner-method-get'>		/**
+</span>		 * Gets the App.TaskRunner.Task subclass associated with the passed server tool name.
+		 * @param {String} serverTool 
+		 * @return {App.TaskRunner.Task}
+		 */
+		get: function(serverTool) {
+			return Ext.ClassManager.get(['App.TaskRunner',Ext.String.capitalize(serverTool)].join('.'));
+		},
+		
+		getToolProperty: function(serverTool,name) {
+			var tool = App.TaskRunner.get(serverTool);
+			if(tool) {
+				return tool.prototype[name];
+			}
+		},
+		
 		register : function(serverTool, config) {
 			this.serverTools[serverTool] = config;
 		},

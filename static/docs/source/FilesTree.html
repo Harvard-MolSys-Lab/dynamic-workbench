@@ -134,9 +134,44 @@ Ext.define('App.ui.FilesTree', {
 					ptype: 'treeviewdragdrop',
 				},],
 				listeners: {
-					drop: {
+					'drop': {
 						fn: function() {
-							this.getStore().sync();
+							//this.getStore().sync();
+						},
+						scope: this
+					},
+					// Make tooltips
+					'render' : {
+						fn: function(view) {
+						    view.tip = Ext.create('Ext.tip.ToolTip', {
+						    	title: ' ',
+						        // The overall target element.
+						        target: view.el,
+						        // Each grid row causes its own separate show and hide.
+						        delegate: view.itemSelector,
+						        // Moving within the row should not hide the tip.
+						        trackMouse: false,
+						        anchor: 'right',
+						        anchorToTarget: true,
+						        // Render immediately so that tip.body can be referenced prior to the first show.
+						        renderTo: Ext.getBody(),
+						        listeners: {
+						            // Change content dynamically depending on which element triggered the show.
+						            beforeshow: function updateTipBody(tip) {
+						                var rec = view.getRecord(tip.triggerElement),
+						                	ext = rec.get('type'),
+						                	title = App.Files.getTypeName(ext),
+						                	desc = App.Files.getTypeDesc(ext);
+						                
+						                if(desc || title) {
+							                tip.setTitle(title+'&amp;nbsp;&amp;nbsp;');
+							                tip.update(desc);
+						                } else {
+						                	return false;
+						                }
+						            }
+						        }
+						    });
 						},
 						scope: this
 					}
@@ -154,6 +189,10 @@ Ext.define('App.ui.FilesTree', {
 				},
 			},
 		});
+		
+
+
+		
 		this.callParent(arguments);
 		
 		// Builds the context menu (TODO: move to separate class)
@@ -237,7 +276,17 @@ Ext.define('App.ui.FilesTree', {
 					fileNameField.originalValue = filename;
 					fileNameField.setValue(filename);
 				},
+				updateActionItems: function(ext) {
+					if(this.actionItems.length &gt; 0) {
+						_.each(this.actionItems,function(item) {
+							this.remove(item);
+						},this)
+					}
+					this.actionItems = this.add(getActionItems(ext));
+				}
 			});
+			this.contextMenu.actionItems = [];
+			
 			_.each(this.contextMenu.query('*[ref]'), function(cmp) {
 				this[cmp.ref] = cmp;
 			},this);
@@ -249,13 +298,34 @@ Ext.define('App.ui.FilesTree', {
 					v = this.fileNameField.getValue();
 					this.currentRecord.set('text',v);
 					//this.currentRecord.save();
-					this.getStore().sync();
+					//this.getStore().sync();
 					this.fileNameField.originalValue = v;
 					this.fileNameField.checkDirty();
 	
 				}
 			},this);
-			this.on('afterrender',this.afterrender,this)
+			this.on('afterrender',this.afterrender,this);
+			
+			/*
+			 * Prebuild objects for action Menu items
+			 */
+			actionItems = {};
+			_.each(App.actions,function(items,ext) {
+				actionItems[ext] = _.map(items,function(block) {
+					return {
+						text: block.text,
+						iconCls: App.TaskRunner.getToolProperty(block.tool,'iconCls'),
+						handler: function() {
+							
+						},
+						scope: this.contextMenu
+					}
+				})
+			})
+			
+			function getActionItems(ext) {
+				
+			}
 		}
 	},
 <span id='App-ui-FilesTree-method-afterrender'>	/**
@@ -270,6 +340,9 @@ Ext.define('App.ui.FilesTree', {
 			filesTree: this
 		});
 		this.ddManager.render();
+		
+		
+		
 	},
 <span id='App-ui-FilesTree-method-filter'>	/**
 </span>     * @private
@@ -371,7 +444,7 @@ Ext.define('App.ui.FilesTree', {
 	deleteDocument: function(rec) {
 		if(rec) {
 			rec.remove(false);
-			this.getStore().sync();
+			//this.getStore().sync();
 		}
 	},
 <span id='App-ui-FilesTree-method-click'>	/**
@@ -438,8 +511,8 @@ Ext.define('App.ui.FilesTree', {
 		});
 		rec.appendChild(newRec);
 		//hack?
-		newRec.phantom = true;
-		this.getStore().sync();
+		//newRec.phantom = true;
+		//this.getStore().sync();
 		rec.expand();
 		return newRec;
 	},

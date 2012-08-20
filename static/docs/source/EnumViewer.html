@@ -36,7 +36,7 @@
 	buildVis : function() {
 		var data = JSON.parse(this.data);
 		var complexes;
-		var initial_complexes = _.reduce(data['initial_complexes'], function(c, memo) {
+		var initial_complexes = _.reduce(data['initial_complexes'], function(memo,c) {
 			memo[c.name] = true;
 			return memo;
 		}, {});
@@ -81,7 +81,7 @@
 		
 		var nodeData = _.map(complexes, function(x, i) {
 			x._type = 'complex';
-			if(initial_complexes[x.name]) {
+			if(!!initial_complexes[x.name]) {
 				x.initial = true;
 			}
 			x._index = i;
@@ -98,7 +98,8 @@
 			x._type = 'reaction';
 			x.name = 'reaction_' + i;
 			x._index = i + nodeData.length;
-			x.fast = !(x.reactants.length &gt; 1)
+			x.fast = !(x.reactants.length &gt; 1);
+			x.slow = !x.fast;
 			return x
 		});
 
@@ -127,14 +128,17 @@
 
 		panel.append(&quot;svg:defs&quot;).selectAll(&quot;marker&quot;).data([&quot;reaction-arrow&quot;]).enter().append(&quot;svg:marker&quot;).attr(&quot;id&quot;, String).attr(&quot;viewBox&quot;, &quot;0 -5 10 10&quot;).attr(&quot;refX&quot;, 15).attr(&quot;refY&quot;, -1.5).attr(&quot;markerWidth&quot;, 4).attr(&quot;markerHeight&quot;, 4).attr(&quot;orient&quot;, &quot;auto&quot;).append(&quot;svg:path&quot;).attr(&quot;d&quot;, &quot;M0,-5L10,0L0,5&quot;).style('stroke', line_stroke).style('fill', line_stroke);
 
+
+		var dist = 50;
+		
 		this.force = d3.layout.force().charge(-100).linkDistance(function(l,i) {
-			if(l.fast) {
-				return 75
+			if(!!l.source.fast || !!l.target.fast) {
+				return 0.4*dist
 			} else {
-				return 150
+				return 0.7*dist
 			}
 		}).size([this.getWidth(), this.getHeight()]).linkStrength(function(l,i) {
-			if(l.fast) {
+			if(!!l.source.fast || !!l.target.fast) {
 				return 0.7
 			} else {
 				return 0.4
@@ -148,18 +152,21 @@
 
 		var colors, fills, strokes;
 		fills = colors = {
-			'reaction' : '#01c',
-			'transient' : '#a00',
-			'complex' : '#a00',
-			'initial' : '#c00',
-			'resting' : '#a00'
+			'reaction' : '',
+			'reaction-fast' : '#01c',
+			'reaction-slow' : '#a00',
+			'transient' : '#0a0',
+			'complex' : 'green',
+			'resting' : 'green',
+			'initial' : 'green',
 		};
 		strokes = {
-			'reaction': '#fff',
+			'reaction-fast': '#fff',
+			'reaction-slow': '#fff',
 			'transient': '#fff',
 			'complex': '#fff',
-			'initial': '#fff',
-			'resting': 'yellow',
+			'initial': 'yellow',
+			'resting': 'white',
 		};
 		
 		// Links
@@ -205,13 +212,20 @@
 		this.node.append(&quot;circle&quot;).attr(&quot;r&quot;, 5)
 		//.attr(&quot;stroke&quot;,function() {return d3.rgb(this.attr('fill')).darker().toString(); })
 		.style(&quot;fill&quot;, function(d) {
-			if(d.initial) {
-				return colors['initial']; 
+			if(d.resting) {
+				return colors['resting']; 
+			}
+			if(d._type == 'reaction') {
+				if(!!d.fast) {				
+					return colors['reaction-fast'];
+				} else {
+					return colors['reaction-slow'];
+				}
 			}
 			return colors[d._type];
 		}).attr('stroke-width',2).attr('stroke',function(d) {
-			if(d._type == 'complex' &amp;&amp; d.resting) {
-				return strokes['resting']
+			if(d._type == 'complex' &amp;&amp; d.initial) {
+				return strokes['initial']
 			}
 			return strokes[d._type];
 		}).attr('r', radius)
@@ -220,14 +234,16 @@
 		this.node.append('text').attr('class','node_label')
 		//.style('stroke','#111')
 		.style('fill','#111') //.style('text-shadow','1px 1px 2px #222')
-		.style('text-shadow','2px 2px 2px white')
+		.style('text-shadow','1px 1px 2px white')
 		//.attr('text-anchor','middle').attr('dy','.35em')
 		.attr(&quot;dx&quot;, function(d) { return radius(d) + 5 }).attr(&quot;dy&quot;, &quot;.35em&quot;)
 		.text(function(d) { if(d._type == 'complex') { return d.name } else { return '' } }) 
 		
 		// Legend
 		this.legend = panel.selectAll('g.legend').data([
-			{name:'Resting Complex',type:'complex'},{name:'Transient Complex',type:'transient'},{name:'Reaction',type:'reaction'},{name:'Initial Complex',type:'initial'}]).enter().append('g').attr('class','legend')
+			{name:'Resting Complex',type:'resting'},{name:'Transient Complex',type:'transient'},
+			{name:'Fast (unimolecular) Reaction',type:'reaction-fast'},{name:'Slow (bimolecular) Reaction',type:'reaction-slow'},
+			{name:'Initial Complex',type:'initial'}]).enter().append('g').attr('class','legend')
 		.attr('transform',function(d,i) {return &quot;translate(15,&quot; + (20 * i + 15) + &quot;)&quot;});
 		
 		this.legend.append('circle').attr('fill',function(d) {return fills[d.type]}).attr('stroke',function(d) {return strokes[d.type]}).attr('r',8).attr('stroke-width',2)
@@ -251,41 +267,20 @@
 			// });
 			
 			me.node.attr(&quot;transform&quot;, function(d) { return &quot;translate(&quot; + d.x + &quot;,&quot; + d.y + &quot;)&quot;; });
-			// me.node.attr(&quot;cx&quot;, function(d) {
-				// return d.x;
-			// }).attr(&quot;cy&quot;, function(d) {
-				// return d.y;
-			// });
-// 			
-			// me.node_label.attr(&quot;x&quot;, function(d) {
-				// return d.x;
-			// }).attr(&quot;y&quot;, function(d) {
-				// return d.y;
-			// });
-		});
-		// this.force.label.add(pv.Label).text(function(d, l) {
-		// return d.name;
-		// }).visible(function(d) {
-		// return d._type == 'complex'
-		// });
 
-		// legend
-		// var legend = panel.add(pv.Panel).left(10).top(10);
-		// legend.data([{type: 'complex'},{type: 'reaction'}]);
-		// legend.add(pv.Dot)
-		// .left(10)
-		// .top(function() {return this.index * 12 + 10})
-		// .fillStyle(function(d) {return colors[d.type]})
-		// .strokeStyle(null)
-		// .anchor(&quot;right&quot;).add(pv.Label)
-		// .text(function(d) {return d.type});
+		});
 
 	},
 	showWindow : function(d, node) {
 		if (!this.complexWindows[d.name]) {
+			var strands = d['strands'];
+
 			this.previewPanels[d.name] = Ext.create('App.ui.nodal.StrandPreview', {
 				adjacencyMode : 1,
 				cls : 'simple-header',
+				title: strands.join(&quot; + &quot;),
+				autoRender : true,
+				value: '',
 			});
 			this.complexWindows[d.name] = Ext.create('Ext.tip.ToolTip', {
 				target : node,
@@ -299,14 +294,14 @@
 				width : 200,
 				height : 200,
 				draggable : true,
-				autoRender : true,
 				title : &quot;Complex: &quot; + d.name,
+				resizable: true,
+				autoRender : true,
 			});
 
-			var strands = d['strands'];
 			this.complexWindows[d.name].show();
 			this.previewPanels[d.name].setTitle(strands.join(&quot; + &quot;))
-			this.previewPanels[d.name].setValue(d['dot-paren'], strands);
+			this.previewPanels[d.name].setValue(!!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'], strands);
 		} else {
 			if(this.complexWindows[d.name].isVisible()) {
 				this.complexWindows[d.name].hide();

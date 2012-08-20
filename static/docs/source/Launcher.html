@@ -125,7 +125,20 @@ Ext.define('App.ui.Launcher', {
 				}
 			} else {
 				mask = this.tabPanel.setLoading('Loading...');
-				tab = Ext.createByAlias('app.' + rootTrigger);
+				tab = Ext.createByAlias('app.' + rootTrigger,{
+					document : (doc || false),
+					initialTrigger : trigger,
+					triggers : triggers,
+					closable : true,
+					listeners : {
+						afterrender : {
+							fn : function() {
+								mask.hide();
+							},
+							single : true
+						}
+					}
+				});
 			}
 			if(tab) {
 				this.addTab(tab);
@@ -309,8 +322,13 @@ Ext.define('App.ui.Launcher', {
 		editorType : 'Pepper',
 		mode : 'pepper',
 	});
-	App.ui.Launcher.register('sequence', 'App.ui.SequenceEditor', {
+	App.ui.Launcher.register('strandedit','App.ui.StrandEdit',{
+	});
+	App.ui.Launcher.register('dil','App.ui.StrandEdit',{
+	});
 
+	
+	App.ui.Launcher.register('sequence', 'App.ui.SequenceEditor', {
 	});
 	App.ui.Launcher.register('nupackresults', 'App.ui.NupackResults', {
 		iconCls : 'nupack-icon',

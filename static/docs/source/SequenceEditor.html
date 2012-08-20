@@ -26,6 +26,7 @@ Ext.define('App.ui.SequenceEditor', {
 	},
 	iconCls : 'sequence',
 	editorType : 'Sequence',
+	title: 'Sequences',
 <span id='App-ui-SequenceEditor-cfg-saveButtonText'>	/**
 </span>	 * @cfg
 	 * Text to display in the #saveButton
@@ -33,6 +34,7 @@ Ext.define('App.ui.SequenceEditor', {
 	saveButtonText : 'Save',
 	requires: ['App.ui.SequenceStats','App.ui.CompareMenu','App.ui.StatMenu','App.ui.SaveButton',
 	'App.ui.vienna.RNAfoldWindow','App.ui.mfold.QuikFoldWindow','App.ui.nupack.PartitionWindow'],
+	uses:['App.ui.SequenceThreader'],
 	initComponent: function() {
 		Ext.applyIf(this, {
 			tbar: [{
@@ -47,7 +49,7 @@ Ext.define('App.ui.SequenceEditor', {
 						tooltip: {
 							anchor: 'bottom',
 							title: 'Sequence Statistics',
-							html: 'Displays various statistics about the base composition of the sequence.'
+							text: 'Displays various statistics about the base composition of the sequence.'
 						},
 						ref: 'stats'
 					},{
@@ -55,7 +57,7 @@ Ext.define('App.ui.SequenceEditor', {
 						tooltip: {
 							anchor: 'bottom',
 							title: 'Levenshtein distance',
-							html: 'The &lt;a href=&quot;http://en.wikipedia.org/wiki/Levenshtein_distance&quot;&gt;Levenshtein Distance&lt;/a&gt; '+ //
+							text: 'The &lt;a href=&quot;http://en.wikipedia.org/wiki/Levenshtein_distance&quot;&gt;Levenshtein Distance&lt;/a&gt; '+ //
 							'between two strings measures the minimum number of changes, or &quot;edits&quot; (insertions,  '+ //
 							'deletions, and substitutions) necessary two make the two strings equal.',
 						},
@@ -68,7 +70,7 @@ Ext.define('App.ui.SequenceEditor', {
 						tooltip: {
 							anchor: 'bottom',
 							title: 'Hamming Distance',
-							html: 'The &lt;a href=&quot;http://en.wikipedia.org/wiki/Hamming_distance&quot;&gt;Hamming Distance&lt;/a&gt; '+ //
+							text: 'The &lt;a href=&quot;http://en.wikipedia.org/wiki/Hamming_distance&quot;&gt;Hamming Distance&lt;/a&gt; '+ //
 							'between two strings of equal length measures the number of positions at which they are different; '+ //
 							'(i.e. it considers substitutions, but not insertions, deletions, or truncations.).'
 						},
@@ -84,7 +86,7 @@ Ext.define('App.ui.SequenceEditor', {
 						tooltip: {
 							anchor: 'bottom',
 							title: 'Shannon Entropy',
-							html: 'The &lt;a href=&quot;http://en.wikipedia.org/wiki/Entropy_(information_theory)&quot;&gt;Shannon Entropy&lt;/a&gt; '+ 								'of a string measures the information complexity of that string. This can be used to approximate the '+
+							text: 'The &lt;a href=&quot;http://en.wikipedia.org/wiki/Entropy_(information_theory)&quot;&gt;Shannon Entropy&lt;/a&gt; '+ 								'of a string measures the information complexity of that string. This can be used to approximate the '+
 							'base diversity in a sequence (higher is better).'
 						},
 						menu: Ext.create('App.ui.StatMenu',{
@@ -477,8 +479,15 @@ Ext.define('App.ui.SequenceEditor', {
 	},
 	updateStatusBar: function() {
 		var sel = this.getSelectionOrValue();
-		strandCount = _.compact(sel.split('\n')).length;
-		baseCount = sel.replace(/[^atcgu]/gmi,'').length;
+		var strands = _.filter(sel.split('\n'),function(line) {
+			return !line || !(/$&gt;./).test(line);
+		});
+		var strandCount = strands.length;
+		
+		var bases = _.map(strands,function(str) {
+			return str.replace(/$\w+\s?:\s?/,'');
+		}).join('');
+		baseCount = bases.replace(/[^atcgunrykmswbdhv]/gmi,'').length;
 		this.strandCount.setText(this.strandCount.baseText + strandCount);
 		this.baseCount.setText(this.baseCount.baseText + baseCount);
 	},
@@ -673,7 +682,7 @@ Ext.define('App.ui.SequenceEditor', {
 				renderTo: Ext.getBody(),
 			});
 		}
-		this.partitionWindow.updateStrands(this.getValue());
+		this.partitionWindow.updateStrands(this.getSelectionOrValue());
 		this.partitionWindow.show();
 	},
 	showViennaPartitionWindow: function() {
@@ -682,7 +691,7 @@ Ext.define('App.ui.SequenceEditor', {
 				renderTo: Ext.getBody(),
 			});
 		}
-		this.rnaFoldWindow.updateStrands(this.getValue());
+		this.rnaFoldWindow.updateStrands(this.getSelectionOrValue());
 		this.rnaFoldWindow.show();
 	},
 	showQuikfoldWindow: function() {
@@ -691,7 +700,7 @@ Ext.define('App.ui.SequenceEditor', {
 				renderTo: Ext.getBody(),
 			});
 		}
-		this.quikFoldWindow.updateStrands(this.getValue());
+		this.quikFoldWindow.updateStrands(this.getSelectionOrValue());
 		this.quikFoldWindow.show();
 	},
 	
@@ -730,13 +739,6 @@ Ext.define('App.ui.SequenceEditor', {
 		this.statsPanel.loadSequence(this.getSelectionOrValue().replace(/[^atcgu]/gi,''));
 		//this.statsPanel.show();
 	},
-	getSelectionOrValue: function() {
-		var sel = this.editor.codemirror.getSelection();
-		if(sel=='') {
-			sel = this.editor.getValue();
-		}
-		return sel;
-	},
 	toggleComment: function() {
 		var strands = this.smartSelect();
 		strands = _.map(strands, function(strand) {
@@ -753,11 +755,17 @@ Ext.define('App.ui.SequenceEditor', {
 	truncate: function() {
 		var strands = this.smartSelect(), len = this.truncationCount.getValue();
 		strands = _.map(strands, function(strand) {
+			var parts = strand.split(':'), str = parts.pop().trim();
+			
 			if(len &gt; 0) {
-				return strand.substr(len)
+				str = str.substr(len)
 			} else {
-				return strand.substr(0,strand.length+len)
+				str = str.substr(0,str.length+len)
 			}
+			
+			parts.push(str);
+			return parts.join(': ')
+			
 		});
 		strands = strands.join('\n');
 		this.editor.codemirror.replaceSelection(strands);

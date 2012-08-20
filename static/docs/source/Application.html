@@ -18,6 +18,14 @@
   <pre class="prettyprint lang-js"><span id='App-ui-Application'>/**
 </span> * Mixin which provides shared helper methods to client-side applications within the interface
  *
+ * # Loading and saving files
+ * 
+ * You can override a few key methods for file loading/saving:
+ * 
+ * -	{#onLoad} - Override to update your UI once data is loaded
+ * -	{#onSave} - Override to update your UI in response to data being saved
+ * -	{#getSaveData} - Override to provide data to be saved
+ * 
  */
 Ext.define('App.ui.Application', {
 <span id='App-ui-Application-cfg-autoHideLoadingMask'>	/**

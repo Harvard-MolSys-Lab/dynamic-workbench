@@ -57,6 +57,8 @@ Ext.define('App.ui.CreateMenu', {
 	 */
 	afterLeaveDelay: 500,
 	
+	mixins: {tip: 'App.ui.TipHelper'},
+	
 	initComponent: function() {
 		this.extraMenuItems || (this.extraMenuItems = []);
 		Ext.apply(this, {
@@ -92,6 +94,9 @@ Ext.define('App.ui.CreateMenu', {
 			}])
 		});
 		this.callParent(arguments);
+		
+		// build tooltips
+		this.mixins.tip.init.apply(this, arguments);
 		
 		// build references
 		_.each(this.query('*[ref]'), function(cmp) {
@@ -149,9 +154,7 @@ Ext.define('App.ui.CreateMenu', {
 		if(!this.autoCreateMenu) {
 			return false;
 		}
-		return {
-
-			items:[{
+		var items = [{
 				text: 'Nodal System',
 				iconCls: 'nodal',
 				type: 'nodal',
@@ -233,6 +236,21 @@ Ext.define('App.ui.CreateMenu', {
 				iconCls: 'folder',
 				type: 'folder'
 			}]
+		
+		return {
+
+			items: _.map(items,function(item) {
+				if(_.isObject(item)) {
+					item.tooltip = {
+						title: App.Files.getTypeName(item.type),
+						text: App.Files.getTypeDescription(item.type) || '&amp;nbsp;',
+						trackMouse: false,
+						anchor: 'right',
+						anchorToTarget: true,
+					}
+				}
+				return item;
+			})
 		};
 	}
 });</pre>

@@ -565,6 +565,21 @@ ul.dashboard-actions li a:hover {
 	border-radius: 4px 4px 4px 0px;
 }
 
+/* Strand previews */
+.link-wc {
+	stroke-width: 1px;
+	stroke: #ccc;
+}
+
+.link-strand {
+	stroke-width: 2px;
+	stroke: #aaa;
+}
+
+.node_index {
+	fill: #aaa;
+}
+
 
 .dynaml-error-message {
 	background-color: #dd0;
@@ -577,11 +592,6 @@ ul.dashboard-actions li a:hover {
 	padding: 5px;
 	height: 44px;
 	width: 44px;
-}
-.x-view-over {
-	background-color: #ddd;
-	border: solid 1px #ccc;
-	padding: 4px;
 }
 .iframe iframe {
 	border: solid 1px silver;

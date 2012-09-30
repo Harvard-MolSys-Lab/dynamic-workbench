@@ -1,0 +1,21 @@
+!!! 5
+html(lang="en")
+  head
+    title DyNAMiC Workbench (Tests)
+    - // true to only retrieve static resources
+    - //var resources = manifest.getResources(true,'build');
+    - var resources = {};
+    - resources.links = ['http://code.jquery.com/qunit/qunit-git.css'];
+    - resources.scripts = ['http://code.jquery.com/qunit/qunit-git.js','lib/underscore.js','common/dna-utils.js','common/dynamic.js'];
+    - resources.tests = ['tests/common/dna-utils.js','tests/common/dynamic.js'];
+    - each sheet in resources.links
+      link(rel="stylesheet",href=sheet)
+
+    - each script in resources.scripts
+      script(type="text/javascript", src=script)
+    - each script in resources.tests
+      script(type="text/javascript", src=script)
+    
+  body
+    div#qunit
+    div#qunit-fixture    

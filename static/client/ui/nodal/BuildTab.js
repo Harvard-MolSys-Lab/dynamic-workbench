@@ -23,12 +23,17 @@ Ext.define('App.ui.nodal.BuildTab', {
 						// cellCls: 'table-cell-padded',
 					},
 					items: [{
-						iconCls: 'build-24',
+						iconCls: 'domains-24',
 						text: 'Compile',
 						rowspan: 2,
 						iconAlign: 'top',
 						scale: 'medium',
 						xtype: 'splitbutton',
+						tooltip: {
+							title: 'Compile to segments',
+							text: 'Compile the system into a segment-level representation of the required strands. The generated file can '+
+							'be used to generate sequences, enumerate possible reactions, and generate graphical representations of the required species. '
+						},
 						// handler: function() {
 						// var action = new Workspace.tools.nodal.SerializeAction({});
 						// this.fireEvent('action',action);
@@ -37,16 +42,22 @@ Ext.define('App.ui.nodal.BuildTab', {
 						ref: 'serializeButton',
 						handler: this.compile,
 						scope: this,
-						tooltip: {
-							title: 'Compile System',
-							text: 'Compiles the system into a domain-level specification. Several output '+
-							'files will be added to this directory, including a graphical representation of the included hairpins, ' +
-							'a NUPACK multi-objective script for thermodynamic sequence design, and a Domain Design specification for '+
-							'interactive sequence design using Web DD. ',
-							anchor: 'top',
-							//'Serializes the workspace to the "TerseML" format accepted by the current version of the compiler; outputs to input.txt in this directory.'
-						},
+						
 						menu: [{
+							iconCls: 'magic',
+							text: 'Build all targets',
+							handler: this.compileAll,
+							scope: this,
+							tooltip: {
+								title: 'Build all targets',
+								text: 'Compiles the system into a domain-level specification, and generates several output files '+
+								'in this directory: a graphical representation of the included hairpins, ' +
+								'a NUPACK multi-objective script for thermodynamic sequence design, and a Domain Design specification for '+
+								'interactive sequence design using Web DD. ',
+								anchor: 'top',
+								//'Serializes the workspace to the "TerseML" format accepted by the current version of the compiler; outputs to input.txt in this directory.'
+							},
+						},{
 							text: 'Clean',
 							iconCls: 'clean',
 							tooltip: {
@@ -174,22 +185,22 @@ Ext.define('App.ui.nodal.BuildTab', {
 		this.updateMenus(false);
 	},
 	updateMenus: function(firstTime) {
-		firstTime = firstTime || false;
-		if(!firstTime) {
-			this.ribbon.canvas.renew();
-		}
-		var doc = this.getDoc(), basename = doc.getBasename();
-		if(doc) {
-			_.each(['txt','dynaml','pil','svg','nupack','spur','domains'],function(ext) {
-				if(doc.getSiblingByName(App.Path.repostfix(basename,ext))) {
-					this.sequenceMenu.enable();
-					this.serializeMenu.enable();
-					this[ext].enable();			
-				} else {
-					this[ext].disable();
-				}
-			},this);
-		}
+		// firstTime = firstTime || false;
+		// if(!firstTime) {
+		// 	this.ribbon.canvas.renew();
+		// }
+		// var doc = this.getDoc(), basename = doc.getBasename();
+		// if(doc) {
+		// 	_.each(['txt','dynaml','pil','svg','nupack','spur','domains'],function(ext) {
+		// 		if(doc.getSiblingByName(App.Path.repostfix(basename,ext))) {
+		// 			this.sequenceMenu.enable();
+		// 			this.serializeMenu.enable();
+		// 			this[ext].enable();			
+		// 		} else {
+		// 			this[ext].disable();
+		// 		}
+		// 	},this);
+		// }
 	},
 	enableMenus: function() {
 		this.sequenceMenu.enable();
@@ -227,9 +238,18 @@ Ext.define('App.ui.nodal.BuildTab', {
 		this.compileDynamicServer();
 		//this.compileTerse();
 	},
+	compileAll: function() {
+		// try {			
+			// var lib = this.compileDynamic();
+			// console.log(lib); console.log(App.dynamic.Compiler.printStrands(lib)); console.log(lib.toNupackOutput());
+		// } catch(e) {
+			// console.log(e);
+		// }
+		this.compileDynamicServerAllTargets();
+		//this.compileTerse();
+	},
 	compileLocal: function() {
 		var lib = this.compileDynamic();
-		console.log(lib.toSVGOutput())
 	},
 	compileDynamic: function() {
 		var dynaml = this.serializeDynaml();
@@ -237,6 +257,22 @@ Ext.define('App.ui.nodal.BuildTab', {
 		return lib;
 	},
 	compileDynamicServer: function() {
+		var data = Ext.encode(this.serializeDynaml()),
+			node = this.ribbon.canvas.doc.getDocumentPath(),
+			dilNode = App.path.repostfix(node,'dil');
+		App.runTask('Nodal',{
+			node:node,
+			data:data,
+			action: 'dil',
+		},function() {
+			//this.enableMenus();
+			Ext.msg('Nodal Build','Build of system <strong>{0}</strong> completed.',this.getDoc().getBasename());
+			this.highlightOutput();
+		},this,{
+			openOnEnd: [dilNode],
+		});
+	},
+	compileDynamicServerAllTargets: function() {
 		var data = Ext.encode(this.serializeDynaml()),
 			node = this.ribbon.canvas.doc.getDocumentPath(); //App.path.repostfix([this.ribbon.canvas.doc.getDocumentPath(),'txt']);
 		App.runTask('Nodal',{

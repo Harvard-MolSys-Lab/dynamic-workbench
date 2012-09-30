@@ -115,7 +115,7 @@ Ext.define('App.ui.nodal.HomeTab', {
 						scale: 'medium',
 						rowspan: 2,
 						iconAlign: 'top',
-						iconCls: 'form-idea-24',
+						iconCls: 'wrap-motif',
 						text: 'Create Motif',
 						tooltip: {
 							title: 'Create Motif',
@@ -137,7 +137,7 @@ Ext.define('App.ui.nodal.HomeTab', {
 							'ports which have been exposed. '
 						}
 					},{
-						iconCls: 'motif-destroy',
+						iconCls: 'unwrap-motif',
 						text: 'Unwrap motif',
 						tooltip: {
 							title: 'Destroy motif',
@@ -209,18 +209,27 @@ Ext.define('App.ui.nodal.HomeTab', {
 					// 'Workspace' group
 					xtype: 'buttongroup',
 					title: 'Workspace',
-					columns: 1,
+					columns: 2,
 					defaults: {
 						// cellCls: 'table-cell-padded'
 					},
-					items: [{
+					items: [
+					// Ext.create('App.ui.SaveButton',{
+					// 	app: this.ribbon.app,
+					// }),
+					{
 						scale: 'small',
 						iconCls: 'save',
 						text: 'Save',
-						rowspan: 1,
-						//iconAlign: 'top',
+						scale: 'medium',
+						rowspan: 2,
+						iconAlign: 'top',
 						handler: this.saveWorkspace,
 						scope: this,
+					},{
+						text : 'Help',
+						iconCls : 'help',
+						handler : App.ui.Launcher.makeLauncher('help:nodal'),
 					},{
 						scale: 'small',
 						iconCls: 'expand',

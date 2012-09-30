@@ -29,9 +29,16 @@ Ext.define('App.ui.nodal.LibraryWindow', {
 						name: 'svg',
 						html: this.lastLibrary.toSVGOutput()
 					}, {
+						title: 'DIL',
+						xtype : 'codemirror',
+						mode : {'name': 'javascript', 'json':true},
+						name: 'dil',
+						value: this.lastLibrary.toDilOutput(),
+					},{
 						title : 'NUPACK',
 						xtype : 'codemirror',
 						mode : 'nupack',
+						name : 'nupack',
 						value : this.lastLibrary.toNupackOutput()
 					}, {
 						title : 'DD',
@@ -109,13 +116,18 @@ Ext.define('App.ui.nodal.LibraryWindow', {
 			xtype : 'objectbrowser',
 			data : this.lastLibrary,
 		});
-
-		var nupack = this.down("codemirror[mode='nupack']");
+		
+		var dilPanel = this.down("codemirror[name='dil']");
+		if(dilPanel) {
+			dilPanel.setValue(this.lastLibrary.toDilOutput())
+		}
+		
+		var nupack = this.down("codemirror[name='nupack']");
 		if(nupack) {
 			nupack.setValue(this.lastLibrary.toNupackOutput());
 		}
 
-		var ddPanel = this.down("codemirror[mode='dd']");
+		var ddPanel = this.down("codemirror[name='dd']");
 		if(ddPanel) {
 			ddPanel.setValue(this.lastLibrary.toDomainsOutput());
 		}

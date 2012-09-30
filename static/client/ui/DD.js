@@ -8,12 +8,13 @@ Ext.define('App.ui.DD', {
 		app : 'App.ui.Application',
 		tip : 'App.ui.TipHelper',
 	},
-	requires : ['App.ui.SequenceEditor', 'App.ui.dd.RulesWindow', 'App.ui.dd.ScoreParametersWindow', 'App.ui.dd.SequenceWindow'],
+	requires : ['App.ui.SequenceEditor', 'App.ui.dd.RulesWindow', 'App.ui.dd.ScoreParametersWindow', 'App.ui.dd.SequenceWindow', 'App.ui.SequenceThreader',],
 	constructor : function() {
 		this.mixins.app.constructor.apply(this, arguments);
 		this.callParent(arguments);
 	},
 	title : 'Domain Design',
+	iconCls: 'dd',
 	editorType : 'WebDD',
 	border : false,
 	bodyBorder : false,
@@ -140,16 +141,18 @@ Ext.define('App.ui.DD', {
 				}, {
 					header : 'Sequence',
 					dataIndex : 'sequence',
-					renderer : function(v) {
-						var x = {
-							innerHTML : '',
-							nodeType : 1
-						};
-						CodeMirror.runMode(v, 'dd-sequence', x);
-						return '<span class="dd-sequence">' + x.innerHTML + '</span>';
-					},
+					renderer: CodeMirror.modeRenderer('dd-sequence','dd-sequence'),
+					// renderer : function(v) {
+						// var x = {
+							// innerHTML : '',
+							// nodeType : 1
+						// };
+						// CodeMirror.runMode(v, 'dd-sequence', x);
+						// return '<span class="dd-sequence">' + x.innerHTML + '</span>';
+					// },
 					editor : {
 						allowBlank : false,
+						selectOnFocus: true,	
 						tooltip : {
 							title : "Edit sequence of domain",
 							text : 'Manually set the sequence of this domain by entering a sequence of bases. ' + 'Capitalized bases will be "locked", so the designer will not mutate them. ',
@@ -193,12 +196,13 @@ Ext.define('App.ui.DD', {
 					dataIndex : 'composition',
 					renderer : Ext.bind(function(v) {
 						v = this.designer.printComposition(v);
-						var x = {
-							innerHTML : '',
-							nodeType : 1
-						};
-						CodeMirror.runMode(v.toUpperCase(), 'sequence', x);
-						return x.innerHTML;
+						return CodeMirror.renderMode('sequence',v.toUpperCase());
+						// var x = {
+							// innerHTML : '',
+							// nodeType : 1
+						// };
+						// CodeMirror.runMode(v.toUpperCase(), 'sequence', x);
+						// return x.innerHTML;
 					}, this),
 					width : 100,
 					editor : {
@@ -319,13 +323,25 @@ Ext.define('App.ui.DD', {
 							}
 						},
 						scope : this,
-						tooltip : 'Click the button to edit the sequence of the selected domain. Click the arrow to see options to reseed existing domains.',
+						tooltip : 'Click the button to edit the sequence of the selected domain. Click the arrow to see options to lock/unlock and reseed existing domains.',
 						menu : [{
+							text: 'Unlock all bases in domain',
+							iconCls: 'unlock',
+							handler: this.unlock,
+							scope: this,
+						},{
+							text: 'Lock all bases in domain',
+							iconCls: 'lock',
+							handler: this.lock,
+							scope: this,
+						},'-',{
 							text : 'Reseed Domain',
+							iconCls: 'reseed',
 							handler : this.reseed,
 							scope : this,
 						}, {
 							text : 'Reseed All Domains',
+							iconCls: 'reseed-all',
 							handler : this.reseedAll,
 							scope : this,
 						}]
@@ -338,7 +354,7 @@ Ext.define('App.ui.DD', {
 						handler : this.doDeleteDomains,
 						scope : this,
 						iconCls : 'cross',
-						tooltip : 'Delete the selected domain',
+						tooltip : 'Delete the selected domain(s)',
 					}, '-', {
 						text : 'Advanced',
 						iconCls : 'tools',
@@ -350,17 +366,27 @@ Ext.define('App.ui.DD', {
 							tooltip : 'Change options about how DD picks sequences, such as which bases are permitted and particular motifs to penalize. ',
 						}, {
 							text : 'Tweak score parameters',
-							iconCls : 'ui-slider',
+							iconCls : 'tweak-score-params',
 							handler : this.scoreParams,
 							scope : this,
 							tooltip : 'Change DD\'s objective (scoring) function.'
+						},'-',{
+							text: 'Thread sequences',
+							iconCls: 'thread-sequence',
+							handler: this.threadStrands,
+							scope: this,
 						}]
 					}, '->', Ext.create('App.ui.SaveButton', {
 						text : 'Save Domains',
 						iconCls : 'save',
 						app : this,
-						defaultExtension : 'ddjs'
-					})]
+						defaultExtension : 'ddjs',
+						forceDefaultExtension : false,
+					}), {
+						text : 'Help',
+						iconCls : 'help',
+						handler : App.ui.Launcher.makeLauncher('help:web-dd'),
+					}]
 				},
 				bbar : {
 					/**
@@ -402,6 +428,7 @@ Ext.define('App.ui.DD', {
 				title : 'Structure',
 				editorType : 'Structure',
 				saveButtonText : 'Save Strands',
+				iconCls: 'domains',
 				ref : 'structPane',
 				collapsible : true,
 				collapsed : true,
@@ -410,7 +437,7 @@ Ext.define('App.ui.DD', {
 				margin : 0, //'2 2 0 0',
 				border : true, //'0 0 1 1',
 				bodyBorder : true,
-				mode : 'nupack',
+				showCite: false,
 				showNupackButton : false,
 				showEditButton : false,
 				extraTbarItems : [{
@@ -486,14 +513,18 @@ Ext.define('App.ui.DD', {
 		}, this);
 	},
 	updateDomainsFromSpec : function() {
-		var spec = DNA.structureSpec(CodeMirror.tokenize(this.structPane.getValue(), 'nupack'));
+		var structPaneValue = this.structPane.getValue();
+		var spec = DNA.structureSpec(CodeMirror.tokenize(structPaneValue, 'nupack'));
 		this.syncDomains(spec.domains, this.clobberOnUpdate.checked);
 		this.setStrands(spec.strands);
 		var me = this;
 		_.defer(function() {
 			me.structPane.on('expand', function() {
+				me.structPane.setValue(structPaneValue)
 				me.strandsPane.expand();
-				me.updateStrandsPane();
+				me.strandsPane.on('expand',function() {				
+					me.updateStrandsPane();
+				})
 			})
 			me.structPane.expand();
 
@@ -544,6 +575,32 @@ Ext.define('App.ui.DD', {
 		}
 	},
 	/**
+	 * Applies the passed function to each selected record
+	 * 
+	 * @param {Function} f
+	 * @param {Ext.data.Model} f.rec
+	 * The selected record
+	 * 
+	 * @param {Number} f.index 
+	 * The index of the selected record
+	 * 
+	 * @returns {Boolean} result True if any records were selected, false otherwise.
+	 */
+	eachSelected: function(f) {
+		var me = this;
+		f = f.bind(me);
+		var recs = this.grid.getSelectionModel().getSelection();
+		if (recs) {
+			_.each(recs,function(rec,i) {
+				var j = me.store.indexOf(rec)
+				f(rec,j);
+			});
+			return true;
+		} 
+		return false;
+	},
+	
+	/**
 	 * Reseeds the last-selected domain
 	 */
 	reseed : function() {
@@ -559,6 +616,28 @@ Ext.define('App.ui.DD', {
 	reseedAll : function() {
 		this.designer.reseed();
 		this.updateInterface(true);
+	},
+	lock: function() {
+		//var rec = this.grid.getSelectionModel().getLastSelected(), dom = this.store.indexOf(rec);
+		
+		this.eachSelected(function(rec,dom) {
+			if (rec) {
+				var seq = rec.get('sequence').toUpperCase();
+				this.designer.updateDomain(dom, seq, rec.get('importance'), rec.get('composition'));
+				rec.set('sequence', seq);
+			}
+		})
+	},
+	unlock: function() {
+		//var rec = this.grid.getSelectionModel().getLastSelected(), dom = this.store.indexOf(rec);
+		
+		this.eachSelected(function(rec,dom) {
+			if (rec) {
+				var seq = rec.get('sequence').toLowerCase();
+				this.designer.updateDomain(dom, seq, rec.get('importance'), rec.get('composition'));
+				rec.set('sequence', seq);
+			}
+		});
 	},
 	/**
 	 * Syncs UI for a particular domain with the {@link #designer}
@@ -624,13 +703,18 @@ Ext.define('App.ui.DD', {
 	 * Deletes the selected domain(s)
 	 */
 	doDeleteDomains : function() {
-		var recs = this.grid.getSelectionModel().getSelection();
-		if (recs) {
-			_.each(recs, function(rec) {
-				this.designer.removeDomain(this.store.indexOf(rec));
-				this.store.remove(rec);
-			}, this);
-		}
+		this.eachSelected(function(rec,dom) {
+			this.designer.removeDomain(this.store.indexOf(rec));
+			this.store.remove(rec);
+		});
+		
+		// var recs = this.grid.getSelectionModel().getSelection();
+		// if (recs) {
+			// _.each(recs, function(rec) {
+				// this.designer.removeDomain(this.store.indexOf(rec));
+				// this.store.remove(rec);
+			// }, this);
+		// }
 	},
 	/**
 	 * Synchronizes domains in the view and the designer with domains in the
@@ -852,6 +936,33 @@ Ext.define('App.ui.DD', {
 		this.strandsPane.setValue(_.map(this.strands, function(spec, name) {
 			return name + ' : ' + DNA.threadSegments(segments, spec);
 		}).join('\n'));
+	},
+	/**
+	 * Opens a {@link App.ui.SequenceThreader sequence threader}, allowing the 
+	 * user to thread together sequences based on a sequence specification into
+	 * full strands.
+	 */
+	threadStrands: function() {
+		var win = Ext.create('App.ui.SequenceThreader');
+		win.show();
+		// var segments = _.reduce(this.store.getRange(), function(memo, rec) {
+			// var name = rec.get('name'), i = this.store.indexOf(rec);
+			// memo[ name ? name : i + 1] = this.designer.printDomainById(i);
+			// return memo;
+		// }, {}, this);
+// 		
+		var segments = _.map(this.store.getRange(), function(rec) {
+			var name = rec.get('name'), i = this.store.indexOf(rec);
+			name = !!name ? name : i + 1;
+			return name + ' : ' + this.designer.printDomainById(i);
+		}, this);
+		
+		var strands = _.map(this.strands,function(sepc,name) {
+			return name + ' : ' + spec;
+		});
+				
+		win.setSequences(segments.join('\n'));
+		win.setStrands(strands.join('\n'));
 	},
 	/**
 	 * Begins mutating on a timer

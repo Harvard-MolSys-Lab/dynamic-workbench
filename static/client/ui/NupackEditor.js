@@ -121,7 +121,8 @@ Ext.define('App.ui.NupackEditor', {
 		this.selField = this.down('[name=selField]');
 		this.lineNo = this.down('[name=lineNo]');
 		this.colNo = this.down('[name=colNo]');
-		this.editor.on('cursorchange',this.updateStatusBar,this);
+		this.editor.on('cursorchange',this.updateStatusBar,this,{buffer: 500});
+		this.editor.on('cursorchange',this.updateHelp,this)
 	},
 	updateStatusBar: function() {
 		var sel = this.getSelection(),
@@ -133,6 +134,10 @@ Ext.define('App.ui.NupackEditor', {
 		} else {
 			this.lineNo.setText('Line: ' + selRange[0].line);			this.colNo.setText('Col:' + selRange[0].ch);
 		}
+	},
+	updateHelp: function() {
+		// var selRange = this.getCursorRange();		// var tokens = [];		// var pos = selRange[0];// 		// 				// do {			// var token = this.editor.codemirror.getTokenAt(pos);			// tokens.push(token);			// if(!token || (token.end > selRange[1].ch)) {				// break;			// }		// } while(!!token)// 		// 		
+		
 	},
 	populateDesignWindow: function(menu,designWindow) {
 		designWindow.updateDesign(this.getValue());

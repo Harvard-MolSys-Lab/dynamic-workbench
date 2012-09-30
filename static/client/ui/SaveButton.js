@@ -8,6 +8,7 @@ Ext.define('App.ui.SaveButton', {
 	iconCls: 'save',
 	saveText : 'Save',
 	createText : 'Create',
+	forceDefaultExtension : true,
 	initComponent : function() {
 
 		this.overwrite = Ext.create('Ext.menu.CheckItem', {
@@ -30,25 +31,7 @@ Ext.define('App.ui.SaveButton', {
 			autoCreateMenu : false,
 			createText : this.createText,
 			afterLeaveDelay: 1000,
-			onCreateButton : Ext.bind(function(fileName) {
-				var file;
-				if(this.getDefaultExtension()) {
-					fileName = App.Path.addExt(fileName,this.getDefaultExtension());
-				}
-
-
-				if(this.overwrite.checked) {
-					// overwrite the selected file
-					file = App.ui.filesTree.getSelectionModel().getLastSelected();
-				} else {
-					// make a new file under/parallel to selection	
-					file = App.ui.filesTree.newFileUnderSelection(fileName);
-				}
-				
-
-				this.app.bindDocument(file);
-				this.app.saveFile();
-			}, this),
+			onCreateButton : Ext.bind(this.doSave, this),
 		});
 		this.saveMenu.fileNameField.on('afterrender', this.afterrender, this)
 
@@ -68,6 +51,28 @@ Ext.define('App.ui.SaveButton', {
 			this.app.on('unbinddocument',this.updateOverwrite,this);
 		}
 	},
+	doSave: function(fileName) {
+		var file;
+		if(this.getDefaultExtension()) {
+			if(this.forceDefaultExtension && (App.Path.extname(fileName) != this.getDefaultExtension())) {					
+				fileName = App.Path.addExt(fileName,this.getDefaultExtension());
+			}
+		}
+
+
+		if(this.overwrite.checked) {
+			// overwrite the selected file
+			file = App.ui.filesTree.getSelectionModel().getLastSelected();
+		} else {
+			// make a new file under/parallel to selection	
+			file = App.ui.filesTree.newFileUnderSelection(fileName);
+		}
+		
+
+		this.app.bindDocument(file);
+		this.app.saveFile();
+	},
+
 	getDefaultExtension : function() {
 		if(this.defaultExtension) { return this.defaultExtension; }
 		else { return ''; }

@@ -5,6 +5,7 @@ Ext.define('App.ui.EnumEditor', {
 	extend: 'App.ui.TextEditor',
 	iconCls:'enum-icon',
 	editorType: 'Enum',
+	title: 'Enumerator',
 	mode: 'pepper',
 	alias: 'widget.enumedit',
 	/**

@@ -6,7 +6,7 @@
 Ext.define('App.ui.SequenceThreader', {
 	extend : 'Ext.window.Window',
 	title: 'Thread Sequences',
-	iconCls: 'thread-sequences',
+	iconCls: 'thread-sequence',
 	requires : ['App.ui.SequenceEditor','App.ui.CodeMirror',],
 	layout : 'fit',
 	minimize : function() {
@@ -16,17 +16,19 @@ Ext.define('App.ui.SequenceThreader', {
 	maximizable : true,
 	width : 400,
 	height : 400,
+	border: false,
+	bodyBorder: false,// '1 0 0 0',
+	layout : 'border',
+	//margins : 5,
 	initComponent : function() {
 		Ext.apply(this, {
-			layout : 'border',
-			margins : 5,
-			padding: '5 5 5 5',
+			//padding: '5 5 5 5',
 			tbar : [{
 				text : 'Thread',
 				iconCls: 'thread-sequence',
 				handler : this.thread,
 				scope : this,
-			}, {
+			},{
 				text : 'Normalize',
 				iconCls: 'normalize',
 				handler : this.normalize,
@@ -36,40 +38,47 @@ Ext.define('App.ui.SequenceThreader', {
 				iconCls: 'cutter',
 				handler : this.truncate,
 				scope : this,
+			},'->',{
+				text: 'Show Dethreaded',
+				enableToggle: true,
+				pressed: false,
+				toggleHandler: this.toggleDethreaded,
+				name: 'dethreaded',
+				scope: this
 			}],
 
 			/**
 			 * @property {App.ui.CodeMirror} sequencesPane
 			 */
-			items : [new App.ui.CodeMirror({
+			items : [Ext.create('App.ui.CodeMirror',{
 				region : 'west',
 				width : 200,
 				split : true,
 				ref : 'sequencesPane',
 				mode : 'sequence',
 				title : 'Sequence',
-				margins: '5 0 0 5',
+				//margins: '5 0 0 5',
 
 				/**
 				 * @property {App.ui.CodeMirror} strandsPane
 				 */
-			}), new App.ui.CodeMirror({
+			}), Ext.create('App.ui.CodeMirror',{
 				region : 'center',
 				ref : 'strandsPane',
 				mode : 'nupack',
 				title : 'Strands',
-				margins: '5 5 0 0',
+				//margins: '5 5 0 0',
 				/**
-				 * @property {App.ui.CodeMirror} resultsPane
+				 * @property {App.ui.SequenceEditor} resultsPane
 				 */
-			}), new App.ui.CodeMirror({
+			}), Ext.create('App.ui.SequenceEditor',{
 				region : 'south',
 				ref : 'resultsPane',
 				mode : 'sequence',
-				margins: '0 5 5 5',
 				height : 200,
 				split : true,
 				title : 'Results',
+				// margins: '0 5 5 5',
 			})],
 			buttons : [{
 				text : 'Done'
@@ -91,7 +100,7 @@ Ext.define('App.ui.SequenceThreader', {
 	 * in the #resultsPane
 	 */
 	thread : function() {
-		var seqs = this.smartSelect(this.sequencesPane), strands = this.strandsPane.getValue().split('\n'), strandsList = {}, namesList;
+		var seqs = this.smartSelect(this.sequencesPane), strands = this.strandsPane.getValue().split('\n'), strandsMap = {}, namesList;
 		// seqs = _.compact(_.map(seqs, function(seq) {
 			// return seq.trim();
 		// }));
@@ -100,31 +109,60 @@ Ext.define('App.ui.SequenceThreader', {
 			if(parts.length == 2 && !!parts[0]) {
 				memo[parts[0].trim()] = parts[1].trim()
 			} else {
+				memo[i+1] = seq;
+			}
+			return memo;
+		},{});
+		
+		// strandsList = DNA.normalizeSystem(_.compact(_.map(strands, function(strand) {
+			// return _.last(strand.split(':')).trim();
+		// })));
+		
+		strandsMap = _.reduce(strands,function(memo,strand,i) {
+			var parts = strand.split(':');
+			if(parts.length == 2 && !!parts[0]) {
+				memo[parts[0].trim()] = parts[1].trim()
+			} else {
 				memo[i+1] = strand;
 			}
 			return memo;
 		},{});
 		
-		strandsList = DNA.normalizeSystem(_.compact(_.map(strands, function(strand) {
-			return _.last(strand.split(':')).trim();
-		})));
-		// strandsMap = _.reduce(strands,function(memo,strand,i) {
-			// var parts = strand.split(':');
-			// if(parts.length == 2 && !!parts[0]) {
-				// memo[parts[0].trim()] = parts[1].trim()
-			// } else {
-				// memo[i+1] = strand;
-			// }
-			// return memo;
-		// },{});
-		
 		//seqs.unshift('');
-		var out = '';
-		_.each(strandsList, function(spec, list, i) {
-			out += (DNA.threadSegments(seqs, spec) + '\n');
+		// _.each(strandsList, function(spec, list, i) {
+			// out += (DNA.threadSegments(seqs, spec) + '\n');
+		// });
+		var out = [], dethreaded = [];
+		_.each(strandsMap, function(spec, name, i) {
+			var seq = DNA.threadSegments(seqs, spec, false);
+			out.push(name + ' : ' + seq.join(''));
+			dethreaded.push({ name: name, seq: seq, spec: _.compact(spec.split(' ')) });
 		});
-		this.resultsPane.setValue(out);
-
+		this.dethreaded = _.map(dethreaded,function(block) {
+			var spec = block.spec, 
+				seq = block.seq, 
+				name = block.name;
+			
+			for(var j = 0; j<spec.length;j++) {
+				if(spec[j].length > seq[j].length) {
+					seq[j]+=Array(spec[j].length - seq[j].length + 1).join(' ')
+				} else if(spec[j].length < seq[j].length) {
+					spec[j]+=Array(seq[j].length - spec[j].length + 1).join(' ')
+				}
+			}
+			
+			return '>'+name+'|'+spec.join('|')+'\n  '+Array(name.length+1).join(' ')+seq.join('|');
+		}).join('\n');
+		this.sequences = out.join('\n');
+		this.resultsPane.setValue(this.sequences);
+	},
+	toggleDethreaded: function() {
+		var dethreaded = this.down('[name=dethreaded]');
+		if(dethreaded.pressed) {
+			this.resultsPane.setValue(this.dethreaded);
+		} else {			
+			this.resultsPane.setValue(this.sequences);
+		}
 	},
 	/**
 	 * Normalizes possibly discontinuous sequence numbers into continuous lists

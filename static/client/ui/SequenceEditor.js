@@ -9,6 +9,7 @@ Ext.define('App.ui.SequenceEditor', {
 	},
 	iconCls : 'sequence',
 	editorType : 'Sequence',
+	title: 'Sequences',
 	/**
 	 * @cfg
 	 * Text to display in the #saveButton
@@ -16,6 +17,7 @@ Ext.define('App.ui.SequenceEditor', {
 	saveButtonText : 'Save',
 	requires: ['App.ui.SequenceStats','App.ui.CompareMenu','App.ui.StatMenu','App.ui.SaveButton',
 	'App.ui.vienna.RNAfoldWindow','App.ui.mfold.QuikFoldWindow','App.ui.nupack.PartitionWindow'],
+	uses:['App.ui.SequenceThreader'],
 	initComponent: function() {
 		Ext.applyIf(this, {
 			tbar: [{
@@ -123,14 +125,14 @@ Ext.define('App.ui.SequenceEditor', {
 				tooltip: '',
 				menu: [{
 						text: 'Reverse',
-						iconCls: 'arrow-reverse',
+						iconCls: 'seq-reverse',
 						handler: this.reverse,
 						scope: this,
 						tooltip: 'Reverse the order of bases in each strand in the selection. If "Replace Selection" '+
 						'is unchecked, the reverse strands will be inserted below the originals.',
 					},{
 						text: 'Complement',
-						iconCls: 'arrow-complement',
+						iconCls: 'seq-complement',
 						handler: this.complement,
 						scope: this,
 						tooltip: 'Insert the Watson-Crick complement of each base in each strand in the selection.'+ 
@@ -139,7 +141,7 @@ Ext.define('App.ui.SequenceEditor', {
 						'direction, use "Reverse Complement."'
 					},{
 						text: 'Reverse Complement',
-						iconCls: 'arrow-reverse-complement',
+						iconCls: 'seq-reverse-complement',
 						handler: this.reverseComplement,
 						scope: this,
 						tooltip: 'Insert the Watson-Crick complement of each base in each strand in the selection, in the '+
@@ -460,8 +462,15 @@ Ext.define('App.ui.SequenceEditor', {
 	},
 	updateStatusBar: function() {
 		var sel = this.getSelectionOrValue();
-		strandCount = _.compact(sel.split('\n')).length;
-		baseCount = sel.replace(/[^atcgu]/gmi,'').length;
+		var strands = _.filter(sel.split('\n'),function(line) {
+			return !line || !(/$>./).test(line);
+		});
+		var strandCount = strands.length;
+		
+		var bases = _.map(strands,function(str) {
+			return str.replace(/$\w+\s?:\s?/,'');
+		}).join('');
+		baseCount = bases.replace(/[^atcgunrykmswbdhv]/gmi,'').length;
 		this.strandCount.setText(this.strandCount.baseText + strandCount);
 		this.baseCount.setText(this.baseCount.baseText + baseCount);
 	},
@@ -656,7 +665,7 @@ Ext.define('App.ui.SequenceEditor', {
 				renderTo: Ext.getBody(),
 			});
 		}
-		this.partitionWindow.updateStrands(this.getValue());
+		this.partitionWindow.updateStrands(this.getSelectionOrValue());
 		this.partitionWindow.show();
 	},
 	showViennaPartitionWindow: function() {
@@ -665,7 +674,7 @@ Ext.define('App.ui.SequenceEditor', {
 				renderTo: Ext.getBody(),
 			});
 		}
-		this.rnaFoldWindow.updateStrands(this.getValue());
+		this.rnaFoldWindow.updateStrands(this.getSelectionOrValue());
 		this.rnaFoldWindow.show();
 	},
 	showQuikfoldWindow: function() {
@@ -674,7 +683,7 @@ Ext.define('App.ui.SequenceEditor', {
 				renderTo: Ext.getBody(),
 			});
 		}
-		this.quikFoldWindow.updateStrands(this.getValue());
+		this.quikFoldWindow.updateStrands(this.getSelectionOrValue());
 		this.quikFoldWindow.show();
 	},
 	
@@ -729,11 +738,17 @@ Ext.define('App.ui.SequenceEditor', {
 	truncate: function() {
 		var strands = this.smartSelect(), len = this.truncationCount.getValue();
 		strands = _.map(strands, function(strand) {
+			var parts = strand.split(':'), str = parts.pop().trim();
+			
 			if(len > 0) {
-				return strand.substr(len)
+				str = str.substr(len)
 			} else {
-				return strand.substr(0,strand.length+len)
+				str = str.substr(0,str.length+len)
 			}
+			
+			parts.push(str);
+			return parts.join(': ')
+			
 		});
 		strands = strands.join('\n');
 		this.editor.codemirror.replaceSelection(strands);

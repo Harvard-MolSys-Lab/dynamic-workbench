@@ -117,9 +117,44 @@ Ext.define('App.ui.FilesTree', {
 					ptype: 'treeviewdragdrop',
 				},],
 				listeners: {
-					drop: {
+					'drop': {
 						fn: function() {
 							//this.getStore().sync();
+						},
+						scope: this
+					},
+					// Make tooltips
+					'render' : {
+						fn: function(view) {
+						    view.tip = Ext.create('Ext.tip.ToolTip', {
+						    	title: ' ',
+						        // The overall target element.
+						        target: view.el,
+						        // Each grid row causes its own separate show and hide.
+						        delegate: view.itemSelector,
+						        // Moving within the row should not hide the tip.
+						        trackMouse: false,
+						        anchor: 'right',
+						        anchorToTarget: true,
+						        // Render immediately so that tip.body can be referenced prior to the first show.
+						        renderTo: Ext.getBody(),
+						        listeners: {
+						            // Change content dynamically depending on which element triggered the show.
+						            beforeshow: function updateTipBody(tip) {
+						                var rec = view.getRecord(tip.triggerElement),
+						                	ext = rec.get('type'),
+						                	title = App.Files.getTypeName(ext),
+						                	desc = App.Files.getTypeDesc(ext);
+						                
+						                if(desc || title) {
+							                tip.setTitle(title+'&nbsp;&nbsp;');
+							                tip.update(desc);
+						                } else {
+						                	return false;
+						                }
+						            }
+						        }
+						    });
 						},
 						scope: this
 					}
@@ -137,6 +172,10 @@ Ext.define('App.ui.FilesTree', {
 				},
 			},
 		});
+		
+
+
+		
 		this.callParent(arguments);
 		
 		// Builds the context menu (TODO: move to separate class)
@@ -220,7 +259,17 @@ Ext.define('App.ui.FilesTree', {
 					fileNameField.originalValue = filename;
 					fileNameField.setValue(filename);
 				},
+				updateActionItems: function(ext) {
+					if(this.actionItems.length > 0) {
+						_.each(this.actionItems,function(item) {
+							this.remove(item);
+						},this)
+					}
+					this.actionItems = this.add(getActionItems(ext));
+				}
 			});
+			this.contextMenu.actionItems = [];
+			
 			_.each(this.contextMenu.query('*[ref]'), function(cmp) {
 				this[cmp.ref] = cmp;
 			},this);
@@ -238,7 +287,28 @@ Ext.define('App.ui.FilesTree', {
 	
 				}
 			},this);
-			this.on('afterrender',this.afterrender,this)
+			this.on('afterrender',this.afterrender,this);
+			
+			/*
+			 * Prebuild objects for action Menu items
+			 */
+			actionItems = {};
+			_.each(App.actions,function(items,ext) {
+				actionItems[ext] = _.map(items,function(block) {
+					return {
+						text: block.text,
+						iconCls: App.TaskRunner.getToolProperty(block.tool,'iconCls'),
+						handler: function() {
+							
+						},
+						scope: this.contextMenu
+					}
+				})
+			})
+			
+			function getActionItems(ext) {
+				
+			}
 		}
 	},
 	/**
@@ -253,6 +323,9 @@ Ext.define('App.ui.FilesTree', {
 			filesTree: this
 		});
 		this.ddManager.render();
+		
+		
+		
 	},
 	/**
      * @private
@@ -298,9 +371,9 @@ Ext.define('App.ui.FilesTree', {
 	 * Reloads the file heirarchy underneath the provided {@link App.Document}
 	 * @param {App.Document} rec The record under which to refresh
 	 * @param {Function} callback Function to execute when operation completed.  Will be called with the following parameters:
-     * - records : Array of Ext.data.Model objects.
-     * - operation : The Ext.data.Operation itself.
-     * - success : True when operation completed successfully.
+     * @param {Ext.data.Model} callback.records Array of Ext.data.Model objects.
+     * @param {Ext.data.Operation} operation The Ext.data.Operation itself.
+     * @param {Boolean} success True when operation completed successfully.
      */
 	refreshDocument: function(rec, callback, scope) {
 		if(rec) {
@@ -398,18 +471,23 @@ Ext.define('App.ui.FilesTree', {
 	/**
 	 * Creates a new document underneath the last selected record with the passed name
 	 * @param {String} name of the new file 
+	 * @param {Function} callback Callback to execute upon file creation
+	 * @param {App.Document} callback.rec The newly created document
+	 * @param {Object} scope Scope in which to execute the callback
 	 */
-	newFileUnderSelection: function(name) {
+	newFileUnderSelection: function(name,callback,scope) {
 		var rec = this.getSelectionModel().getLastSelected();
-		return this.newFile(rec,name);
+		return this.newFile(rec,name,callback,scope);
 	},
 	/**
 	 * Create a new document underneath the passed `rec`, if `rec` is a folder; else creates a 
 	 * sibling to `rec`. 
-	 * @param {App.Document} rec
-	 * @param {String} name 
+	 * @param {App.Document} rec The new document will be a child or sibling of this Document.
+	 * @param {Function} callback Callback to execute upon file creation
+	 * @param {App.Document} callback.rec The newly created document
+	 * @param {Object} scope Scope in which to execute the callback
 	 */
-	newFile: function(rec,name) {
+	newFile: function(rec,name,callback,scope) {
 		(rec) || (rec = this.getRootNode());
 		if(rec.isLeaf() && rec.parentNode) {
 			rec = rec.parentNode;
@@ -419,10 +497,10 @@ Ext.define('App.ui.FilesTree', {
 			text: name,
 			leaf: !App.Path.isFolder(name),
 		});
+		this.store.on('update',function(store,newRecFromServer,operation) {
+			Ext.callback(callback,scope,[newRecFromServer]);
+		},null,{ single: true })
 		rec.appendChild(newRec);
-		//hack?
-		//newRec.phantom = true;
-		//this.getStore().sync();
 		rec.expand();
 		return newRec;
 	},

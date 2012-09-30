@@ -119,6 +119,14 @@ Ext.define('App.ui.CodeMirror', {
     */
     theme:              'default',
 	
+	
+	/**
+	 * @cfg {String} matchHighlight
+	 * True or a string to enable selection highlighting (e.g. other instances of the selection in the document)
+	 * will be highlighted.
+	 */
+	matchHighlight : "CodeMirror-matchhighlight",
+	
 	/**
 	 * Builds the CodeMirror instance
 	 */
@@ -145,6 +153,15 @@ Ext.define('App.ui.CodeMirror', {
 				onFocus:			Ext.bind(this.onFocus,this),
 			},this));
 			this.codemirror.setValue(this.value || '');
+			
+			if(me.matchHighlight) {
+				if(typeof me.matchHighlight != 'string') {
+					me.matchHighlight = 'CodeMirror-matchhighlight';
+				}
+				me.on('cursorchange',function() {
+					me.codemirror.matchHighlight(me.matchHighlight);
+				},null,{buffer: 500})
+			}
 		}
 	},
 	onBlur: function() {

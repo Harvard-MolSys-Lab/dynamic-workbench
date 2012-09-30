@@ -9,9 +9,9 @@ Ext.define('App.ui.TaskManager', {
 			store: App.TaskRunner.taskStore,
 			columns: [{
 				dataIndex: 'tool',
-				renderer: function(tool) {
-					return '<img src="'+Ext.BLANK_IMAGE_URL+'" style="width:18px;height:18px;" class="'+App.TaskRunner.serverTools[tool].iconCls+'" />';
-				}
+				// renderer: function(tool) {
+				// 	return '<img src="'+Ext.BLANK_IMAGE_URL+'" style="width:18px;height:18px;" class="'+App.TaskRunner.serverTools[tool].iconCls+'" />';
+				// }
 			},{
 				header: 'Tool',
 				dataIndex: 'tool'

@@ -66,11 +66,7 @@ Ext.define('App.ui.Ribbon', {
 		_.each(['toolsTab', 'insertTab', 'fillStroke', 'geometry', 'metaTab'], function(item) {
 			this[item] = this.down('*[ref=' + item + ']');
 		}, this);
-		/*
-		// Allow the tools tab to manage the workspace tool
-		this.mon(this.toolsTab, 'toolChange', this.setActiveTool, this);
-		this.mon(this.insertTab, 'toolChange', this.setActiveTool, this);
-		*/
+
 
 		// allow ribbon tabs to invoke actions on the workspace
 		this.items.each(function(item) {

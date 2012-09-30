@@ -3,6 +3,7 @@
  */
 Ext.define('App.ui.Browser', {
 	extend: 'Ext.panel.Panel',
+	title: 'Browser',
 	mixins: {
 		app: 'App.ui.Application',
 	},

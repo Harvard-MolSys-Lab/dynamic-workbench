@@ -3,6 +3,7 @@
  */
 Ext.define('App.ui.Pepper', {
 	extend: 'App.ui.TextEditor',
+	title: 'Pepper',
 	initComponent: function() {
 		Ext.applyIf(this, {
 			tbar: [{

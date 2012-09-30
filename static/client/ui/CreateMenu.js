@@ -28,6 +28,15 @@ Ext.define('App.ui.CreateMenu', {
 	 * Icon class for the #createButton
 	 */
 	createIconCls: 'tick',
+
+	/**
+	 * @cfg
+	 * True to create the file upon click of the #createButton (not #createMenu).
+	 * This option does not apply if 
+	 */
+	smartCreate: false,
+	defaultType: 'txt',
+
 	/**
 	 * @cfg
 	 * True to automatically build the file type menu by calling #getCreateMenu
@@ -39,6 +48,8 @@ Ext.define('App.ui.CreateMenu', {
 	 * Delay, in milliseconds, before this menu should be hidden after the mouse leaves.
 	 */
 	afterLeaveDelay: 500,
+	
+	mixins: {tip: 'App.ui.TipHelper'},
 	
 	initComponent: function() {
 		this.extraMenuItems || (this.extraMenuItems = []);
@@ -76,6 +87,9 @@ Ext.define('App.ui.CreateMenu', {
 		});
 		this.callParent(arguments);
 		
+		// build tooltips
+		this.mixins.tip.init.apply(this, arguments);
+		
 		// build references
 		_.each(this.query('*[ref]'), function(cmp) {
 			this[cmp.ref] = cmp;
@@ -110,18 +124,26 @@ Ext.define('App.ui.CreateMenu', {
 	},
 	
 	/**
-	 * Override to provide custom logic upon clicking the #createButton
+	 * Override to provide custom logic upon clicking the #createButton. By default, creates a file by
+	 * calling #onCreate if the #smartCreate option is set. 
 	 * @param {String} fileName The current value of the "name" field
 	 */
 	onCreateButton: function(fileName) {
-		
+		if(this.smartCreate) {
+			var name = this.fileNameField.getValue(), 
+				type = this.defaultType, 
+				fullName = (type!='folder') ? App.Path.addExt(name,type) : name;
+			this.onCreate(type,name,fullName);
+		}
 	},
 	/**
 	 * Action to perform when the "Create" menu item is selected. By default, creates a new file under the selected item in
-	 * {@link App.ui.filesTree}.
+	 * the {@link App.ui.filesTree files tree} and opens the file.
 	 */
 	onCreate: function(type,name,fullName) {
-		App.ui.filesTree.newFileUnderSelection(fullName);
+		App.ui.filesTree.newFileUnderSelection(fullName,function(rec) {
+			App.ui.filesTree.open(rec);
+		});
 	},
 	/**
 	 * Builds the menu of file types. Each child item in this menu should have a <var>type</var> property referring to the
@@ -132,9 +154,7 @@ Ext.define('App.ui.CreateMenu', {
 		if(!this.autoCreateMenu) {
 			return false;
 		}
-		return {
-
-			items:[{
+		var items = [{
 				text: 'Nodal System',
 				iconCls: 'nodal',
 				type: 'nodal',
@@ -216,6 +236,21 @@ Ext.define('App.ui.CreateMenu', {
 				iconCls: 'folder',
 				type: 'folder'
 			}]
+		
+		return {
+
+			items: _.map(items,function(item) {
+				if(_.isObject(item)) {
+					item.tooltip = {
+						title: App.Files.getTypeName(item.type),
+						text: App.Files.getTypeDescription(item.type) || '&nbsp;',
+						trackMouse: false,
+						anchor: 'right',
+						anchorToTarget: true,
+					}
+				}
+				return item;
+			})
 		};
 	}
 });

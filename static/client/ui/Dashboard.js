@@ -75,7 +75,11 @@ Ext.define('App.ui.Dashboard', {
 		        	menu: [{
 		        		text: 'Nodal',
 		        		iconCls: 'nodal',
-		        		handler: App.ui.Launcher.makeLauncher('nodal'),
+		        		menu: Ext.create('App.ui.CreateMenu',{
+		        			smartCreate: true,
+		        			defaultType: 'nodal',
+		        			autoCreateMenu: false,
+		        		})
 		        	},{
 		        		text: 'Pepper',
 		        		iconCls: 'pepper',
@@ -134,6 +138,11 @@ Ext.define('App.ui.Dashboard', {
 		        		text: 'Strand editor',
 		        		handler: App.ui.Launcher.makeLauncher('strandedit'),
 		        		iconCls: 'domains',
+		        		menu: Ext.create('App.ui.CreateMenu',{
+		        			smartCreate: true,
+		        			defaultType: 'dil',
+		        			autoCreateMenu: false,
+		        		})
 		        	},{
 		        		text: 'Pepper Intermediate Language (PIL)',
 		        		handler: App.ui.Launcher.makeLauncher('pepper'),
@@ -213,6 +222,7 @@ Ext.define('App.ui.Dashboard', {
 		        	menu: [{
 		        		text: 'Sequence editor',
 		        		iconCls: 'sequence',
+		        		handler : App.ui.Launcher.makeLauncher('sequences'),
 		        	},{
 						text : 'NUPACK',
 						iconCls : 'nupack-icon',

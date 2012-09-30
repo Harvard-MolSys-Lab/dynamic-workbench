@@ -346,12 +346,22 @@ ul.dashboard-actions li a:hover {
 .sequence-24, .seq-24 {
 	background-image: url(/images/icons/etc/sequence-24.png) !important;
 }
-.enumerate {
+.enumerate, .enum {
 	background-image: url(/images/icons/fugue/arrow-split.png) !important;
 }
-.enumerate-24 {
+.enumerate-24, .enum-24 {
 	background-image: url(/images/icons/icons-24/arrow-split.png) !important;
 }
+.enumerate-nodal {
+	background-image: url(/images/icons/etc/enum-nodal.png) !important;
+}
+.enumerate-secondary {
+	background-image: url(/images/icons/etc/enum-secondary.png) !important;
+}
+.enumerate-secondary-24 {
+	background-image: url(/images/icons/etc/enum-secondary-24.png) !important;
+}
+
 .verify {
 	background-image: url(/images/icons/fugue/tick.png) !important;
 }
@@ -382,6 +392,9 @@ ul.dashboard-actions li a:hover {
 .terminal {
 	background-image: url(/images/icons/fugue/terminal.png) !important;
 }
+.magic {
+	background-image: url(/images/icons/fugue/wand.png) !important;
+}
 .rocket-launch, .rocket-fly {
 	background-image: url(/images/icons/fugue/rocket-fly.png) !important;
 }
@@ -409,13 +422,25 @@ ul.dashboard-actions li a:hover {
 .duplicate-24 {
 	background-image: url(/images/icons/icons-24/stamp.png) !important;
 }
-.idea-form-24 {
+.idea-form-24, .form-idea-24 {
 	background-image: url(/images/icons/etc/form-idea.png) !important;
 }
 
-.form-idea-24, .wrap-motif-24 {
+
+.wrap-motif-24, .motif-create-24 {
+	background-image: url(/images/icons/etc/wrap-motif-24.png) !important;
+}
+.motif-create, .wrap-motif {
 	background-image: url(/images/icons/etc/wrap-motif.png) !important;
 }
+
+.motif-destroy-24, .unwrap-motif-24 {
+	background-image: url(/images/icons/etc/unwrap-motif-24.png) !important;
+}
+.motif-destroy, .unwrap-motif {
+	background-image: url(/images/icons/etc/unwrap-motif.png) !important;
+}
+
 .port-expose {
 	background-image: url(/images/icons/fugue/arrow-step-out.png) !important;
 }
@@ -432,7 +457,7 @@ ul.dashboard-actions li a:hover {
 	background-image: url(/images/icons/icons-24/wand.png) !important;
 }
 .domains-24, .domain-24 {
-	background-image: url(/images/icons/etc/domain-24.png) !important;
+	background-image: url(/images/icons/etc/secondary-domains-24.png) !important;
 }
 .behavior-24 {
 	background-image: url(/images/icons/etc/behavior-24.png) !important;
@@ -578,6 +603,49 @@ ul.dashboard-actions li a:hover {
 
 .node_index {
 	fill: #aaa;
+}
+
+/* Enumerator reaction graph */
+
+.link-reaction {
+	stroke: #aaa;
+}
+
+.reaction-fast {
+	fill: #01c;
+	stroke: #fff;
+}
+.reaction-slow {
+	fill: #a00;
+	stroke: #fff;
+}
+.complex {
+	fill: green;
+	stroke: #fff;
+}
+.complex-transient {
+	fill: #0a0;
+	stroke: #fff;
+}
+.complex-resting {
+	fill: green;
+	stroke: #fff;
+}
+.complex-initial {
+	fill: green;
+	stroke: yellow;
+}
+.resting-state {
+	fill: yellow;
+	stroke: #fff;
+}
+path.hull {
+  fill: lightsteelblue;
+  fill-opacity: 0.3;
+}
+
+path.resting-state-hull {
+	fill: yellow;
 }
 
 
@@ -978,7 +1046,7 @@ ul.dashboard-actions li a:hover {
 }
 #msg-div {
 	position: absolute;
-	left: 35%;
+	right: 5%;
 	top: 10px;
 	width: 300px;
 	z-index: 20000;

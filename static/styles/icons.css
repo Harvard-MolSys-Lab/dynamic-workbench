@@ -21,6 +21,18 @@
 .arrow-reverse-complement {
 	background-image: url(/images/icons/fugue/arrow-return-180-left.png) !important;	
 }
+
+.seq-reverse {
+	background-image: url(/images/icons/etc/reverse.png) !important;	
+}
+.seq-complement {
+	background-image: url(/images/icons/etc/complement.png) !important;	
+}
+.seq-reverse-complement {
+	background-image: url(/images/icons/etc/reverse-complement.png) !important;	
+}
+
+
 .pairwise-align {
 	background-image: url(/images/icons/fugue/edit-alignment-justify-distribute.png) !important;	
 }

@@ -5,6 +5,7 @@ Ext.define('App.ui.SBMLEditor', {
 	extend: 'App.ui.TextEditor',
 	iconCls:'document-sbml',
 	editorType: 'SBML',
+	title: 'SBML',
 	mode: 'xml',
 	alias: 'widget.sbmledit',
 	

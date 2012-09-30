@@ -155,6 +155,7 @@ Ext.define('App.ui.Dashboard', {
 		        	text: 'Enumerate',
 		        	iconCls: 'enumerate-24',
 		        	handler: App.ui.Launcher.makeLauncher('enumedit'),
+		        	disabled: true,
 		        },{
 		        	text: 'Simulate',
 		        	iconCls: 'simulate-24',
@@ -222,7 +223,7 @@ Ext.define('App.ui.Dashboard', {
 		        	menu: [{
 		        		text: 'Sequence editor',
 		        		iconCls: 'sequence',
-		        		handler : App.ui.Launcher.makeLauncher('sequences'),
+		        		handler : App.ui.Launcher.makeLauncher('sequence'),
 		        	},{
 						text : 'NUPACK',
 						iconCls : 'nupack-icon',

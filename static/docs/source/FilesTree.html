@@ -388,9 +388,9 @@ Ext.define('App.ui.FilesTree', {
 </span>	 * Reloads the file heirarchy underneath the provided {@link App.Document}
 	 * @param {App.Document} rec The record under which to refresh
 	 * @param {Function} callback Function to execute when operation completed.  Will be called with the following parameters:
-     * - records : Array of Ext.data.Model objects.
-     * - operation : The Ext.data.Operation itself.
-     * - success : True when operation completed successfully.
+     * @param {Ext.data.Model} callback.records Array of Ext.data.Model objects.
+     * @param {Ext.data.Operation} operation The Ext.data.Operation itself.
+     * @param {Boolean} success True when operation completed successfully.
      */
 	refreshDocument: function(rec, callback, scope) {
 		if(rec) {

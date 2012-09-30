@@ -1697,9 +1697,7 @@ var DD = function() {
 			
 			setupScoreMatricies();
 		},
-		resetCounters: function() {
-			
-		},
+		resetCounters: resetCounters,
 		serialize : function() {
 			this.saveState.apply(this, arguments);
 		},

@@ -316,6 +316,7 @@ Ext.define('App.ui.SequenceEditor', {
 						scope: this,
 						iconCls: 'tbi',
 					},'-',{
+						disabled: true,
 						text: 'MFE Complexes',
 						iconCls: 'nupack-icon',
 						menu: Ext.create('App.ui.CreateMenu',{
@@ -336,6 +337,7 @@ Ext.define('App.ui.SequenceEditor', {
 						// handler: this.mfeComplexes,
 						// scope: this,
 					},{
+						disabled: true,
 						text: 'Pairwise MFE Complexes',
 						iconCls: 'nupack-icon',
 						menu: Ext.create('App.ui.CreateMenu',{
@@ -377,6 +379,7 @@ Ext.define('App.ui.SequenceEditor', {
 							autoCreateMenu: false,
 						}),
 					},{
+						disabled: true,
 						text: 'Subsets MFE Complexes',
 						iconCls: 'nupack-icon',
 						menu: Ext.create('App.ui.CreateMenu',{
@@ -401,6 +404,7 @@ Ext.define('App.ui.SequenceEditor', {
 						// handler: this.mfeComplexes,
 						// scope: this,
 					},'-',{
+						disabled: true,
 						text: 'Brute Force',
 						menu: [{
 							text: 'Target length: ',

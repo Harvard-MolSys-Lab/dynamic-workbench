@@ -465,19 +465,26 @@ Ext.define('App.ui.StrandEdit', {
 					iconCls: 'ms-icon',
 					handler: this.buildMS,
 					scope: this,
+					disabled: true,
 				}]
 			}, {
 				xtype: 'buttongroup',
-				columns: 1,
-				title: 'Enumerate Reaction',
+				columns: 2,
+				title: 'Enumerate Reactions',
 				items: [{
 					text: 'Enumerate',
 					scale: 'medium',
+					rowspan:2,
 					iconAlign: 'top',
 					iconCls: 'enumerate-24',
 					handler: this.buildEnum,
 					scope: this,
-				}, ]
+				}, {
+					text: 'to PIL',
+				},{
+					text: 'to Graph (ENJS)'
+				}],
+				disabled:true,
 			}, {
 				xtype: 'buttongroup',
 				columns: 2,

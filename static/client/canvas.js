@@ -16,6 +16,7 @@ Ext.Loader.setPath('App', 'client');
 
 Ext.require(['App.ui.Launcher', 'App.ui.Application', // hack to make sure App.ui.FilesTree.DragDropManager is require'd before App.ui.FilesTree. For some reason Sencha Builder has trouble with that one
  'App.ui.FilesTree', 'App.ui.TabPanel', 'App.ui.NupackMenu', 'App.ui.mfold.QuikFoldWindow', 'App.ui.vienna.RNAfoldWindow', //
+ 'App.ui.StrandPreviewWindow','App.ui.SequenceThreader','App.ui.StrandEdit', 'App.ui.Help',
  'App.ui.console.ScriptsPanel', 'App.ui.console.LogPanel',
  'App.ui.Attribution','App.ui.CitationBar',]);
 
@@ -138,9 +139,39 @@ App.ui.buildInterface = function() {
 						text : 'Dashboard',
 						iconCls : 'dash',
 						handler : App.ui.Launcher.makeLauncher('dashboard')
+					}, '-', {
+						canActivate: false,
+						plain: true,
+						html: '<b>Domains and Structures</b>',
 					}, {
+						text: 'Strand Editor',
+						iconCls: 'domains',
+						handler: App.ui.Launcher.makeLauncher('strandedit')
+					},{
+						text: 'Structure Editor',
+						iconCls: 'secondary',
+						handler: function() {
+							var win = Ext.create('App.ui.StrandPreviewWindow');
+							win.show();
+						}
+					},{
+						text: 'Segment Threader',
+						iconCls:'thread-sequences',
+						handler: function() {
+							var win = Ext.create('App.ui.SequenceThreader');
+							win.show();
+						}
+					},'-',{
+						canActivate: false,
+						plain: true,
+						html: '<b>Sequence Design and Analysis</b>',
+					},{
+						text: 'Sequence Editor',
+						iconCls: 'seq',
+						handler: App.ui.Launcher.makeLauncher('sequence'),
+					},{
 						text : 'DD',
-						iconCls : 'seq',
+						iconCls : 'dd',
 						handler : App.ui.Launcher.makeLauncher('dd'),
 					}, {
 						text : 'NUPACK',

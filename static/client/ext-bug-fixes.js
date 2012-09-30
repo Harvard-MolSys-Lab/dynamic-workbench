@@ -59,9 +59,10 @@ Ext.define('Ext.grid.plugin.CellEditing2',{
             }
 
             // *** bugfix -- refocus edited cell
-            sm.setLastSelected(sm.getLastSelected());
+            sm.select([sm.getLastSelected()]);
+            sm.setLastFocused(sm.getLastSelected());
             grid.getView().getEl(activeColumn).focus();
-
+			
             me.context.value = value;
             me.fireEvent('edit', me, me.context);
         }

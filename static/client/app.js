@@ -534,7 +534,7 @@ Ext.define('App.TaskRunner.Task', {
 	 * Override this callback to provide custom logic on start of the task. By default, opens a log window and prints a message that the task has begun.
 	 */
 	onStart : function() {
-		this.log(Ext.String.format("Completed '{0}' task at {1} on '{2}'",this.name,this.get('startDate'),this.get('target')), {});
+		this.log(Ext.String.format("Starting task '{0}' at {1} on '{2}'",this.name,this.get('startDate'),this.get('target')), {});
 	},
 
 	/**
@@ -552,7 +552,7 @@ Ext.define('App.TaskRunner.Task', {
 	 */
 	onEnd : function(out, st, args) {
 		this.log(out);
-		this.log(Ext.String.format("Completed '{0}' task at {1} on '{2}'",this.name,this.get('endDate'),this.get('target')),{});
+		this.log(Ext.String.format("Completed task '{0}' at {1} on '{2}'",this.name,this.get('endDate'),this.get('target')),{});
 		if(this.arguments && this.arguments.node) {
 			var path = App.Path.pop(this.arguments.node);
 			App.ui.filesTree.refreshDocument(App.DocumentStore.tree.getNodeById(path),function(recs,operation,success) {

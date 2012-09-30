@@ -546,11 +546,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 					library: this.library,
 					domains: this.domains,
 					node: this,
-					//structure: structure,
+					structure: this.structure,
 				})
 			];
 		} else {	
-		
+			var strandStructures = Structure.parseMultiple(this.structure);
 			this.strands = _.map(this.strands,function(strand,i) {
 				
 				// See if additional strand properties for this strand were specified by the node
@@ -566,10 +566,6 @@ App.dynamic = module.exports = (function(_,DNA) {
 				strand.domains = _.map(strand.domains, function(domain) {
 			
 					// Find domains with matching identities in motif
-					//if(domain.identity && motifDomainsMap[domain.identity]) {
-					//	domain = _.extend(_.copy(motifDomainsMap[domain.identity]), domain);
-					//}
-					//domain.node = this;
 					
 					if(nodeDomainProperties[domain.name]) {
 						domain = _.copyWith(domain,nodeDomainProperties[domain.name]);
@@ -579,6 +575,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 				
 				}, this);
 				
+				// Make sure strand is assigned a structure
+				if(!strand.structure) {
+					strand.structure = strandStructures[i];
+				}
+
 				strand.name || (strand.name = (this.strands.length > 1) ? 'strand'+i : '');
 				strand.library = this.library;
 				
@@ -1757,7 +1758,9 @@ App.dynamic = module.exports = (function(_,DNA) {
 			
 			// Instantiate nodes to Node objects
 			library.nodes = _.map(library.nodes, function(node) {
-				// if(node.polarity) {					// delete node.polarity;				// }
+				// if(node.polarity) {
+					// delete node.polarity;
+				// }
 				
 				if(fromDil) {
 					node._motif = node.motif
@@ -2455,7 +2458,29 @@ App.dynamic = module.exports = (function(_,DNA) {
 		update: function(data) {
 			var me = this;
 			
-			// if(data.motifs) {				// for(var name in data.motifs) {					// var myObj = me.get('motif',name),						// newData = data.motifs[name];// 										// _.extend(myObj,newData);				// }			// } // 			// if(data.nodes) {				// for(var name in data.nodes) {					// var myObj = me.get('node',name),						// newData = data.nodes[name];// 										// if(newData.strands) {						// for(var strandName in newData.strands) {							// var newStrand						// }					// }// 										// _.extend(myObj,newData);				// }			// }
+			// if(data.motifs) {
+				// for(var name in data.motifs) {
+					// var myObj = me.get('motif',name),
+						// newData = data.motifs[name];
+// 					
+					// _.extend(myObj,newData);
+				// }
+			// } 
+// 
+			// if(data.nodes) {
+				// for(var name in data.nodes) {
+					// var myObj = me.get('node',name),
+						// newData = data.nodes[name];
+// 					
+					// if(newData.strands) {
+						// for(var strandName in newData.strands) {
+							// var newStrand
+						// }
+					// }
+// 					
+					// _.extend(myObj,newData);
+				// }
+			// }
 			
 			if(data.segments) {
 				var indexedSegments = {};
@@ -3252,7 +3277,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			omitLengths || (omitLengths = false);
 			
 			return order(_.map(doms,function(dom) {
-				return [dom.getName(),'[',printSegmentString(order(dom.getSegments())),']',abbrevRole('domain',dom.role || ''),printPolarity(dom.getPolarity())].join('')
+				return [dom.getName(),'[',printSegmentString(order(dom.getSegments()),omitLengths),']',abbrevRole('domain',dom.role || ''),printPolarity(dom.getPolarity())].join('')
 			}),polarity).join(' ')
 		}
 		
@@ -3326,7 +3351,9 @@ App.dynamic = module.exports = (function(_,DNA) {
 			omitLengths || (omitLengths = false)
 			return _.chain(segs).compact().map(function(seg) {
 				if(omitLengths) {
-					return [seg.getIdentifier(),':',abbrevRole('segment',seg.role || '')].join('')
+					var role = abbrevRole('segment',seg.role || '');
+					if(role) return [seg.getIdentifier(),':',role].join('')
+					else return seg.getIdentifier();
 				}
 				return [seg.getIdentifier(),'(',seg.getLength(),')',abbrevRole('segment',seg.role || '')].join('')
 			}).value().join(' ');

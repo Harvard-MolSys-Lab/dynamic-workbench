@@ -4,12 +4,14 @@
 Ext.define('App.ui.NodalCanvas', {
 	extend : 'App.ui.Canvas',
 	editorType : 'Nodal',
+	title: 'Nodal',
 	iconCls : 'nodal',
 	requires : ['App.ui.nodal.HomeTab', 'App.ui.nodal.BuildTab', 'App.ui.nodal.CommandTab', //
 	'Workspace.objects.dna.BuildManager', 'Workspace.objects.dna.Node', 'Workspace.objects.dna.Complementarity', //
 	'Workspace.tools.nodal.NodeTool', 'Workspace.tools.nodal.PortTool', 'Workspace.tools.nodal.ComplementarityTool', //
 	'Workspace.tools.nodal.MotifTool', 'Workspace.tools.nodal.ExposureTool', //
-	'App.ui.nodal.NodeInspector', 'App.ui.nodal.PortInspector', 'App.ui.nodal.MotifInspector', 'App.ui.MotifPalette'],
+	'App.ui.nodal.NodeInspector', 'App.ui.nodal.PortInspector', 'App.ui.nodal.MotifInspector', 'App.ui.MotifPalette',
+	'App.ui.nodal.LibraryWindow'],
 	border : false,
 	mixins : {
 		refHelper : 'App.ui.RefHelper',

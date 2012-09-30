@@ -9,198 +9,242 @@ var types = [{
 	"type" : ["tex", 'latex'],
 	"trigger" : "tex",
 	"iconCls" : "tex",
-	"name" : "TeX Document"
+	"name" : "TeX Document",
+	"description": "TeX and LaTeX documents are input files for the TeX typesetting system; they are used to prepare manuscripts."
 }, {
 	"type" : "txt",
 	"trigger" : "txt",
 	"iconCls" : "txt",
-	"name" : "Plain Text"
+	"name" : "Plain Text",
+	"description": "Plain text files contain text.",
 }, {
 	"type" : "diff",
 	"trigger" : "diff",
 	"iconCls" : "diff",
-	"name" : "Diff comparison"
+	"name" : "Diff comparison",
+	"description": "Diff files contain the results of comparing two text files.",
 }, {
 	"type" : "js",
 	"trigger" : "js",
 	"iconCls" : "js",
-	"name" : "Javascript File"
+	"name" : "Javascript File",
+	"description": "Javascript (JS) files contain executable Javascript source code; you can use them to run code in your web browser or to automate tasks in Workbench.",
 }, {
 	"type" : "json",
 	"trigger" : "json",
 	"iconCls" : "json",
-	"name" : "Javascript Object Notation (JSON) File"
+	"name" : "Javascript Object Notation (JSON) File",
+	"description": "JSON files contain data in an easily-parsable form. Some applications, such as caDNAno, store their data in JSON files.",
 }, {
 	"type" : "coffee",
 	"trigger" : "coffee",
 	"iconCls" : "coffee",
-	"name" : "CoffeeScript File"
+	"name" : "CoffeeScript File",
+	"description": "CoffeeScript (COFFEE) files contain executable CoffeeScript source code. CoffeeScript can be compiled to Javascript and run within your web browser to automate tasks in Workbench.",
 }, 
 // Rich document formats
 {
 	"type" : "xml",
 	"trigger" : "xml",
 	"iconCls" : "xml",
-	"name" : "XML File"
+	"name" : "XML File",
+	"description": "eXtensible Markup Language (XML) files contain data in a structured format.",
 }, {
 	"type" : ["html", "htm"],
 	"trigger" : "html",
 	"iconCls" : "html",
-	"name" : "HTML File"
+	"name" : "HTML File",
+	"description": "HyperText Markup Language (HTML) files contain documents which can be viewed in a web browser.",
 }, {
 	"type" : ["md", "markdown"],
 	"trigger" : "md",
 	"iconCls" : "md",
-	"name" : "Markdown File"
+	"name" : "Markdown File",
+	"description": "Markdown (MD) files use a simple text-based language to describe rich text documents. Markdown files can be edited as plain text, but easily translated to well-formatted HTML, LaTeX, etc.",
 }, {
 	"type" : "rst",
 	"trigger" : "rst",
 	"iconCls" : "rst",
-	"name" : "ReStructuredText File"
+	"name" : "ReStructuredText File",
+	"description": "ReStructuredText (RST) files use a simple text-based language to describe rich text documents. ReStructuredText files can be edited as plain text, but easily translated to well-formatted HTML, LaTeX, etc.",
 }, {
 	"type" : ["whiteboard", "workspace"],
 	"trigger" : "whiteboard",
 	"iconCls" : "whiteboard",
 	"name" : "Whiteboard",
+	"description": "",
 },
 // Nodal/DyNAML
 {
 	"type" : ["dynaml", "dsml", "dyn"],
 	"trigger" : "dynaml",
 	"iconCls" : "dynaml",
-	"name" : "DyNAML Document"
+	"name" : "DyNAML Document",
+	"description": "Dynamic Nucleic Acid Markup Language (DyNAML) files contain text-based representations of Nodal systems",
+}, { 
+	"type": "dil",
+	"trigger": "dil",
+	"iconCls": "dil",
+	"name": "DyNAMiC Intermediate Language (DIL) Document",
+	"description": "DyNAMiC Intermediate Language (DIL) contain domain-level representations of DNA systems. They can be edited to change the domain-level design, consumed by various sequence designers, or enumerated with the domain-level enumerator.",
 }, {
 	"type" : "nodal",
 	"trigger" : "nodal",
 	"iconCls" : "nodal",
-	"name" : "Nodal System"
+	"name" : "Nodal System",
+	"description": "Nodal system (NODAL) files contain graphical representations of DNA behavioral designs using the nodal abstraction. Nodal systems can be compiled to domain-level representations (DIL files). ",
 },
 // Pepper
  {
 	"type" : "pil",
 	"trigger" : "pil",
 	"iconCls" : "pil",
-	"name" : "Pepper Intermediate Language (PIL) File"
+	"name" : "Pepper Intermediate Language (PIL) File",
+	"description": "Pepper Intermediate Language (PIL) files contain domain-level descriptions of DNA systems. They can be consumed by several sequence designers or by the domain-level enumerator.",
 }, {
 	"type" : "pepper",
 	"trigger" : "pepper",
 	"iconCls" : "pepper",
-	"name" : "Pepper File"
+	"name" : "Pepper File",
+	"description": "",
 }, {
 	"type" : "sys",
 	"trigger" : "pepper",
 	"iconCls" : "sys",
-	"name" : "Pepper System"
+	"name" : "Pepper System",
+	"description": "Pepper System (SYS) files describe DNA strand displacement systems which can be designed using the Pepper behavioral designer.",
 }, {
 	"type" : "comp",
 	"trigger" : "pepper",
 	"iconCls" : "comp",
-	"name" : "Pepper Component"
+	"name" : "Pepper Component",
+	"description": "Pepper Component (COMP) files contain reusable DNA components which can be incorporated into systems designed using the Pepper behavioral designer.",
 }, {
 	"type" : "crn",
 	"trigger" : "crn",
 	"iconCls" : "crn",
-	"name" : "Chemical Reaction Network"
+	"name" : "Chemical Reaction Network",
+	"description": "Chemical Reaction Network (CRN) files contain text-based descriptions of networks of chemical reactions.",
 },
 // Sequences
  {
 	"type" : "seq",
 	"trigger" : "sequence",
 	"iconCls" : "seq",
-	"name" : "Sequence"
+	"name" : "Sequence",
+	"description": "Sequence (SEQ) files contain DNA sequences, optionally organized by strand name, and may contain comments and other data.",
 }, {
 	"type" : "dd",
 	"trigger" : "dd",
 	"iconCls" : "dd",
-	"name" : "Domain Design"
+	"name" : "Domain Design",
+	"description": "Domain Design (DD) files contain sequences which can be modified by the stochastic, domain-based sequence designer DD.",
 }, {
 	"type" : "ddjs",
 	"trigger" : "dd",
 	"iconCls" : "dd",
-	"name" : "Advanced Domain Design"
+	"name" : "Advanced Domain Design",
+	"description": "Advanced Domain Design (DDJS) files contain sequences which can be modified by the stochastic, domain-based sequence designer DD, as well settings preferences for DD.",
 }, {
 	"type" : "nupack-results",
 	"trigger" : "nupackresults",
 	"iconCls" : "nupack-results",
-	"name" : "NUPACK Results Package"
+	"name" : "NUPACK Results Package",
+	"description": "",
 }, 
 // Domains/sequence design
 {
 	"type" : "domains",
 	"trigger" : "dd",
 	"iconCls" : "dd",
-	"name" : "Domain Design"
+	"name" : "Domain Design",
+	"description": "Domain Design (DD) files contain input for the stochastic, domain-based sequence designer DD.",
 }, {
 	"type" : ["nupack", "np"],
 	"trigger" : "nupackedit",
 	"iconCls" : "nupack",
-	"name" : "NUPACK Multi-objective Script"
+	"name" : "NUPACK Multi-objective Script",
+	"description": "NUPACK Multi-objective design scripts (NP) contain input files for the online NUPACK sequence designer.",
 }, {
 	"type" : "ms",
 	"trigger" : "msedit",
 	"iconCls" : "ms",
-	"name" : "Multisubjective Design Script"
+	"name" : "Multisubjective Design Script",
+	"description": "Multisubjective design scripts (MS) contain input files for the Multisubjective sequence designer",
 }, {
 	"type" : "mso",
 	"trigger" : "msview",
 	"iconCls" : "ms",
-	"name" : "Multisubjective Output"
+	"name" : "Multisubjective Output",
+	"description": "Multisubjective output (MSO) files contain the results of running the Multisubjective sequence designer.",
 }, {
 	"type" : "primary",
 	"trigger" : "primary",
 	"iconCls" : "primary",
-	"name" : "Primary Structure"
+	"name" : "Primary Structure",
+	"description": "",
 }, {
 	"type" : "secondary",
 	"trigger" : "secondary",
 	"iconCls" : "secondary",
-	"name" : "Secondary Structure"
+	"name" : "Secondary Structure",
+	"description": "",
 },
 // Enumeration
 {
 	"type" : "enum",
 	"trigger" : "enumedit",
 	"iconCls" : "enum-icon",
-	"name" : "Domain-level Enumerator Script"
+	"name" : "Domain-level Enumerator Script",
+	"description": "Domain-level enumerator scripts are domain-level representations of DNA systems, which can be used to enumerate all possible reactions between these species with domain-level precision.",
 }, {
 	"type" : "enjs",
 	"trigger" : "enumview",
 	"iconCls" : "enum-icon",
-	"name" : "Domain-level Enumerator Results"
+	"name" : "Domain-level Enumerator Results",
+	"description": "Domain-level enumerator result (ENJS) files describe a network of chemical reactions between domain-level representations of an ensemble of DNA species.",
 }, {
 	"type" : "sbml",
 	"trigger" : "sbml",
 	"iconCls" : "document-sbml",
-	"name" : "Systems Biology Markup Language (SBML) File"
+	"name" : "Systems Biology Markup Language (SBML) File",
+	"description": "Systems Biology Markup Language (SBML) files contain biological or chemical models ",
 },
 // Image
  {
 	"type" : "svg",
 	"trigger" : "viewer",
 	"iconCls" : "svg",
-	"name" : "SVG"
+	"name" : "SVG",
+	"mime" : "image/svg+xml",
+	"description": "Scalable Vector Graphics (SVG) files contain images which can be resized without losing detail.",
 }, {
 	"type" : "pdf",
 	"trigger" : "viewer",
 	"iconCls" : "pdf",
-	"name" : "PDF"
+	"name" : "PDF",
+	"mime" : "application/pdf",
+	"description": "Portable Document Format (PDF) files contain documents and images",
 }, {
 	"type" : ["jpg","jpeg","gif","png","tiff"],
 	"trigger" : "viewer",
 	"iconCls" : "image",
-	"name" : "Image"
+	"name" : "Image",
+	"description": "Image file",
 }, 
 // Meta
  {
 	"type" : "package",
 	"iconCls" : "package",
 	"trigger" : "package",
-	"name" : "Package"
+	"name" : "Package",
+	"description": "",
 }, {
 	"type" : "app",
 	"iconCls" : "app",
 	"trigger" : "app",
-	"name" : "Application"
+	"name" : "Application",
+	"description": "",
 }];
 
 // var triggers = {
@@ -230,22 +274,34 @@ var types = [{
 // primary : 'primary',
 // secondary : 'secondary',
 // };
-var triggers = {}, icons = {}
+
+// var mimetypes = {	// 'svg' : 'image/svg+xml',	// 'pdf' : 'application/pdf',// };
+
+var triggers = {}, icons = {}, mimetypes = {}, descriptions = {}, actions = {}, fileTypes = {};
+
+function processBlock(key,block) {
+	triggers[key] = block.trigger;
+	icons[key] = block.iconCls;	
+	descriptions[key] = block.description || block.desc || '';
+	fileTypes[key] = block;
+	if(block.actions) {
+		actions[key] = block.actions;
+	}
+	if(block.mime) {
+		mimetypes[key] = block.mime
+	}
+}
+
 _.each(types, function(block) {
 	if (_.isArray(block.type)) {
 		_.each(block.type, function(ext) {
-			triggers[ext] = block.trigger;
-			icons[ext] = block.iconCls;
+			processBlock(ext,block);
 		});
 	} else {
-		triggers[block.type] = block.trigger;
-		icons[block.type] = block.iconCls;
+		processBlock(block.type,block);
 	}
 });
-var mimetypes = {
-	'svg' : 'image/svg+xml',
-	'pdf' : 'application/pdf',
-};
+
 
 var packageContentsJsonKeys = {
 	'redirect' : function(data, value) {
@@ -370,6 +426,9 @@ var macros = {
 exports.contentTransforms = contentTransforms;
 exports.transforms = transforms;
 exports.types = types;
+exports.fileTypes = fileTypes;
 exports.icons = icons;
 exports.triggers = triggers;
 exports.mimetypes = mimetypes;
+exports.actions = actions;
+exports.descriptions = descriptions;

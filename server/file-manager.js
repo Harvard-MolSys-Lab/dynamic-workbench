@@ -93,7 +93,9 @@ exports.configure = function(app, express) {
 		res.render('typeslist.ejs', {
 			layout : false,
 			triggers : fileTypes.triggers,
-			icons : fileTypes.icons
+			icons : fileTypes.icons,
+			actions : fileTypes.actions,
+			fileTypes: fileTypes.fileTypes
 		});
 		//res.send("App.triggers = " + JSON.stringify(fileTypes.triggers) + ";App.icons=" + JSON.stringify(fileTypes.icons) + ";");
 	});

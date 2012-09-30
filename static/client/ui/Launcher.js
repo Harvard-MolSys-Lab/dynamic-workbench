@@ -98,7 +98,7 @@ Ext.define('App.ui.Launcher', {
 						}
 					}));
 				} catch(e) {
-					Ext.msg('Application failed to load','An error occurred loading application {0}, see console for details. ',{params: [rootTrigger]});
+					App.msg('Application failed to load','An error occurred loading application {0}, see console for details. ',{params: [rootTrigger]});
 					App.log('Failed to launch application with trigger ' + trigger+'. Error details: '+e, {
 						iconCls : 'application',
 						level: 'error',
@@ -108,7 +108,20 @@ Ext.define('App.ui.Launcher', {
 				}
 			} else {
 				mask = this.tabPanel.setLoading('Loading...');
-				tab = Ext.createByAlias('app.' + rootTrigger);
+				tab = Ext.createByAlias('app.' + rootTrigger,{
+					document : (doc || false),
+					initialTrigger : trigger,
+					triggers : triggers,
+					closable : true,
+					listeners : {
+						afterrender : {
+							fn : function() {
+								mask.hide();
+							},
+							single : true
+						}
+					}
+				});
 			}
 			if(tab) {
 				this.addTab(tab);
@@ -176,6 +189,9 @@ Ext.define('App.ui.Launcher', {
 		this.appMenu.suspendLayout = false;
 		this.appMenu.doLayout();
 		return this.appMenu;
+	},
+	updateAppMenu: function(menu,handler) {
+
 	}
 }, function() {
 	App.ui.Launcher.register('help', 'App.ui.Help', {
@@ -292,8 +308,13 @@ Ext.define('App.ui.Launcher', {
 		editorType : 'Pepper',
 		mode : 'pepper',
 	});
-	App.ui.Launcher.register('sequence', 'App.ui.SequenceEditor', {
+	App.ui.Launcher.register('strandedit','App.ui.StrandEdit',{
+	});
+	App.ui.Launcher.register('dil','App.ui.StrandEdit',{
+	});
 
+	
+	App.ui.Launcher.register('sequence', 'App.ui.SequenceEditor', {
 	});
 	App.ui.Launcher.register('nupackresults', 'App.ui.NupackResults', {
 		iconCls : 'nupack-icon',

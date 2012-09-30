@@ -7,7 +7,7 @@
 Ext.oldLog = Ext.log;
 Ext.apply(App, {
 	/**
-	 * @member Ext
+	 * @member App
 	 * See {@link Ext.debug.LogPanel#log}.
 	 */
 	log : function(args, options) {
@@ -73,45 +73,41 @@ Ext.apply(App, {
 	}
 });
 
-Ext.apply(Ext, (function() {
+Ext.apply(App, (function() {
 	var msgCt;
 
 	function createBox(t, s) {
-		// return ['<div class="msg">',
-		//         '<div class="x-box-tl"><div class="x-box-tr"><div class="x-box-tc"></div></div></div>',
-		//         '<div class="x-box-ml"><div class="x-box-mr"><div class="x-box-mc"><h3>', t, '</h3>', s, '</div></div></div>',
-		//         '<div class="x-box-bl"><div class="x-box-br"><div class="x-box-bc"></div></div></div>',
-		//         '</div>'].join('');
-		return '<div class="msg"><h3>' + t + '</h3><p>' + s + '</p></div>';
+		return '<div class="msg"><h3>' + (t || '') + '</h3><p>' + (s || '') + '</p></div>';
 	}
 
 	return {
 		/**
 		 * Displays pop-up messages on the top of the screen.
 		 * @param {String} title Title to display in bold atop the message
-		 * @param {String} format/body Either formatted string (containing 
-		 * `{0}`-style numbered placeholders to be passed to Ext.String.format)
-		 * or just a regular string. In either case it will be displayed in the
-		 * message body.
-		 * @param {Object} [options] Hash containing additional options
-		 * @param {Number} [options.delay=3000] Length of time (in ms) that the
-		 * message should be displayed
-		 * @param {Function} [options.callback] function to be called 
-		 * upon display of message. Recieves the following arguments:
-		 * @param {Ext.Element} [options.callback.element] The generated 
-		 * messag element 
-		 * @param {String} [options.callback.message] The formatted message 
-		 * text
-		 * @param {Mixed} [options.scope] Scope in which to execute the 
-		 * `callback` function
-		 * @param {String[]} [options.params] Parameters to fill the numbered 
-		 * placeholders in the message string.
+		 * @param {String} format/body 
+		 * Either format string (containing `{0}`-style numbered placeholders to be passed to Ext.String.format)
+		 * or just a regular string. In either case it will be displayed in the message body.
+		 * 
+		 * @param {Object} [options] 
+		 * Hash containing additional options
+		 * 
+		 * @param {Number} [options.delay=3000] 
+		 * Length of time (in ms) that the message should be displayed
+		 * 
+		 * @param {Function} [options.callback] 
+		 * Function to be called upon display of message. Recieves the following arguments:
+		 *
+		 * @param {Ext.Element} [options.callback.element] The generated message element 
+		 * @param {String} [options.callback.message] The formatted message text
+		 * 
+		 * @param {Mixed} [options.scope] Scope in which to execute the `callback` function
+		 * @param {String[]} [options.params] Parameters to fill the numbered placeholders in the message string.
 		 * 
 		 * @param {String...} [parameters] If options is not specified, the 
 		 * remaining arguments will be treated as arguments to the numbered
 		 * parameters in the format string.
 		 *  
-		 * @member Ext
+		 * @member App
 		 */
 		msg : function(title, format) {
 			var options, params;
@@ -149,6 +145,13 @@ Ext.apply(Ext, (function() {
 			
 			// Insert message element
 			var m = Ext.core.DomHelper.append(msgCt, createBox(title, s), true);
+			if(options.handler) {
+				if(options.handler == 'console') {
+					m.on('click',App.ui.Launcher.showConsole,App.ui.Launcher);
+				} else {
+					m.on('click',options.handler,options.scope);
+				}
+			}
 			m.hide();
 			m.slideIn('t').ghost("t", {
 				delay : options.delay,
@@ -159,5 +162,12 @@ Ext.apply(Ext, (function() {
 		},
 	};
 })());
+
+/**
+ * Alias for App#msg
+ * @method msg
+ * @member Ext
+ */
+Ext.msg = App.msg;
 
 Ext.debug = {};

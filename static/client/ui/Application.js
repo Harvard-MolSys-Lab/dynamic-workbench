@@ -1,6 +1,14 @@
 /**
  * Mixin which provides shared helper methods to client-side applications within the interface
  *
+ * # Loading and saving files
+ * 
+ * You can override a few key methods for file loading/saving:
+ * 
+ * -	{#onLoad} - Override to update your UI once data is loaded
+ * -	{#onSave} - Override to update your UI in response to data being saved
+ * -	{#getSaveData} - Override to provide data to be saved
+ * 
  */
 Ext.define('App.ui.Application', {
 	/**
@@ -30,6 +38,18 @@ Ext.define('App.ui.Application', {
 	 */
 	constructor : function(config) {
 		this.bindDocument( config ? (config.document ? config.document : null) : null, true);
+	},
+	requestDocument: function(callback,scope) {
+		if(this.document) {
+			Ext.callback(callback,scope,[this.document]);
+		} else {
+			Ext.window.MessageBox.prompt('Save document','This action requires you to save your work to a file; please enter a file name.',function(buttonId, filename) {
+				if(buttonId == 'ok') {
+					var file = App.ui.filesTree.newFileUnderSelection(fileName);
+					this.bindDocument(file);
+				}
+			},this);
+		}
 	},
 	/**
 	 * Re-fetches the {@link App.Document document} from App.DocumentStore

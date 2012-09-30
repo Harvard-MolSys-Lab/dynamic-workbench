@@ -208,6 +208,12 @@ App.Path = App.path = {
 		return _.last(App.Path.basename(path).split('.'));
 	},
 	/**
+	 * @alias #extname
+	 */
+	getExt: function(path) {
+		return App.Path.extname(path);
+	},
+	/**
 	 * Returns the last portion of the path (the portion following the final <var>/</var>)
 	 */
 	basename : function(path) {
@@ -293,6 +299,42 @@ App.User = {
 };
 
 /**
+ * @class App.Files
+ * Manages file-related metadata (e.g. file types)
+ */
+Ext.define('App.Files',{
+	singleton: true,
+	getType:function(ext) {
+		return App.fileTypes[ext]
+	},
+	getDescription: function(ext) {
+		if(ext == '') { return ''; }
+		return this.getTypeProperty(ext,'description');
+	},
+	getDesc: function(ext) {
+		return this.getDescription(ext);
+	},
+	getTypeDescription: function(ext) {
+		return this.getDescription(ext);
+	},
+	getTypeDesc: function(ext) {
+		return this.getDescription(ext);
+	},
+	getName: function(ext) {
+		if(ext == '') { return 'Folder'; }
+		return this.getTypeProperty(ext,'name');
+	},
+	getTypeName: function(ext) {
+		return this.getName(ext);
+	},
+	getTypeProperty: function(ext,prop) {
+		var t = this.getType(ext);
+		if(t) { return t[prop]; }
+	}
+});
+
+
+/**
  * @class App.TaskRunner
  * Runs tasks on the server
  */
@@ -301,38 +343,91 @@ Ext.define('App.TaskRunner', {
 		/**
 		 * Defines subclasses of {@link App.TaskRunner.Task} as members of {@link App.TaskRunner}. Called by server code
 		 * in order to make configured server tools available on the client.
+		 * @param {Object[]} tasks 
+		 * A list of task configuration objects. Each task configuration object may contain the options below, as well as
+		 * any arbitrary code to override members of the {@link App.TaskRunner.Task Task} class.
+		 *
+		 * @param {String} tasks.route Relative URL on the server at which the task may be started
+		 * @param {String} tasks.name Name of the task
+		 * @param {String} tasks.iconCls [description]
+		 * 
 		 */
 		loadTools : function(tasks) {
 			_.each(tasks, function(def) {
-				var name = _.compact(def.route.split('/'));
+				var name = _.compact(def.route.split('/')),
+				iconCls = def.iconCls || 'app';
+
 				name[name.length - 1] = _.last(name).capitalize();
 				name = name.join('.');
-				//def.route.replace(/\//g,'.');
+
 				Ext.define('App.TaskRunner.' + name, Ext.apply(def, {
 					extend : 'App.TaskRunner.Task'
 				}, {
-					iconCls : 'app',
+					iconCls : iconCls,
 				}));
 			});
 		},
 		
 		/**
-		 * Runs a task using the given serverTool
-		 * @param {String} serverTool Name of a member of App.TaskRunner; must be configred by server code calling {@link #loadTools}
-		 * @param {Array} args Arguments to pass to the tool
-		 * @param {Function} callback Function to call upon completion
+		 * Runs a task using the given `serverTool`
+		 * @param {String} serverTool 
+		 * Name of a member of App.TaskRunner; must be configred by server code calling {@link #loadTools}
+		 * 
+		 * @param {Object} [args] 
+		 * Arguments to pass to the tool
+		 * 
+		 * @param {Function} [callback] 
+		 * Function to call upon completion
+		 *
+		 * @param {Object} [scope=window] 
+		 * Scope in which to execute the callback
+		 * 
+		 * @param {Object} [config={}] 
+		 * Contains arbitrary additional configuration options for the {@link App.TaskRunner.Task subclass}. Note:
+		 * these properties will be directly {@link Ext.apply applied} to the object, rather than passed as 
+		 * a configuration object, since App.TaskRunner.Task will interpret configuration objects as model fields.
+		 *
+		 * @return {App.TaskRunner.Task/Boolean} 
+		 * If the `serverTool` exists, returns the App.TaskRunner.Task instance
 		 */
-		run : function(serverTool, args, callback) {
+		run : function(serverTool, args, callback, scope, config) {
+			args || (args = {});
+			config || (config = {});
+			if(!!callback && !!scope) {
+				callback = Ext.bind(callback,scope);
+			}
+
 			if(Ext.ClassManager.get(['App.TaskRunner',serverTool].join('.'))) {
 				var startDate = new Date(), target = 'local', task = Ext.create('App.TaskRunner.' + serverTool, {
 					tool : serverTool,
 					startDate : startDate,
 					target : target,
 				});
+				Ext.apply(task,config);
+				
 				this.taskStore.add(task);
 				task.start(args, callback);
+				return task;
+			}
+			return false;
+		},
+		
+		/**
+		 * Gets the App.TaskRunner.Task subclass associated with the passed server tool name.
+		 * @param {String} serverTool 
+		 * @return {App.TaskRunner.Task}
+		 */
+		get: function(serverTool) {
+			return Ext.ClassManager.get(['App.TaskRunner',Ext.String.capitalize(serverTool)].join('.'));
+		},
+		
+		getToolProperty: function(serverTool,name) {
+			var tool = App.TaskRunner.get(serverTool);
+			if(tool) {
+				return tool.prototype[name];
 			}
 		},
+		
 		register : function(serverTool, config) {
 			this.serverTools[serverTool] = config;
 		},
@@ -368,7 +463,26 @@ Ext.define('App.TaskRunner.Task', {
 		name : 'target',
 		type : 'string',
 	}],
-	callback : function() {
+	/**
+	 * @cfg {String[]} openOnEnd
+	 * String of filenames. If a `node` property is specified, when the {@link App#filesTree files tree} is reloaded,
+	 * looks for these filenames and opens them if they now exist.
+	 */
+
+	/**
+	 * Custom callback to be applied upon success or failure of the task. Note: if a `callback` parameter is provided to #start,
+	 * this callback will be ignored.
+	 * 
+	 * @param  {String} responseText 
+	 * Text of the server's response
+	 * 
+	 * @param  {Object} arguments 
+	 * Original arguments passed to the task on #starte 
+	 * 
+	 * @param  {Boolean} success 
+	 * true if the task completed successfully, false otherwise
+	 */
+	callback : function(responseText, arguments, success) {
 		return;
 	},
 	/**
@@ -385,12 +499,17 @@ Ext.define('App.TaskRunner.Task', {
 	},
 	/**
 	 * Starts the task running on the server
+	 * @param {Object} args Arguments to be passed to the tool running on the server.
+	 * @param {Function} callback Callback to be invoked upon task completion. See documentation at #callback.
 	 */
-	start : function(args, callback) {
+	start : function(args, callback, options) {
+		/**
+		 * Hash of arguments to be sent to server
+		 * @type {Object}
+		 */
 		this.arguments = (args || {});
 		this.callback = (callback || this.callback);
 		this.onStart();
-		this.log('Starting \"' + this.name + '\" task at ' + this.get('startDate') + ' on \"' + this.get('target') + '\"', {});
 		var req = Ext.Ajax.request({
 			url : this.endpoint,  //'/canvas/index.php/workspaces/save',
 			method : 'POST',
@@ -402,9 +521,9 @@ Ext.define('App.TaskRunner.Task', {
 			failure : function(res) {
 				this.end(res.responseText, args, false);
 				if(res.timedout == 0) {
-					this.log('Error running task on tool: "' + this.name + '". Timeout at ' + this.timeout + 'ms (' + (this.timeout / 1000) + 's)');
+					this.log(Ext.String.format('Error running task on tool: "{0}". Timeout at {1} s ({2} ms)',this.name,(this.timeout / 1000),this.timeout));
 				} else {
-					this.log('Error running task on tool: "' + this.name + '". ' + res.responseText);
+					this.log(Ext.String.format('Error running task on tool: "{0}". {1}',this.name,res.responseText));
 				}
 			},
 			scope : this
@@ -412,15 +531,74 @@ Ext.define('App.TaskRunner.Task', {
 		Ext.Ajax.clearTimeout(req);
 	},
 	/**
-	 * Override this callback to provide custom logic on start of the task
+	 * Override this callback to provide custom logic on start of the task. By default, opens a log window and prints a message that the task has begun.
 	 */
 	onStart : function() {
-
+		this.log(Ext.String.format("Completed '{0}' task at {1} on '{2}'",this.name,this.get('startDate'),this.get('target')), {});
 	},
+
+	/**
+	 * Override this callback to provide custom logic on task end. By default, logs output and, if a `node` argument is 
+	 * specified, refreshes that branch of the {@link App.ui.FilesTree}
+	 * 
+	 * @param  {String} responseText 
+	 * Text of the server's response
+	 * 
+	 * @param  {Object} arguments 
+	 * Original arguments passed to the task on #starte 
+	 * 
+	 * @param  {Boolean} success 
+	 * true if the task completed successfully, false otherwise
+	 */
+	onEnd : function(out, st, args) {
+		this.log(out);
+		this.log(Ext.String.format("Completed '{0}' task at {1} on '{2}'",this.name,this.get('endDate'),this.get('target')),{});
+		if(this.arguments && this.arguments.node) {
+			var path = App.Path.pop(this.arguments.node);
+			App.ui.filesTree.refreshDocument(App.DocumentStore.tree.getNodeById(path),function(recs,operation,success) {
+				/**
+				 * @event refresh
+				 * Fires after the task has completed if files in the `node` parameter were reloaded.
+				 * 
+				 * @param {Ext.data.Model[]} recs Re-loaded records
+				 * @param {Ext.data.Operation} operation Operation object representing the reload action
+				 * @param {Boolean} success True if the reload was successful
+				 */
+				this.fireEvent('refresh',recs,operation,success);
+
+				if(this.openOnEnd && success) {
+					this.openFiles(this.openOnEnd,recs);
+				}
+			},this);
+		}
+	},
+
+	/**
+	 * Attempts to find records in `recs` with file names in `openOnEnd`, and open them.
+	 * @param  {String[]} openOnEnd File names to search for
+	 * @param  {App.Document[]} recs Records to search within
+	 */
+	openFiles: function(openOnEnd,recs) {
+		for(var i=0; i<openOnEnd.length; i++) {
+			var target = openOnEnd[i], child;
+			for(var j=0; (j<recs.length && !child); j++) {
+				if(recs[j].get('node') == target) {
+					child = recs[j];
+				} else {
+					//child = recs[j].findChild('node',target);
+				}
+			}
+			if(child) {
+				App.ui.filesTree.open(child);
+			}
+		}
+	},
+
 	/**
 	 * Called upon task completion
 	 */
 	end : function(text, args, success) {
+		this.set('endDate',new Date());
 		this.onEnd(text, args, success);
 		if(Ext.isFunction(this.callback)) {
 			this.callback(text, this.arguments, success);
@@ -438,13 +616,7 @@ Ext.define('App.TaskRunner.Task', {
 	getGroupName : function() {
 		return this.getNameTimestamp() + ' (' + (this.arguments.node ? this.arguments.node : 'no path') + ')'
 	},
-	onEnd : function(out, st, args) {
-		this.log(out);
-		if(this.arguments && this.arguments.node) {
-			var path = App.Path.pop(this.arguments.node);
-			App.ui.filesTree.refreshDocument(App.DocumentStore.tree.getNodeById(path))
-		}
-	},
+	
 });
 
 // Ext.define('App.TaskRunner.Pepper', {

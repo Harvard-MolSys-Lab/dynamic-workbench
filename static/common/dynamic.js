@@ -2766,7 +2766,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 
 					// Two complementary ports should have the same basewise length
 					// If they don't, try to determine the cause
-					if(sum(sourceDomainLength) != sum(targetDomainLength)) {
+					if(sum(sourceDomainLength) != sum(targetDomainLength) || sourceSegments.length != targetSegments.length) {
 					
 						// Either the total number of segments is mismatched
 						if(sourceSegments.length != targetSegments.length) {
@@ -2786,6 +2786,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 									'should have <%= expected %> segments, but instead it has <%= encountered %> segments', {
 										sourceNode : complement.sourceNode.getName(),
 										targetNode : complement.targetNode.getName(),
+										sourcePort : complement.targetPort.getName(),
 										targetPort : complement.targetPort.getName(),
 										expected : sourceSegments.length,
 										encountered : targetSegments.length,
@@ -3702,6 +3703,22 @@ App.dynamic = module.exports = (function(_,DNA) {
 				},{
 					"name":"S2",
 					"domains":"D[h* z*:c g*]x E[f* e* y*:c d*]x F[s*(1) c* b* x*:c]x"
+				}]
+			},{
+				"name":"m25",
+				"type":"initiator",
+				"structure":"........",
+				"domains":"A[a x:c b y:c]o+ B[z:c c w:c d]o-"
+			},{
+				"name":"m26",
+				"type":"cooperative",
+				"structure":".(((((((.+)))))))",
+				"strands":[{
+					"name":"S1",
+					"domains":"A[a:t x:c b y:c]i+ s[s(1)]x B[z:c c w:c d]i-"
+				},{
+					"name":"S2",
+					"domains":"C[w* c* z* s*(1) y* b* x*]x"
 				}]
 			}
 		];

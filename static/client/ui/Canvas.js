@@ -119,7 +119,7 @@ Ext.define('App.ui.Canvas', {
 					 */
 					ref: 'palettes',
 					region: 'south',
-					height: 300,
+					height: 400,
 					split: true,
 					collapsible: true,
 					titleCollapse: true,

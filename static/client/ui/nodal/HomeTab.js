@@ -219,7 +219,7 @@ Ext.define('App.ui.nodal.HomeTab', {
 					// }),
 					{
 						scale: 'small',
-						iconCls: 'save',
+						iconCls: 'save-24',
 						text: 'Save',
 						scale: 'medium',
 						rowspan: 2,

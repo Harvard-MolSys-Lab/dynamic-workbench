@@ -16,6 +16,7 @@ Ext.define('App.ui.sequence.AnalysisWindow',{
 	maximizable : true,
 	submitButtonText: 'Analyze',
 	cite: '',
+	maxStrandCount: 20,
 	initComponent: function() {
 		Ext.apply(this,{
 			items: [{
@@ -54,13 +55,22 @@ Ext.define('App.ui.sequence.AnalysisWindow',{
 	},
 	doSubmit: function() {	
 		var form = this.down('form').getForm();
-		form.doAction('standardsubmit',{
-			params: this.getParams(),
-			target: '_blank',
-			url: this.url,
-			method: 'post',
-			enctype:'multipart/form-data',
-		})
+		
+		var strands = this.getStrands(), strandCount = strands.length, start_index = 0, end_index;
+		
+		do {
+			end_index = start_index + Math.min(strandCount,this.maxStrandCount)
+			form.doAction('standardsubmit',{
+				params: this.getParams(start_index,end_index),
+				target: '_blank',
+				url: this.url,
+				method: 'post',
+				enctype:'multipart/form-data',
+			});
+			strandCount -= this.maxStrandCount;
+			start_index += this.maxStrandCount;
+		} while(strandCount > 0)		
+		
 	},
 	getForm: function() {
 		return {};

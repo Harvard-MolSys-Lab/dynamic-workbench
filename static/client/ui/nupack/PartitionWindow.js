@@ -4,6 +4,7 @@ Ext.define('App.ui.nupack.PartitionWindow',{
 	url: 'http://www.nupack.org/partition/new',
 	cite: 'zadeh_etal_2011',
 	iconCls: 'nupack-icon',
+	height: 500,
 	getForm: function() {
 		return {
 			items: [{
@@ -34,6 +35,42 @@ Ext.define('App.ui.nupack.PartitionWindow',{
 	            ]
 	        },*/
 	       {
+	            xtype      : 'fieldcontainer',
+	            fieldLabel : 'Concentration',
+	            defaultType: 'numberfield',
+	            defaults: {
+	                flex: 1,
+	                labelWidth: 30,
+	            },
+	            layout: 'hbox',
+	            items: [
+	                {
+						name: 'conc_value',
+						value: 0.1,
+						margins: '0 5 0 0',
+					},{
+						//fieldLabel : 'Mg<sup>2+</sup>',
+						name: 'conc_scale',
+						value: 'u',
+						xtype: 'combobox',
+						value: "u",
+						store: Ext.create('Ext.data.Store', {
+						    fields: ['view', 'value'],
+						    data : [
+						        {"view":"cM", "value":'c'},
+						        {"view":"mM", "value":'m'},
+						        {"view":"µM", "value":'u'},
+						        {"view":"nM", "value":'n'},
+						        {"view":"pM", "value":'n'},
+						    ],
+						}),
+						forceSelect: true,
+						queryMode: 'local',
+					    displayField: 'view',
+					    valueField: 'value',
+					}
+	            ]
+	        },{
 				name: 'partition_job[temperature]',
 				xtype: 'numberfield',
 				value: 20.0,
@@ -90,11 +127,11 @@ Ext.define('App.ui.nupack.PartitionWindow',{
 	            items: [
 	                {
 						name: 'partition_job[na_salt]',
-						fieldLabel : 'Na<sup>+</sup>',
+						fieldLabel : 'Na<sup>+</sup> (M)',
 						value: 1.0,
 						margins: '0 5 0 0',
 					},{
-						fieldLabel : 'Mg<sup>2+</sup>',
+						fieldLabel : 'Mg<sup>2+</sup> (M)',
 						name: 'partition_job[mg_salt]',
 						value: 0.0
 					}
@@ -118,7 +155,10 @@ Ext.define('App.ui.nupack.PartitionWindow',{
 		}
 	},
 
-	getParams: function() {
+	getParams: function(start_index,end_index) {
+		start_index || (start_index = 0);
+		end_index || (end_index = null);
+		
 		var strands = this.getStrands();
 		var scales = {
 			'p':-12,
@@ -128,6 +168,8 @@ Ext.define('App.ui.nupack.PartitionWindow',{
 			'c':-2,
 			'd':-1,
 		}
+		var defaultScale = this.down('[name=conc_scale]').getValue();
+		var defaultConc = this.down('[name=conc_value]').getValue();
 		
 		var partition_sequence = _.compact(_.map(strands,function(strand,i) {			
 			var list = strand.trim().match(/(\w+)?\s?(\[(\d+)([pnumd])M\])?\s?:?\s?([AaTtCcGgUu]+)/);
@@ -135,14 +177,20 @@ Ext.define('App.ui.nupack.PartitionWindow',{
 			if(list) {
 				return {
 					name:list[1] || "strand_"+i, 
-					concentration:list[3] || 1,
-					scale:list[4] ? scales[list[4]] : -6, 
+					concentration:list[3] || defaultConc,
+					scale:list[4] ? scales[list[4]] : scales[defaultScale], 
 					contents:list[5],
 				};
 			} else {
 				return null;
 			}
 		}));
+		
+		if(end_index == null) {
+			partition_sequence = partition_sequence.slice(start_index);
+		} else {
+			partition_sequence = partition_sequence.slice(start_index,end_index);
+		}
 		
 		return _.reduce(partition_sequence,function(memo,strand,i) {
 				memo['partition_sequence['+i+'][name]'] = strand.name;

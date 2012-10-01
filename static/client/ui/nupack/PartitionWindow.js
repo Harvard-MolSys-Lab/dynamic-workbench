@@ -172,7 +172,20 @@ Ext.define('App.ui.nupack.PartitionWindow',{
 		var defaultConc = this.down('[name=conc_value]').getValue();
 		
 		var partition_sequence = _.compact(_.map(strands,function(strand,i) {			
-			var list = strand.trim().match(/(\w+)?\s?(\[(\d+)([pnumd])M\])?\s?:?\s?([AaTtCcGgUu]+)/);
+			var list;
+
+			// Simple case; just sequence, no fancy input
+			if(/^\s*([AaTtCcGgUu]+)\s*$/.test(strand)) {
+				strand = strand.trim();
+				return {
+					name: i, 
+					concentration: defaultConc,
+					scale: scales[defaultScale],
+					contents: strand
+				};
+			}
+
+			list = strand.trim().match(/(\w+)?\s?(\[(\d+)([pnumd])M\])?\s?:?\s?([AaTtCcGgUu]+)/);
 			// ["m1 [1uM] : ATCG", "m1", "[1uM]", "1", "u", "ATCG"]
 			if(list) {
 				return {

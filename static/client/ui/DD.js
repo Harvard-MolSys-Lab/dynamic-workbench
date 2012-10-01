@@ -777,7 +777,7 @@ Ext.define('App.ui.DD', {
 				value : data || '',
 				handler : function(data) {
 					this.designer.loadFile(data);
-					this.addDomains(this.designer.printfSequences(), [], this.designer.getCompositions(), this.designer.getImportances());
+					this.addDomains(this.designer.printfDomains(), [], this.designer.getCompositions(), this.designer.getImportances());
 				},
 				scope : this,
 			});

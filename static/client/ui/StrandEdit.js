@@ -602,7 +602,7 @@ Ext.define('App.ui.StrandEdit', {
 				bbar: ['->',{
 					text: 'View',
 					menu: [{ 
-						text: 'Segments', checked: true, 
+						text: 'Segments', checked: true, iconCls: 'domain', 
 						name:'coloringSegments', group: 'coloring',
 						xtype:'menucheckitem', 
 						handler: function() {
@@ -610,7 +610,7 @@ Ext.define('App.ui.StrandEdit', {
 						}, 
 						scope: this 
 					}, { 
-						text: 'Domains', checked: false, 
+						text: 'Domains', checked: false, iconCls: 'domain-caps',
 						name:'coloringDomains', group: 'coloring',
 						xtype:'menucheckitem', 
 						handler: function() {
@@ -618,7 +618,7 @@ Ext.define('App.ui.StrandEdit', {
 						}, 
 						scope: this 
 					},{ 
-						text: 'Base identity', checked: true, 
+						text: 'Base identity', checked: true, iconCls: 'sequence',
 						name:'coloringSequences', group: 'coloring',
 						xtype:'menucheckitem', 
 						handler: function() {

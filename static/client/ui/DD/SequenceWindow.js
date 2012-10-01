@@ -5,6 +5,8 @@ Ext.define('App.ui.dd.SequenceWindow',{
 	layout: 'fit',
 	title: 'Add specific sequences to DD',
 	closeAction: 'hide',
+	buttonText: 'Add Domains',
+	buttonIconCls: 'tick',
 	value: '',
 	handler: function(value) {
 		this.designer.addDomains(value.split('\n'));
@@ -14,8 +16,8 @@ Ext.define('App.ui.dd.SequenceWindow',{
 		Ext.apply(this,{
 			items: [this.sequenceEditor],
 			buttons: [{
-				text: 'Add Domains',
-				iconCls: 'tick',
+				text: this.buttonText,
+				iconCls: this.buttonIconCls,
 				handler: this.addDomains,
 				scope: this,
 			}]
@@ -24,9 +26,15 @@ Ext.define('App.ui.dd.SequenceWindow',{
 		this.sequenceEditor.setValue(this.value);
 	},
 	addDomains: function() {
-		var data = this.sequenceEditor.getValue();
+		var data = this.getValue();
 		if(this.scope) { this.handler.call(this.scope,data); }
 		else { this.handler(data); }
 		this.close();
+	},
+	setValue: function(value) {
+		this.sequenceEditor.setValue(value);
+	},
+	getValue: function() {
+		return this.sequenceEditor.getValue();
 	}
 })

@@ -1,5 +1,5 @@
 .cite {
-	background-image: url(/images/icons/fugue/bookmark.png) !important;	
+	backgroud-image: url(/images/icons/fugue/bookmark.png) !important;	
 }
 
 
@@ -441,6 +441,9 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 .nodal {
 	background-image: url(/images/icons/etc/nodal.png) !important;
 }
+.dil {
+	background-image: url(/images/icons/etc/domain.png) !important;;
+}
 .txt {
 	background-image: url(/images/icons/fugue/document-text.png) !important;
 }
@@ -449,6 +452,9 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 }
 .domains, .domain {
 	background-image: url(/images/icons/etc/domain.png) !important;
+}
+.domain-caps {
+	background-image: url(/images/icons/etc/domain-2.png) !important;
 }
 .dd {
 	background-image: url(/images/icons/etc/dd.png) !important;

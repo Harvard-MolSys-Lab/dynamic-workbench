@@ -47,10 +47,19 @@ To declare complementarities between ports:
 -	Select the "Complementarity" tool
 -	Drag from one port to another to declare complementarity. You may drag from Input to output, or	Bridge to bridge; other connections will be disallowed. You may also add connections between ports within a motif, but not between ports inside and outside the motif.
 
+Complementarities may only be drawn from output ports to input ports, or between bridge (square) ports. Some connections are invalid, depending on the shape of the underlying domain. The nodal editor doesn't prohibit these connections from being drawn, but it will highlight the relevant nodes in red and report an error. For instance, a connection between a domain with 3 segments: `a b c`, each of length 8, and a domain with 4 segments `a b c d` each of length 4 would be invalid, since the total number of nucleotides (24 and 16) do not match up. Likewise, a connection between a domain with 2 segments `a b` each of length 8 (total length 16) and a domain of one segment `a` of length 16 (total length 16) would _also_ be invalid, since the number of segments in each domain is different. See "Errors" below for how DyNAMiC and the Nodal editor handle these errors.
+
+Errors
+------
+
+Some connections may be drawn which are invalid. In these cases, DyNAMiC will report an error, and the Nodal interface will indicate this by changing the Build status indicator (in the lower right) to read "Error". You can mouse over this field to view the error message. You can also click the field and select "Check for errors" to recompile the system, or "Show full results" to view the compiled library before sending to a sequence designer.
+
 Compiling
 ---------
 
-Once your system is assembled, you can generate a picture of the underlying species, and generate input to sequence designers, using the "Build" tool. Select the "Build" tab in the ribbon, then click "Compile". This will generate several files, which will appear as siblings to your system in the files tree:
+Once your system is assembled, you can generate a picture of the underlying species, and generate input to sequence designers, using the "Build" tool. Select the "Build" tab in the ribbon, then click "Compile". This will generate a new file with the extension `.dil`; this is a DyNAMiC Intermediate Language (DIL) file, and it contains your compiled system. The DIL file will open automatically, and you should see the species used to generate your system. From there, you can send results to one of several sequence designers. See [DIL system editor](dil) for details.
+
+Additionally, you can bypass the DIL step and select "Build all targets" from the dropdown next to the "Compile" button. This generates several files, which will appear as siblings to your system in the files tree:
 
 -	(system)`.dynaml` - A formal, textual representation of your system (in the Dynamic Nucleic Acid Markup Language--DyNAML)
 -	(system)`.svg` - A graphical representation of the underlying species in your system

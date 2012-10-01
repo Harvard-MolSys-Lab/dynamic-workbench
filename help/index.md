@@ -17,6 +17,7 @@ Contents
 - [Applications](applications)
 - [Behavioral Design](behavioral)
 	- [Nodal Systems](nodal)
+	- [Segment-level Systems](dil)
 	- [Pepper Systems](pepper)
 - [Sequences](sequence)
 	- [Sequence Editor](sequence-edit)

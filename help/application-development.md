@@ -1,7 +1,7 @@
 Workbench Application Development
 =================================
 
-TBD.
+Coming soon.
 
 Overview
 --------

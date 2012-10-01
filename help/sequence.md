@@ -15,10 +15,16 @@ To view details about each of the menu items in the sequence editor, just hover 
 Sequence Designers
 ------------------
 
-See [Web DD](web-dd)
+-	[Web DD](web-dd) - A stochastic, domain-based sequence designer; can be used to design sequences for large systems very quickly by designing a set of noninteracting domains and then threading those domains together to form full strands.
+-	NUPACK Thermodynamic sequence designer - Uses Caltech's NUPACK web server to perform multi-objective thermodynamic sequence design. NUPACK produces thermodynamically optimized sequences, but can be slow for some systems.
+	To use: Enter a design using the NUPACK multi-objective sequence design script, select relevant parameters, and click "Design"; the task will be submitted to the Caltech server, and a popup window will be opened taking you to the results page.
+-	Multisubjective sequence designer (coming soon)
+
 
 Analysis and Simulation
 -----------------------
+
+NOTE: The below features are deprecated. Please see [Simulation and Analysis](simulation-analysis) instead.
 
 Workbench provides an interface to the powerful nucleic acid computation package [NUPACK](http://www.nupack.org). To perform NUPACK calculations of sequences, from the sequence editor, select a set of strands, then select one of the available calculations from the "Compute" menu:
 

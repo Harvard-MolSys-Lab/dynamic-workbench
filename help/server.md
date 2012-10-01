@@ -7,13 +7,13 @@ Overview
 Workbench server is the part of the Workbench suite which is responsible for managing computationally intensive tasks, and storing files for Workbench users. There are two ways you might access a Workbench server:
 
 -	Hosted installation - Workbench server is intended to be installed on a cluster computing platform and made available via the web. In this case, you need only interact with the web-based Workbench client interface. You'll just need an invitation code from whoever runs the server, and you'll be able to create an 
-	account and begin using Workbench. Currently there are no hosted installations available. 
+	account and begin using Workbench. The only hosted installation currently available is at provided by the [Molecular Systems lab at Harvard](http://www.molecular-systems.net/workbench).
 -	Local installation (hosting your own server) - For testing purposes, you may wish to host your own Workbench server. This requires a bit more effort, but you have full control over the entire system. See below for details about how to set up your own server.
 
 Server Tools
 ------------
 
-Workbench ships with several server tools installed. For details, see [Server tools](server-tools)
+Workbench ships with several server tools installed. For details, see [Server tools](server-tools).
 
 Hosting your own server
 -----------------------

@@ -375,6 +375,18 @@ Ext.define('App.ui.DD', {
 							iconCls: 'thread-sequence',
 							handler: this.threadStrands,
 							scope: this,
+						},'-',{
+							text: 'View DD file',
+							iconCls: 'dd',
+							handler: this.showDDFile,
+							scope: this,
+							tooltip: 'Show the raw DD file containing each of the sequences, their importances and compositions as plain text.'
+						},{
+							text: 'View Sequences',
+							iconCls: 'seq',
+							handler: this.showDomainsPlaintext,
+							scope: this,
+							tooltip: 'Show the sequences sequence of each domain as plain text suitable for copying and pasting into other programs.'
 						}]
 					}, '->', Ext.create('App.ui.SaveButton', {
 						text : 'Save Domains',
@@ -784,6 +796,50 @@ Ext.define('App.ui.DD', {
 		}
 		this.loadDDFileWindow.show();
 
+	},
+	showDDFile: function() {
+		var data = this.designer.saveFile();
+		if (!this.showDDFileWindow) {
+			/**
+			 * @property {App.ui.dd.SequenceWindow} showDDFileWindow
+			 * Allows the user to copy sequences out of the editor
+			 */
+			this.showDDFileWindow = Ext.create('App.ui.dd.SequenceWindow', {
+				designer : this,
+				title: 'Raw DD file',
+				buttonText: 'Close',
+				buttonIconCls: 'cross',
+				value : data || '',
+				handler : function(data) {
+					this.close();
+				}
+			});
+		} else {
+			this.showDDFileWindow.setValue(data);
+		}
+		this.showDDFileWindow.show();
+	},
+	showDomainsPlaintext: function() {
+		var data = this.designer.printfDomains().join('\n');
+		if (!this.showDomainsWindow) {
+			/**
+			 * @property {App.ui.dd.SequenceWindow} showDomainsWindow
+			 * Allows the user to copy sequences out of the editor
+			 */
+			this.showDomainsWindow = Ext.create('App.ui.dd.SequenceWindow', {
+				designer : this,
+				title: 'Raw domain sequences',
+				buttonText: 'Close',
+				buttonIconCls: 'cross',
+				value : data || '',
+				handler : function(data) {
+					this.close();
+				}
+			});
+		} else {
+			this.showDomainsWindow.setValue(data);
+		}
+		this.showDomainsWindow.show();
 	},
 	/**
 	 * Adds the passed domains to the designer

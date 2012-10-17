@@ -3645,6 +3645,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 				name: 'm19c',
 				type: 'hairpin',
 				structure: '.(((..)))',
+				// domains: 'A[a:t w:c b x:c]+ B[y:c c x*:c b* w*:c]-'
 				domains: [{
 			    	name: 'A',
 			    	role: 'input',
@@ -3720,7 +3721,17 @@ App.dynamic = module.exports = (function(_,DNA) {
 					"name":"S2",
 					"domains":"C[w* c* z* s*(1) y* b* x*]x"
 				}]
-			}
+			},{
+				name: 'm27',
+				type: 'hairpin',
+				structure: '.(...)',
+			    domains: 'A[a b]i+ B[c d]o- C[e b*]o-'
+			},{
+				name: 'm27c',
+				type: 'hairpin',
+				structure: '.(((..)))',
+				domains: 'A[a:t v:c b w:c]i+ B[x:c c y:c d]o- C[z:c e w*:c b* v*:c]o-'
+			},
 		];
 		standardMotifs = _.reduce(standardMotifs,function(memo,motif) {
 			memo[motif.name] = motif;

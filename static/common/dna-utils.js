@@ -910,7 +910,8 @@ var DNA = module.exports.DNA = (function(_) {
 	
 	var debug = true;
 	var baseLength = breakWidth = 20, stemWidth = 1.5*baseLength, duplexWidth = stemWidth + baseLength,
-		pi2 = 2*Math.PI;
+		pi2 = 2*Math.PI,
+		piHalf = Math.PI/2;
 					
 	function getBounds(list) {
 		var xmin = list[0][0], xmax = list[0][0], ymin = list[0][1], ymax = list[0][1];
@@ -1049,7 +1050,31 @@ var DNA = module.exports.DNA = (function(_) {
 				x = Math.cos(theta) * loopRadius + cx;
 				y = Math.sin(theta) * loopRadius + cy;
 			}
-		
+		} else if(mode == 'linear') {
+			if (struct.length == 2) {
+				if(struct[0][0] == 'U' && struct[1][0] == 'D') {
+					var theta_line = theta - phi, len = struct[0][1],
+					firstBase = start.addPolar(theta_line+Math.PI,baseLength*len);
+
+					out = out.concat(drawLine(len,firstBase,theta_line));
+				}
+			} else if(struct.length == 3) {
+				if(struct[0][0] == 'U' && struct[1][0] == 'D' && struct[2][0] == 'U') {
+					var theta_line = theta - phi+Math.PI, len = struct[0][1],
+					firstBase = start.addPolar(theta_line,baseLength*len);
+					out = out.concat(drawLine(len,firstBase,theta_line));
+
+					out = out.concat(drawDuplex(struct[1],theta,start.addPolar(theta+piHalf,stemWidth/2)));
+
+					theta_line = theta+phi+Math.PI; len = struct[2][1];
+					firstBase = start.addPolar(theta_line,baseLength*len);
+					out = out.concat(drawLine(len,firstBase,theta_line));
+
+				}
+
+			} else {
+				return drawLoop(struct,start,theta,space,'circular');
+			}
 		}
 		
 		if(debug) {
@@ -1059,6 +1084,25 @@ var DNA = module.exports.DNA = (function(_) {
 		return out;
 		
 	}
+
+	function drawLine(len,start,theta) {
+		var x = start.x, y = start.y, 
+			dx = Math.cos(theta)*len*baseLength,
+			dy = Math.sin(theta)*len*baseLength,
+			theta_normal = theta+piHalf,
+			out = [];
+
+		if(debug) {						
+			console.log('Line : '+coords(start)+' '+deg(theta)+'° + len: '+len);					
+		}
+		
+		for(var i = 0; i<len; i++) {
+			x += dx; y += dy;
+			out.push([x,y,theta_normal]);
+		}
+		return out;
+	}
+
 	function drawArc(len,center,theta,sweep,radius) {
 		var dtheta = sweep / len,
 			cx = center.x, cy = center.y, x, y, out = [];
@@ -1148,7 +1192,7 @@ var DNA = module.exports.DNA = (function(_) {
 		return _.each(string.split('% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %'), function(i) {
 		});
 	};
-	
+
 	/*
 	 * Degenerate bases
 	 */
@@ -1176,7 +1220,56 @@ var DNA = module.exports.DNA = (function(_) {
 		memo[key] = new RegExp('/['+degenerate[key].join('')+']/i');
 		return memo;
 	},{})
+
+	var sequenceRegex = new RegExp(_.reduce(_.keys(degenerate),function(memo,key) {
+		memo += key + key.toLowerCase();
+		return memo;
+	},''));
 	
+	function parseNamedStrands(string) {
+		var lines = string.split('\n'), name, seq, pair, out = {};
+
+		for(var i=0; i<lines.length; i++) {
+			// FASTA-style
+			// >name
+			// ATCG
+			if(/^>[\w\s]+$/.test(lines[i])) {
+				name = lines[i].match(/^>([\w\s]+)$/)[1];
+				i++;
+				if((/([acgturykmswbdhvnx]+)/i).test(lines[i])) {
+					seq = lines[i].match(/([acgturykmswbdhvnx]+)/i)[1];
+				} else {
+					seq = '';
+				}
+			// Keyword-style
+			// domain name = ATCG
+			// domain name : ATCG
+			// sequence name : ATCG
+			// ... 
+			} else if(/^(?:domain|sequence|segment)\s*(\w+)\s*[:=]\s*([acgturykmswbdhvnx]+)\s*$/i.test(lines[i])) {
+				pair = lines[i].match(/^(?:domain|sequence|segment)\s*(\w+)\s*[:=]\s*([acgturykmswbdhvnx]+)\s*$/i);
+				name = pair[1]; seq = pair[2];
+
+			// NUPACK-style:
+			// name : ATCG
+			// name = ATCG
+			} else if(/^(\w+)\s*[:=]\s*([acgturykmswbdhvnx]+)\s*$/i.test(string)) {
+				pair = lines[i].match(/^(\w+)\s*[:=]\s*([acgturykmswbdhvnx]+)\s*$/i);
+				name = pair[1]; seq = pair[2];
+			} else {
+				name = i.toString();
+				seq = lines[i];
+			}
+			out[name] = seq;
+		}
+		return out;
+	};
+
+	function namedStrandsToNupack(strands) {
+		
+	}
+
+
 	function matchDegenerate(deg,base) {
 		return degenerateRegexes[deg].test(base)
 	}

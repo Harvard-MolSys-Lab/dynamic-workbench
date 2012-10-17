@@ -71,6 +71,8 @@ Ext.define('App.ui.NodalCanvas', {
 		this.bbarItems = [{
 			iconCls : '',
 			ref : 'buildStatusButton',
+			text: 'Waiting for input...',
+			iconCls: 'progress',
 			// handler:this.showBuildStatus,
 			// scope: this,
 			menu : [{
@@ -118,6 +120,7 @@ Ext.define('App.ui.NodalCanvas', {
 				renderTo : Ext.getBody(),
 				anchor : 'top',
 				cls : 'build-tip',
+				dismissDelay: 0
 			});
 		}
 	},

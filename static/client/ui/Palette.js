@@ -32,6 +32,7 @@ Ext.define('App.ui.Palette', {
 	 * MIME type. See {@link App.ui.MotifPalette} for an example.
 	 */
 	mimeType: '',
+	autoScroll: true,
 	
 	initComponent: function() {
 		Ext.apply(this, {

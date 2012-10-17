@@ -389,8 +389,10 @@ Ext.define('Workspace.objects.Object2d', {
 		this.workspace.mouseout(e, this);
 	},
 	destroy : function() {
-		if(this.dragProxy)
+		if(this.dragProxy) {
 			this.dragProxy.destroy();
+			delete this.dragProxy;
+		}
 		Workspace.objects.Object2d.superclass.destroy.apply(this, arguments);
 	}
 }, function() {

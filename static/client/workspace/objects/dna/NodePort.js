@@ -20,6 +20,7 @@ Ext.define('Workspace.objects.dna.NodePort', {
 	//	wtype: 'Workspace.objects.dna.NodePort',
 	role : '',
 	fill : '#fff',
+	iconCls: 'node-ports',
 	strokeWidth : 2,
 	isResizable : false,
 	preventDragSelect : true,

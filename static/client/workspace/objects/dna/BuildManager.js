@@ -17,6 +17,7 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 		this.workspace.buildManager = this;
 		this.nodes = [];
 		this.workspace.on('create',this.onCreate,this);
+		this.workspace.on('destroy',this.onDestroy,this);
 		this.addEvents('needsrebuild','beforerebuild','rebuild','error');
 		
 		this.on('needsrebuild',this.buildRealtime,this,{
@@ -38,7 +39,8 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 		// this.errorEl.slideIn('t', {duration: 300, easing:'easeOut'});
 	// },
 	onCreate: function(obj) {
-		if(obj && obj.isWType('Workspace.objects.dna.Node')) {
+		if(!obj) return;
+		if(obj.isWType('Workspace.objects.dna.Node')) {
 			this.nodes.push(obj);
 			_.each(Workspace.objects.dna.BuildManager.dynaml.nodeProperties,function(prop) {
 				obj.on('change:'+prop,this.needsRebuild,this);
@@ -51,6 +53,25 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 			
 			_.each(Workspace.objects.dna.BuildManager.dynaml.motifProperties,function(prop) {
 				obj.on('change:'+prop,this.needsRebuild,this);
+			},this);
+		}
+	},
+	onDestroy: function(obj) {
+		if(!obj) return;
+		if(obj.isWType('Workspace.objects.dna.Node')) {
+			this.nodes = _.without(this.nodes,obj);
+
+			_.each(Workspace.objects.dna.BuildManager.dynaml.nodeProperties,function(prop) {
+				obj.un('change:'+prop,this.needsRebuild,this);
+			},this);
+			this.needsRebuild();
+		} else if (obj.isWType('Workspace.objects.dna.Complementarity')){
+			this.needsRebuild();
+		} else if (obj.isWType('Workspace.objects.dna.Motif')) {
+			this.needsRebuild();
+			
+			_.each(Workspace.objects.dna.BuildManager.dynaml.motifProperties,function(prop) {
+				obj.un('change:'+prop,this.needsRebuild,this);
 			},this);
 		}
 	},

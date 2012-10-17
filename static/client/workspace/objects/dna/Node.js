@@ -10,6 +10,8 @@ Ext.define('Workspace.objects.dna.Node', {
 	name: false,
 	polarity: 0,
 
+	iconCls: 'node',
+
 	render: function() {
 		this.callParent(arguments);
 		this.addShim(new Workspace.ConnectionLabel({

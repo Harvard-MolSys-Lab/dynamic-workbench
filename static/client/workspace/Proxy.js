@@ -386,7 +386,9 @@ Ext.define('Workspace.Proxy', {
 			this.vectorElement.hide();
 	},
 	destroy : function() {
-		if(this.vectorElement)
+		if(this.vectorElement) {
 			this.vectorElement.remove();
+			delete this.vectorElement;
+		}
 	}
 });

@@ -195,6 +195,7 @@ Ext.define('App.ui.StrandPreviewGrid', {
 	lineStrokeMode : 'default', 
 	textFillMode : 'default',
 	showBubbles: true,
+	loopMode: 'linear',
 	initComponent: function() {
 		this.strandPreviews = {};
 		this.tpl = ['<tpl for=".">', '<div style="border:solid 1px white;padding:4px;margin:10px;float:left;width:' + this.cellWidth + 'px;height:' + this.cellHeight + 'px;" class="complex-wrap">',
@@ -221,6 +222,7 @@ Ext.define('App.ui.StrandPreviewGrid', {
 				.width(this.cellWidth-this.paddingWidth)
 				.height(this.cellHeight-this.paddingHeight)
 				.showBubbles(this.showBubbles)
+				.loopMode(this.loopMode)
 				.nodeStrokeMode(this.nodeStrokeMode)
 				.nodeFillMode(this.nodeFillMode)
 				.lineStrokeMode(this.lineStrokeMode)

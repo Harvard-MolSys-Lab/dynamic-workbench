@@ -15,7 +15,9 @@ function StrandPreview() {
 			nodeStrokeMode = 'segment', // 'identity', 'segment', 'domain'
 			lineStrokeMode = 'default', // 'segment', 'domain', 'default'
 			textFillMode = 'default', // 'default', 'segment', 'domain', 'identity'
-			showBubbles = true;
+			showBubbles = true,
+
+			loopMode = 'circular',
 
 			line_stroke = '#aaa',
 			strokes = {
@@ -53,7 +55,10 @@ function StrandPreview() {
 	}
 	
 	function buildPointLayout(parsed_struct,viewSizeX,viewSizeY) {
-		var pairs = DNA.layoutStructure(parsed_struct), layout, scale;
+		var pairs = DNA.layoutStructure(parsed_struct,{
+			loopMode:loopMode,
+			arrangeLayout: false,
+		}), layout, scale;
 		
 		if(pairs.length == 0) {
 			return { pairs: [], zoom: 1 };
@@ -63,6 +68,7 @@ function StrandPreview() {
 			center: true, 
 			//scale: [viewSizeX*.8,viewSizeY*.8], 
 			offsets:[viewSizeX*.05,viewSizeY*.05], 
+			loopMode: loopMode,
 		});
 		scale = DNA.getScale(layout.bounds,[viewSizeX*.8,viewSizeY*.8],/* maintainAspect */ true);
 		
@@ -382,6 +388,12 @@ function StrandPreview() {
 		showBubbles = _;
 		return chart;
 	};
+
+	chart.loopMode = function(_) {
+		if (!arguments.length) return loopMode;
+		loopMode = _;
+		return chart;
+	};
 	updateLinkDistances();
 	
 	return chart;
@@ -402,6 +414,7 @@ Ext.define('App.ui.StrandPreview', {
 	bodyStyle: 'background-color: white',
 	persistenceLength: 1,//2,
 	adjacencyMode : 2,
+	loopMode: 'circular',
 	setValue : function(structure, strands) {
 		this.data = structure;
 		this.structure = structure; 
@@ -419,6 +432,7 @@ Ext.define('App.ui.StrandPreview', {
 		var panel = this.getCanvas();
 		panel.selectAll('g').remove();
 		this.chart = StrandPreview(panel).width(this.getWidth()).height(this.getHeight());
+		this.chart.loopMode(this.loopMode);
 		panel.data([this.data]).call(this.chart);
 	},
 	

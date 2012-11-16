@@ -30,6 +30,7 @@ Ext.define('App.ui.StrandPreviewWindow',{
 				height: 200,
 				frame: true,
 				adjacencyMode: 1,
+				loopMode: 'linear',
 			})],
 			buttons: [{
 				text: 'Preview',

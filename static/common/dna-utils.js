@@ -1216,7 +1216,7 @@ var DNA = module.exports.DNA = (function(_) {
 		var x = start.x, y = start.y, 
 			dx = Math.cos(theta)*baseLength,
 			dy = Math.sin(theta)*baseLength,
-			theta_normal = theta+piHalf,
+			theta_normal = theta-piHalf,
 			out = [];
 
 		if(debug) {						
@@ -1937,8 +1937,9 @@ var DNA = module.exports.DNA = (function(_) {
 					for(var g = 0; g < dom.segments.length; g++) {
 						
 						var seg = dom.segments[g], 
-						id = DNA.parseIdentifier(seg.name), 
-						seq = seg.sequence ? seg.sequence : sequences[seg.name];
+						name = seg.getIdentifier ? seg.getIdentifier() : (seg.identifier ? seg.identifier : seg.name),
+						id = DNA.parseIdentifier(name), 
+						seq = seg.sequence ? seg.sequence : sequences[id.identity];
 						
 						// for each base
 						for(var k = 0; k < seq.length; k++) {
@@ -1946,9 +1947,11 @@ var DNA = module.exports.DNA = (function(_) {
 								strand : strand.name,
 								domain : dom.name,
 								domain_role: dom.role,
-								segment : seg.name,
+								segment : name,
 								segment_role : seg.role,
 								segment_identity : id.identity,
+								segment_polarity : id.polarity,
+								segment_length : seq.length,
 								base : seq[k],
 								
 								segment_index: k,
@@ -2043,7 +2046,7 @@ var DNA = module.exports.DNA = (function(_) {
 				var strandStruct = structure[i], strand = strands[i], newStrandStruct = [];
 								
 				for(var j=0; j<strand.length; j++) {
-					var segmentId = strand[j].identity ? strand[j].identity : DNA.parseIdentifier(strand[j].name).identity,
+					var segmentId = (strand[j].identity ? strand[j].identity : DNA.parseIdentifier(strand[j].name).identity),
 						segmentSeq = sequences[segmentId],
 						ch = strandStruct[j];
 					

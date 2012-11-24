@@ -336,6 +336,9 @@ ul.dashboard-actions li a:hover {
 .port-add {
 	background-image: url(/images/icons/etc/port-add-2.png) !important;
 }
+.node-ports {
+	background-image: url(/images/icons/etc/ports.png) !important;
+}
 .compile {
 	background-image: url(/images/icons/fugue/compile.png) !important;
 }
@@ -596,13 +599,34 @@ ul.dashboard-actions li a:hover {
 	stroke: #ccc;
 }
 
-.link-strand {
+.link-strand, .link-tail {
 	stroke-width: 2px;
 	stroke: #aaa;
+}
+.tail {
+	stroke-width: 2px;
+	stroke: #aaa;
+	fill: none;
 }
 
 .node_index {
 	fill: #aaa;
+}
+
+g.node-faded {
+	opacity: 0.3;
+}
+g.node-highlight, g.node-highlight-complement {
+	opacity: 1;
+}
+
+.node-highlight > circle {
+	stroke: yellow !important;
+	stroke-width: 3px;
+}
+.node-highlight-complement > circle {
+	stroke: #12A0FF !important;
+	stroke-width: 3px;
 }
 
 /* Enumerator reaction graph */

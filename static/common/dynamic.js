@@ -715,6 +715,15 @@ App.dynamic = module.exports = (function(_,DNA) {
 				return strand.getOrderedSegmentLengths();
 			});
 		},
+		getSequences: function() {
+			var segs = this.getSegments(), map = {}, seg;
+			for(var i=0; i<segs.length; i++) {
+				seg = segs[i];
+				map[seg.getIdentity()] = (seg.getPolarity() == -1) ? 
+					DNA.reverseComplement(seg.getSequence()) : seg.getSequence();
+			}
+			return map;
+		},
 		serialize: function() {
 			var out = _.copy(this);
 			if(out.motif && !_.isString(out.motif) && out.motif.getName) { out.motif = out.motif.getName(); }

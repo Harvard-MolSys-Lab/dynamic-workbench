@@ -39,8 +39,16 @@ Ext.define('Workspace.objects.dna.Node', {
 			}
 		},false,false,false);
 		this.expose('annotatedStructure',function() {
-			var obj = this.getLibraryObject(), struct = obj ? obj.getAnnotatedStructure() : null;
-			return struct;
+			//var obj = this.getLibraryObject(), struct = obj ? obj.getAnnotatedStructure() : null;
+			var obj = this.getLibraryObject();
+			if(obj) {
+				return {
+					structure: obj.getSegmentwiseStructure().toDotParen(), 
+					strands: obj.getStrands(), 
+					sequences: obj.getSequences()
+				};
+			}
+			return null;
 		});
 
 	},

@@ -272,7 +272,7 @@ Ext.define('App.ui.StrandPreviewGrid', {
 
 			// Build selection and chart
 			var nodeData = d3.selectAll(nodes).data(data).append('svg');
-			nodeData.call(chart);
+			this.preview = chart(nodeData);
 
 
 			// this.resizers = [];
@@ -308,7 +308,7 @@ Ext.define('App.ui.StrandPreviewGrid', {
 
 			// Build selection and chart
 			var nodeData = d3.selectAll(nodes).data(data).append('svg');
-			nodeData.call(chart);
+			this.preview = chart(nodeData);
 
 
 			// this.resizers = [];
@@ -334,7 +334,7 @@ Ext.define('App.ui.StrandPreviewGrid', {
 		var chart = me.getChart();
 
 		var nodeData = d3.select(node).data(data).append('svg');
-		nodeData.call(chart);
+		this.preview = chart(nodeData);
 
 	},
 	removeComplex: function(record, index) {
@@ -346,6 +346,12 @@ Ext.define('App.ui.StrandPreviewGrid', {
 		} else if (this.segmentStore) {
 			return this.segmentStore.getSegmentMap();
 		}
+	},
+	highlight: function(criteria) {
+		this.preview.highlight(criteria);
+	},
+	unhighlight: function(criteria) {
+		this.preview.unhighlight(criteria);
 	},
 })
 
@@ -639,7 +645,7 @@ Ext.define('App.ui.StrandEdit', {
 		this.on('afterrender', this.loadFile, this);
 		this.callParent(arguments);
 		this.strandsGrid = this.down('[name=strandsGrid]');
-		this.domainsGrid = this.down('[name=domainsGrid]');
+		this.segmentsGrid = this.down('[name=segmentsGrid]');
 		this.complexView = this.down('[name=complexView]');
 		this.showBubbles = this.down('[name=showBubbles]');
 
@@ -650,6 +656,13 @@ Ext.define('App.ui.StrandEdit', {
 		this.segmentStore.on('update', function(store, rec, operation, modifiedFieldNames) {
 			this.updateStrandSequences();
 		}, this);
+
+		this.segmentsGrid.on('itemmouseenter',function(grid,rec,el,e) {
+			this.highlightSegment(rec.get('identity'));
+		},this);
+		this.segmentsGrid.on('containermouseout',function(grid,rec,el,e) {
+			this.unhighlightSegment();
+		},this);
 
 	},
 	onLoad: function() {
@@ -667,6 +680,16 @@ Ext.define('App.ui.StrandEdit', {
 		this.library = App.dynamic.Library.fromDil(this.data);
 		this.loadLibrary(this.library);
 		_.defer(_.bind(this.complexView.refresh, this.complexView));
+	},
+	highlightSegment: function(segment) {
+		this.complexView.preview.fade();
+		this.complexView.preview.highlight({'segment_identity':segment,'segment_polarity':1},'node-highlight');
+		this.complexView.preview.highlight({'segment_identity':segment,'segment_polarity':-1},'node-highlight-complement');
+	},
+	unhighlightSegment: function(segment) {
+		this.complexView.preview.unfade();
+		this.complexView.preview.unhighlight(null,'node-highlight');
+		this.complexView.preview.unhighlight(null,'node-highlight-complement');
 	},
 	buildTarget: function(target) {
 

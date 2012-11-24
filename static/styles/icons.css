@@ -32,6 +32,13 @@
 	background-image: url(/images/icons/etc/reverse-complement.png) !important;	
 }
 
+.du-plus-icon {
+	background-image: url(/images/icons/etc/du-plus.png) !important;	
+}
+.dot-paren-icon {
+	background-image: url(/images/icons/etc/dot-paren.png) !important;	
+}
+
 
 .pairwise-align {
 	background-image: url(/images/icons/fugue/edit-alignment-justify-distribute.png) !important;	

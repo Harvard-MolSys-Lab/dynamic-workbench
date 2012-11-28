@@ -93,6 +93,17 @@ Ext.define('Segment', {
 Ext.define('App.ui.SegmentStore', {
 	extend: 'Ext.data.Store',
 	model: 'Segment',
+	constructor: function() {
+		this.callParent(arguments);
+		this.on('update',function(strandStore,rec,op,modifiedFieldNames) {
+			if(modifiedFieldNames.indexOf('sequence') != -1) {
+				this.updateSegmentMap(rec);
+			}
+		},this);
+		this.on('add',function(strandStore,recs,index) {
+			this.updateSegmentMap(recs);
+		},this);
+	},
 	buildSegmentMap: function() {
 		var segmentIds = this.getRange(),
 			allSegments = [],
@@ -111,8 +122,30 @@ Ext.define('App.ui.SegmentStore', {
 		return segmentMap;
 	},
 	getSegmentMap: function() {
-		return this.buildSegmentMap()
+		if(this.segmentMap) {
+			return this.segmentMap;
+		} else {
+			this.segmentMap = this.buildSegmentMap(); 	
+		}
 	},
+	getSegmentMapWithComplements: function() {
+		var segmentMap = this.getSegmentMap();
+		return DNA.hashComplements(segmentMap);
+	},
+	updateSegmentMap: function(rec) {
+		if(rec && this.segmentMap) {
+			if(_.isArray(rec)) {
+				for(var i=0; i<rec.length;i++) {
+					this.segmentMap[rec[i].get('identity')] = rec[i].get('sequence');	
+				}
+			} else {
+				this.segmentMap[rec.get('identity')] = rec.get('sequence');
+			}
+		} else {
+			this.segmentMap = this.buildSegmentMap();	
+		}
+		return this.segmentMap;	
+	}
 });
 
 Ext.define('App.ui.StrandStore', {
@@ -138,6 +171,12 @@ Ext.define('App.ui.StrandStore', {
 			strand.set('sequence', DNA.threadSegments(segmentMap, strandSpec));
 		}
 	},
+	getSegmentMap: function() {
+		return this.segmentStore.getSegmentMap();
+	},
+	getSegmentMapWithComplements: function() {
+		return this.segmentStore.getSegmentMapWithComplements();
+	}
 })
 
 Ext.define('App.ui.ComplexStore',{
@@ -187,6 +226,9 @@ Ext.define('App.ui.StrandPreviewGrid', {
 	itemSelector: 'div.complex-wrap',
 	trackOver: true,
 	overItemCls: 'x-view-over',
+	multiSelect: false,
+    singleSelect: true,
+
 	autoScroll: true,
 	paddingWidth: 6,
 	paddingHeight: 14,
@@ -196,6 +238,7 @@ Ext.define('App.ui.StrandPreviewGrid', {
 	textFillMode : 'default',
 	showBubbles: true,
 	loopMode: 'linear',
+
 	initComponent: function() {
 		this.strandPreviews = {};
 		this.tpl = ['<tpl for=".">', '<div style="border:solid 1px white;padding:4px;margin:10px;float:left;width:' + this.cellWidth + 'px;height:' + this.cellHeight + 'px;" class="complex-wrap">',
@@ -206,8 +249,44 @@ Ext.define('App.ui.StrandPreviewGrid', {
 		this.on('itemupdate', this.updateComplex);
 		this.on('itemremove', this.removeComplex);
 
+		this.on('itemmouseenter',function(view,rec,el,e) {
+			this.fireEvent('updateToolbar',el);
+		},this);
+		// this.on('itemmouseleave',function(view,rec,el,e) {
+		// 	this.fireEvent('updateToolbar',null);
+		// },this);
+		// this.on('updatetoolbar',this.updateToolbar,this,{buffer: 10});
+
 		this.callParent(arguments);
+
+		// this.toolbar = Ext.create('Ext.toolbar.Toolbar',{
+		// 	renderTo: Ext.getBody(),
+		// 	width: 100,
+		// 	floating: true,
+		// 	items: [{
+		// 		iconCls: 'wrench',
+		// 	}]
+		// });
+		// this.toolbar.on('mouseover',function() {
+		// 	this.fireEvent('updatetoolbar',true);
+		// },this);
 	},
+	// updateToolbar: function(el) {
+	// 	if(el) {
+	// 		if(el !== true)
+	// 			this.showToolbar(el);
+	// 	} else {
+	// 		this.hideToolbar();
+	// 	}
+	// },
+	// showToolbar: function(item) {
+	// 	this.toolbar.show();
+	// 	this.toolbar.alignTo(item,'tr-tr');
+	// },
+	// hideToolbar: function() {
+	// 	this.toolbar.hide();
+	// },
+
 	/**
 	 * Returns a StrandPreview chart object
 	 * @param  {Boolean} update 
@@ -355,75 +434,6 @@ Ext.define('App.ui.StrandPreviewGrid', {
 	},
 })
 
-
-// Ext.define('Complex',{
-// extend: 'Ext.data.Model',
-// fields: [
-// { name: 'id', type: 'int' },
-// { name: 'name' },
-// { name: 'structure' },
-// ],
-// //idgen: 'sequential',
-// hasMany: { model: 'Strand', name: 'strands' },
-// getDynaml: function(lib) {
-// return lib.getNode(this.get('name'));
-// },
-// proxy: 'memory',
-// })
-// 
-// Ext.define('Strand',{
-// extend: 'Ext.data.Model',
-// fields: [
-// { name: 'id', type: 'int' },
-// { name: 'name' },
-// { name: 'domains' },
-// { name: 'complex_id', type: 'int' }
-// ],
-// //idgen: 'sequential',
-// //hasMany: { model: 'Domain', name: 'domains' },
-// belongsTo: { model: 'Complex', name: 'complex', },
-// getDynaml: function(lib) {
-// return lib.getStrand(this.get('name'));
-// },
-// proxy: 'memory',
-// })
-// 
-// Ext.define('Domain',{
-// extend: 'Ext.data.Model',
-// fields: [
-// { name: 'name' },
-// ],
-// idProperty: 'name',
-// hasMany: { model: 'Segment', name: 'segments' },
-// belongsTo: { model: 'Strand', name: 'strand'},
-// getDynaml: function(lib) {
-// return this.getStrand().getDynaml(lib).getDomain(this.get('name'));
-// }
-// })
-// 
-// Ext.define('Segment',{
-// extend: 'Ext.data.Model',
-// fields: [
-// { name: 'name' },
-// { name: 'polarity', type: 'int' },
-// { name: 'segment_id' }
-// ],
-// idProperty: 'segment_id',
-// hasOne: { model: 'SegmentIdentity', name: 'identity', },
-// belongsTo: { model: 'Domain', name: 'domain', },
-// getDynaml: function(lib) {
-// return lib.getSegment(this.get('id'));
-// }
-// })
-// 
-// Ext.define('SegmentIdentity',{
-// extend: 'Ext.data.Model',
-// fields: [
-// { name: 'identity' },
-// { name: 'length', type: 'int' },
-// { name: 'sequence' }
-// ]
-// })
 Ext.define('App.ui.StrandEdit', {
 	extend: 'Ext.panel.Panel',
 	layout: 'border',
@@ -544,7 +554,21 @@ Ext.define('App.ui.StrandEdit', {
 				}, {
 					text: 'Sequence',
 					dataIndex: 'sequence',
-					renderer: CodeMirror.modeRenderer('sequence'),
+					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+						var spec = record.getParsedSpec(),
+							renderer = CodeMirror.getModeRenderer('sequence'),
+							segmentMap = record.store.getSegmentMapWithComplements(),
+							out = [];
+						for(var i=0; i<spec.length; i++) {
+							var dom = spec[i];
+							for(var j=0; j<dom.segments.length; j++) {
+								var seg = dom.segments[j], seq = segmentMap[DNA.makeIdentifier(seg.identity,seg.polarity)];
+								out.push('<span class="sequence-segment" data-segment-identity="'+seg.identity+'" data-segment-polarity="'+seg.polarity+'">'+renderer(seq)+'</span>');
+							}
+						}
+						return out.join('');
+					},
+					scope: this,
 					flex: 1,
 				}, {
 					text: 'Segments',
@@ -560,6 +584,18 @@ Ext.define('App.ui.StrandEdit', {
 				Ext.create('Ext.grid.plugin.CellEditing', {
 					clicksToEdit: 1
 				})],
+				highlightSegment: function(identity,polarity) {
+					if (polarity === undefined) polarity = 1;
+					var el = this.getEl();
+					el.select('[data-segment-identity="'+identity+'"][data-segment-polarity="'+polarity+'"]').addCls('sequence-highlight');
+					el.select('[data-segment-identity="'+identity+'"][data-segment-polarity="'+(-1*polarity)+'"]').addCls('sequence-highlight-complement');
+				},
+				unhighlightSegment: function() {
+					var el = this.getEl();
+					el.select('.sequence-highlight').removeCls('sequence-highlight');
+					el.select('.sequence-highlight-complement').removeCls('sequence-highlight-complement');
+
+				},
 			}, {
 				xtype: 'grid',
 				name: 'segmentsGrid',
@@ -658,11 +694,50 @@ Ext.define('App.ui.StrandEdit', {
 		}, this);
 
 		this.segmentsGrid.on('itemmouseenter',function(grid,rec,el,e) {
-			this.highlightSegment(rec.get('identity'));
+			this.fireEvent('updateSegmentHighlight',rec.get('identity'),1);
 		},this);
-		this.segmentsGrid.on('containermouseout',function(grid,rec,el,e) {
-			this.unhighlightSegment();
+		this.segmentsGrid.on('itemmouseleave',function(grid,rec,el,e) {
+			this.fireEvent('updateSegmentHighlight',null);
 		},this);
+
+
+		this.on('updateSegmentHighlight',this.updateSegmentHighlight,this,{
+			buffer: 10,
+		});
+
+		
+
+		this.on('afterrender',function() {
+			this.strandsGrid.getEl().on('mouseover',function(e,el) {
+				var identity = el.getAttribute('data-segment-identity'),
+					polarity = el.getAttribute('data-segment-polarity');
+				this.fireEvent('updateSegmentHighlight',identity,polarity);
+			},this,{delegate:'span.sequence-segment'});
+
+			this.tip = Ext.create('Ext.tip.ToolTip', {
+			    target: this.strandsGrid.getEl(),
+			    delegate: 'span.sequence-segment',
+			    trackMouse: true,
+			    showDelay: false,
+			    renderTo: Ext.getBody(),
+			    listeners: {
+			        // Change content dynamically depending on which element triggered the show.
+			        beforeshow: {
+			        	fn: function updateTipBody(tip) {
+			        		var identity = tip.triggerElement.getAttribute('data-segment-identity'),
+			        			polarity = tip.triggerElement.getAttribute('data-segment-polarity');
+				            tip.update(DNA.makeIdentifier(identity,polarity));
+				            //this.fireEvent('updateSegmentHighlight',identity);
+				        },
+				        scope: this
+				    }
+			    }
+			});
+		},this);
+
+		// this.segmentsGrid.on('containermouseout',function(grid,rec,el,e) {
+		// 	this.unhighlightSegment();
+		// },this);
 
 	},
 	onLoad: function() {
@@ -681,15 +756,27 @@ Ext.define('App.ui.StrandEdit', {
 		this.loadLibrary(this.library);
 		_.defer(_.bind(this.complexView.refresh, this.complexView));
 	},
-	highlightSegment: function(segment) {
-		this.complexView.preview.fade();
-		this.complexView.preview.highlight({'segment_identity':segment,'segment_polarity':1},'node-highlight');
-		this.complexView.preview.highlight({'segment_identity':segment,'segment_polarity':-1},'node-highlight-complement');
+	updateSegmentHighlight: function(identity,polarity) {
+		if(identity) {
+			this.highlightSegment(identity,polarity);
+		} else {
+			this.unhighlightSegment();
+		}
 	},
-	unhighlightSegment: function(segment) {
+	highlightSegment: function(segment,polarity) {
+		this.complexView.preview.fade();
+		this.complexView.preview.highlight({'segment_identity':segment,'segment_polarity':polarity},'node-highlight');
+		this.complexView.preview.highlight({'segment_identity':segment,'segment_polarity':-1*polarity},'node-highlight-complement');
+
+		this.strandsGrid.unhighlightSegment();
+		this.strandsGrid.highlightSegment(segment,polarity);
+	},
+	unhighlightSegment: function(segment,polarity) {
 		this.complexView.preview.unfade();
 		this.complexView.preview.unhighlight(null,'node-highlight');
 		this.complexView.preview.unhighlight(null,'node-highlight-complement');
+
+		this.strandsGrid.unhighlightSegment();
 	},
 	buildTarget: function(target) {
 

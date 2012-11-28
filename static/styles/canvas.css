@@ -1006,6 +1006,18 @@ path.resting-state-hull {
 	text-transform: uppercase;
 }
 
+.sequence-highlight {
+	background-color: yellow;
+}
+.sequence-highlight-complement {
+	background: #99D6FF;
+}
+
+.complex-wrap.x-item-selected {
+	background-color: #dfe8f6 !important;
+	border-color:#a3bae9;
+}
+
 /*
  * Fixes for ExtJS styles where 16 x 16px icons in tabs and panel headers are cut off at bottom
  */

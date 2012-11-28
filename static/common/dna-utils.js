@@ -944,18 +944,29 @@ var DNA = module.exports.DNA = (function(_) {
 		}
 		return [xscale, yscale];
 	}
+
+	function getOffset(bounds,scale,zoom) {
+		zoom || (zoom = 1);
+		var width = (bounds[0][1]-bounds[0][0])*zoom, height = (bounds[1][1] - bounds[1][0])*zoom,
+			cWidth = scale[0], cHeight = scale[1];
+		return [cWidth/2-width/2, cHeight/2-height/2];
+	}
 	
 	function arrangeLayout(list,options) {
 		options || (options = {});
 		_.defaults(options,{
 			center: true,
+			alignCenter: true,
 			scale: false,
 			offsets: false,
 			maintainAspect: true,
 		});
 		
 		var bounds = getBounds(list),
-			dx, dy,	width,height,scale,xscale = 1, yscale = 1;
+			dx, dy,	
+			width = bounds[0][1]-bounds[0][0],
+			height= bounds[1][1]-bounds[1][0],
+			scale, xscale = 1, yscale = 1;
 		if(options.scale) {			
 			scale = getScale(bounds,options.scale,options.maintainAspect);
 			xscale = scale[0], yscale = scale[1];
@@ -964,6 +975,10 @@ var DNA = module.exports.DNA = (function(_) {
 		if(options.center) {
 			dx = bounds[0][0];
 			dy = bounds[1][0];
+		}
+		if(options.alignCenter && options.scale) {
+			dx += options.scale[0]/2-width/2;
+			dy += options.scale[1]/2-height/2;
 		}
 		if(options.offsets) {
 			dx -= options.offsets[0]
@@ -1069,6 +1084,9 @@ var DNA = module.exports.DNA = (function(_) {
 						out = out.concat(drawDuplex(struct[1],theta,start,'linear'));
 						break;
 					default:
+						if(debug) {
+							console.groupEnd();
+						}
 						return drawLoop(struct,start,theta,space,'circular');
 				}
 			} else if(struct.length == 3) {
@@ -1089,9 +1107,15 @@ var DNA = module.exports.DNA = (function(_) {
 						out = out.concat(drawLine(len,firstBase,theta_line));
 						break;
 					default:
+						if(debug) {
+							console.groupEnd();
+						}
 						return drawLoop(struct,start,theta,space,'circular');
 				}
 			} else {
+				if(debug) {
+					console.groupEnd();
+				}
 				return drawLoop(struct,start,theta,space,'circular');
 			}
 		} else if(mode == 'linear') {
@@ -1125,6 +1149,9 @@ var DNA = module.exports.DNA = (function(_) {
 						break;
 
 					default:
+						if(debug) {
+							console.groupEnd();
+						}
 						return drawLoop(struct,start,theta,space,'circular');
 				}
 			} else if(struct.length == 3) {
@@ -1197,9 +1224,15 @@ var DNA = module.exports.DNA = (function(_) {
 
 
 					default:
+						if(debug) {
+							console.groupEnd();
+						}
 						return drawLoop(struct,start,theta,space,'circular');
 				}
 			} else {
+				if(debug) {
+					console.groupEnd();
+				}
 				return drawLoop(struct,start,theta,space,'circular');
 			}
 		}
@@ -2314,6 +2347,7 @@ var DNA = module.exports.DNA = (function(_) {
 		},
 		
 		getScale: getScale,
+		getOffset: getOffset,
 		getBounds: getBounds,
 		arrangeLayout: arrangeLayout,
 		

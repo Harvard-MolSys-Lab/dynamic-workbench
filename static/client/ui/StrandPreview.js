@@ -71,7 +71,7 @@ function StrandPreview() {
 		}), layout, scale;
 		
 		if(pairs.length == 0) {
-			return { pairs: [], zoom: 1 };
+			return { pairs: [], zoom: 1, translate: [0,0] };
 		}
 
 		layout = DNA.arrangeLayout(pairs,{
@@ -84,7 +84,8 @@ function StrandPreview() {
 		
 		return {
 			pairs: layout.pairs,
-			zoom: scale[0],
+			zoom: scale[0]*0.9,
+			translate: DNA.getOffset(layout.bounds,[viewSizeX*.8,viewSizeY*.8],scale[0]*.9)
 		};
 	}
 	
@@ -167,11 +168,11 @@ function StrandPreview() {
 			.append('g')
 				.attr('width',viewSizeX)
 				.attr('height',viewSizeY)
-				.call(d3.behavior.zoom().on('zoom',zoomRedraw).scale(pointLayout.zoom))
+				.call(d3.behavior.zoom().on('zoom',zoomRedraw).scale(pointLayout.zoom).translate(pointLayout.translate))
 			.append('g');
 
 			panel.attr("transform",
-			      "translate(" + [0,0] + ")"
+			      "translate(" + pointLayout.translate + ")"
 			      + " scale(" + pointLayout.zoom + ")");
 			
 			/* ******************************
@@ -237,81 +238,28 @@ function StrandPreview() {
 			// Node circle
 			if(showBubbles) {
 				var node_circle = nodeSel.append("circle").attr("r", 0.5*baseWidth+'em').attr('stroke-width', 2);
-				node_circle.style("fill", function(d) {
-					switch(nodeFillMode) {
-						case 'identity':
-								return baseColors(d.base)
-						case 'segment':
-								return segmentColors(d.segment_identity)
-						case 'domain':
-								return App.dynamic.Compiler.domainColors[d.domain_role] || null
-					}
-				});
-				node_circle.style("stroke", function(d) {
-					switch(nodeStrokeMode) {
-						case 'identity':
-								return d3.rgb(baseColors(d.base)).darker().toString();
-						case 'segment':
-								return d3.rgb(segmentColors(d.segment_identity)).darker().toString();
-						case 'domain':
-								return App.dynamic.Compiler.domainColors[d.domain_role] ? 
-									d3.rgb(App.dynamic.Compiler.domainColors[d.domain_role]).darker().toString() : null
-					}
-				});
-
+				redrawNodeCircles(node_circle);
 			}
 							
 			// Node index
-			nodeSel.append('text').attr('class', 'node_index')
-			.style('font-size',nodeIndexFontSize+'em')
-			.style('text-shadow', '2px 2px 2px white')
-			.attr('text-anchor','middle')
-			.attr('dx', function(d) {
-				return Math.cos(d.theta)+'em';
-			}).attr('dy', function(d) {
-				return Math.sin(d.theta)+0.35+'em';
-			}).text(function(d,i) {
-				return (i % 10 == 0) ? i : '';
-			});
-			
+			var node_index = nodeSel.append('text').attr('class', 'node_index');
+			redrawNodeIndex(node_index);
+
 			// Node base
-			nodeSel.append('text').attr('class', 'node_base')
-			.style('font-size',nodeBaseFontSize+'em')
-			.attr('text-anchor','middle')
-			.attr('dy','.35em')
-			.text(function(d) {
-				return d.base || 'N'
-			}).style("fill", function(d) {
-				switch(textFillMode) {
-					case 'identity':
-							return baseColors(d.base)
-					case 'segment':
-							return segmentColors(d.segment_identity)
-					case 'domain':
-							return App.dynamic.Compiler.domainColors[d.domain_role] || null
-					default:
-						return null
-				}
-			});;
-			
+			var node_base = nodeSel.append('text').attr('class', 'node_base');
+			redrawNodeBase(node_base);
+
 			// Node segment name
-			nodeSel.append('text').attr('class', 'node_segment')
-			//.style('fill', '#111')
-			.style('text-shadow', '2px 2px 2px white')
-			.attr('text-anchor','middle')
-			.text(function(d,i) {
-				return d.segment_index == 0 ? d.segment : ''
-			}).attr('fill',function(d) {
-				return segmentColors(d.segment_identity);
-			});
-			
+			var node_segment = nodeSel.append('text').attr('class', 'node_segment');
+			redrawNodeSegment(node_segment);
+
 			if(tailNode) {
 				var tailSel = panel.selectAll("path.tail")
 					.data([tailNode]).enter().append('path').attr('class','tail');
 				tailSel.attr('d',Ext.String.format('M-{0},-{0} L0,0 L-{0},{0}',arrowScale));
 			}
 
-			redraw(pointLayout.zoom,[0,0]);
+			redraw(pointLayout.zoom,pointLayout.translate);
 	
 			// gobbles parameters that would be passed to redraw and uses d3.event stuff instead
 			function zoomRedraw() {
@@ -321,7 +269,7 @@ function StrandPreview() {
 			var nodeBaseHidden = false,
 				nodeIndexHidden = false,
 				segmentLabelHidden = false;
-				
+
 			function redraw(redraw_scale,redraw_translate) {
 				panel.attr("transform",
 			      "translate(" + redraw_translate + ")"
@@ -424,6 +372,7 @@ function StrandPreview() {
 			unhighlight: unhighlight,
 			fade: fade,
 			unfade: unfade,
+			redrawNodes: redrawNodes,
 			each: each,
 		};
 
@@ -432,6 +381,96 @@ function StrandPreview() {
 		function each(f) {
 			selection.each(f);
 			return c;
+		}
+
+		function redrawNodeCircles(node_circle) {
+			node_circle.style("fill", function(d) {
+				switch(nodeFillMode) {
+					case 'identity':
+							return baseColors(d.base)
+					case 'segment':
+							return segmentColors(d.segment_identity)
+					case 'domain':
+							return App.dynamic.Compiler.domainColors[d.domain_role] || null
+				}
+			})
+			.style("stroke", function(d) {
+				switch(nodeStrokeMode) {
+					case 'identity':
+							return d3.rgb(baseColors(d.base)).darker().toString();
+					case 'segment':
+							return d3.rgb(segmentColors(d.segment_identity)).darker().toString();
+					case 'domain':
+							return App.dynamic.Compiler.domainColors[d.domain_role] ? 
+								d3.rgb(App.dynamic.Compiler.domainColors[d.domain_role]).darker().toString() : null
+				}
+			});
+		}
+
+		function redrawNodeIndex(node_index) {
+			node_index.style('font-size',nodeIndexFontSize+'em')
+			.style('text-shadow', '2px 2px 2px white')
+			.attr('text-anchor','middle')
+			.attr('dx', function(d) {
+				return Math.cos(d.theta)+'em';
+			}).attr('dy', function(d) {
+				return Math.sin(d.theta)+0.35+'em';
+			}).text(function(d,i) {
+				return (i % 10 == 0) ? i : '';
+			});
+		}
+
+		function redrawNodeBase(node_base) {
+			node_base.style('font-size',nodeBaseFontSize+'em')
+			.attr('text-anchor','middle')
+			.attr('dy','.35em')
+			.text(function(d) {
+				return d.base || 'N'
+			}).style("fill", function(d) {
+				switch(textFillMode) {
+					case 'identity':
+							return baseColors(d.base)
+					case 'segment':
+							return segmentColors(d.segment_identity)
+					case 'domain':
+							return App.dynamic.Compiler.domainColors[d.domain_role] || null
+					default:
+						return null
+				}
+			});
+	}
+
+		function redrawNodeSegment(node_segment) {
+			node_segment.style('text-shadow', '2px 2px 2px white')
+			.attr('text-anchor','middle')
+			.text(function(d,i) {
+				return d.segment_index == 0 ? d.segment : ''
+			}).attr('fill',function(d) {
+				return segmentColors(d.segment_identity);
+			});
+		}
+
+		function redrawNodes() {
+			each(function(data) {
+				var panel = d3.select(this);
+				var nodeSel = panel.selectAll("g.node");
+
+				// Node circle
+				if(showBubbles) {
+					redrawNodeCircles(nodeSel.select("circle"));
+				}
+
+				// Node index
+				redrawNodeIndex(nodeSel.select("text.node_index"));
+				
+				// Node base
+				redrawNodeBase(nodeSel.select("text.node_base"));
+
+				// Node segment name
+				redrawNodeSegment(nodeSel.select("text.node_segment"));
+
+				
+			})
 		}
 
 		function fade() {
@@ -449,7 +488,9 @@ function StrandPreview() {
 		function highlight(criteria,className) {
 			className || (className = 'node-highlight');
 			if(!criteria) {
-				d3.select(this).selectAll('g.node').classed(className,true);
+				return each(function(data) {
+					d3.select(this).selectAll('g.node').classed(className,true);
+				})
 			}
 			return each(function(data) {
 				d3.select(this).selectAll('g.node').classed(className,function(d) {
@@ -465,7 +506,9 @@ function StrandPreview() {
 		function unhighlight(criteria,className) {
 			className || (className = 'node-highlight');
 			if(!criteria) {
-				d3.select(this).selectAll('g.node').classed(className,false);
+				return each(function(data) {
+					d3.select(this).selectAll('g.node').classed(className,false);
+				});
 			}
 			return each(function(data) {
 				d3.select(this).selectAll('g.node').classed(className,function(d) {
@@ -552,7 +595,8 @@ Ext.define('App.ui.StrandPreview', {
 	bodyStyle: 'background-color: white',
 	persistenceLength: 1,//2,
 	adjacencyMode : 2,
-	loopMode: 'circular',
+	loopMode: 'linear',
+	//loopMode: 'circular',
 	showToolbar: true,
 	setValue : function(structure, strands, sequences) {
 		if(structure && structure.structure && structure.strands) {

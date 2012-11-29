@@ -2235,6 +2235,47 @@ var DNA = module.exports.DNA = (function(_) {
 			return o.dp;
 		},
 		
+		validateDotParen : function(struct,str,strict) {
+			str || (str = false);
+			strict || (strict = false);
+			var open_paren_count = 0, close_paren_count = 0, //
+			last = '', count = 0, list = [];
+			for(var i=0; i<struct.length;i++) {
+				var ch = struct[i];
+				if (ch === ' ') {
+					continue;
+				}
+				if(strict && !(/[\.\(\)\+\s]/).test(ch)) {
+					if(str) {
+						return "Unrecognized character '" +ch+ "' at position "+i;
+					} else {
+						return false;
+					}
+				}
+				if (ch == last) {
+					count++;
+				} else {
+					if (count != 0) {
+						if(last == '(') open_paren_count+=count;
+						if(last == ')') close_paren_count+=count;
+						if(close_paren_count > open_paren_count) {
+							if(str) {
+								return "Unopened parenthesis: number of closing parentheses exceeds number of open parentheses at position "+i+" by "+(close_paren_count - open_paren_count)+".";
+							}
+							return false;
+						}
+					}
+					last = ch;
+					count = 1;
+				}
+			}
+			
+			if(str && (open_paren_count != close_paren_count)) {
+				return "Unclosed parenthesis: "+(open_paren_count-close_paren_count)+" parentheses left unclosed at end of structure.";
+			}
+			return (open_paren_count == close_paren_count);
+		},
+
 		parseDotParen : function(struct) {
 			var open_paren_count = 0, close_paren_count = 0, //
 			last = '', count = 0, list = [];

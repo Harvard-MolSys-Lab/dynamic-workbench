@@ -595,8 +595,13 @@ Ext.define('App.ui.StrandPreview', {
 	bodyStyle: 'background-color: white',
 	persistenceLength: 1,//2,
 	adjacencyMode : 2,
+	nodeFillMode: 'segment', // 'identity', 'segment', 'domain'
+	nodeStrokeMode: 'segment', // 'identity', 'segment', 'domain'
+	lineStrokeMode: 'default',
+	textFillMode: 'default',
+	showBubbles: true,
 	loopMode: 'linear',
-	//loopMode: 'circular',
+
 	showToolbar: true,
 	setValue : function(structure, strands, sequences) {
 		if(structure && structure.structure && structure.strands) {
@@ -622,9 +627,17 @@ Ext.define('App.ui.StrandPreview', {
 	buildVis : function() {
 		var panel = this.getCanvas();
 		panel.selectAll('g').remove();
-		this.chart = StrandPreview(panel).width(this.getWidth()).height(this.getHeight());
-		this.chart.loopMode(this.loopMode);
+		this.chart = StrandPreview(panel).width(this.getWidth()).height(this.getHeight())
+			.showBubbles(this.showBubbles)
+			.loopMode(this.loopMode)
+			.nodeStrokeMode(this.nodeStrokeMode)
+			.nodeFillMode(this.nodeFillMode)
+			.lineStrokeMode(this.lineStrokeMode)
+			.textFillMode(this.textFillMode);
 		this.preview = this.chart(panel.data([this.data]));
+	},
+	updateChartProperties: function() {
+		this.buildVis();
 	},
 	highlight: function(criteria) {
 		this.preview.highlight(criteria);
@@ -634,7 +647,7 @@ Ext.define('App.ui.StrandPreview', {
 	},
 	initComponent : function() {
 		if(this.showToolbar) {
-			this.tbar = [{
+			this.bbar = [{
 				iconCls:'dot-paren-icon',
 				handler: this.toDotParen,
 				scope: this,
@@ -646,7 +659,8 @@ Ext.define('App.ui.StrandPreview', {
 				iconCls: 'svg',
 				handler: this.toSVG,
 				scope: this,
-			}];
+			},'->',
+				Ext.create('App.ui.StrandPreviewViewMenu',{view: this})];
 		}
 		this.callParent(arguments);
 	},

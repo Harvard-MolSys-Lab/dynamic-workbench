@@ -664,7 +664,12 @@ CodeMirror.getModeRenderer = function(modespec, options) {
 
 	var mode = CodeMirror.getMode(CodeMirror.defaults, modespec);
 	var tabSize = (options && options.tabSize) || CodeMirror.defaults.tabSize;
-
+	var renderer = options.renderer || function(text,style,col) {
+		if(style) 
+			return "<span class=\"cm-" + style + "\">" + text + "</span>"
+		else 
+			return text;
+	}
 	return function(string) {
 		var accum = [],
 			col = 0;
@@ -692,8 +697,7 @@ CodeMirror.getModeRenderer = function(modespec, options) {
 				}
 			}
 
-			if(style) accum.push("<span class=\"cm-" + esc(style) + "\">" + escaped + "</span>");
-			else accum.push(escaped);
+			accum.push(renderer(escaped,esc(style),col))
 		};
 
 		var lines = CodeMirror.splitLines(string),

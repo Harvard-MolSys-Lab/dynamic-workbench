@@ -11,10 +11,12 @@ Ext.define('Complex', {
 	}, {
 		name: 'strands' // array
 	}, {
-		name: 'specs',  // array
-	},{
-		name: 'sequences',  // array
-	},{
+		name: 'specs',
+		// array
+	}, {
+		name: 'sequences',
+		// array
+	}, {
 		name: 'structure'
 	}, ],
 	idgen: 'sequential',
@@ -47,7 +49,7 @@ Ext.define('Strand', {
 	idgen: 'sequential',
 	set: function(fieldName) {
 		this.callParent(arguments);
-		if (fieldName == 'spec') {
+		if(fieldName == 'spec') {
 			this.updateCachedSpec();
 		}
 	},
@@ -58,7 +60,7 @@ Ext.define('Strand', {
 		this.parsedSpec = App.dynamic.Compiler.parseDomainString(this.get('spec'), /*parseIdentifier*/ true);
 	},
 	getParsedSpec: function() {
-		if (!this.parsedSpec) {
+		if(!this.parsedSpec) {
 			this.updateCachedSpec();
 		}
 		return this.parsedSpec;
@@ -95,14 +97,14 @@ Ext.define('App.ui.SegmentStore', {
 	model: 'Segment',
 	constructor: function() {
 		this.callParent(arguments);
-		this.on('update',function(strandStore,rec,op,modifiedFieldNames) {
+		this.on('update', function(strandStore, rec, op, modifiedFieldNames) {
 			if(modifiedFieldNames.indexOf('sequence') != -1) {
 				this.updateSegmentMap(rec);
 			}
-		},this);
-		this.on('add',function(strandStore,recs,index) {
+		}, this);
+		this.on('add', function(strandStore, recs, index) {
 			this.updateSegmentMap(recs);
-		},this);
+		}, this);
 	},
 	buildSegmentMap: function() {
 		var segmentIds = this.getRange(),
@@ -110,7 +112,7 @@ Ext.define('App.ui.SegmentStore', {
 			segmentMap = {};
 
 		// Build map of segment identities to sequences
-		for (var i = 0; i < segmentIds.length; i++) {
+		for(var i = 0; i < segmentIds.length; i++) {
 			var rec = segmentIds[i],
 				seg = {
 					identity: rec.get('identity'),
@@ -125,7 +127,7 @@ Ext.define('App.ui.SegmentStore', {
 		if(this.segmentMap) {
 			return this.segmentMap;
 		} else {
-			this.segmentMap = this.buildSegmentMap(); 	
+			this.segmentMap = this.buildSegmentMap();
 		}
 	},
 	getSegmentMapWithComplements: function() {
@@ -135,17 +137,28 @@ Ext.define('App.ui.SegmentStore', {
 	updateSegmentMap: function(rec) {
 		if(rec && this.segmentMap) {
 			if(_.isArray(rec)) {
-				for(var i=0; i<rec.length;i++) {
-					this.segmentMap[rec[i].get('identity')] = rec[i].get('sequence');	
+				for(var i = 0; i < rec.length; i++) {
+					this.segmentMap[rec[i].get('identity')] = rec[i].get('sequence');
 				}
 			} else {
 				this.segmentMap[rec.get('identity')] = rec.get('sequence');
 			}
 		} else {
-			this.segmentMap = this.buildSegmentMap();	
+			this.segmentMap = this.buildSegmentMap();
 		}
-		return this.segmentMap;	
-	}
+		return this.segmentMap;
+	},
+	addSegment: function(length) {
+		var segmentMap = this.getSegmentMap(),
+			identity = _.max(_.map(_.keys(segmentMap), function(key) {
+				return isNaN(+key) ? 0 : (+key);
+			}));
+
+		this.add({
+			identity: (identity + 1),
+			sequence: Array(length + 1).join('N')
+		});
+	},
 });
 
 Ext.define('App.ui.StrandStore', {
@@ -154,20 +167,20 @@ Ext.define('App.ui.StrandStore', {
 	constructor: function() {
 		this.callParent(arguments);
 		if(this.segmentStore) {
-			this.segmentStore.on('update',function(segmentStore,rec,op,modifiedFieldNames) {
+			this.segmentStore.on('update', function(segmentStore, rec, op, modifiedFieldNames) {
 				if(modifiedFieldNames.indexOf('sequence') != -1) {
 					this.updateStrandSequences();
 				}
-			},this);
+			}, this);
 		}
 	},
 	updateStrandSequences: function() {
 		var segmentMap = this.segmentStore.getSegmentMap(),
 			strands = this.getRange();
-		
-		for(var i=0; i<strands.length;i++) {
-			var strand = strands[i], 
-				strandSpec = strand.getFlatSpec();	
+
+		for(var i = 0; i < strands.length; i++) {
+			var strand = strands[i],
+				strandSpec = strand.getFlatSpec();
 			strand.set('sequence', DNA.threadSegments(segmentMap, strandSpec));
 		}
 	},
@@ -179,40 +192,44 @@ Ext.define('App.ui.StrandStore', {
 	}
 })
 
-Ext.define('App.ui.ComplexStore',{
+Ext.define('App.ui.ComplexStore', {
 	extend: 'Ext.data.Store',
 	model: 'Complex',
 	constructor: function() {
 		this.callParent(arguments);
 		if(this.strandStore) {
-			this.strandStore.on('update',function(segmentStore,rec,op,modifiedFieldNames) {
+			this.strandStore.on('update', function(segmentStore, rec, op, modifiedFieldNames) {
 				if(modifiedFieldNames.indexOf('sequence') != -1 || modifiedFieldNames.indexOf('spec') != -1) {
 					this.updateComplexes();
 				}
-			},this);
+			}, this);
 		}
 	},
 	updateComplexes: function() {
-		var strandSpecs = {}, strandSeqs = {}, 
-			strands = this.strandStore.getRange(), 
+		var strandSpecs = {},
+			strandSeqs = {},
+			strands = this.strandStore.getRange(),
 			complexes = this.getRange();
-		for(var i=0; i<strands.length;i++) {
-			var strand = strands[i], name = strand.get('name');
+		for(var i = 0; i < strands.length; i++) {
+			var strand = strands[i],
+				name = strand.get('name');
 			strandSpecs[name] = strand.get('spec');
 			strandSeqs[name] = strand.get('seq');
 		}
 
-		for(var i=0; i<complexes.length; i++) {
-			var complex = complexes[i], complexStrands = complex.get('strands'),
-				spec = [], seqs = [];
-			for(var j=0; j<complexStrands.length; j++) {
+		for(var i = 0; i < complexes.length; i++) {
+			var complex = complexes[i],
+				complexStrands = complex.get('strands'),
+				spec = [],
+				seqs = [];
+			for(var j = 0; j < complexStrands.length; j++) {
 				var strandName = complexStrands[j];
 				spec.push(strandSpecs[strandName]);
-				seqs.push(strandSeqs[strandName]);	
+				seqs.push(strandSeqs[strandName]);
 			}
 			complex.beginEdit();
-			complex.set('spec',spec);
-			complex.set('seqs',seqs);
+			complex.set('spec', spec);
+			complex.set('seqs', seqs);
 			complex.endEdit();
 		}
 	},
@@ -221,21 +238,21 @@ Ext.define('App.ui.ComplexStore',{
 
 Ext.define('App.ui.StrandPreviewGrid', {
 	extend: 'Ext.view.View',
-	cellWidth: 200,	
+	cellWidth: 200,
 	cellHeight: 200,
 	itemSelector: 'div.complex-wrap',
 	trackOver: true,
 	overItemCls: 'x-view-over',
 	multiSelect: false,
-    singleSelect: true,
+	singleSelect: true,
 
 	autoScroll: true,
 	paddingWidth: 6,
 	paddingHeight: 14,
-	nodeFillMode : 'segment', // 'identity', 'segment', 'domain'
-	nodeStrokeMode : 'segment', // 'identity', 'segment', 'domain'
-	lineStrokeMode : 'default', 
-	textFillMode : 'default',
+	nodeFillMode: 'segment', // 'identity', 'segment', 'domain'
+	nodeStrokeMode: 'segment', // 'identity', 'segment', 'domain'
+	lineStrokeMode: 'default',
+	textFillMode: 'default',
 	showBubbles: true,
 	loopMode: 'linear',
 
@@ -249,14 +266,13 @@ Ext.define('App.ui.StrandPreviewGrid', {
 		this.on('itemupdate', this.updateComplex);
 		this.on('itemremove', this.removeComplex);
 
-		this.on('itemmouseenter',function(view,rec,el,e) {
-			this.fireEvent('updateToolbar',el);
-		},this);
+		this.on('itemmouseenter', function(view, rec, el, e) {
+			this.fireEvent('updateToolbar', el);
+		}, this);
 		// this.on('itemmouseleave',function(view,rec,el,e) {
 		// 	this.fireEvent('updateToolbar',null);
 		// },this);
 		// this.on('updatetoolbar',this.updateToolbar,this,{buffer: 10});
-
 		this.callParent(arguments);
 
 		// this.toolbar = Ext.create('Ext.toolbar.Toolbar',{
@@ -286,26 +302,23 @@ Ext.define('App.ui.StrandPreviewGrid', {
 	// hideToolbar: function() {
 	// 	this.toolbar.hide();
 	// },
-
 	/**
 	 * Returns a StrandPreview chart object
-	 * @param  {Boolean} update 
+	 * @param  {Boolean} update
 	 * True to force the chart to be updated with #cellHeight, #cellWidth, #nodeStrokeMode, etc. properties.
-	 * 
+	 *
 	 * @return {[type]}
 	 */
 	getChart: function(update) {
 		update || (update = false);
-		if (!this.chart || update) {
-			this.chart = StrandPreview()
-				.width(this.cellWidth-this.paddingWidth)
-				.height(this.cellHeight-this.paddingHeight)
-				.showBubbles(this.showBubbles)
-				.loopMode(this.loopMode)
-				.nodeStrokeMode(this.nodeStrokeMode)
-				.nodeFillMode(this.nodeFillMode)
-				.lineStrokeMode(this.lineStrokeMode)
-				.textFillMode(this.textFillMode);
+		if(!this.chart || update) {
+			this.chart = StrandPreview().width(this.cellWidth - this.paddingWidth).height(this.cellHeight - this.paddingHeight)
+			.showBubbles(this.showBubbles)
+			.loopMode(this.loopMode)
+			.nodeStrokeMode(this.nodeStrokeMode)
+			.nodeFillMode(this.nodeFillMode)
+			.lineStrokeMode(this.lineStrokeMode)
+			.textFillMode(this.textFillMode);
 		}
 		return this.chart;
 	},
@@ -325,11 +338,11 @@ Ext.define('App.ui.StrandPreviewGrid', {
 			records = me.store.getRange(),
 			data = [],
 			segmentMap = me.getSegmentMap();
-		for (var i = 0; i < records.length; i++) {
+		for(var i = 0; i < records.length; i++) {
 			var rec = records[i],
 				dom = this.getNode(rec);
 
-			if (dom) {
+			if(dom) {
 				nodes.push(dom);
 
 				data.push({
@@ -345,7 +358,7 @@ Ext.define('App.ui.StrandPreviewGrid', {
 			}
 		}
 
-		if (nodes.length > 0) {
+		if(nodes.length > 0) {
 			// Configure chart prototype
 			var chart = me.getChart();
 
@@ -366,7 +379,7 @@ Ext.define('App.ui.StrandPreviewGrid', {
 			data = [],
 			segmentMap = me.getSegmentMap();
 
-		for (var i = 0; i < records.length; i++) {
+		for(var i = 0; i < records.length; i++) {
 			var rec = records[i];
 
 			data.push({
@@ -381,7 +394,7 @@ Ext.define('App.ui.StrandPreviewGrid', {
 			});
 		}
 
-		if (nodes.length > 0) {
+		if(nodes.length > 0) {
 			// Configure chart prototype
 			var chart = me.getChart();
 
@@ -420,9 +433,9 @@ Ext.define('App.ui.StrandPreviewGrid', {
 
 	},
 	getSegmentMap: function() {
-		if (this.segmentMap) {
+		if(this.segmentMap) {
 			return this.segmentMap;
-		} else if (this.segmentStore) {
+		} else if(this.segmentStore) {
 			return this.segmentStore.getSegmentMap();
 		}
 	},
@@ -431,6 +444,153 @@ Ext.define('App.ui.StrandPreviewGrid', {
 	},
 	unhighlight: function(criteria) {
 		this.preview.unhighlight(criteria);
+	},
+})
+
+Ext.define('App.ui.EditComplexWindow', {
+	extend: 'Ext.window.Window',
+	closable: true,
+	closeAction: 'hide',
+	width: 500,
+	height: 300,
+	renderTo: Ext.getBody(),
+	autoRender: false,
+	layout: 'border',
+
+	border: false,
+	bodyBorder: false,
+	initComponent: function() {
+		Ext.apply(this, {
+			items: [{
+				xtype: 'strandpreview',
+				name: 'strandPreview',
+				region: 'west',
+				width: 300,
+				height: 300,
+				split: true,
+			}, {
+				xtype: 'form',
+				name: 'formPanel',
+				region: 'center',
+				frame: true,
+				defaults: {
+					labelAlign: 'top',
+					anchor: '100%',
+				},
+				items: [{
+					fieldLabel: 'Strands',
+					xtype: 'textarea',
+					name: 'strandsField',
+					validator: Ext.bind(this.validateStrands, this),
+				}, {
+					fieldLabel: 'Segments',
+					xtype: 'textarea',
+					name: 'segmentsField',
+				}, {
+					fieldLabel: 'Structure',
+					xtype: 'textarea',
+					name: 'structureField',
+					validator: Ext.bind(this.validateStructure, this),
+				}]
+			}],
+		});
+
+		this.callParent(arguments);
+
+		this.formPanel = this.down('[name=formPanel]');
+		this.strandPreview = this.down('[name=strandPreview]');
+
+		this.strandsField = this.down('[name=strandsField]');
+		this.segmentsField = this.down('[name=segmentsField]');
+		this.structureField = this.down('[name=structureField]');
+		this.on('afterrender', this.updateData, this);
+
+		this.formPanel.on('validitychange',function(panel,valid) {
+			if(valid) this.updateComplex();
+		},this,{buffer: 100});
+	},
+	updateData: function() {
+		this.complexData = this.strandEditor.getComplexData(this.complex);
+		this.strandsField.setValue(this.complex.getStrands().join('+'));
+		this.structureField.setValue(this.complexData.structure);
+		this.updateView();
+	},
+	updateView: function() {
+		this.strandPreview.setValue(this.complexData);
+		this.segmentsField.setValue(_.map(this.complexData.strands, function(strand) {
+			return _.map(strand.segments, function(seg) {
+				return DNA.makeIdentifier(seg.identity, seg.polarity);
+			}).join(' ');
+		}).join(' + '));
+	},
+	updateComplex: function() {
+		this.complex.beginEdit();
+		this.complex.set('strands',this.getStrands());
+		this.complex.set('structure',this.getStructure());
+		this.complex.endEdit();
+		this.complexData = this.strandEditor.getComplexData(this.complex);
+		this.updateView();
+	},
+	getStrands: function() {
+		var strands = this.strandsField.getValue() || '';
+		return  _.map(strands.split('+'), function(s) {
+			return s.trim();
+		});
+	},
+	getStructure: function() {
+		return this.structureField.getValue() || '';
+	},
+	getStrandData: function() {
+		return this.strandEditor.getStrandData.apply(this.strandEditor, arguments);
+	},
+	getComplexData: function() {
+		return this.strandEditor.getComplexData.apply(this.strandEditor, arguments);
+	},
+	validateStrands: function() {
+		var strands = this.getStrands();
+
+		for(var i = 0; i < strands.length; i++) {
+			var strand = this.getStrandData(strands[i]);
+			if(!strand) {
+				return "Unknown strand '" + strands[i] + "'";
+			}
+		}
+		this.structureField.validate();
+		return true;
+	},
+	validateStructure: function() {
+		var strands = this.getStrands(),
+			structure = this.getStructure();
+		
+		// ensure input structure is valid dot-paren
+		var err = DNA.validateDotParen(structure,/* report errors as strings */ true, /* prohibit unrecognized chars */ true);
+		if(err !== true) {
+			return err;	
+		}
+
+		// split into strand-wise structure
+		structures = structure.split('+');
+
+		// test overall length equality
+		if(strands.length != structures.length) {
+			return Ext.String.format("Strand count and structure count do not match; {0} strands and {1} structures", strands.length, structures.length);
+		} else {
+
+			// test segment-wise length dimensioning
+			for(var i = 0; i < strands.length; i++) {
+
+				// should not be encountered, but in case unrecognized strand is encountered
+				var strand = this.getStrandData(strands[i]);
+				if(!strand) {
+					return "Please correct strand field to remove unrecognized strand.";
+				}
+
+				if(strand.segments.length != structures[i].length) {
+					return Ext.String.format("Strand length mismatch; strand '{0}' has {1} segments, but its structure has {2} elements.", strands[i], strand.segments.length, structures[i].length);
+				}
+			}
+			return true;
+		}
 	},
 })
 
@@ -444,7 +604,7 @@ Ext.define('App.ui.StrandEdit', {
 		app: 'App.ui.Application',
 		tip: 'App.ui.TipHelper',
 	},
-	requires: ['App.ui.D3Panel', 'App.ui.SequenceEditor', 'App.ui.dd.RulesWindow', 'App.ui.dd.ScoreParametersWindow', 'App.ui.dd.SequenceWindow', 'App.ui.SequenceThreader', ],
+	requires: ['App.ui.D3Panel', 'App.ui.SequenceEditor', 'App.ui.dd.RulesWindow', 'App.ui.dd.ScoreParametersWindow', 'App.ui.dd.SequenceWindow', 'App.ui.SequenceThreader', 'App.ui.AddDomainButton', ],
 	constructor: function() {
 		this.mixins.app.constructor.apply(this, arguments);
 		this.editComplexWindows = {};
@@ -456,8 +616,12 @@ Ext.define('App.ui.StrandEdit', {
 	editorType: 'System',
 	initComponent: function() {
 		this.segmentStore = Ext.create('App.ui.SegmentStore', {});
-		this.strandStore = Ext.create('App.ui.StrandStore', {segmentStore: this.segmentStore});
-		this.complexStore = Ext.create('App.ui.ComplexStore', {strandStore: this.strandStore});
+		this.strandStore = Ext.create('App.ui.StrandStore', {
+			segmentStore: this.segmentStore
+		});
+		this.complexStore = Ext.create('App.ui.ComplexStore', {
+			strandStore: this.strandStore
+		});
 
 		Ext.apply(this, {
 			tbar: [{
@@ -492,17 +656,17 @@ Ext.define('App.ui.StrandEdit', {
 				items: [{
 					text: 'Enumerate',
 					scale: 'medium',
-					rowspan:2,
+					rowspan: 2,
 					iconAlign: 'top',
 					iconCls: 'enumerate-24',
 					handler: this.buildEnum,
 					scope: this,
 				}, {
 					text: 'to PIL',
-				},{
+				}, {
 					text: 'to Graph (ENJS)'
 				}],
-				disabled:true,
+				disabled: true,
 			}, {
 				xtype: 'buttongroup',
 				columns: 2,
@@ -525,16 +689,18 @@ Ext.define('App.ui.StrandEdit', {
 					iconCls: 'dynaml',
 					disabled: true,
 				}]
-			}, '->',{
+			}, '->',
+			{
 				xtype: 'buttongroup',
 				columns: 1,
 				title: 'Workspace',
-				items: [Ext.create('App.ui.SaveButton',{
+				items: [Ext.create('App.ui.SaveButton', {
 					app: this
-				}),{
-					text : 'Help',
-					iconCls : 'help',
-					handler : App.ui.Launcher.makeLauncher('help:dil'),
+				}),
+				{
+					text: 'Help',
+					iconCls: 'help',
+					handler: App.ui.Launcher.makeLauncher('help:dil'),
 				}]
 			}],
 			items: [{
@@ -554,16 +720,28 @@ Ext.define('App.ui.StrandEdit', {
 				}, {
 					text: 'Sequence',
 					dataIndex: 'sequence',
-					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+					renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
 						var spec = record.getParsedSpec(),
-							renderer = CodeMirror.getModeRenderer('sequence'),
+							pos = 0,
+							// base-wise index within strand, updated as we iterate below
 							segmentMap = record.store.getSegmentMapWithComplements(),
-							out = [];
-						for(var i=0; i<spec.length; i++) {
+							out = [],
+							renderer = CodeMirror.getModeRenderer('sequence', {
+								renderer: function(text, style, col) {
+									var index = pos + col - 1;
+									if(style) return "<span class='sequence-base cm-" + style + "' data-base-index='" + index + "'>" + text + "</span>"
+									else return "<span class='sequence-base' data-base-index='" + index + "'>" + text + "</span>"
+
+								}
+							});
+
+						for(var i = 0; i < spec.length; i++) {
 							var dom = spec[i];
-							for(var j=0; j<dom.segments.length; j++) {
-								var seg = dom.segments[j], seq = segmentMap[DNA.makeIdentifier(seg.identity,seg.polarity)];
-								out.push('<span class="sequence-segment" data-segment-identity="'+seg.identity+'" data-segment-polarity="'+seg.polarity+'">'+renderer(seq)+'</span>');
+							for(var j = 0; j < dom.segments.length; j++) {
+								var seg = dom.segments[j],
+									seq = segmentMap[DNA.makeIdentifier(seg.identity, seg.polarity)];
+								out.push('<span class="sequence-segment" data-segment-identity="' + seg.identity + '" data-segment-polarity="' + seg.polarity + '">' + renderer(seq) + '</span>');
+								pos += seq.length;
 							}
 						}
 						return out.join('');
@@ -584,11 +762,11 @@ Ext.define('App.ui.StrandEdit', {
 				Ext.create('Ext.grid.plugin.CellEditing', {
 					clicksToEdit: 1
 				})],
-				highlightSegment: function(identity,polarity) {
-					if (polarity === undefined) polarity = 1;
+				highlightSegment: function(identity, polarity) {
+					if(polarity === undefined) polarity = 1;
 					var el = this.getEl();
-					el.select('[data-segment-identity="'+identity+'"][data-segment-polarity="'+polarity+'"]').addCls('sequence-highlight');
-					el.select('[data-segment-identity="'+identity+'"][data-segment-polarity="'+(-1*polarity)+'"]').addCls('sequence-highlight-complement');
+					el.select('[data-segment-identity="' + identity + '"][data-segment-polarity="' + polarity + '"]').addCls('sequence-highlight');
+					el.select('[data-segment-identity="' + identity + '"][data-segment-polarity="' + (-1 * polarity) + '"]').addCls('sequence-highlight-complement');
 				},
 				unhighlightSegment: function() {
 					var el = this.getEl();
@@ -605,7 +783,10 @@ Ext.define('App.ui.StrandEdit', {
 				width: 200,
 				split: true,
 				collapsible: true,
-				//collapsed: true,
+				tbar: [Ext.create('App.ui.AddDomainButton', {
+					addDomain: Ext.bind(this.addSegment, this),
+				})],
+
 				columns: [{
 					text: 'Name',
 					dataIndex: 'identity',
@@ -636,44 +817,59 @@ Ext.define('App.ui.StrandEdit', {
 					segmentStore: this.segmentStore,
 					listeners: {
 						'itemdblclick': {
-							fn: function(view,complex,node) { 
-								this.showEditComplexWindow(complex,node);
-							}, 
+							fn: function(view, complex, node) {
+								this.showEditComplexWindow(complex, node);
+							},
 							scope: this,
 						}
 					}
 				})],
-				bbar: ['->',{
+				bbar: ['->',
+				{
 					text: 'View',
-					menu: [{ 
-						text: 'Segments', checked: true, iconCls: 'domain', 
-						name:'coloringSegments', group: 'coloring',
-						xtype:'menucheckitem', 
+					menu: [{
+						text: 'Segments',
+						checked: true,
+						iconCls: 'domain',
+						name: 'coloringSegments',
+						group: 'coloring',
+						xtype: 'menucheckitem',
 						handler: function() {
 							this.setComplexViewMode('segment');
-						}, 
-						scope: this 
-					}, { 
-						text: 'Domains', checked: false, iconCls: 'domain-caps',
-						name:'coloringDomains', group: 'coloring',
-						xtype:'menucheckitem', 
+						},
+						scope: this
+					}, {
+						text: 'Domains',
+						checked: false,
+						iconCls: 'domain-caps',
+						name: 'coloringDomains',
+						group: 'coloring',
+						xtype: 'menucheckitem',
 						handler: function() {
 							this.setComplexViewMode('domain');
-						}, 
-						scope: this 
-					},{ 
-						text: 'Base identity', checked: true, iconCls: 'sequence',
-						name:'coloringSequences', group: 'coloring',
-						xtype:'menucheckitem', 
+						},
+						scope: this
+					}, {
+						text: 'Base identity',
+						checked: true,
+						iconCls: 'sequence',
+						name: 'coloringSequences',
+						group: 'coloring',
+						xtype: 'menucheckitem',
 						handler: function() {
 							this.setComplexViewMode('identity');
-						}, 
-						scope: this 
-					}, '-', { 
-						text: 'Show bubbles', checked: true, 
-						name:'showBubbles', xtype:'menucheckitem', handler: function(item) {
+						},
+						scope: this
+					}, '-',
+					{
+						text: 'Show bubbles',
+						checked: true,
+						name: 'showBubbles',
+						xtype: 'menucheckitem',
+						handler: function(item) {
 							this.setComplexViewBubbles(item.checked);
-						}, scope: this 
+						},
+						scope: this
 					}]
 				}],
 			}]
@@ -693,58 +889,63 @@ Ext.define('App.ui.StrandEdit', {
 			this.updateStrandSequences();
 		}, this);
 
-		this.segmentsGrid.on('itemmouseenter',function(grid,rec,el,e) {
-			this.fireEvent('updateSegmentHighlight',rec.get('identity'),1);
-		},this);
-		this.segmentsGrid.on('itemmouseleave',function(grid,rec,el,e) {
-			this.fireEvent('updateSegmentHighlight',null);
-		},this);
+		this.segmentsGrid.on('itemmouseenter', function(grid, rec, el, e) {
+			this.fireEvent('updateSegmentHighlight', rec.get('identity'), 1);
+		}, this);
+		this.segmentsGrid.on('itemmouseleave', function(grid, rec, el, e) {
+			this.fireEvent('updateSegmentHighlight', null);
+		}, this);
 
 
-		this.on('updateSegmentHighlight',this.updateSegmentHighlight,this,{
+		this.on('updateSegmentHighlight', this.updateSegmentHighlight, this, {
 			buffer: 10,
 		});
 
-		
 
-		this.on('afterrender',function() {
-			this.strandsGrid.getEl().on('mouseover',function(e,el) {
+
+		this.on('afterrender', function() {
+			this.strandsGrid.getEl().on('mouseover', function(e, el) {
 				var identity = el.getAttribute('data-segment-identity'),
 					polarity = el.getAttribute('data-segment-polarity');
-				this.fireEvent('updateSegmentHighlight',identity,polarity);
-			},this,{delegate:'span.sequence-segment'});
+				this.fireEvent('updateSegmentHighlight', identity, polarity);
+			}, this, {
+				delegate: 'span.sequence-segment'
+			});
 
 			this.tip = Ext.create('Ext.tip.ToolTip', {
-			    target: this.strandsGrid.getEl(),
-			    delegate: 'span.sequence-segment',
-			    trackMouse: true,
-			    showDelay: false,
-			    renderTo: Ext.getBody(),
-			    listeners: {
-			        // Change content dynamically depending on which element triggered the show.
-			        beforeshow: {
-			        	fn: function updateTipBody(tip) {
-			        		var identity = tip.triggerElement.getAttribute('data-segment-identity'),
-			        			polarity = tip.triggerElement.getAttribute('data-segment-polarity');
-				            tip.update(DNA.makeIdentifier(identity,polarity));
-				            //this.fireEvent('updateSegmentHighlight',identity);
-				        },
-				        scope: this
-				    }
-			    }
+				target: this.strandsGrid.getEl(),
+				delegate: 'span.sequence-base',
+				trackMouse: true,
+				showDelay: false,
+				renderTo: Ext.getBody(),
+				title: ' ',
+				listeners: {
+					// Change content dynamically depending on which element triggered the show.
+					beforeshow: {
+						fn: function updateTipBody(tip) {
+							var segmentElement = Ext.get(tip.triggerElement).up('span.sequence-segment'),
+								identity = segmentElement.getAttribute('data-segment-identity'),
+								polarity = segmentElement.getAttribute('data-segment-polarity'),
+								index = tip.triggerElement.getAttribute('data-base-index');
+							tip.setTitle(DNA.makeIdentifier(identity, polarity));
+							tip.update(index);
+							//this.fireEvent('updateSegmentHighlight',identity);
+						},
+						scope: this
+					}
+				}
 			});
-		},this);
+		}, this);
 
 		// this.segmentsGrid.on('containermouseout',function(grid,rec,el,e) {
 		// 	this.unhighlightSegment();
 		// },this);
-
 	},
 	onLoad: function() {
-		if (!_.isObject(this.data) && _.isString(this.data) && !!this.data) {
+		if(!_.isObject(this.data) && _.isString(this.data) && !! this.data) {
 			try {
 				this.data = JSON.parse(this.data)
-			} catch (e) {
+			} catch(e) {
 				Ext.msg("Unable to load strand data.");
 				console.error(e);
 			}
@@ -756,25 +957,61 @@ Ext.define('App.ui.StrandEdit', {
 		this.loadLibrary(this.library);
 		_.defer(_.bind(this.complexView.refresh, this.complexView));
 	},
-	updateSegmentHighlight: function(identity,polarity) {
+
+	addSegment: function(length) {
+		this.segmentStore.addSegment(length);
+	},
+
+	getComplexData: function(rec) {
+		if(_.isString(rec)) {
+			rec = this.complexStore.findRecord('name', rec);
+		}
+		if(rec) {
+			return {
+				strands: _.map(rec.getStrands(), this.getStrandData, this),
+				structure: rec.get('structure'),
+				sequences: this.getSegmentMap(),
+			}
+		}
+	},
+	getStrandData: function(rec) {
+		if(_.isString(rec)) {
+			rec = this.strandStore.findRecord('name', rec);
+		}
+		if(rec) {
+			return {
+				name: rec.get('name'),
+				domains: rec.getParsedSpec(),
+				segments: rec.getFlatSpec(),
+			}
+		}
+	},
+
+	updateSegmentHighlight: function(identity, polarity) {
 		if(identity) {
-			this.highlightSegment(identity,polarity);
+			this.highlightSegment(identity, polarity);
 		} else {
 			this.unhighlightSegment();
 		}
 	},
-	highlightSegment: function(segment,polarity) {
+	highlightSegment: function(segment, polarity) {
 		this.complexView.preview.fade();
-		this.complexView.preview.highlight({'segment_identity':segment,'segment_polarity':polarity},'node-highlight');
-		this.complexView.preview.highlight({'segment_identity':segment,'segment_polarity':-1*polarity},'node-highlight-complement');
+		this.complexView.preview.highlight({
+			'segment_identity': segment,
+			'segment_polarity': polarity
+		}, 'node-highlight');
+		this.complexView.preview.highlight({
+			'segment_identity': segment,
+			'segment_polarity': -1 * polarity
+		}, 'node-highlight-complement');
 
 		this.strandsGrid.unhighlightSegment();
-		this.strandsGrid.highlightSegment(segment,polarity);
+		this.strandsGrid.highlightSegment(segment, polarity);
 	},
-	unhighlightSegment: function(segment,polarity) {
+	unhighlightSegment: function(segment, polarity) {
 		this.complexView.preview.unfade();
-		this.complexView.preview.unhighlight(null,'node-highlight');
-		this.complexView.preview.unhighlight(null,'node-highlight-complement');
+		this.complexView.preview.unhighlight(null, 'node-highlight');
+		this.complexView.preview.unhighlight(null, 'node-highlight-complement');
 
 		this.strandsGrid.unhighlightSegment();
 	},
@@ -782,32 +1019,46 @@ Ext.define('App.ui.StrandEdit', {
 
 		this.requestDocument(function(doc) {
 			var data = this.serializeDil(),
-				node = this.getDocumentPath(), outNode, action, ext;
+				node = this.getDocumentPath(),
+				outNode, action, ext;
 
 			switch(target) {
-				case 'dd': action = 'dd', ext = 'domains', target = 'DD'; break;
-				case 'nupack': action = 'nupack', ext = 'np', target = 'NUPACK'; break;
-				case 'ms': action = 'ms', ext = 'ms', target = 'Multisubjective'; break;
-				case 'pil': action = 'pil', ext = 'pil', target = 'PIL'; break;
-				case 'enum': action = 'enum', ext = 'enum', 'Enumerator'; break;
-				case 'svg': action = 'svg', ext = 'svg', 'SVG'; break;
+			case 'dd':
+				action = 'dd', ext = 'domains', target = 'DD';
+				break;
+			case 'nupack':
+				action = 'nupack', ext = 'np', target = 'NUPACK';
+				break;
+			case 'ms':
+				action = 'ms', ext = 'ms', target = 'Multisubjective';
+				break;
+			case 'pil':
+				action = 'pil', ext = 'pil', target = 'PIL';
+				break;
+			case 'enum':
+				action = 'enum', ext = 'enum', 'Enumerator';
+				break;
+			case 'svg':
+				action = 'svg', ext = 'svg', 'SVG';
+				break;
 			}
 			outNode = App.path.repostfix(node, ext);
 
-			App.runTask('Nodal',{
-				node:node,
-				data:data,
+			App.runTask('Nodal', {
+				node: node,
+				data: data,
 				action: action,
-			},function(responseText,args,success) {
-				if(success)
-					App.msg('DIL Output','Output of system <strong>{0}</strong> to {1} completed.',doc.getBasename(),target);
-				else
-					App.msg('DIL Output error', 'Output of system <strong>{0}</strong> to {1} failed! See Console for details.',{params: [doc.getBasename(),target], handler:'console'})
-			},this,{
+			}, function(responseText, args, success) {
+				if(success) App.msg('DIL Output', 'Output of system <strong>{0}</strong> to {1} completed.', doc.getBasename(), target);
+				else App.msg('DIL Output error', 'Output of system <strong>{0}</strong> to {1} failed! See Console for details.', {
+					params: [doc.getBasename(), target],
+					handler: 'console'
+				})
+			}, this, {
 				openOnEnd: [outNode],
 			});
 
-		},this);
+		}, this);
 	},
 
 	buildDD: function() {
@@ -833,44 +1084,44 @@ Ext.define('App.ui.StrandEdit', {
 		this.complexViewMode = mode;
 
 		switch(mode) {
-			case 'segment':
-				if(this.showBubbles.checked) {
-					this.complexView.nodeStrokeMode = 'segment';
-					this.complexView.nodeFillMode = 'segment';
-					this.complexView.lineStrokeMode = 'default';
-					this.complexView.textFillMode = 'default';
-				} else {
-					this.complexView.textFillMode = 'segment';
-				}
-				break;
-			case 'domain':
-				if(this.showBubbles.checked) {
-					this.complexView.lineStrokeMode = '';
-					this.complexView.nodeFillMode = 'domain';
-					this.complexView.nodeStrokeMode = 'domain';
-					this.complexView.textFillMode = 'default';
-				} else {
-					this.complexView.textFillMode = 'domain';
-				}
-				break;
-			case 'identity':
-				if(this.showBubbles.checked) {
-					this.complexView.lineStrokeMode = 'default';
-					this.complexView.nodeStrokeMode = 'identity';
-					this.complexView.nodeFillMode = 'identity';
-					this.complexView.textFillMode = 'default';
-				} else {
-					this.complexView.textFillMode = 'identity';
-				}
-				break;
+		case 'segment':
+			if(this.showBubbles.checked) {
+				this.complexView.nodeStrokeMode = 'segment';
+				this.complexView.nodeFillMode = 'segment';
+				this.complexView.lineStrokeMode = 'default';
+				this.complexView.textFillMode = 'default';
+			} else {
+				this.complexView.textFillMode = 'segment';
+			}
+			break;
+		case 'domain':
+			if(this.showBubbles.checked) {
+				this.complexView.lineStrokeMode = '';
+				this.complexView.nodeFillMode = 'domain';
+				this.complexView.nodeStrokeMode = 'domain';
+				this.complexView.textFillMode = 'default';
+			} else {
+				this.complexView.textFillMode = 'domain';
+			}
+			break;
+		case 'identity':
+			if(this.showBubbles.checked) {
+				this.complexView.lineStrokeMode = 'default';
+				this.complexView.nodeStrokeMode = 'identity';
+				this.complexView.nodeFillMode = 'identity';
+				this.complexView.textFillMode = 'default';
+			} else {
+				this.complexView.textFillMode = 'identity';
+			}
+			break;
 
 		}
-			
+
 		this.complexView.updateChartProperties();
 
 	},
 	setComplexViewBubbles: function(showBubbles) {
-		this.complexView.showBubbles = showBubbles ;
+		this.complexView.showBubbles = showBubbles;
 		this.setComplexViewMode(this.complexViewMode);
 	},
 	getSegmentMap: function() {
@@ -903,7 +1154,7 @@ Ext.define('App.ui.StrandEdit', {
 					name: strand.getQualifiedName(),
 					sequence: strand.getSequence(),
 					complex: strand.getNode().getName(),
-					spec: strand.printDomains(/* omitLengths */ true),
+					spec: strand.printDomains( /* omitLengths */ true),
 					polarity: strand.getPolarity()
 				};
 			}));
@@ -930,7 +1181,7 @@ Ext.define('App.ui.StrandEdit', {
 
 
 		// Build map of segment identities to sequences
-		for (var i = 0; i < segmentIds.length; i++) {
+		for(var i = 0; i < segmentIds.length; i++) {
 			var rec = segmentIds[i],
 				seg = {
 					identity: rec.get('identity'),
@@ -941,14 +1192,14 @@ Ext.define('App.ui.StrandEdit', {
 		}
 
 		// Build objects for strands
-		for (var i = 0; i < strandRecs.length; i++) {
-			var rec = strandRecs[i], strand, 
-				doms = _.clone(rec.getParsedSpec());
+		for(var i = 0; i < strandRecs.length; i++) {
+			var rec = strandRecs[i],
+				strand, doms = _.clone(rec.getParsedSpec());
 
 			// Update domain objects (built from spec) with sequence info
-			for (var j = 0; j < doms.length; j++) {
+			for(var j = 0; j < doms.length; j++) {
 				var dom = doms[j];
-				for (var k = 0; k < dom.segments.length; k++) {
+				for(var k = 0; k < dom.segments.length; k++) {
 					var seg = dom.segments[k];
 					seg.sequence = segmentMap[seg.identity];
 				}
@@ -963,7 +1214,7 @@ Ext.define('App.ui.StrandEdit', {
 		}
 
 		// Build objects for nodes
-		for (var i = 0; i < complexRecs.length; i++) {
+		for(var i = 0; i < complexRecs.length; i++) {
 			var complex = complexRecs[i],
 				complexStrands = complex.getStrands(),
 				node;
@@ -990,37 +1241,22 @@ Ext.define('App.ui.StrandEdit', {
 		var lib = this.buildLibrary();
 		return lib.toDilOutput();
 	},
-	showEditComplexWindow: function(node,complex) {
-		if(!this.editComplexWindows[complex.name]) {
-			editComplexWindows[complex.name] = Ext.create('Ext.tip.ToolTip',{
-				target : node,
-				anchor : 'left',
-				constrainPosition : true,
-				autoHide : false,
-				closable : true,
-				closeAction : 'hide',
-				with: 200, height: 200,
-
-				layout: 'fit',
-				items : [{
-					xtype: 'form',
-					defaults: {
-						labelAlign: 'top'
-					},
-					items: [{
-						fieldLabel: 'Strands',
-						xtype: 'textarea',
-					},{
-						fieldLabel: 'Structure',
-						xtype: 'textarea',
-					}]
-				}],
+	showEditComplexWindow: function(complex, node) {
+		var name = complex.get('name');
+		if(!this.editComplexWindows[name]) {
+			this.editComplexWindows[name] = Ext.create('App.ui.EditComplexWindow', {
+				complex: complex,
+				renderTo: Ext.getBody(),
+				strandEditor: this,
 			})
 		}
-		editComplexWindows[complex.name].show();
+		this.editComplexWindows[name].show();
+		if(node) {
+			this.editComplexWindows[name].alignTo(node, 'tl-tl');
+		}
 	},
-	showWindow : function(d, node) {
-		if (!this.complexWindows[d.name]) {
+	showWindow: function(d, node) {
+		if(!this.complexWindows[d.name]) {
 			var strands = d['strands'];
 
 			// this.previewPanels[d.name] = Ext.create('App.ui.nodal.StrandPreview', {
@@ -1031,34 +1267,34 @@ Ext.define('App.ui.StrandEdit', {
 			// 	value : '',
 			// });
 			this.previewPanels[d.name] = Ext.create('App.ui.StrandPreview', {
-				cls : 'simple-header',
-				title : strands.join(" + "),
-				autoRender : true,
-				value : '',
+				cls: 'simple-header',
+				title: strands.join(" + "),
+				autoRender: true,
+				value: '',
 			});
 
 			this.complexWindows[d.name] = Ext.create('Ext.tip.ToolTip', {
-				target : node,
-				anchor : 'left',
-				constrainPosition : true,
-				items : [this.previewPanels[d.name]],
-				layout : 'fit',
-				autoHide : false,
-				closable : true,
-				closeAction : 'hide',
-				width : 200,
-				height : 200,
-				draggable : true,
-				title : "Complex: " + d.name,
-				resizable : true,
-				autoRender : true,
+				target: node,
+				anchor: 'left',
+				constrainPosition: true,
+				items: [this.previewPanels[d.name]],
+				layout: 'fit',
+				autoHide: false,
+				closable: true,
+				closeAction: 'hide',
+				width: 200,
+				height: 200,
+				draggable: true,
+				title: "Complex: " + d.name,
+				resizable: true,
+				autoRender: true,
 			});
 
 			this.complexWindows[d.name].show();
 			this.previewPanels[d.name].setTitle(strands.join(" + "))
-			this.previewPanels[d.name].setValue(!!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'], strands);
+			this.previewPanels[d.name].setValue( !! d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'], strands);
 		} else {
-			if (this.complexWindows[d.name].isVisible()) {
+			if(this.complexWindows[d.name].isVisible()) {
 				this.complexWindows[d.name].hide();
 			} else {
 				this.complexWindows[d.name].show();

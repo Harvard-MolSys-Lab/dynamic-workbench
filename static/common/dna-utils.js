@@ -1103,7 +1103,7 @@ var DNA = module.exports.DNA = (function(_) {
 						out = out.concat(drawDuplex(struct[1],theta,start,'linear'));
 
 						theta_line = theta-phi+Math.PI; len = struct[2][1];
-						firstBase = start.addPolar(theta+piHalf,stemWidth);
+						firstBase = start.addPolar(theta+piHalf,stemWidth).addPolar(theta_line,baseLength);
 						out = out.concat(drawLine(len,firstBase,theta_line));
 						break;
 					default:
@@ -1405,7 +1405,7 @@ var DNA = module.exports.DNA = (function(_) {
 		return memo;
 	},''));
 	
-	function parseNamedStrands(string) {
+	function parseNamedSequences(string) {
 		var lines = string.split('\n'), name, seq, pair, out = {};
 
 		for(var i=0; i<lines.length; i++) {
@@ -1432,11 +1432,11 @@ var DNA = module.exports.DNA = (function(_) {
 			// NUPACK-style:
 			// name : ATCG
 			// name = ATCG
-			} else if(/^(\w+)\s*[:=]\s*([acgturykmswbdhvnx]+)\s*$/i.test(string)) {
+			} else if(/^(\w+)\s*[:=]\s*([acgturykmswbdhvnx]+)\s*$/i.test(lines[i])) {
 				pair = lines[i].match(/^(\w+)\s*[:=]\s*([acgturykmswbdhvnx]+)\s*$/i);
 				name = pair[1]; seq = pair[2];
 			} else {
-				name = i.toString();
+				name = (i+1).toString();
 				seq = lines[i];
 			}
 			out[name] = seq;
@@ -1462,6 +1462,8 @@ var DNA = module.exports.DNA = (function(_) {
 		parseComplement : function() { console.warn("DNA.parseComplement is deprecated; please use parseIdentifier"); parseComplement.apply(DNA,arguments) },
 		parseStrandSpec : parseStrandSpec,
 		
+		parseNamedSequences: parseNamedSequences,
+
 		matchDegenerate : matchDegenerate,
 		
 		stripNupackHeaders : stripNupackHeaders,
@@ -1972,7 +1974,7 @@ var DNA = module.exports.DNA = (function(_) {
 						var seg = dom.segments[g], 
 						name = seg.getIdentifier ? seg.getIdentifier() : (seg.identifier ? seg.identifier : seg.name),
 						id = DNA.parseIdentifier(name), 
-						seq = seg.sequence ? seg.sequence : sequences[id.identity];
+						seq = seg.sequence ? seg.sequence : sequences[name];
 						
 						// for each base
 						for(var k = 0; k < seq.length; k++) {
@@ -2062,7 +2064,9 @@ var DNA = module.exports.DNA = (function(_) {
 		 * @param {Object} segments
 		 * A name to sequence mapping
 		 */
-		expandStructure: function(structure,strands,sequences) {
+		expandStructure: function(structure,strands,sequences,uneven) {
+			uneven || (uneven = false);
+
 			strands = _.map(strands,function(strand) {
 				return _.comprehend(strand.domains, function(dom) {
 					return dom.segments;
@@ -2073,22 +2077,81 @@ var DNA = module.exports.DNA = (function(_) {
 				return _.filter(strandStructure.split(''),function(ch) { return !!ch && (ch != ' '); });
 			}), 
 			newStructure = [];
-			
-			// for each strand
-			for(var i = 0; i<strands.length; i++) {
-				var strandStruct = structure[i], strand = strands[i], newStrandStruct = [];
-								
-				for(var j=0; j<strand.length; j++) {
-					var segmentId = (strand[j].identity ? strand[j].identity : DNA.parseIdentifier(strand[j].name).identity),
-						segmentSeq = sequences[segmentId],
-						ch = strandStruct[j];
-					
-					newStrandStruct.push(Array(segmentSeq.length+1).join(ch));
-				}
+
+			if(uneven) {
 				
-				newStructure.push(newStrandStruct.join(''));
-			}
+				var adjacency = {}, stack = [];
+
+				for(var i=0; i<structure.length; i++) {
+					var struct = structure[i];
+					for(var j=0; j<struct.length; j++) {
+						if(struct[j] == '(') {
+							stack.push([i,j]);
+						}
+						if(struct[j] == ')') {
+							var pos = stack.pop();
+							if(!adjacency[pos[0]]) adjacency[pos[0]] = {};
+							adjacency[pos[0]][pos[1]] = [i,j];
+							if(!adjacency[i]) adjacency[i] = {};
+							adjacency[i][j] = pos;
+						}
+					}
+				}
+
+				// for each strand
+				for(var i = 0; i<strands.length; i++) {
+					var strandStruct = structure[i], strand = strands[i], newStrandStruct = [];
+									
+					for(var j=0; j<strand.length; j++) {
+						var segmentId = (strand[j].identity ? strand[j].identity : DNA.parseIdentifier(strand[j].name).identity),
+							segmentSeq = sequences[segmentId],
+							complementPos = adjacency[i] ? adjacency[i][j] : null,
+							complement, complementId, complementSeq;
+
+						if(complementPos && strands[complementPos[0]] && strands[complementPos[0]][complementPos[1]]) {
+							complement = strands[complementPos[0]][complementPos[1]];
+							complementId = (complement.identity ? complement.identity : DNA.parseIdentifier(complement.name).identity),
+							complementSeq = sequences[complementId];
+						}
+
+						ch = strandStruct[j];
+						if(complementSeq) {
+							if(ch == '(' && segmentSeq.length > complementSeq.length) {
+								newStrandStruct.push(Array(segmentSeq.length-complementSeq.length+1).join('.') +
+									Array(complementSeq.length+1).join(ch)
+								);	
+							} else if(ch == ')' && segmentSeq.length > complementSeq.length) {
+								newStrandStruct.push(Array(complementSeq.length+1).join(ch) + 
+									Array(segmentSeq.length-complementSeq.length+1).join('.')
+								);
+							} else {
+								newStrandStruct.push(Array(segmentSeq.length+1).join(ch));
+							}
+						} else {
+							newStrandStruct.push(Array(segmentSeq.length+1).join(ch));
+						}
+					}
+					newStructure.push(newStrandStruct.join(''));
+				}
+
+			} else {
 			
+				// for each strand
+				for(var i = 0; i<strands.length; i++) {
+					var strandStruct = structure[i], strand = strands[i], newStrandStruct = [];
+									
+					for(var j=0; j<strand.length; j++) {
+						var segmentId = (strand[j].identity ? strand[j].identity : DNA.parseIdentifier(strand[j].name).identity),
+							segmentSeq = sequences[segmentId],
+							ch = strandStruct[j];
+						
+						newStrandStruct.push(Array(segmentSeq.length+1).join(ch));
+					}
+					
+					newStructure.push(newStrandStruct.join(''));
+				}
+			
+			}
 			return newStructure.join('+');			
 		},
 		
@@ -2240,6 +2303,7 @@ var DNA = module.exports.DNA = (function(_) {
 			strict || (strict = false);
 			var open_paren_count = 0, close_paren_count = 0, //
 			last = '', count = 0, list = [];
+			struct += '\n';
 			for(var i=0; i<struct.length;i++) {
 				var ch = struct[i];
 				if (ch === ' ') {
@@ -2279,6 +2343,8 @@ var DNA = module.exports.DNA = (function(_) {
 		parseDotParen : function(struct) {
 			var open_paren_count = 0, close_paren_count = 0, //
 			last = '', count = 0, list = [];
+
+			// Concatenate a null element so the loop will run one extra time to push the last item on the stack
 			_.each(struct.split('').concat(null), function(ch) {
 				if (ch === ' ') {
 					return;

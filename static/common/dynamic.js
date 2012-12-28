@@ -550,7 +550,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 				})
 			];
 		} else {	
-			var strandStructures = Structure.parseMultiple(this.structure);
+			var strandStructures = this.structure ? Structure.parseMultiple(this.structure) : [];
 			this.strands = _.map(this.strands,function(strand,i) {
 				
 				// See if additional strand properties for this strand were specified by the node
@@ -576,7 +576,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 				}, this);
 				
 				// Make sure strand is assigned a structure
-				if(!strand.structure) {
+				if(!strand.structure && strandStructures[i]) {
 					strand.structure = strandStructures[i];
 				}
 
@@ -3368,6 +3368,28 @@ App.dynamic = module.exports = (function(_,DNA) {
 				return [seg.getIdentifier(),'(',seg.getLength(),')',abbrevRole('segment',seg.role || '')].join('')
 			}).value().join(' ');
 		}
+
+		/**
+		 * Accepts as input either a {@link #parseDomainString Domain string} or a {@link #parseSegmentString Segment string}
+		 * and returns a Domain specification
+		 * @param  {String} str String to parse
+		 * @param  {Boolean} parseIdentifier True to parse identifiers (see #parseDomainString)
+		 * @return {Object} Domain configuration object (see #parseDomainString)
+		 */
+		function parseDomainOrSegmentString(str,parseIdentifier) {
+			if ((/(\w+\[[\w\(\)\*'\s:]+\]\w?[\+-]?)\s?/g).test(str)) {
+				return parseDomainString(str,parseIdentifier);
+			} else if ((/(\w+\*?)(?:\(([aAtTcCgGuUnN\d]+)\))?:?(\w+)?/).test(str)) {
+				return [{
+					name: 'A',
+					segments: parseSegmentString(str,parseIdentifier),
+					role: '',
+					polarity: 1,
+				}]
+			} else {
+				return [];
+			}
+		}
 		
 		
 		/**
@@ -3798,7 +3820,9 @@ App.dynamic = module.exports = (function(_,DNA) {
 			parseDomainString: parseDomainString,
 			parseDomainsString: parseDomainString,
 			parseSegmentString: parseSegmentString,
-			parseSegmentsString: parseSegmentString,  
+			parseSegmentsString: parseSegmentString,
+			parseDomainOrSegmentString: parseDomainOrSegmentString,
+
 			printDomainString: printDomainString,
 			printStrandString : printStrandString,
 			printSegmentString : printSegmentString,

@@ -12,6 +12,7 @@ var codeMirrorPath = libPath + '/CodeMirror-'+codeMirrorVersion;
 var raphaelVersion = '2.0.1';//'1.5.2';
 
 var styles = [extStyles, 'styles/canvas', 'styles/icons', 'styles/infomachine', 'styles/colaborate/stylesheet', //
+'styles/strand-preview', //
 libPath + '/color-field-1.0.0/color-field', codeMirrorPath + '/lib/codemirror', //
 libPath + '/valums-file-uploader/client/fileuploader', libPath + '/ux/css/CheckHeader', //
 libPath + '/extjs-boxselect/src/BoxSelect', libPath+'/object-browser/css/tree-node-icons',
@@ -21,7 +22,8 @@ var libs = ['jquery-1.5.1.min', 'underscore', 'string', 'color-field-1.0.0/color
 'raphael-'+raphaelVersion+'/raphael-min', 'raphael-'+raphaelVersion+'//plugins/raphael.primitives', //
 'zaach-jsonlint/web/jsonlint',//
 'CodeMirror-'+codeMirrorVersion+'/lib/codemirror', 
-// 'CodeMirror-'+codeMirrorVersion+'/lib/util/runmode', // 'CodeMirror-'+codeMirrorVersion+'/lib2/util/formatting', //
+// 'CodeMirror-'+codeMirrorVersion+'/lib/util/runmode', 
+// 'CodeMirror-'+codeMirrorVersion+'/lib2/util/formatting', //
 'valums-file-uploader/client/fileuploader', // 
 'jquery-animate-css-rotate-scale/jquery-css-transform', //
 'jquery-animate-css-rotate-scale/jquery-animate-css-rotate-scale', 'Ext.ux.StatusBar', //

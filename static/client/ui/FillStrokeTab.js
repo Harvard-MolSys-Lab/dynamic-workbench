@@ -5,6 +5,7 @@
  */
 Ext.define('App.ui.FillStrokeTab', {
 	extend:'App.ui.BoundObjectPanel',
+	alias: 'widget.fillstroketab',
 	initComponent: function() {
 		Ext.apply(this, {
 			tbar: [{
@@ -36,11 +37,9 @@ Ext.define('App.ui.FillStrokeTab', {
 					maxValue: 1,
 					decimalPrecision: 2,
 					animate: true,
-					plugins: new Ext.slider.Tip({
-						getText: function(thumb) {
-							return String.format('{0}%', thumb.value * 100);
-						}
-					}),
+					tipText: function(thumb){
+		                return String(thumb.value*100) + '%';
+		            },
 					cellCls: 'table-cell-padded-right',
 					width: 100,
 					tooltip: {
@@ -74,11 +73,11 @@ Ext.define('App.ui.FillStrokeTab', {
 						fields: ['name', 'dash_array'],
 						data: [['solid', ''], ['dashed', '--'], ['dashed', '-'], ['dashed', '- '], ['dotted', '.'], ['dotted', '. '], ['dashed/dotted', '-.'], ['dashed/dotted', '-..'], ['dashed/dotted', '- .'], ['dashed/dotted', '--.'], ['dashed/dotted', '--..']]
 					}),
-					tpl: new Ext.XTemplate(
-					'<tpl for="."><div class="x-combo-list-item">',
-					'<span>{name}</span>&nbsp;(<var>{dash_array}</var>)',
-					'</div></tpl>'
-					),
+					listConfig: {
+						getInnerTpl: function() {
+							return '<span>{name}</span>&nbsp;(<var>{dash_array}</var>)</span>';
+						}
+					},
 					valueField: 'dash_array',
 					displayField: 'dash_array',
 					typeAhead: true,
@@ -101,11 +100,9 @@ Ext.define('App.ui.FillStrokeTab', {
 					maxValue: 1,
 					decimalPrecision: 2,
 					animate: true,
-					plugins: new Ext.slider.Tip({
-						getText: function(thumb) {
-							return String.format('{0}%', thumb.value * 100);
-						}
-					}),
+					tipText: function(thumb){
+		                return String(thumb.value*100) + '%';
+		            },
 					width: 100,
 					tooltip: {
 						title: 'Stroke Opacity',
@@ -121,11 +118,9 @@ Ext.define('App.ui.FillStrokeTab', {
 					decimalPrecision: 1,
 					increment: 0.5,
 					animate: true,
-					plugins: new Ext.slider.Tip({
-						getText: function(thumb) {
-							return String.format('{0} px', thumb.value);
-						}
-					}),
+					tipText: function(thumb){
+		                return String(thumb.value) + ' px';
+		            },
 					width: 100,
 					cellCls: 'table-cell-padded-right',
 					tooltip: {

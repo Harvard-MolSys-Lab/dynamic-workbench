@@ -188,7 +188,7 @@ Ext.define('Workspace', {
 	/**
 	 * @param {String} id
 	 * @return {Workspace.objects.Object} object
-	 */
+	 */	
 	getObjectById: function(id) {
 		return this.objects.get(id);
 	},

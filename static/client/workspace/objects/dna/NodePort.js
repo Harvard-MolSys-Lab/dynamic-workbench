@@ -13,6 +13,17 @@ Ext.define('Workspace.objects.dna.NodePort', {
 			var obj = this.getLibraryObject();
 			return obj ? obj.getAbsolutePolarity() : 0;
 		}, false, false, false);
+		this.expose('footprint',function() {
+			var obj = this.getLibraryObject();
+			return obj ? _.map(obj.getSegments(),function footprint (seg) {
+				return seg.getLength();
+			}) : [];
+		}, false, false, false);
+		this.expose('segments',function() {
+			var obj = this.getLibraryObject();
+			return obj ? _.clone(obj.getSegments()) : [];
+		}, false, false, false);
+		
 		if(this.workspace.buildManager)
 			this.workspace.buildManager.on('rebuild', this.onRebuild, this);
 
@@ -34,6 +45,27 @@ Ext.define('Workspace.objects.dna.NodePort', {
 				return polarity == 1 ? '+' : (polarity == -1 ? '-' : '0');
 			}
 		}));
+		this.footprintShim = Ext.create('Workspace.Label', {
+			cls : 'workspace-label-xsmall workspace-label-footprint',
+			offsets : [0, 4],
+			property : 'segments',
+			editable : false,
+			format : function(segments) {
+				return _.map(segments,function footprint (seg) {
+					return (seg.role && seg.role == 'toehold') ? '<u>'+seg.getLength()+'</u>' : seg.getLength();
+				}).join(' ');
+			}
+		});
+		this.addShim(this.footprintShim);
+		this.hideFootprint();
+		this.on('mouseover',this.showFootprint,this);
+		this.on('mouseout',this.hideFootprint,this);
+	},
+	hideFootprint: function() {
+		this.footprintShim.hide();
+	},
+	showFootprint: function () {
+		this.footprintShim.show();	
 	},
 	highlightError: function() {
 		if(!this.errorProxy) {
@@ -50,6 +82,8 @@ Ext.define('Workspace.objects.dna.NodePort', {
 	},
 	onRebuild : function() {
 		this.change('computedPolarity', this.get('computedPolarity'));
+		this.change('footprint', this.get('footprint'));
+		this.change('segments', this.get('segments'));
 	},
 	getRealtime : function(prop) {
 		var obj = this.getLibraryObject();

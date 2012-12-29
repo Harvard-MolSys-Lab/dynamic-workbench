@@ -14,7 +14,21 @@ Ext.define('App.ui.nodal.PortInspector', {
 			items : [{
 				objectBinding : 'name',
 				anchor : "100%",
-			}, ],
+			}, {
+				//objectBinding: 'segments',
+				objectBinding: 'footprint',
+				fieldLabel: 'Footprint',
+				xtype: 'displayfield',
+				// renderer: function(segments) {
+				// 	return _.map(segments,function footprint (seg) {
+				// 		return (seg.role && seg.role == 'toehold') ? '<u>'+seg.getLength()+'</u>' : seg.getLength();
+				// 	}).join(' ');
+				// },
+			},{
+				objectBinding: 'computedPolarity',
+				fieldLabel: 'Polarity',
+				xtype: 'displayfield',
+			}],
 			showIf : function(wtype) {
 				return (wtype == 'Workspace.objects.dna.InputPort') || (wtype == 'Workspace.objects.dna.OutputPort') || (wtype == 'Workspace.objects.dna.BridgePort');
 			},

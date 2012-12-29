@@ -14,10 +14,13 @@ Ext.define('Workspace.objects.dna.InputPort', {
 	width: 12,
 	height: 12,
 	polarity: 1,
-	shape: 'triangle',
+	//shape: 'triangle',
+	//dtheta: 30,
+	shape: 'triangle2',
+	dtheta: 0,
+
 	stroke: 'orange',
 	strokeWidth: 2,
-	dtheta: 30,
 	name: 'Input Port',
 	path: false,
 	render: function() {

@@ -83,6 +83,16 @@ Raphael.fn.triangle = function (cx, cy, r) {
     r *= 1.75;
     return this.path("M".concat(cx, ",", cy, "m0-", r * .58, "l", r * .5, ",", r * .87, "-", r, ",0z"));
 };
+Raphael.fn.triangle2 = function (cx, cy, r) {
+    r *= 1.75;
+//    return this.path("M".concat(cx, ",", cy, "m", r * .58, ",0l-", r * .87, ",", r * .5, "l0,-", r, " z"));
+    return this.path("M".concat(cx, ",", cy, "m-", r * .58, ",0l", r * .87, ",", r * .5, "l0,-", r, " z"));
+};
+Raphael.fn.circ = function(cx, cy, r) {
+	return this.path(['m', -r,',', 0,
+        'a', r,',',r, 0, 1,0, (r * 2),',',0,
+        'a', r,',',r, 0, 1,0, -(r * 2),',',0].join(' '));
+}
 Raphael.fn.diamond = function (cx, cy, r) {
     return this.path(["M", cx, cy - r, "l", r, r, -r, r, -r, -r, r, -r, "z"]);
 };

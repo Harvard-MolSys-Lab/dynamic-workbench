@@ -162,6 +162,10 @@ Ext.define('App.ui.CreateMenu', {
 				text: 'DyNAML File',
 				iconCls: 'dynaml',
 				type: 'dynaml',
+			},{
+				text: 'DyNAMiC Intermediate (DIL)',
+				iconCls: 'dil',
+				type: 'dil',
 			},'-',{
 				text: 'Pepper System',
 				iconCls: 'pepper',

@@ -533,6 +533,11 @@ CodeMirror.defineMode("dil-domains", function(config) {
 			switch(state.expects) {
 				// Beginning of line
 			case '':
+				if(stream.match(/^[^\[\]]+$/,false)) {
+					state.expects = 'segment-block';
+					return '';
+				}
+
 				if(stream.eatSpace()) {
 					return '';
 				} else if(stream.eatWhile(/^\w+/)) {

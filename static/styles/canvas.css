@@ -462,6 +462,9 @@ ul.dashboard-actions li a:hover {
 .domains-24, .domain-24 {
 	background-image: url(/images/icons/etc/secondary-domains-24.png) !important;
 }
+.secondary-24 {
+	background-image: url(/images/icons/etc/secondary-24.png) !important;
+}
 .behavior-24 {
 	background-image: url(/images/icons/etc/behavior-24.png) !important;
 }
@@ -544,6 +547,12 @@ ul.dashboard-actions li a:hover {
 .workspace-label-port {
 	font-weight:bold;
 }
+.workspace-label-footprint {
+	/* text-shadow: 2px 2px 2px white; */
+	font-weight: bold;
+	padding: 2px 4px 2px 4px;
+	margin-bottom:-2px;
+}
 
 .workspace-label-small {
 	font-size: 10px;
@@ -561,7 +570,7 @@ ul.dashboard-actions li a:hover {
 	background-color: transparent !important;
 	border: none !important;
 }
-.workspace-label, .workspace-label-center, .workspace-label-callout {
+.workspace-label, .workspace-label-center, .workspace-label-callout, .workspace-label-footprint {
 	border: solid 1px rgb(174,174,174);
 	background-color: #eee;
 	background-image: -webkit-gradient(
@@ -578,12 +587,15 @@ ul.dashboard-actions li a:hover {
 	rgb(240,240,240) 40%,
 	rgb(232,232,232) 41%
 	);
+	color: #333;
+}
+.workspace-label, .workspace-label-center, .workspace-label-callout {
 	margin-left: 10px;
 	padding: 3px 6px 4px 6px;
 	font: normal 11px tahoma, arial, helvetica;
-	color: #333;
 }
-.workspace-label-center {
+
+.workspace-label-center, .workspace-label-footprint {
 	border-radius: 4px 4px 4px 4px;
 }
 .workspace-label {
@@ -591,42 +603,6 @@ ul.dashboard-actions li a:hover {
 }
 .workspace-label-callout {
 	border-radius: 4px 4px 4px 0px;
-}
-
-/* Strand previews */
-.link-wc {
-	stroke-width: 1px;
-	stroke: #ccc;
-}
-
-.link-strand, .link-tail {
-	stroke-width: 2px;
-	stroke: #aaa;
-}
-.tail {
-	stroke-width: 2px;
-	stroke: #aaa;
-	fill: none;
-}
-
-.node_index {
-	fill: #aaa;
-}
-
-g.node-faded {
-	opacity: 0.3;
-}
-g.node-highlight, g.node-highlight-complement {
-	opacity: 1;
-}
-
-.node-highlight > circle {
-	stroke: yellow !important;
-	stroke-width: 3px;
-}
-.node-highlight-complement > circle {
-	stroke: #12A0FF !important;
-	stroke-width: 3px;
 }
 
 /* Enumerator reaction graph */

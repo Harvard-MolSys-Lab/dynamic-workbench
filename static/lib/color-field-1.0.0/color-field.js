@@ -50,6 +50,14 @@ Ext.define('Ext.ux.ColorField', {
 	// Limit input to hex values
 	maskRe: /[#a-f0-9]/i,
 
+	initComponent: function() {
+		this.pickerOptions || (this.pickerOptions = {});
+		Ext.apply(this.pickerOptions,{
+			allowReselect: true
+		});
+		this.callParent(arguments);
+	},
+
 	// private
 	validateValue : function(value) {
 		if(!Ext.ux.ColorField.superclass.validateValue.call(this, value)) {
@@ -138,7 +146,7 @@ Ext.define('Ext.ux.ColorField', {
 			this.onFocus();
 		},
 		hide : function() {
-			this.focus.defer(10, this);
+			Ext.Function.defer(this.focus, 10, this);
 			var ml = this.menuListeners;
 			this.menu.un("select", ml.select,  this);
 			this.menu.un("show", ml.show,  this);
@@ -153,13 +161,18 @@ Ext.define('Ext.ux.ColorField', {
 			return;
 		}
 		if(this.menu == null) {
-			this.menu = new Ext.menu.ColorMenu();
+			this.menu = Ext.create('Ext.menu.ColorPicker',this.pickerOptions || {});
 		}
 
 		this.menu.on(Ext.apply({}, this.menuListeners, {
 			scope:this
 		}));
 
-		this.menu.show(this.el, "tl-bl?");
+		this.menu.showBy(this.el, "tl-bl?");
+
+		var val = this.getValue();
+		if(this.menu.colors.indexOf(val) != -1) {
+			this.menu.select(val);
+		}
 	}
 });

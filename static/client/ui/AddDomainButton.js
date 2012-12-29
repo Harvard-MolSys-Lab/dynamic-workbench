@@ -2,7 +2,6 @@ Ext.define('App.ui.AddDomainButton', {
 	extend: 'Ext.button.Split',
 	text: 'Add',
 	iconCls: 'plus',
-	xtype: 'splitbutton',
 	tooltip: 'Click the button to add a new domain of the default length. Click the arrow to choose the default length, ' + 'or add domains with specific sequences to the design. ',
 	initComponent: function() {
 		Ext.applyIf(this,{
@@ -19,24 +18,25 @@ Ext.define('App.ui.AddDomainButton', {
 			min: 2,
 			indent: true,
 		});
-
+		var menuItems = [{
+			text: 'New domain length: ',
+			canActivate: false,
+		}, this.addDomLen, {
+			/**
+			 * @property {Ext.menu.Item} addDomainItem
+			 * Menu item which triggers a domain of length specified in {@link #addDomLen} to be added to the designer.
+			 */
+			text: 'Add Domain',
+			iconCls: 'tick',
+			name: 'addDomainItem',
+			handler: this.onClickHandler,
+			scope: this,
+		}].concat(this.extraMenuItems || []);
+		
 		Ext.apply(this, {
 			handler: this.onClickHandler,
 			scope: this,
-			menu: [{
-				text: 'New domain length: ',
-				canActivate: false,
-			}, this.addDomLen, {
-				/**
-				 * @property {Ext.menu.Item} addDomainItem
-				 * Menu item which triggers a domain of length specified in {@link #addDomLen} to be added to the designer.
-				 */
-				text: 'Add Domain',
-				iconCls: 'tick',
-				name: 'addDomainItem',
-				handler: this.onClickHandler,
-				scope: this,
-			}]
+			menu: menuItems,
 		});
 		this.callParent(arguments);
 		//this.addDomLen = this.down('[name=addDomLen]');

@@ -171,8 +171,7 @@ Ext.define('App.ui.D3Panel', {
 	},
 	getCanvasMarkup : function() {
 		var html = this.body.getHTML();
-		html.replace(/<div id="[\w-]+" class="x-clear" role="presentation">/g,'');
-		return html;
+		return html.replace(/<div\s+id="[\w-]+"\s+class="x-clear"\s+role="presentation"><\/div>/g,'');
 	},
 	redraw : function() {
 		this.vis.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")");

@@ -2,6 +2,7 @@ Ext.define('App.ui.StrandPreviewViewMenu',{
 	extend: 'Ext.button.Button',
 	text: 'View',
 	iconCls: 'view',
+	complexViewMode: 'segment',
 	initComponent: function() {
 		Ext.apply(this,{
 			menu: [{
@@ -47,11 +48,55 @@ Ext.define('App.ui.StrandPreviewViewMenu',{
 					this.setComplexViewBubbles(item.checked);
 				},
 				scope: this
-			}]
+			},{
+				text: 'Show base labels',
+				checked: true,
+				name: 'showBases',
+				xtype: 'menucheckitem',
+				handler: function(item) {
+					this.setComplexViewShow('bases',item.checked);
+				},
+				scope: this
+			},{
+				text: 'Show base numbering',
+				checked: true,
+				name: 'showBaseNumbers',
+				xtype: 'menucheckitem',
+				handler: function(item) {
+					this.setComplexViewShow('indexes',item.checked);
+				},
+				scope: this
+			},{
+				text: 'Show segment labels',
+				checked: true,
+				name: 'showSegments',
+				xtype: 'menucheckitem',
+				handler: function(item) {
+					this.setComplexViewShow('segments',item.checked);
+				},
+				scope: this
+			},
+			// {
+			// 	text: 'Advanced',
+			// 	menu: [{
+			// 		title: 'Base text color',
+			// 		menu:{
+			// 			xtype: 'colormenu',
+			// 			listeners: {
+			// 				'select':{
+			// 					fn: function(picker,color) { this.changeBaseColor(color) },
+			// 					scope: this,
+			// 				}
+			// 			},
+			// 		}
+			// 	}]
+			// }
+			]
 		});
 		this.callParent(arguments);
 
 		this.showBubbles = this.menu.down('[name=showBubbles]');
+		this.showBases = this.menu.down('[name=showBases]');
 
 		this.coloringSegments = this.menu.down('[name=coloringSegments]');
 		this.coloringSequences = this.menu.down('[name=coloringSequences]');
@@ -72,8 +117,10 @@ Ext.define('App.ui.StrandPreviewViewMenu',{
 						lineStrokeMode : 'default',
 						textFillMode : 'default',
 					};
-				} else {
+				} else if(this.showBases.checked) {
 					opts = { textFillMode : 'segment' };
+				} else {
+					opts = { lineStrokeMode: 'segment' };
 				}
 				break;
 			case 'domain':
@@ -84,8 +131,10 @@ Ext.define('App.ui.StrandPreviewViewMenu',{
 						nodeStrokeMode : 'domain',
 						textFillMode : 'default',
 					};
-				} else {
+				} else if(this.showBases.checked) {
 					opts = { textFillMode : 'domain' };
+				} else {
+					opts = { lineStrokeMode: 'domain' };
 				}
 				break;
 			case 'identity':
@@ -96,19 +145,40 @@ Ext.define('App.ui.StrandPreviewViewMenu',{
 						nodeFillMode : 'identity',
 						textFillMode : 'default',
 					};
-				} else {
+				} else if(this.showBases.checked) {
 					opts = { textFillMode : 'identity' };
+				} else {
+					opts = { lineStrokeMode: 'identity' };
 				}
 				break;
 		}
 		this.updateView(opts);
+	},
+	changeBaseColor: function(color) {
+		this.updateView({'baseColor':color});
 	},
 	updateView: function(opts) {
 		Ext.apply(this.view,opts);
 		this.view.updateChartProperties();
 	},
 	setComplexViewBubbles: function(showBubbles) {
-		this.view.showBubbles = showBubbles;
+		this.setComplexViewShow('bubbles',showBubbles);
+	},
+	setComplexViewShow: function(property,show) {
+		switch(property) {
+			case 'bubbles':
+				this.view.showBubbles = show;
+				break;
+			case 'bases':
+				this.view.showBases = show;
+				break;
+			case 'indexes':
+				this.view.showIndexes = show;
+				break;
+			case 'segments':
+				this.view.showSegments = show;
+				break;
+		}
 		this.setComplexViewMode(this.complexViewMode);
 	},
 })

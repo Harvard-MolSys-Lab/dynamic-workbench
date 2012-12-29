@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
  */
 var program = require('commander'), _ = require('underscore'), DD = require('./dd'), fs = require('fs'), path = require('path');
 
-program.usage('[options] <input file>').version('0.4.6.0').description('Command-line Domain Designer');
+program.usage('[options] <input file>').version('0.4.7.0').description('Command-line Domain Designer');
 
 /*
  * Rules and design parameters
@@ -48,9 +48,7 @@ program.option('-o, --output <file>', 'file to which to send output strands')
 program.option('--format <format>', 'which format to use when outputting files (dd/seq/ddjs) [seq]', 'seq')
 program.option('-d, --designs <n>', 'number of designs to produce. If > 1 and output files specified, design number will be appended to filename (e.g. design-1.dd)', 1)
 program.option('-u, --try-unique <n>', 'if design produced is not unique, attempt to redesign <n> times', 0)
-program.option('-n, --no-reseed <n>', 'for multiple designs, do not reseed the domains for each design, but simply continue mutating until the stopping condition is met. If <n> is provided, it will override the value for the stopping '+
-'condition after the first attempt', 0);
-
+program.option('-n, --preserve <n>', 'for multiple designs, do not reseed the domains for each design, but simply continue mutating until the stopping condition is met. If <n> is provided, it will override the value for the stopping condition after the first attempt in the first design (i.e. all subsequent designs/attempts will use <n>)',Number);
 program.option('-i, --interactive', 'true to print output as mutations occur', Boolean)
 program.option('-q, --quiet', 'in interactive mode, true to print only score statistics as mutations occur (no sequences)', Boolean)
 
@@ -81,33 +79,43 @@ alt_stopping_condition; // the value at which to stop for the nth attempt (n>1)
 
 if (program.bored) {
 	stopping_condition = program.bored
+	stopping_condition_type = 'bored';
 	stop = function(des) {
-		return des.getBoredMutations() > stopping_condition;
+		return des.getBoredMutations() > current_stopping_condition;
 	}
 } else if (program.flux) {
 	stopping_condition = program.flux
+	stopping_condition_type = 'flux';
 	stop = function(des) {
-		return des.getMutationFlux() < program.flux;
+		return des.getMutationFlux() < current_stopping_condition;
 	}
 } else if (program.delta) {
 	stopping_condition = program.delta
+	stopping_condition_type = 'delta';
 	stop = function(des) {
-		return des.getMutationDelta() < program.delta;
+		return des.getMutationDelta() < current_stopping_condition;
 	}
 } else {
+	stopping_condition_type = 'bored';
 	stopping_condition = 1000
 	stop = function(des) {
 		return des.getBoredMutations() > 1000;
 	}
 }
+console.log('Stopping on : '+stopping_condition_type+' = '+stopping_condition);
 
 // if an alternative stopping condition
-if (program.noReseed) {
-	if (_.isNumber(program.noReseed) && program.noReseed > 1) {
-		alt_stopping_condition = program.noReseed
+if (!!program.preserve) {
+	if (_.isNumber(program.preserve) && program.preserve > 1) {
+		alt_stopping_condition = program.preserve
 	} else {
 		alt_stopping_condition = stopping_condition
 	}
+} else {
+	alt_stopping_condition = stopping_condition
+}
+if(alt_stopping_condition != stopping_condition) {
+	console.log('After 1 attempt, stopping on : '+stopping_condition_type+' = '+alt_stopping_condition);
 }
 
 var iterator;
@@ -157,6 +165,11 @@ dd.updateParams(params);
  * Load data file
  */
 var file = _.first(program.args);
+if(!file) {
+	console.log("No input file specified. Run with --help for usage.")
+	process.exit(1);
+}
+
 try {
 	var data = fs.readFileSync(file, 'utf8');
 } catch (e) {
@@ -164,16 +177,23 @@ try {
 	process.exit(1);
 }
 
+dd.loadFile(data);
+
+process.on('exit',function() {
+	output();
+});
+
 /*
  * Design
  */
 var designCount = program.designs, designs = [], tryUnique = program.tryUnique;
+current_stopping_condition = stopping_condition
+
 
 // Multiple designs
 for (var i = 0; i < designCount; i++) {
 	var attempts = 0, unique = false;
 
-	current_stopping_condition = stopping_condition
 
 	// Multiple design attempts (for tryUnique)
 	do {
@@ -183,8 +203,10 @@ for (var i = 0; i < designCount; i++) {
 		if (program.interactive) {
 			console.log('\nDesign ' + i + ', attempt ' + attempts + ':');
 		}
-		if (!program.noReseed) {
+		if (!program.preserve) {
 			dd.loadFile(data);
+		} else {
+			dd.resetCounters();
 		}
 		dd.evaluateAllScores();
 		dd.mutateUntil(iterator);
@@ -217,24 +239,29 @@ for (var i = 0; i < designCount; i++) {
 			unique = true;
 		}
 
+		console.log("| Stopping on: "+stopping_condition_type+" = "+current_stopping_condition);
 		current_stopping_condition = alt_stopping_condition
 
 	} while (!unique)
 
 	designs.push(outputData);
 }
-var outputFile = program.output;
-if (outputFile) {
-	if (designs.length == 1) {
-		fs.writeFileSync(outputFile, outputData, 0, 'utf8')
-	} else {
-		var outputFileExt = path.extname(outputFile), outputFileBase = path.join(path.dirname(outputFile), path.basename(outputFile, outputFileExt));
 
-		for (var i = 0; i < designs.length; i++) {
-			var n = i + 1;
-			fs.writeFileSync(outputFileBase + '-' + n + outputFileExt, designs[i], 0, 'utf8')
+output();
+
+function output() {
+	var outputFile = program.output;
+	if (outputFile) {
+		if (designs.length == 1) {
+			fs.writeFileSync(outputFile, outputData, 0, 'utf8')
+		} else {
+			var outputFileExt = path.extname(outputFile), outputFileBase = path.join(path.dirname(outputFile), path.basename(outputFile, outputFileExt));
+	
+			for (var i = 0; i < designs.length; i++) {
+				var n = i + 1;
+				fs.writeFileSync(outputFileBase + '-' + n + outputFileExt, designs[i], 0, 'utf8')
+			}
 		}
 	}
+	console.log(outputData);
 }
-console.log(outputData);
-

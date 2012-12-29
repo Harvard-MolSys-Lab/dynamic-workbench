@@ -502,33 +502,28 @@ var DD = function() {
 	var num_mut;
 
 
-	var p_g = 0;
-	var p_a = 0;
-	var p_t = 0;
-	var p_c = 0;
-	var base = 0;
-	var available = 0;
+	var p_g;
+	var p_a;
+	var p_t;
+	var p_c;
+	var base;
+	var available;
 
 	var doneflag, pausemode;
 	var tempchar, tempchar2;
 	var tempdouble;
 	var num_domain, num_new_domain;
 	//char buffer[120];
-	var buffer = ''
-	var temp_domain = new Array(MAX_DOMAIN_LENGTH);
+	var buffer;
+	var temp_domain;
 
-	var dom1 = new Array(30);
-	var dom2 = new Array(30);
+	var dom1;
+	var dom2;
 	var len1, len2;
-	
-	num_mut_attempts = 0;
-	total_mutations = 0;
-	num_mut = 0;
-	score = 0;
 
-	var bored_mutations = 0;
-	var mutation_delta = 0;  
-	var mutation_flux = 0;  
+	var bored_mutations;
+	var mutation_delta;  
+	var mutation_flux;
 
 	
 	var domain_length;
@@ -545,58 +540,15 @@ var DD = function() {
 	// intrinsic score to domains from various rules
 
 
-
 	var num_mut_attempts, total_mutations;
 	
 	// Rules
 	var rule_4g, rule_6at, rule_ccend, rule_ming, rule_init, rule_lockold, rule_targetworst, rule_gatc_avail, rule_targetdomain, rule_shannon;
-
-	// Set design rules
-	var rules = {
-		rule_4g : 1, // cannot have 4 G's or 4 C's in a row
-		rule_6at : 1, // cannot have 6 A/T or G/C bases in a row
-		rule_ccend : 1, // domains MUST start and end with C
-		rule_ming : 1, // design tries to minimize usage of G
-		rule_init : 7, // 15 = polyN, 7 = poly-H, 3 = poly-Y, 2 = poly-T
-		rule_targetworst : 1, // target worst domain
-		rule_gatc_avail : 15, // all bases available
-		rule_lockold : 0, // lock all old bases (NO)
-		rule_targetdomain : [], // array of domain indicies to target
-		rule_shannon : 1,		// true to reward domains with a low shannon entropy
-	}
-
-	var GCstr, ATstr, GTstr, MBstr, LLstr, DHstr, MAX_IMPORTANCE, LHbases, LHstart, LHpower, INTRA_SCORE, CROSSTALK_SCORE, CROSSTALK_DIV, GGGG_PENALTY, ATATAT_PENALTY, MAX_MUTATIONS, SHANNON_BONUS, SHANNON_ADJUST;
+	var rules;
 
 	// Score parameters
-	var params = {
-		// maximum number of simultaneous mutations
-		MAX_MUTATIONS : 10,
-		GCstr : 2,
-		ATstr : 1,
-		GTstr : 0,
-		// mismatch, bulge
-		MBstr : -3,
-		// large loop
-		LLstr : -0.5,
-		// score for domain ending in a base pair
-		DHstr : 3,
-		MAX_IMPORTANCE : 100,
-		LHbases : 4,
-		LHstart : 2,
-		LHpower : 2,
-		// score bonus for intrastrand/dimerization interactions
-		INTRA_SCORE : 5,
-		// score bonus for crosstalk (as compared to interaction)
-		CROSSTALK_SCORE : -5,
-		// crosstalk score is divided by this much (and then score is subtracted)
-		CROSSTALK_DIV : 2,
-		GGGG_PENALTY : 50,
-		ATATAT_PENALTY : 20,
-		// the adjusted shannon entropy is multiplied by this ammount and subtracted from the score
-		SHANNON_BONUS : 3,
-		// values with less than SHANNON_ADJUST * (maximum expected entropy given alphabet size k)
-		SHANNON_ADJUST : 0.7,
-	};
+	var GCstr, ATstr, GTstr, MBstr, LLstr, DHstr, MAX_IMPORTANCE, LHbases, LHstart, LHpower, INTRA_SCORE, CROSSTALK_SCORE, CROSSTALK_DIV, GGGG_PENALTY, ATATAT_PENALTY, MAX_MUTATIONS, SHANNON_BONUS, SHANNON_ADJUST;
+	var params;
 
 
 	/**
@@ -647,26 +599,93 @@ var DD = function() {
 		SHANNON_ADJUST = params.SHANNON_ADJUST;
 	}
 	
-	copyRules();
-	copyParams();
-
-	// Set up memory for mutation computations
-	if(( mut_base = new Array(MAX_MUTATIONS  /* int */
-	)) == null) {
-		console.error("Insufficient memory for declaring mutation memories!\n");
-		throw 'Error';
+	
+	function initialize() {
+	
+		// Set design rules
+		rules = {
+			rule_4g : 1, // cannot have 4 G's or 4 C's in a row
+			rule_6at : 1, // cannot have 6 A/T or G/C bases in a row
+			rule_ccend : 1, // domains MUST start and end with C
+			rule_ming : 1, // design tries to minimize usage of G
+			rule_init : 7, // 15 = polyN, 7 = poly-H, 3 = poly-Y, 2 = poly-T
+			rule_targetworst : 1, // target worst domain
+			rule_gatc_avail : 15, // all bases available
+			rule_lockold : 0, // lock all old bases (NO)
+			rule_targetdomain : [], // array of domain indicies to target
+			rule_shannon : 1,		// true to reward domains with a low shannon entropy
+		}
+	
+		// Set score parameters
+		params = {
+			// maximum number of simultaneous mutations
+			MAX_MUTATIONS : 10,
+			GCstr : 2,
+			ATstr : 1,
+			GTstr : 0,
+			// mismatch, bulge
+			MBstr : -3,
+			// large loop
+			LLstr : -0.5,
+			// score for domain ending in a base pair
+			DHstr : 3,
+			MAX_IMPORTANCE : 100,
+			LHbases : 4,
+			LHstart : 2,
+			LHpower : 2,
+			// score bonus for intrastrand/dimerization interactions
+			INTRA_SCORE : 5,
+			// score bonus for crosstalk (as compared to interaction)
+			CROSSTALK_SCORE : -5,
+			// crosstalk score is divided by this much (and then score is subtracted)
+			CROSSTALK_DIV : 2,
+			GGGG_PENALTY : 50,
+			ATATAT_PENALTY : 20,
+			// the adjusted shannon entropy is multiplied by this ammount and subtracted from the score
+			SHANNON_BONUS : 3,
+			// values with less than SHANNON_ADJUST * (maximum expected entropy given alphabet size k)
+			SHANNON_ADJUST : 0.7,
+		};	
+		buffer = ''
+		temp_domain = new Array(MAX_DOMAIN_LENGTH);
+		p_g = 0;
+		p_a = 0;
+		p_t = 0;
+		p_c = 0;
+		base = 0;
+		available = 0;
+		num_mut_attempts = 0;
+		total_mutations = 0;
+		num_mut = 0;
+		score = 0;
+		bored_mutations = 0;
+		mutation_delta = 0;  
+		mutation_flux = 0;  
+		dom1 = new Array(30);
+		dom2 = new Array(30);
+	
+		copyRules();
+		copyParams();
+	
+		// Set up memory for mutation computations
+		if(( mut_base = new Array(MAX_MUTATIONS  /* int */
+		)) == null) {
+			console.error("Insufficient memory for declaring mutation memories!\n");
+			throw 'Error';
+		}
+		if(( mut_old = new Array(MAX_MUTATIONS  /* int */
+		)) == null) {
+			console.error("Insufficient memory for declaring mutation memories!\n");
+			throw 'Error';
+		}
+		if(( mut_new = new Array(MAX_MUTATIONS  /* int */
+		)) == null) {
+			console.error("Insufficient memory for declaring mutation memories!\n");
+			throw 'Error';
+		}
+	
 	}
-	if(( mut_old = new Array(MAX_MUTATIONS  /* int */
-	)) == null) {
-		console.error("Insufficient memory for declaring mutation memories!\n");
-		throw 'Error';
-	}
-	if(( mut_new = new Array(MAX_MUTATIONS  /* int */
-	)) == null) {
-		console.error("Insufficient memory for declaring mutation memories!\n");
-		throw 'Error';
-	}
-
+	
 	/**
 	 * add new domains to the system
 	 * @param {String[]} domains The sequences of the new domains to add
@@ -1533,13 +1552,13 @@ var DD = function() {
 							else
 								mut_new[k] = 4;
 							// Undo mutation if new base is not allowed
-							if((mut_new[k] == 1) && (Math.floor(domain_gatc_avail[mut_domain] / 8) == 0))
+							if((mut_new[k] == 1) && (domain_gatc_avail[mut_domain] & 8) == 0)
 								mut_new[k] = mut_old[k];
-							if((mut_new[k] == 2) && (Math.floor(domain_gatc_avail[mut_domain] / 4) % 2 == 0))
+							if((mut_new[k] == 2) && (domain_gatc_avail[mut_domain] & 4) == 0)
 								mut_new[k] = mut_old[k];
-							if((mut_new[k] == 3) && (Math.floor(domain_gatc_avail[mut_domain] / 2) % 2 == 0))
+							if((mut_new[k] == 3) && (domain_gatc_avail[mut_domain] & 2) == 0)
 								mut_new[k] = mut_old[k];
-							if((mut_new[k] == 4) && (domain_gatc_avail[mut_domain] % 2 == 0))
+							if((mut_new[k] == 4) && (domain_gatc_avail[mut_domain] & 1) == 0)
 								mut_new[k] = mut_old[k];
 
 						} while (mut_new[k] == mut_old[k]);
@@ -1556,13 +1575,13 @@ var DD = function() {
 							else
 								mut_new[k] = 4;
 							// Undo mutation if new base is not allowed
-							if((mut_new[k] == 1) && (Math.floor(domain_gatc_avail[mut_domain] / 8) == 0))
+							if((mut_new[k] == 1) && (domain_gatc_avail[mut_domain] & 8) == 0)
 								mut_new[k] = mut_old[k];
-							if((mut_new[k] == 2) && (Math.floor(domain_gatc_avail[mut_domain] / 4) % 2 == 0))
+							if((mut_new[k] == 2) && (domain_gatc_avail[mut_domain] & 4) == 0)
 								mut_new[k] = mut_old[k];
-							if((mut_new[k] == 3) && (Math.floor(domain_gatc_avail[mut_domain] / 2) % 2 == 0))
+							if((mut_new[k] == 3) && (domain_gatc_avail[mut_domain] & 2) == 0)
 								mut_new[k] = mut_old[k];
-							if((mut_new[k] == 4) && (domain_gatc_avail[mut_domain] % 2 == 0))
+							if((mut_new[k] == 4) && (domain_gatc_avail[mut_domain] & 1) == 0)
 								mut_new[k] = mut_old[k];
 						} while (mut_new[k] == mut_old[k]);
 					}
@@ -1619,7 +1638,8 @@ var DD = function() {
 		}
 	}
 
-
+	initialize();
+	
 	_.extend(this, {
 		version : "0.3.1",
 		loadFile : loadFile,
@@ -1697,9 +1717,7 @@ var DD = function() {
 			
 			setupScoreMatricies();
 		},
-		resetCounters: function() {
-			
-		},
+		resetCounters: resetCounters,
 		serialize : function() {
 			this.saveState.apply(this, arguments);
 		},

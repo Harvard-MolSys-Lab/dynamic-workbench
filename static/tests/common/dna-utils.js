@@ -71,7 +71,45 @@ test('threadSegments',function() {
 	deepEqual(DNA.threadSegments(segments,['d1', {identity: 'd2', polarity: 1}, 'd3', 'd4']),'ATTCCCGGGG','Mixed array spec');
 	
 	var segmentArray = ['A','TT','CCC','GGGG'];
-	deepEqual(DNA.threadSegments(segmentArray,'1 2 3 4'),'ATTCCCGGGG','Simple spec with segments array');
+	deepEqual(DNA.threadSegments(segmentArray,'1 2 3 4'),'ATTCCCGGGG','Simple spec with segments array');	
+});
+
+test('parseNamedSequences',function() {
+	var input1 = 'domain 1 = AAAA\ndomain 2 = TTTT\ndomain 3 = GGGG',
+		output1 = {'1':'AAAA','2':'TTTT','3':'GGGG'},
+		input2 = 'segment 1 = AAAA\nsegment 2 = TTTT\nsegment 3 = GGGG',
+		output2 = {'1':'AAAA','2':'TTTT','3':'GGGG'},
+		input3 = 'sequence 1 = AAAA\nsequence 2 = TTTT\nsequence 3 = GGGG',
+		output3 = {'1':'AAAA','2':'TTTT','3':'GGGG'},
+		input4 = 'domain 1 = NNNNNNN\nsegment 2 = NN\nsequence 5 = NNNN\ndomain 7 : AAAA\nsegment a : GG\nsequence 8 = TTTT',
+		output4 = {'1':'NNNNNNN', '2':'NN', '5':'NNNN', '7':'AAAA', 'a':'GG', '8':'TTTT' },
+		input5 = 'x : AAAA\ny : TTT\nz = GGGGG',
+		output5 = {'x':'AAAA', 'y':'TTT', 'z':'GGGGG'},
+		input6 = '>s1\nAAAAA\n>s2\nGGGGGG',
+		output6 = {'s1':'AAAAA','s2':'GGGGGG'},
+		input7 = 'AATACAG\nCCAGATN\nAYANNCATTGA',
+		output7 = {'1':'AATACAG','2':'CCAGATN','3':'AYANNCATTGA' };
+	deepEqual(DNA.parseNamedSequences(input1),output1,'domain x = NNNN');
+	deepEqual(DNA.parseNamedSequences(input2),output2,'segment x = NNNN');
+	deepEqual(DNA.parseNamedSequences(input3),output3,'sequence x = NNNN');
+	deepEqual(DNA.parseNamedSequences(input4),output4,'Mixed (domain, segment, sequence');
+	deepEqual(DNA.parseNamedSequences(input5),output5,'Colon/Equals');
+	deepEqual(DNA.parseNamedSequences(input6),output6,'FASTA');
+	deepEqual(DNA.parseNamedSequences(input7),output7,'Newline-delimited');
+});
+
+test('validateDotParen',function() {
 	
+	ok(DNA.validateDotParen('..(((.)))...'));
+	ok(!DNA.validateDotParen('..(((.))...'));
+	ok(!DNA.validateDotParen('..((.)))...'));
 	
-})
+	ok(DNA.validateDotParen('(((.)))...'));
+	ok(!DNA.validateDotParen('((.)))...'));
+	ok(!DNA.validateDotParen('(((.))...'));
+	
+	ok(DNA.validateDotParen('....(((.)))'));
+	ok(!DNA.validateDotParen('....((.)))'));
+	ok(!DNA.validateDotParen('....(((.))'));
+
+});

@@ -8,7 +8,9 @@
 var express = require('express'), 
 app = express.createServer(), 
 winston = require('winston'), 
-fm = require('./server/file-manager'), tools = require('./server/server-tools'), auth = require('./server/node_modules/auth');
+connect = require('connect'),
+MemoryStore = connect.middleware.session.MemoryStore,
+fm = require('./server/file-manager'), tools = require('./server/server-tools-2'), auth = require('./server/node_modules/auth');
 
 // var Schema = mongoose.Schema,
 // UserSchema = new Schema({});
@@ -24,7 +26,7 @@ app.configure('production',function() {
 
 app.configure('debug',function() {
 	app.set('env','debug');
-})
+});
 
 app.configure(function() {
 	app.set('invite', 'yinlab-workbench');
@@ -32,8 +34,11 @@ app.configure(function() {
 	app.set('baseRoute', '/');
 	app.use(express.bodyParser());
 	app.use(express.cookieParser());
+
+	var sessionStore = new MemoryStore();
 	app.use(express.session({
-		secret : 'infomachine2'
+		store : sessionStore,
+		secret : 'infomachine2',
 	}));
 	app.use(express.limit('10mb'));
 
@@ -87,7 +92,7 @@ app.configure(function() {
 	fm.configure(app, express);
 
 	// configure server-side tools
-	tools.configure(app, express);
+	tools.configure(app, express, sessionStore);
 });
 app.listen(3000);
 console.log('Server running from ' + __dirname + ' at http://192.168.56.10:3000');

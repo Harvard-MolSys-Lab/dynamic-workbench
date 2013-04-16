@@ -333,19 +333,388 @@ Ext.define('App.Files',{
 	}
 });
 
+/* ------------------------------------------------------------------------ */
+
+// /**
+//  * @class App.TaskRunner
+//  * Runs tasks on the server
+//  */
+// Ext.define('App.TaskRunner', {
+// 	statics : {
+// 		/**
+// 		 * Defines subclasses of {@link App.TaskRunner.Task} as members of {@link App.TaskRunner}. Called by server code
+// 		 * in order to make configured server tools available on the client.
+// 		 * @param {Object[]} tasks 
+// 		 * A list of task configuration objects. Each task configuration object may contain the options below, as well as
+// 		 * any arbitrary code to override members of the {@link App.TaskRunner.Task Task} class.
+// 		 *
+// 		 * @param {String} tasks.route Relative URL on the server at which the task may be started
+// 		 * @param {String} tasks.name Name of the task
+// 		 * @param {String} tasks.iconCls [description]
+// 		 * 
+// 		 */
+// 		loadTools : function(tasks) {
+// 			_.each(tasks, function(def) {
+// 				var name = _.compact(def.route.split('/')),
+// 				iconCls = def.iconCls || 'app';
+
+// 				name[name.length - 1] = _.last(name).capitalize();
+// 				name = name.join('.');
+
+// 				Ext.define('App.TaskRunner.' + name, Ext.apply(def, {
+// 					extend : 'App.TaskRunner.Task'
+// 				}, {
+// 					iconCls : iconCls,
+// 				}));
+// 			});
+// 		},
+		
+// 		/**
+// 		 * Runs a task using the given `serverTool`
+// 		 * @param {String} serverTool 
+// 		 * Name of a member of App.TaskRunner; must be configred by server code calling {@link #loadTools}
+// 		 * 
+// 		 * @param {Object} [args] 
+// 		 * Arguments to pass to the tool
+// 		 * 
+// 		 * @param {Function} [callback] 
+// 		 * Function to call upon completion
+// 		 *
+// 		 * @param {Object} [scope=window] 
+// 		 * Scope in which to execute the callback
+// 		 * 
+// 		 * @param {Object} [config={}] 
+// 		 * Contains arbitrary additional configuration options for the {@link App.TaskRunner.Task subclass}. Note:
+// 		 * these properties will be directly {@link Ext.apply applied} to the object, rather than passed as 
+// 		 * a configuration object, since App.TaskRunner.Task will interpret configuration objects as model fields.
+// 		 *
+// 		 * @return {App.TaskRunner.Task/Boolean} 
+// 		 * If the `serverTool` exists, returns the App.TaskRunner.Task instance
+// 		 */
+// 		run : function(serverTool, args, callback, scope, config) {
+// 			args || (args = {});
+// 			config || (config = {});
+// 			if(!!callback && !!scope) {
+// 				callback = Ext.bind(callback,scope);
+// 			}
+
+// 			if(Ext.ClassManager.get(['App.TaskRunner',serverTool].join('.'))) {
+// 				var startDate = new Date(), target = 'local', task = Ext.create('App.TaskRunner.' + serverTool, {
+// 					tool : serverTool,
+// 					startDate : startDate,
+// 					target : target,
+// 				});
+// 				Ext.apply(task,config);
+				
+// 				this.taskStore.add(task);
+// 				task.start(args, callback);
+// 				return task;
+// 			}
+// 			return false;
+// 		},
+		
+// 		/**
+// 		 * Gets the App.TaskRunner.Task subclass associated with the passed server tool name.
+// 		 * @param {String} serverTool 
+// 		 * @return {App.TaskRunner.Task}
+// 		 */
+// 		get: function(serverTool) {
+// 			return Ext.ClassManager.get(['App.TaskRunner',Ext.String.capitalize(serverTool)].join('.'));
+// 		},
+		
+// 		getToolProperty: function(serverTool,name) {
+// 			var tool = App.TaskRunner.get(serverTool);
+// 			if(tool) {
+// 				return tool.prototype[name];
+// 			}
+// 		},
+		
+// 		register : function(serverTool, config) {
+// 			this.serverTools[serverTool] = config;
+// 		},
+// 	},
+// });
+
+// /**
+//  * @member App
+//  * Shortcut for {@link App.TaskRunner#run}
+//  */
+// App.runTask = function() {
+// 	App.TaskRunner.run.apply(App.TaskRunner, arguments);
+// }
+
+// /**
+//  * @class App.TaskRunner.BaseTask
+//  * Represents a Task running on the server
+//  */
+// Ext.define('App.TaskRunner.Task', {
+// 	extend : 'Ext.data.Model',
+// 	endpoint : '',
+// 	iconCls : '',
+// 	timeout : 6000 * 60 * 1000,
+// 	fields : [{
+// 		name : 'tool',
+// 		type : 'string',
+// 	}, {
+// 		name : 'startDate',
+// 		type : 'date',
+// 	}, {
+// 		name : 'endDate',
+// 		type : 'date'
+// 	}, {
+// 		name : 'target',
+// 		type : 'string',
+// 	}],
+// 	/**
+// 	 * @cfg {String[]} openOnEnd
+// 	 * String of filenames. If a `node` property is specified, when the {@link App#filesTree files tree} is reloaded,
+// 	 * looks for these filenames and opens them if they now exist.
+// 	 */
+
+// 	/**
+// 	 * Custom callback to be applied upon success or failure of the task. Note: if a `callback` parameter is provided to #start,
+// 	 * this callback will be ignored.
+// 	 * 
+// 	 * @param  {String} responseText 
+// 	 * Text of the server's response
+// 	 * 
+// 	 * @param  {Object} arguments 
+// 	 * Original arguments passed to the task on #starte 
+// 	 * 
+// 	 * @param  {Boolean} success 
+// 	 * true if the task completed successfully, false otherwise
+// 	 */
+// 	callback : function(responseText, arguments, success) {
+// 		return;
+// 	},
+// 	/**
+// 	 * Logs the given message in a custom console group, named by {@link #getGroupName}
+// 	 */
+// 	log : function(msg, opts) {
+// 		opts || ( opts = {});
+// 		Ext.apply(opts, {
+// 			group : this.getGroupName(),
+// 			iconCls : this.iconCls,
+// 			silent: true,
+// 		});
+// 		App.log(msg, opts);
+// 	},
+// 	/**
+// 	 * Starts the task running on the server
+// 	 * @param {Object} args Arguments to be passed to the tool running on the server.
+// 	 * @param {Function} callback Callback to be invoked upon task completion. See documentation at #callback.
+// 	 */
+// 	start : function(args, callback, options) {
+
+// 	},
+// 	/**
+// 	 * Override this callback to provide custom logic on start of the task. By default, opens a log window and prints a message that the task has begun.
+// 	 */
+// 	onStart : function() {
+// 		this.log(Ext.String.format("Starting task '{0}' at {1} on '{2}'",this.name,this.get('startDate'),this.get('target')), {});
+// 	},
+
+// 	*
+// 	 * Override this callback to provide custom logic on task end. By default, logs output and, if a `node` argument is 
+// 	 * specified, refreshes that branch of the {@link App.ui.FilesTree}
+// 	 * 
+// 	 * @param  {String} responseText 
+// 	 * Text of the server's response
+// 	 * 
+// 	 * @param  {Object} arguments 
+// 	 * Original arguments passed to the task on #starte 
+// 	 * 
+// 	 * @param  {Boolean} success 
+// 	 * true if the task completed successfully, false otherwise
+	 
+// 	onEnd : function(out, st, args) {
+// 		this.log(out);
+// 		this.log(Ext.String.format("Completed task '{0}' at {1} on '{2}'",this.name,this.get('endDate'),this.get('target')),{});
+// 		if(this.arguments && this.arguments.node) {
+// 			var path = App.Path.pop(this.arguments.node);
+// 			App.ui.filesTree.refreshDocument(App.DocumentStore.tree.getNodeById(path),function(recs,operation,success) {
+// 				/**
+// 				 * @event refresh
+// 				 * Fires after the task has completed if files in the `node` parameter were reloaded.
+// 				 * 
+// 				 * @param {Ext.data.Model[]} recs Re-loaded records
+// 				 * @param {Ext.data.Operation} operation Operation object representing the reload action
+// 				 * @param {Boolean} success True if the reload was successful
+// 				 */
+// 				this.fireEvent('refresh',recs,operation,success);
+
+// 				if(this.openOnEnd && success) {
+// 					this.openFiles(this.openOnEnd,recs);
+// 				}
+// 			},this);
+// 		}
+// 	},
+
+// 	/**
+// 	 * Attempts to find records in `recs` with file names in `openOnEnd`, and open them.
+// 	 * @param  {String[]} openOnEnd File names to search for
+// 	 * @param  {App.Document[]} recs Records to search within
+// 	 */
+// 	openFiles: function(openOnEnd,recs) {
+// 		for(var i=0; i<openOnEnd.length; i++) {
+// 			var target = openOnEnd[i], child;
+// 			for(var j=0; (j<recs.length && !child); j++) {
+// 				if(recs[j].get('node') == target) {
+// 					child = recs[j];
+// 				} else {
+// 					//child = recs[j].findChild('node',target);
+// 				}
+// 			}
+// 			if(child) {
+// 				App.ui.filesTree.open(child);
+// 			}
+// 		}
+// 	},
+
+// 	/**
+// 	 * Called upon task completion
+// 	 */
+// 	end : function(text, args, success) {
+// 		this.set('endDate',new Date());
+// 		this.onEnd(text, args, success);
+// 		if(Ext.isFunction(this.callback)) {
+// 			this.callback(text, this.arguments, success);
+// 		}
+// 	},
+// 	/**
+// 	 * Returns the name of the tool concatenated with the start date
+// 	 */
+// 	getNameTimestamp: function() {
+// 		return this.get('tool')+': '+this.get('startDate')+'';
+// 	},
+// 	/**
+// 	 * Returns the name to display as the title of the group in the {@link Ext.debug.LogPanel}
+// 	 */
+// 	getGroupName : function() {
+// 		return this.getNameTimestamp() + ' (' + (this.arguments.node ? this.arguments.node : 'no path') + ')'
+// 	},
+	
+// });
+
+// /**
+//  * @class App.TaskRunner.Task
+//  * Represents a Task running on the server
+//  */
+// Ext.define('App.TaskRunner.Task', {
+// 	extend : 'App.TaskRunner.BaseTask',
+// 	/**
+// 	 * Starts the task running on the server
+// 	 * @param {Object} args Arguments to be passed to the tool running on the server.
+// 	 * @param {Function} callback Callback to be invoked upon task completion. See documentation at #callback.
+// 	 */
+// 	start : function(args, callback, options) {
+// 		/**
+// 		 * Hash of arguments to be sent to server
+// 		 * @type {Object}
+// 		 */
+// 		this.arguments = (args || {});
+// 		this.callback = (callback || this.callback);
+// 		this.onStart();
+
+
+// 		var req = Ext.Ajax.request({
+// 			url : this.endpoint,  //'/canvas/index.php/workspaces/save',
+// 			method : 'POST',
+// 			params : args,
+// 			timeout : this.timeout,
+// 			success : function(res) {
+// 				this.end(res.responseText, args, true);
+// 			},
+// 			failure : function(res) {
+// 				this.end(res.responseText, args, false);
+// 				if(res.timedout == 0) {
+// 					this.log(Ext.String.format('Error running task on tool: "{0}". Timeout at {1} s ({2} ms)',this.name,(this.timeout / 1000),this.timeout));
+// 				} else {
+// 					this.log(Ext.String.format('Error running task on tool: "{0}". {1}',this.name,res.responseText));
+// 				}
+// 			},
+// 			scope : this
+// 		});
+// 		Ext.Ajax.clearTimeout(req);
+// 	},
+// 	/**
+// 	 * Override this callback to provide custom logic on start of the task. By default, opens a log window and prints a message that the task has begun.
+// 	 */
+// 	onStart : function() {
+// 		this.log(Ext.String.format("Starting task '{0}' at {1} on '{2}'",this.name,this.get('startDate'),this.get('target')), {});
+// 	},
+
+// 	/**
+// 	 * Override this callback to provide custom logic on task end. By default, logs output and, if a `node` argument is 
+// 	 * specified, refreshes that branch of the {@link App.ui.FilesTree}
+// 	 * 
+// 	 * @param  {String} responseText 
+// 	 * Text of the server's response
+// 	 * 
+// 	 * @param  {Object} arguments 
+// 	 * Original arguments passed to the task on #starte 
+// 	 * 
+// 	 * @param  {Boolean} success 
+// 	 * true if the task completed successfully, false otherwise
+// 	 */
+// 	onEnd : function(out, st, args) {
+// 		this.log(out);
+// 		this.log(Ext.String.format("Completed task '{0}' at {1} on '{2}'",this.name,this.get('endDate'),this.get('target')),{});
+// 		if(this.arguments && this.arguments.node) {
+// 			var path = App.Path.pop(this.arguments.node);
+// 			App.ui.filesTree.refreshDocument(App.DocumentStore.tree.getNodeById(path),function(recs,operation,success) {
+// 				/**
+// 				 * @event refresh
+// 				 * Fires after the task has completed if files in the `node` parameter were reloaded.
+// 				 * 
+// 				 * @param {Ext.data.Model[]} recs Re-loaded records
+// 				 * @param {Ext.data.Operation} operation Operation object representing the reload action
+// 				 * @param {Boolean} success True if the reload was successful
+// 				 */
+// 				this.fireEvent('refresh',recs,operation,success);
+
+// 				if(this.openOnEnd && success) {
+// 					this.openFiles(this.openOnEnd,recs);
+// 				}
+// 			},this);
+// 		}
+// 	},
+// 	/**
+// 	 * Called upon task completion
+// 	 */
+// 	end : function(text, args, success) {
+// 		this.set('endDate',new Date());
+// 		this.onEnd(text, args, success);
+// 		if(Ext.isFunction(this.callback)) {
+// 			this.callback(text, this.arguments, success);
+// 		}
+// 	},
+// });
+
+// App.TaskRunner.taskStore = Ext.create('Ext.data.Store', {
+// 	model : 'App.TaskRunner.Task',
+// 	proxy : {
+// 		type : 'memory',
+// 		reader : 'json'
+// 	},
+// 	data : []
+// });
+
+
+/* ----------------------------------------------------------------------- */
 
 /**
- * @class App.TaskRunner
+ * @class App.LiveTaskRunner
  * Runs tasks on the server
  */
-Ext.define('App.TaskRunner', {
+Ext.define('App.LiveTaskRunner', {
 	statics : {
 		/**
-		 * Defines subclasses of {@link App.TaskRunner.Task} as members of {@link App.TaskRunner}. Called by server code
+		 * Defines subclasses of {@link App.LiveTaskRunner.Task} as members of {@link App.LiveTaskRunner}. Called by server code
 		 * in order to make configured server tools available on the client.
 		 * @param {Object[]} tasks 
 		 * A list of task configuration objects. Each task configuration object may contain the options below, as well as
-		 * any arbitrary code to override members of the {@link App.TaskRunner.Task Task} class.
+		 * any arbitrary code to override members of the {@link App.LiveTaskRunner.Task Task} class.
 		 *
 		 * @param {String} tasks.route Relative URL on the server at which the task may be started
 		 * @param {String} tasks.name Name of the task
@@ -360,8 +729,8 @@ Ext.define('App.TaskRunner', {
 				name[name.length - 1] = _.last(name).capitalize();
 				name = name.join('.');
 
-				Ext.define('App.TaskRunner.' + name, Ext.apply(def, {
-					extend : 'App.TaskRunner.Task'
+				Ext.define('App.LiveTaskRunner.' + name, Ext.apply(def, {
+					extend : 'App.LiveTaskRunner.Task'
 				}, {
 					iconCls : iconCls,
 				}));
@@ -371,7 +740,7 @@ Ext.define('App.TaskRunner', {
 		/**
 		 * Runs a task using the given `serverTool`
 		 * @param {String} serverTool 
-		 * Name of a member of App.TaskRunner; must be configred by server code calling {@link #loadTools}
+		 * Name of a member of App.LiveTaskRunner; must be configred by server code calling {@link #loadTools}
 		 * 
 		 * @param {Object} [args] 
 		 * Arguments to pass to the tool
@@ -383,12 +752,12 @@ Ext.define('App.TaskRunner', {
 		 * Scope in which to execute the callback
 		 * 
 		 * @param {Object} [config={}] 
-		 * Contains arbitrary additional configuration options for the {@link App.TaskRunner.Task subclass}. Note:
+		 * Contains arbitrary additional configuration options for the {@link App.LiveTaskRunner.Task subclass}. Note:
 		 * these properties will be directly {@link Ext.apply applied} to the object, rather than passed as 
-		 * a configuration object, since App.TaskRunner.Task will interpret configuration objects as model fields.
+		 * a configuration object, since App.LiveTaskRunner.Task will interpret configuration objects as model fields.
 		 *
-		 * @return {App.TaskRunner.Task/Boolean} 
-		 * If the `serverTool` exists, returns the App.TaskRunner.Task instance
+		 * @return {App.LiveTaskRunner.Task/Boolean} 
+		 * If the `serverTool` exists, returns the App.LiveTaskRunner.Task instance
 		 */
 		run : function(serverTool, args, callback, scope, config) {
 			args || (args = {});
@@ -397,8 +766,8 @@ Ext.define('App.TaskRunner', {
 				callback = Ext.bind(callback,scope);
 			}
 
-			if(Ext.ClassManager.get(['App.TaskRunner',serverTool].join('.'))) {
-				var startDate = new Date(), target = 'local', task = Ext.create('App.TaskRunner.' + serverTool, {
+			if(Ext.ClassManager.get(['App.LiveTaskRunner',serverTool].join('.'))) {
+				var startDate = new Date(), target = 'local', task = Ext.create('App.LiveTaskRunner.' + serverTool, {
 					tool : serverTool,
 					startDate : startDate,
 					target : target,
@@ -407,22 +776,24 @@ Ext.define('App.TaskRunner', {
 				
 				this.taskStore.add(task);
 				task.start(args, callback);
+
+
 				return task;
 			}
 			return false;
 		},
 		
 		/**
-		 * Gets the App.TaskRunner.Task subclass associated with the passed server tool name.
+		 * Gets the App.LiveTaskRunner.Task subclass associated with the passed server tool name.
 		 * @param {String} serverTool 
-		 * @return {App.TaskRunner.Task}
+		 * @return {App.LiveTaskRunner.Task}
 		 */
 		get: function(serverTool) {
-			return Ext.ClassManager.get(['App.TaskRunner',Ext.String.capitalize(serverTool)].join('.'));
+			return Ext.ClassManager.get(['App.LiveTaskRunner',Ext.String.capitalize(serverTool)].join('.'));
 		},
 		
 		getToolProperty: function(serverTool,name) {
-			var tool = App.TaskRunner.get(serverTool);
+			var tool = App.LiveTaskRunner.get(serverTool);
 			if(tool) {
 				return tool.prototype[name];
 			}
@@ -432,20 +803,83 @@ Ext.define('App.TaskRunner', {
 			this.serverTools[serverTool] = config;
 		},
 	},
+}, function () {
+	App.TaskRunner = App.LiveTaskRunner;
+	App.on('load',function () {
+
+		App.LiveTaskRunner.bus = Ext.create('App.LiveTaskRunner.StreamingBus',{});
+
+		// App.LiveTaskRunner.tasks.on('data',function (data) {
+		// 	App.log(data,{'group':'Socket.io Tasks'});
+		// })
+	});
 });
+
+Ext.define('App.LiveTaskRunner.StreamingBus',{
+	extend:'Ext.util.Observable',
+	constructor: function () {
+		var me = this;
+
+		this.callParent(arguments);
+
+		// Connect to the server with socket.io
+		this.taskStream = io.connect('/tasks');
+
+		// Listen for events from the server assigning a permanent id to tasks
+		this.taskStream.on('identify',function (data) {
+			var rec = App.LiveTaskRunner.taskStore.findRecord('tempId',data.tempId);
+			if(rec) { rec.set('taskId',data.taskId); }
+		})
+
+		// Listen for events from server providing data
+		this.taskStream.on('stream', function (payload) {
+			var task = me.findTask(payload);
+			if(task) {
+				// TODO: buffer data in case the taskId comes later
+				task.onData(payload.data);
+			}
+		});
+
+		this.taskStream.on('error',function (payload) {
+			var task = me.findTask(payload);
+			if(task) {
+				// TODO: buffer data in case the taskId comes later
+				task.onError(payload.data);
+			}	
+		});
+
+		this.taskStream.on('end',function(payload) {
+			var task = App.LiveTaskRunner.taskStore.findRecord('taskId',payload.taskId);
+			if(task) {
+				task.end(payload.data);
+			}
+		});
+	},
+	findTask: function(payload) {
+		var taskId = this.taskIdFromRoom(payload.room);
+		return App.LiveTaskRunner.taskStore.findRecord('taskId',taskId);
+	},
+	taskIdFromRoom: function (room) {
+		return _.last(room.split('task/'));
+	},
+	emit: function () {
+		this.taskStream.emit.apply(this.taskStream,arguments);
+	}
+})
 
 /**
  * @member App
- * Shortcut for {@link App.TaskRunner#run}
+ * Shortcut for {@link App.LiveTaskRunner#run}
  */
 App.runTask = function() {
-	App.TaskRunner.run.apply(App.TaskRunner, arguments);
+	App.LiveTaskRunner.run.apply(App.LiveTaskRunner, arguments);
 }
+
 /**
- * @class App.TaskRunner.Task
+ * @class App.TaskRunner.BaseTask
  * Represents a Task running on the server
  */
-Ext.define('App.TaskRunner.Task', {
+Ext.define('App.TaskRunner.BaseTask', {
 	extend : 'Ext.data.Model',
 	endpoint : '',
 	iconCls : '',
@@ -461,6 +895,12 @@ Ext.define('App.TaskRunner.Task', {
 		type : 'date'
 	}, {
 		name : 'target',
+		type : 'string',
+	},{
+		name : 'taskId',
+		type : 'string',
+	},{
+		name : 'tempId',
 		type : 'string',
 	}],
 	/**
@@ -486,6 +926,17 @@ Ext.define('App.TaskRunner.Task', {
 		return;
 	},
 	/**
+	 * @private 
+	 * Called to pass data into the Task
+	 * @param  {Object} data Incoming data
+	 */
+	onData: function(data) {
+
+	},
+	onError: function (data) {
+		
+	},
+	/**
 	 * Logs the given message in a custom console group, named by {@link #getGroupName}
 	 */
 	log : function(msg, opts) {
@@ -503,32 +954,7 @@ Ext.define('App.TaskRunner.Task', {
 	 * @param {Function} callback Callback to be invoked upon task completion. See documentation at #callback.
 	 */
 	start : function(args, callback, options) {
-		/**
-		 * Hash of arguments to be sent to server
-		 * @type {Object}
-		 */
-		this.arguments = (args || {});
-		this.callback = (callback || this.callback);
-		this.onStart();
-		var req = Ext.Ajax.request({
-			url : this.endpoint,  //'/canvas/index.php/workspaces/save',
-			method : 'POST',
-			params : args,
-			timeout : this.timeout,
-			success : function(res) {
-				this.end(res.responseText, args, true);
-			},
-			failure : function(res) {
-				this.end(res.responseText, args, false);
-				if(res.timedout == 0) {
-					this.log(Ext.String.format('Error running task on tool: "{0}". Timeout at {1} s ({2} ms)',this.name,(this.timeout / 1000),this.timeout));
-				} else {
-					this.log(Ext.String.format('Error running task on tool: "{0}". {1}',this.name,res.responseText));
-				}
-			},
-			scope : this
-		});
-		Ext.Ajax.clearTimeout(req);
+
 	},
 	/**
 	 * Override this callback to provide custom logic on start of the task. By default, opens a log window and prints a message that the task has begun.
@@ -619,45 +1045,102 @@ Ext.define('App.TaskRunner.Task', {
 	
 });
 
-// Ext.define('App.TaskRunner.Pepper', {
-// extend : 'App.TaskRunner.Task',
-// name : 'Pepper Compiler',
-// iconCls : 'pepper',
-// endpoint : '/pepper',
-// });
-// Ext.define('App.TaskRunner.NupackAnalysis', {
-// extend : 'App.TaskRunner.Task',
-// name : 'NUPACK Complex Analysis',
-// iconCls : 'nupack-icon',
-// endpoint : '/nupack/analysis',
-// });
-// Ext.define('App.TaskRunner.NupackPairwise', {
-// extend : 'App.TaskRunner.Task',
-// name : 'NUPACK Pairwise Analysis',
-// iconCls : 'nupack-icon',
-// endpoint : '/nupack/pairwise',
-// });
-// Ext.define('App.TaskRunner.NupackSubsets', {
-// extend : 'App.TaskRunner.Task',
-// name : 'NUPACK Subsets Analysis',
-// iconCls : 'nupack-icon',
-// endpoint : '/nupack/subsets',
-// });
-// Ext.define('App.TaskRunner.Spurious', {
-// extend : 'App.TaskRunner.Task',
-// name : 'SpuriousC Design',
-// iconCls : 'seq',
-// endpoint : '/spurious',
-// });
+/**
+ * @class App.LiveTaskRunner.Task
+ * Represents a Task running on the server
+ */
+Ext.define('App.LiveTaskRunner.Task', {
+	extend : 'App.TaskRunner.BaseTask',
+	/**
+	 * Starts the task running on the server
+	 * @param {Object} args Arguments to be passed to the tool running on the server.
+	 * @param {Function} callback Callback to be invoked upon task completion. See documentation at #callback.
+	 */
+	start : function(args, callback, options) {
+		/**
+		 * Hash of arguments to be sent to server
+		 * @type {Object}
+		 */
+		this.arguments = (args || {});
+		this.callback = (callback || this.callback);
+		this.onStart();
 
-App.TaskRunner.taskStore = Ext.create('Ext.data.Store', {
-	model : 'App.TaskRunner.Task',
+		// create a temporary identifier
+		var identifier = App.nextId();
+		this.set('tempId',identifier);
+
+		App.LiveTaskRunner.bus.emit('start',{toolName: this.module, data:args, tempId: identifier  });
+
+	},
+	/**
+	 * Override this callback to provide custom logic on start of the task. By default, opens a log window and prints a message that the task has begun.
+	 */
+	onStart : function() {
+		this.log(Ext.String.format("Starting task '{0}' at {1} on '{2}'",this.name,this.get('startDate'),this.get('target')), {});
+	},
+	onData: function (data) {
+		this.log(data);	
+	},
+	/**
+	 * Override this callback to provide custom logic on task end. By default, logs output and, if a `node` argument is 
+	 * specified, refreshes that branch of the {@link App.ui.FilesTree}
+	 * 
+	 * @param  {String} responseText 
+	 * Text of the server's response
+	 * 
+	 * @param  {Object} arguments 
+	 * Original arguments passed to the task on #starte 
+	 * 
+	 * @param  {Boolean} success 
+	 * true if the task completed successfully, false otherwise
+	 */
+	onEnd : function(out, st, args) {
+		this.log(out);
+		this.log(Ext.String.format("Completed task '{0}' at {1} on '{2}'",this.name,this.get('endDate'),this.get('target')),{});
+		if(this.arguments && this.arguments.node) {
+			var path = App.Path.pop(this.arguments.node);
+			App.ui.filesTree.refreshDocument(App.DocumentStore.tree.getNodeById(path),function(recs,operation,success) {
+				/**
+				 * @event refresh
+				 * Fires after the task has completed if files in the `node` parameter were reloaded.
+				 * 
+				 * @param {Ext.data.Model[]} recs Re-loaded records
+				 * @param {Ext.data.Operation} operation Operation object representing the reload action
+				 * @param {Boolean} success True if the reload was successful
+				 */
+				this.fireEvent('refresh',recs,operation,success);
+
+				if(this.openOnEnd && success) {
+					this.openFiles(this.openOnEnd,recs);
+				}
+			},this);
+		}
+	},
+	/**
+	 * Called upon task completion
+	 */
+	end : function(text, args, success) {
+		this.set('endDate',new Date());
+		this.onEnd(text, args, success);
+		if(Ext.isFunction(this.callback)) {
+			this.callback(text, this.arguments, success);
+		}
+	},
+});
+
+App.LiveTaskRunner.taskStore = Ext.create('Ext.data.Store', {
+	model : 'App.LiveTaskRunner.Task',
 	proxy : {
 		type : 'memory',
 		reader : 'json'
 	},
 	data : []
 });
+
+
+/* ----------------------------------------------------------------------- */
+
+
 
 /**
  * @class App.Stylesheet

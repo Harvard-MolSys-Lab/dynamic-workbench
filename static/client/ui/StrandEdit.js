@@ -875,6 +875,159 @@ Ext.define('App.ui.EditComplexPanel', {
 	},
 })
 
+Ext.define('App.ui.StrandsGrid',{
+	extend: 'Ext.grid.Panel',
+	alias: 'widget.strandsgrid',
+	initComponent: function () {
+		this.strandEditor = Ext.create('Ext.grid.plugin.CellEditing', {
+			clicksToEdit: 1
+		});
+		Ext.apply(this,{
+			tbar: [{
+				text: 'Add',
+				iconCls: 'plus',
+				handler: this.doAddStrand,
+				scope: this,
+			},{
+				text: 'Edit',
+				iconCls: 'pencil',
+				handler: this.doEditStrand,
+				scope: this,
+			},{
+				text: 'Delete',
+				iconCls: 'delete',
+				handler: this.doDeleteStrand,
+				scope: this,
+			}],
+
+			columns: [{
+				text: 'Name',
+				dataIndex: 'name',
+				allowBlank: false,
+				width: 90,
+			}, {
+				text: 'Sequence',
+				dataIndex: 'sequence',
+				allowBlank: false,
+				renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
+					var spec = record.getParsedSpec(),
+						pos = 0,
+						// base-wise index within strand, updated as we iterate below
+						segmentMap = record.store.getSegmentMapWithComplements(),
+						out = [],
+						renderer = CodeMirror.getModeRenderer('sequence', {
+							renderer: function(text, style, col) {
+								var index = pos + col - 1;
+								if(style) return "<span class='sequence-base cm-" + style + "' data-base-index='" + index + "'>" + text + "</span>"
+								else return "<span class='sequence-base' data-base-index='" + index + "'>" + text + "</span>"
+
+							}
+						});
+
+					for(var i = 0; i < spec.length; i++) {
+						var dom = spec[i];
+						for(var j = 0; j < dom.segments.length; j++) {
+							var seg = dom.segments[j],
+								seq = segmentMap[DNA.makeIdentifier(seg.identity, seg.polarity)];
+							out.push('<span class="sequence-segment" data-segment-identity="' + seg.identity + '" data-segment-polarity="' + seg.polarity + '">' + renderer(seq) + '</span>');
+							pos += seq.length;
+						}
+					}
+					return out.join('');
+				},
+				scope: this,
+				flex: 1,
+			}, {
+				text: 'Segments',
+				dataIndex: 'spec',
+				field: {
+					xtype: 'textfield',
+					validator: Ext.bind(function(value) {
+						var segmentMap = this.getSegmentMap();
+						var doms = App.dynamic.Compiler.parseDomainString(value,/*parseIdentifier*/ true);
+						for(var i=0; i<doms.length; i++) {
+							var segs = doms[i].segments;
+							for(var j=0; j<segs.length; j++) {
+								var seg = segs[j];
+								if(!segmentMap[seg.identity]) {
+									return "Unknown segment: '"+seg.identity+"'";
+								}
+							}
+						}
+						return true;
+					},this),
+					listeners: {
+						// 'focus': {
+						// 	fn: function onFocus (cmp,e) {
+						// 		cmp.origVal = cmp.getValue();
+						// 	},
+						// 	scope: this,
+						// }
+						// 'blur':  {
+						// 	fn: function onBlur (cmp,e) {
+						// 		var value = cmp.getValue();
+						// 		if(value != cmp.origVal && cmp.isValid()) {
+
+						// 		}
+						// 		delete cmp.origVal;
+						// 	},
+						// 	scope: this,
+						// }
+					}
+				},
+				renderer: function(str) {
+					var spec = App.dynamic.Compiler.parseDomainString(str);
+					return _.map(spec,function(dom) {
+						return '<div class="domain-glyph domain-glyph-'+dom.role+'"><span class="domain-glyph-name">'+dom.name+'</span>'+
+							_.map(dom.segments,function(seg) { return '<span class="segment-glyph segment-glyph-'+seg.role+'">'+seg.name+'</span>' }).join(' ')+'</div>'
+					}).join(' ');
+				}, // CodeMirror.modeRenderer('dil-domains', 'cm-s-default'),
+				flex: 1,
+			}, {
+				text: 'Complex',
+				dataIndex: 'complex'
+			}, ],
+			plugins: [this.strandEditor],
+		});
+
+		this.callParent(arguments);
+	},
+
+	highlightSegment: function(identity, polarity) {
+		if(polarity === undefined) polarity = 1;
+		var el = this.getEl();
+		el.select('[data-segment-identity="' + identity + '"][data-segment-polarity="' + polarity + '"]').addCls('sequence-highlight');
+		el.select('[data-segment-identity="' + identity + '"][data-segment-polarity="' + (-1 * polarity) + '"]').addCls('sequence-highlight-complement');
+	},
+	unhighlightSegment: function() {
+		var el = this.getEl();
+		el.select('.sequence-highlight').removeCls('sequence-highlight');
+		el.select('.sequence-highlight-complement').removeCls('sequence-highlight-complement');
+	},
+	addStrand: function() {
+		return _.first(this.strandStore.addStrand());
+	},
+	doAddStrand: function() {
+		var rec = this.addStrand();
+		this.editStrand(rec);
+	},
+	editStrand: function editStrand (rec) {
+		rec || (rec = this.strandsGrid.getSelectionModel().getLastSelected());
+		if (rec) {
+			this.strandEditor.startEdit(rec, this.strandsGrid.headerCt.getHeaderAtIndex(2));
+		}
+	},
+	doEditStrand: function() {
+		return this.editStrand();
+	},
+	deleteStrand: function deleteStrand (rec) {
+		// body...
+	},
+	doDeleteStrand: function() {
+		return this.deleteStrand();
+	},
+})
+
 Ext.define('App.ui.StrandEdit', {
 	extend: 'Ext.panel.Panel',
 	layout: 'border',
@@ -904,12 +1057,7 @@ Ext.define('App.ui.StrandEdit', {
 		this.complexStore = Ext.create('App.ui.ComplexStore', {
 			strandStore: this.strandStore
 		});
-
 		this.segmentEditor = Ext.create('Ext.grid.plugin.CellEditing', {
-			clicksToEdit: 1
-		});
-
-		this.strandEditor = Ext.create('Ext.grid.plugin.CellEditing', {
 			clicksToEdit: 1
 		});
 
@@ -1013,7 +1161,7 @@ Ext.define('App.ui.StrandEdit', {
 				}]
 			}],
 			items: [{
-				xtype: 'grid',
+				xtype: 'strandsgrid',
 				name: 'strandsGrid',
 				store: this.strandStore,
 				region: 'south',
@@ -1022,124 +1170,6 @@ Ext.define('App.ui.StrandEdit', {
 				title: 'Strands',
 				height: 200,
 				split: true,
-
-				tbar: [{
-					text: 'Add',
-					iconCls: 'plus',
-					handler: this.doAddStrand,
-					scope: this,
-				},{
-					text: 'Edit',
-					iconCls: 'pencil',
-					handler: this.doEditStrand,
-					scope: this,
-				},{
-					text: 'Delete',
-					iconCls: 'delete',
-					handler: this.doDeleteStrand,
-					scope: this,
-				}],
-
-				columns: [{
-					text: 'Name',
-					dataIndex: 'name',
-					allowBlank: false,
-					width: 90,
-				}, {
-					text: 'Sequence',
-					dataIndex: 'sequence',
-					allowBlank: false,
-					renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
-						var spec = record.getParsedSpec(),
-							pos = 0,
-							// base-wise index within strand, updated as we iterate below
-							segmentMap = record.store.getSegmentMapWithComplements(),
-							out = [],
-							renderer = CodeMirror.getModeRenderer('sequence', {
-								renderer: function(text, style, col) {
-									var index = pos + col - 1;
-									if(style) return "<span class='sequence-base cm-" + style + "' data-base-index='" + index + "'>" + text + "</span>"
-									else return "<span class='sequence-base' data-base-index='" + index + "'>" + text + "</span>"
-
-								}
-							});
-
-						for(var i = 0; i < spec.length; i++) {
-							var dom = spec[i];
-							for(var j = 0; j < dom.segments.length; j++) {
-								var seg = dom.segments[j],
-									seq = segmentMap[DNA.makeIdentifier(seg.identity, seg.polarity)];
-								out.push('<span class="sequence-segment" data-segment-identity="' + seg.identity + '" data-segment-polarity="' + seg.polarity + '">' + renderer(seq) + '</span>');
-								pos += seq.length;
-							}
-						}
-						return out.join('');
-					},
-					scope: this,
-					flex: 1,
-				}, {
-					text: 'Segments',
-					dataIndex: 'spec',
-					field: {
-						xtype: 'textfield',
-						validator: Ext.bind(function(value) {
-							var segmentMap = this.getSegmentMap();
-							var doms = App.dynamic.Compiler.parseDomainString(value,/*parseIdentifier*/ true);
-							for(var i=0; i<doms.length; i++) {
-								var segs = doms[i].segments;
-								for(var j=0; j<segs.length; j++) {
-									var seg = segs[j];
-									if(!segmentMap[seg.identity]) {
-										return "Unknown segment: '"+seg.identity+"'";
-									}
-								}
-							}
-							return true;
-						},this),
-						listeners: {
-							// 'focus': {
-							// 	fn: function onFocus (cmp,e) {
-							// 		cmp.origVal = cmp.getValue();
-							// 	},
-							// 	scope: this,
-							// }
-							// 'blur':  {
-							// 	fn: function onBlur (cmp,e) {
-							// 		var value = cmp.getValue();
-							// 		if(value != cmp.origVal && cmp.isValid()) {
-
-							// 		}
-							// 		delete cmp.origVal;
-							// 	},
-							// 	scope: this,
-							// }
-						}
-					},
-					renderer: function(str) {
-						var spec = App.dynamic.Compiler.parseDomainString(str);
-						return _.map(spec,function(dom) {
-							return '<div class="domain-glyph domain-glyph-'+dom.role+'"><span class="domain-glyph-name">'+dom.name+'</span>'+
-								_.map(dom.segments,function(seg) { return '<span class="segment-glyph segment-glyph-'+seg.role+'">'+seg.name+'</span>' }).join(' ')+'</div>'
-						}).join(' ');
-					}, // CodeMirror.modeRenderer('dil-domains', 'cm-s-default'),
-					flex: 1,
-				}, {
-					text: 'Complex',
-					dataIndex: 'complex'
-				}, ],
-				plugins: [this.strandEditor],
-				highlightSegment: function(identity, polarity) {
-					if(polarity === undefined) polarity = 1;
-					var el = this.getEl();
-					el.select('[data-segment-identity="' + identity + '"][data-segment-polarity="' + polarity + '"]').addCls('sequence-highlight');
-					el.select('[data-segment-identity="' + identity + '"][data-segment-polarity="' + (-1 * polarity) + '"]').addCls('sequence-highlight-complement');
-				},
-				unhighlightSegment: function() {
-					var el = this.getEl();
-					el.select('.sequence-highlight').removeCls('sequence-highlight');
-					el.select('.sequence-highlight-complement').removeCls('sequence-highlight-complement');
-
-				},
 			}, {
 				xtype: 'grid',
 				name: 'segmentsGrid',
@@ -1266,8 +1296,6 @@ Ext.define('App.ui.StrandEdit', {
 			buffer: 10,
 		});
 
-
-
 		this.on('afterrender', function() {
 			this.strandsGrid.getEl().on('mouseover', function(e, el) {
 				var identity = el.getAttribute('data-segment-identity'),
@@ -1277,13 +1305,23 @@ Ext.define('App.ui.StrandEdit', {
 				delegate: 'span.sequence-segment'
 			});
 
+			// this.strandsGrid.getEl().on('mouseover', function(e, el) {
+			// 	el.addCls('sequence-base-hover');
+			// }, this, {
+			// 	delegate: 'span.sequence-base'
+			// });
+			// this.strandsGrid.getEl().on('mouseout', function(e, el) {
+			// 	el.removeCls('sequence-base-hover');
+			// }, this, {
+			// 	delegate: 'span.sequence-base'
+			// });
+
 			this.tip = Ext.create('Ext.tip.ToolTip', {
 				target: this.strandsGrid.getEl(),
 				delegate: 'span.sequence-base',
 				trackMouse: true,
 				showDelay: false,
 				renderTo: Ext.getBody(),
-				title: ' ',
 				listeners: {
 					// Change content dynamically depending on which element triggered the show.
 					beforeshow: {
@@ -1291,9 +1329,10 @@ Ext.define('App.ui.StrandEdit', {
 							var segmentElement = Ext.get(tip.triggerElement).up('span.sequence-segment'),
 								identity = segmentElement.getAttribute('data-segment-identity'),
 								polarity = segmentElement.getAttribute('data-segment-polarity'),
-								index = tip.triggerElement.getAttribute('data-base-index');
-							tip.setTitle(DNA.makeIdentifier(identity, polarity));
-							tip.update(index);
+								index = tip.triggerElement.getAttribute('data-base-index')+1;
+							//tip.setTitle(DNA.makeIdentifier(identity, polarity));
+							//tip.update(index + ' nt');
+							tip.update('Segment: <b>'+DNA.makeIdentifier(identity, polarity) + '</b> / Base: ' + index);
 							//this.fireEvent('updateSegmentHighlight',identity);
 						},
 						scope: this
@@ -1387,28 +1426,10 @@ Ext.define('App.ui.StrandEdit', {
 	doDeleteSegment: function() {
 		return this.deleteSegment();
 	},
-	addStrand: function() {
-		return _.first(this.strandStore.addStrand());
-	},
-	doAddStrand: function() {
-		var rec = this.addStrand();
-		this.editStrand(rec);
-	},
-	editStrand: function editStrand (rec) {
-		rec || (rec = this.strandsGrid.getSelectionModel().getLastSelected());
-		if (rec) {
-			this.strandEditor.startEdit(rec, this.strandsGrid.headerCt.getHeaderAtIndex(2));
-		}
-	},
-	doEditStrand: function() {
-		return this.editStrand();
-	},
-	deleteStrand: function deleteStrand (rec) {
+	deleteSegment: function (rec) {
 		// body...
 	},
-	doDeleteStrand: function() {
-		return this.deleteStrand();
-	},
+
 	addComplex: function() {
 		return _.first(this.complexStore.addComplex());
 	},
@@ -1425,9 +1446,7 @@ Ext.define('App.ui.StrandEdit', {
 	doEditComplex: function() {
 		this.editComplex();
 	},
-	deleteSegment: function (rec) {
-		// body...
-	},
+	
 	/**
 	 * Gets the names of strands, the structure, and the sequences for segments comprising a complex.
 	 * @param  {String/Complex} rec A record or name representing the complex in question

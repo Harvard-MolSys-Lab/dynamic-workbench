@@ -994,6 +994,111 @@ path.resting-state-hull {
 	border-color:#a3bae9;
 }
 
+.strand-glyph-well {
+	border: solid 1px silver;
+	padding: 5px 7px;
+	border-radius: 4px;
+}
+
+/* strand bubbles */
+
+.strand-glyph {
+border-width: 1px;
+border-style: solid;
+display: inline-block;
+padding: 1px 1px 1px 1px;
+border-radius: 3px;
+margin:3px 0px;
+/*line-height:1.8;*/
+}
+.strand-glyph-name {
+margin: -1px 5px -1px -1px;
+padding: 1px 6px 1px 4px;
+color: white;
+}
+.strand-glyph {
+	background-color: #ddd;
+	border-color: #777;
+}
+.strand-glyph .strand-glyph-name{
+	background-color: #777;
+}
+
+.strand-glyph-unknown {
+	background-color: #f99;
+	border-color: #c00;
+}
+.strand-glyph-unknown .strand-glyph-name{
+	background-color: #c00;
+}
+
+
+/* domain bubbles */
+
+.domain-glyph {
+border-width: 1px;
+border-style: solid;
+display: inline;
+padding: 1px;
+border-radius: 3px;
+}
+
+.domain-glyph-name {
+margin: -1px 5px -1px -1px;
+padding: 1px 6px 1px 4px;
+color: white;
+}
+
+/* null */
+.domain-glyph, .domain-glyph-null, .domain-glyph-structural {
+	background-color: #ddd;
+	border-color: #777;
+}
+.domain-glyph .domain-glyph-name, .domain-glyph-null .domain-glyph-name, .domain-glyph-structural .domain-glyph-name {
+	background-color: #777;
+}
+
+/* input */
+.domain-glyph-input {
+	background-color: #ffce73;
+	border-color: darkorange;
+}
+.domain-glyph-input .domain-glyph-name {
+	background-color: darkorange;
+}
+
+/* output */
+.domain-glyph-output {
+	background-color: #33ccff;
+	border-color: #1181a6;
+}
+.domain-glyph-output .domain-glyph-name {
+	background-color: #1181a6;
+}
+
+/* bridge */
+.domain-glyph-bridge {
+	background-color: #ff1177;
+	border-color: #a60649;
+}
+.domain-glyph-bridge .domain-glyph-name {
+	background-color: #a60649;
+}
+
+/* null */
+.domain-glyph-null, .domain-glyph-structural {
+	background-color: #ddd;
+	border-color: #777;
+}
+.domain-glyph-null .domain-glyph-name, .domain-glyph-structural .domain-glyph-name {
+	background-color: #777;
+}
+
+/* Segment glyphs */
+.segment-glyph-toehold {
+	text-decoration:underline;
+}
+
 /*
  * Fixes for ExtJS styles where 16 x 16px icons in tabs and panel headers are cut off at bottom
  */

@@ -654,8 +654,26 @@ Ext.define('App.ui.EditComplexWindow', {
 	height: 300,
 	renderTo: Ext.getBody(),
 	autoRender: false,
-	layout: 'border',
+	layout: 'fit',
+	border: false,
+	bodyBorder: false,
 
+	initComponent: function() {
+		Ext.apply(this,{
+			items: [Ext.create('App.ui.EditComplexPanel',{
+				complex: this.complex,
+				strandEditor: this.strandEditor,
+				segmentColors: this.segmentColors,
+			})]
+		});
+		this.callParent(arguments);
+	},
+
+});
+
+Ext.define('App.ui.EditComplexPanel', {
+	extend: 'Ext.panel.Panel',
+	layout: 'border',
 	border: false,
 	bodyBorder: false,
 	initComponent: function() {
@@ -676,15 +694,20 @@ Ext.define('App.ui.EditComplexWindow', {
 					labelAlign: 'top',
 					anchor: '100%',
 				},
-				items: [{
-					fieldLabel: 'Strands',
+				items: [
+				{
+					//fieldLabel: 'Strands',
 					xtype: 'textarea',
 					name: 'strandsField',
 					validator: Ext.bind(this.validateStrands, this),
-				}, {
-					fieldLabel: 'Segments',
+					// floating: true,
+					// autoRender: true,
+				},
+				 {
+					fieldLabel: 'Strands',
 					xtype: 'displayfield',
 					name: 'segmentsField',
+					cls: 'strand-glyph-well',
 				}, {
 					fieldLabel: 'Structure',
 					xtype: 'textarea',
@@ -699,32 +722,70 @@ Ext.define('App.ui.EditComplexWindow', {
 		this.formPanel = this.down('[name=formPanel]');
 		this.strandPreview = this.down('[name=strandPreview]');
 
-		this.strandsField = this.down('[name=strandsField]');
+
 		this.segmentsField = this.down('[name=segmentsField]');
 		this.structureField = this.down('[name=structureField]');
-		this.on('afterrender', this.updateData, this);
-		this.on('show',this.updateData,this);
+
+		this.strandsField = this.down('[name=strandsField]');
 		this.strandsField.on('blur',function() {
 			this.updateSegmentsView();
 		},this);
+		// this.strandsField = Ext.create('Ext.form.field.TextArea',{
+		// 	validator: Ext.bind(this.validateStrands, this),
+		// });
+		this.strandsFieldEditor = Ext.create('Ext.Editor',{
+			field: this.strandsField ,
+			hideEl: false,
+			autoSize: {
+				width:'boundEl',
+				height:'boundEl',
+			},
+			alignment: 'tl-tl?',
+		});
+		this.on('afterrender',function () {
+			this.segmentsField.getEl().on('click',function() {
+				this.strandsFieldEditor.startEdit(this.segmentsField.inputEl,this.complex.getStrands().join('+'));
+			},this);
+		});
+
+		this.on('afterrender', this.loadData, this);
+		this.on('show',this.loadData,this);
+		
 		this.formPanel.on('validitychange',function(panel,valid) {
 			if(valid) this.updateComplex();
 		},this,{buffer: 100});
 	},
-	updateData: function() {
+
+	/**
+	 * Loads #complexData for the record in #complex from the corresponding #strandEditor
+	 */
+	loadData: function() {
 		this.complexData = this.strandEditor.getComplexData(this.complex);
 
 		this.strandsField.setValue(this.complex.getStrands().join('+'));
 		this.structureField.setValue(this.complexData.structure);
 		this.updateView();
 	},
+
+	/**
+	 * Updates the record stored in #complex with the data from #getStrands and #getStructure.
+	 * Updates the #complexData and {@link #updateView updates the view}.
+	 */
+	updateComplex: function() {
+		this.complex.beginEdit();
+		this.complex.set('strands',this.getStrands());
+		this.complex.set('structure',this.getStructure());
+		this.complex.endEdit();
+		this.complexData = this.getComplexData(this.complex);
+		this.updateView();
+	},
+
 	updateView: function() {
+		var me = this;
 		if(!!this.segmentColors) this.strandPreview.segmentColors = this.segmentColors;
 		this.strandPreview.setValue(this.complexData);
 		this.segmentsField.setValue(_.map(this.complexData.strands, function(strand) {
-			return _.map(strand.segments, function(seg) {
-				return DNA.makeIdentifier(seg.identity, seg.polarity);
-			}).join(' ');
+			return me.buildStrandGlyph(strand);
 		}).join(' + '));	
 	},
 	updateSegmentsView: function() {
@@ -732,23 +793,24 @@ Ext.define('App.ui.EditComplexWindow', {
 			strands = this.getStrands();
 		this.segmentsField.setValue(_.map(strands,function(name) {
 			var strand = me.getStrandData(name);
-			if(strand) { 
-				return _.map(strand.segments, function(seg) {
-					return DNA.makeIdentifier(seg.identity, seg.polarity);
-				}).join(' ');
-			} else {
-				return '(unrecognized strand '+ name+ ')'
-			}
+			return me.buildStrandGlyph(strand,name);
 		}).join(' + '));
 	},
-	updateComplex: function() {
-		this.complex.beginEdit();
-		this.complex.set('strands',this.getStrands());
-		this.complex.set('structure',this.getStructure());
-		this.complex.endEdit();
-		this.complexData = this.strandEditor.getComplexData(this.complex);
-		this.updateView();
+	buildStrandGlyph: function(strand,name) {
+		var out = '<div class="strand-glyph'+(strand?'':' strand-glyph-unknown')+'">';
+
+		if(strand) { 
+			out += '<span class="strand-glyph-name">'+strand.name+'</span>'+ _.map(strand.segments, function(seg) {
+				return DNA.makeIdentifier(seg.identity, seg.polarity);
+			}).join(' ');
+		} else {
+			out += '<span class="strand-glyph-name">'+name+'</span>'+' ? '
+		}
+
+		out+='</div>';
+		return out;
 	},
+	
 	getStrands: function() {
 		var strands = this.strandsField.getValue() || '';
 		return  _.map(strands.split('+'), function(s) {
@@ -791,7 +853,8 @@ Ext.define('App.ui.EditComplexWindow', {
 
 		// test overall length equality
 		if(strands.length != structures.length) {
-			return Ext.String.format("Strand count and structure count do not match; {0} strands and {1} structures", strands.length, structures.length);
+			return Ext.String.format("Strand count and structure count do not match; {0} strands and {1} structures. "+
+				"Make sure to separate structures for different strands with + signs.", strands.length, structures.length);
 		} else {
 
 			// test segment-wise length dimensioning
@@ -890,6 +953,7 @@ Ext.define('App.ui.StrandEdit', {
 					scope: this,
 				}, {
 					text: 'to PIL',
+					iconCls: 'pil',
 				}, {
 					text: 'to Graph (ENJS)'
 				}],
@@ -1051,7 +1115,13 @@ Ext.define('App.ui.StrandEdit', {
 							// }
 						}
 					},
-					renderer: CodeMirror.modeRenderer('dil-domains', 'cm-s-default'),
+					renderer: function(str) {
+						var spec = App.dynamic.Compiler.parseDomainString(str);
+						return _.map(spec,function(dom) {
+							return '<div class="domain-glyph domain-glyph-'+dom.role+'"><span class="domain-glyph-name">'+dom.name+'</span>'+
+								_.map(dom.segments,function(seg) { return '<span class="segment-glyph segment-glyph-'+seg.role+'">'+seg.name+'</span>' }).join(' ')+'</div>'
+						}).join(' ');
+					}, // CodeMirror.modeRenderer('dil-domains', 'cm-s-default'),
 					flex: 1,
 				}, {
 					text: 'Complex',
@@ -1355,10 +1425,17 @@ Ext.define('App.ui.StrandEdit', {
 	doEditComplex: function() {
 		this.editComplex();
 	},
-	deleteSegment: function deleteSegment (rec) {
+	deleteSegment: function (rec) {
 		// body...
 	},
-
+	/**
+	 * Gets the names of strands, the structure, and the sequences for segments comprising a complex.
+	 * @param  {String/Complex} rec A record or name representing the complex in question
+	 * @return {Object} An object containing the complexData
+	 * @return {Object[]} return.strands (see #getStrandData)
+	 * @return {String} return.structure
+	 * @return {Object} return.sequences (see #getSegmentMap)
+	 */
 	getComplexData: function(rec) {
 		if(_.isString(rec)) {
 			rec = this.complexStore.findRecord('name', rec);
@@ -1371,6 +1448,14 @@ Ext.define('App.ui.StrandEdit', {
 			}
 		}
 	},
+	/**
+	 * Gets the name, the list of domains, and the list of segments in a strand
+	 * @param  {String/Strand} rec A record or name representing the strand in question
+	 * @return {Object} An object containing the strandData
+	 * @return {String} return.name
+	 * @return {Object[]} return.domains
+	 * @return {Object[]} return.segments
+	 */
 	getStrandData: function(rec) {
 		if(_.isString(rec)) {
 			rec = this.strandStore.findRecord('name', rec);

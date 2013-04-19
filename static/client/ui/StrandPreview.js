@@ -733,14 +733,17 @@ Ext.define('App.ui.StrandPreview', {
 				iconCls:'dot-paren-icon',
 				handler: this.toDotParen,
 				scope: this,
+				tooltip: 'Show structure in dot-parenthesis notation'
 			},{
 				iconCls:'du-plus-icon',
 				handler: this.toDUPlus,
 				scope: this,
+				tooltip: 'Show structure in DU-plus (Zadeh) notation'
 			},{
 				iconCls: 'svg',
 				handler: this.toSVG,
 				scope: this,
+				tooltip: 'Show SVG code for structure'
 			},'->',
 				Ext.create('App.ui.StrandPreviewViewMenu',{view: this})];
 		}

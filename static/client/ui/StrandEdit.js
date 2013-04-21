@@ -662,7 +662,7 @@ Ext.define('App.ui.EditComplexWindow', {
 		Ext.apply(this,{
 			items: [Ext.create('App.ui.EditComplexPanel',{
 				complex: this.complex,
-				strandEditor: this.strandEditor,
+				strandManager: this.strandManager,
 				segmentColors: this.segmentColors,
 			})]
 		});
@@ -673,6 +673,7 @@ Ext.define('App.ui.EditComplexWindow', {
 
 Ext.define('App.ui.EditComplexPanel', {
 	extend: 'Ext.panel.Panel',
+	alias: 'widget.editcomplexpanel',
 	layout: 'border',
 	border: false,
 	bodyBorder: false,
@@ -681,14 +682,13 @@ Ext.define('App.ui.EditComplexPanel', {
 			items: [{
 				xtype: 'strandpreview',
 				name: 'strandPreview',
-				region: 'west',
-				width: 300,
-				height: 300,
-				split: true,
+				region: 'center',
 			}, {
 				xtype: 'form',
 				name: 'formPanel',
-				region: 'center',
+				region: 'west',
+				width: 200,
+				split: true,
 				frame: true,
 				defaults: {
 					labelAlign: 'top',
@@ -757,10 +757,10 @@ Ext.define('App.ui.EditComplexPanel', {
 	},
 
 	/**
-	 * Loads #complexData for the record in #complex from the corresponding #strandEditor
+	 * Loads #complexData for the record in #complex from the corresponding #strandManager
 	 */
 	loadData: function() {
-		this.complexData = this.strandEditor.getComplexData(this.complex);
+		this.complexData = this.strandManager.getComplexData(this.complex);
 
 		this.strandsField.setValue(this.complex.getStrands().join('+'));
 		this.structureField.setValue(this.complexData.structure);
@@ -786,15 +786,20 @@ Ext.define('App.ui.EditComplexPanel', {
 		this.strandPreview.setValue(this.complexData);
 		this.segmentsField.setValue(_.map(this.complexData.strands, function(strand) {
 			return me.buildStrandGlyph(strand);
-		}).join(' + '));	
+		}).join(' + ') || '(click to edit)');	
 	},
 	updateSegmentsView: function() {
 		var me = this,
 			strands = this.getStrands();
-		this.segmentsField.setValue(_.map(strands,function(name) {
-			var strand = me.getStrandData(name);
-			return me.buildStrandGlyph(strand,name);
-		}).join(' + '));
+
+		if(strands.length > 0) {
+			this.segmentsField.setValue(_.map(strands,function(name) {
+				var strand = me.getStrandData(name);
+				return me.buildStrandGlyph(strand,name);
+			}).join(' + '));
+		} else {
+			this.segmentsField.setValue('(click to edit)');
+		}
 	},
 	buildStrandGlyph: function(strand,name) {
 		var out = '<div class="strand-glyph'+(strand?'':' strand-glyph-unknown')+'">';
@@ -821,10 +826,10 @@ Ext.define('App.ui.EditComplexPanel', {
 		return this.structureField.getValue() || '';
 	},
 	getStrandData: function() {
-		return this.strandEditor.getStrandData.apply(this.strandEditor, arguments);
+		return this.strandManager.getStrandData.apply(this.strandManager, arguments);
 	},
 	getComplexData: function() {
-		return this.strandEditor.getComplexData.apply(this.strandEditor, arguments);
+		return this.strandManager.getComplexData.apply(this.strandManager, arguments);
 	},
 	validateStrands: function() {
 		var strands = this.getStrands();
@@ -875,13 +880,27 @@ Ext.define('App.ui.EditComplexPanel', {
 	},
 })
 
+/**
+ * @class 
+ */
 Ext.define('App.ui.StrandsGrid',{
 	extend: 'Ext.grid.Panel',
 	alias: 'widget.strandsgrid',
+	/**
+	 * @cfg {App.ui.StrandStore} store (required)
+	 * Store containing Strand records
+	 */	
+	/**
+	 * @cfg {App.ui.SegmentStore} segmentStore (required)
+	 * Store containing Segment records
+	 */
 	initComponent: function () {
+
 		this.strandEditor = Ext.create('Ext.grid.plugin.CellEditing', {
 			clicksToEdit: 1
 		});
+		this.strandStore = this.store;
+
 		Ext.apply(this,{
 			tbar: [{
 				text: 'Add',
@@ -976,10 +995,13 @@ Ext.define('App.ui.StrandsGrid',{
 					}
 				},
 				renderer: function(str) {
-					var spec = App.dynamic.Compiler.parseDomainString(str);
+					var spec = App.dynamic.Compiler.parseDomainOrSegmentString(str, /*parseIdentifier*/ true); // App.dynamic.Compiler.parseDomainString(str);
 					return _.map(spec,function(dom) {
-						return '<div class="domain-glyph domain-glyph-'+dom.role+'"><span class="domain-glyph-name">'+dom.name+'</span>'+
-							_.map(dom.segments,function(seg) { return '<span class="segment-glyph segment-glyph-'+seg.role+'">'+seg.name+'</span>' }).join(' ')+'</div>'
+						return '<div class="domain-glyph domain-glyph-'+dom.role+'">' + (dom.name ? '<span class="domain-glyph-name">'+dom.name+'</span>':'')+
+							_.map(dom.segments,function(seg) { 
+								return '<span class="segment-glyph segment-glyph-'+seg.role+'">'+seg.identity+'</span>'+(seg.polarity==-1?'<sup>*</sup>':'') 
+							}).join(' ')+
+							'</div>'
 					}).join(' ');
 				}, // CodeMirror.modeRenderer('dil-domains', 'cm-s-default'),
 				flex: 1,
@@ -992,7 +1014,9 @@ Ext.define('App.ui.StrandsGrid',{
 
 		this.callParent(arguments);
 	},
-
+	getSegmentMap: function () {
+		return this.segmentStore.getSegmentMapWithComplements()
+	},
 	highlightSegment: function(identity, polarity) {
 		if(polarity === undefined) polarity = 1;
 		var el = this.getEl();
@@ -1014,7 +1038,7 @@ Ext.define('App.ui.StrandsGrid',{
 	editStrand: function editStrand (rec) {
 		rec || (rec = this.strandsGrid.getSelectionModel().getLastSelected());
 		if (rec) {
-			this.strandEditor.startEdit(rec, this.strandsGrid.headerCt.getHeaderAtIndex(2));
+			this.strandEditor.startEdit(rec, this.headerCt.getHeaderAtIndex(2));
 		}
 	},
 	doEditStrand: function() {
@@ -1026,6 +1050,144 @@ Ext.define('App.ui.StrandsGrid',{
 	doDeleteStrand: function() {
 		return this.deleteStrand();
 	},
+});
+
+Ext.define('App.ui.SegmentsGrid',{
+	extend: 'Ext.grid.Panel',
+	alias: 'widget.segmentsgrid',
+	initComponent: function (argument) {
+		this.segmentEditor = Ext.create('Ext.grid.plugin.CellEditing', {
+			clicksToEdit: 1
+		});
+
+		this.segmentStore = this.store;
+
+		Ext.apply(this,{
+			tbar: [Ext.create('App.ui.AddDomainButton', {
+				addDomain: Ext.bind(this.createSegment, this),
+				extraMenuItems: [{
+					text: 'Add many segments...',
+					handler: this.showAddSegmentsWindow,
+					scope: this,
+				}]
+			}),{
+				text: 'Edit',
+				iconCls: 'pencil',
+				handler: this.editSegment,
+				scope: this,
+			},{
+				text: 'Delete',
+				iconCls: 'delete',
+				handler: this.deleteSegment,
+				scope: this,
+			}],
+
+			columns: [{
+				dataIndex: 'color',
+				field: {
+					xtype: 'colorfield',
+					pickerOptions: {
+						colors: [
+							"1F77B4", "AEC7E8", "FF7F0E", "FFBB78", "2CA02C", "98DF8A", "D62728", "FF9896", "9467BD", "C5B0D5", "8C564B", "C49C94", "E377C2", "F7B6D2", "7F7F7F", "C7C7C7", "BCBD22", "DBDB8D", "17BECF", "9EDAE5",
+							"3182BD", "6BAED6", "9ECAE1", "C6DBEF", "E6550D", "FD8D3C", "FDAE6B", "FDD0A2", "31A354", "74C476", "A1D99B", "C7E9C0", "756BB1", "9E9AC8", "BCBDDC", "DADAEB", "636363", "969696", "BDBDBD", "D9D9D9",
+							"393B79", "5254A3", "6B6ECF", "9C9EDE", "637939", "8CA252", "B5CF6B", "CEDB9C", "8C6D31", "BD9E39", "E7BA52", "E7CB94", "843C39", "AD494A", "D6616B", "E7969C", "7B4173", "A55194", "CE6DBD", "DE9ED6",
+						]
+					}
+				},
+				renderer: function(color) {
+					return '<div style="width:12px;height:12px;background-color:'+color+';">&nbsp;</div>'
+				},
+				width: 40,
+			},{
+				text: 'Name',
+				dataIndex: 'identity',
+				flex: 1,
+			}, {
+				text: 'Sequence',
+				dataIndex: 'sequence',
+				field: 'textfield',
+				renderer: CodeMirror.modeRenderer('sequence'),
+				flex: 5,
+			}, {
+				text: 'Length',
+				dataIndex: 'sequence',
+				renderer: function(seq) {
+					return seq.length;
+				},
+				flex: 1,
+			}],
+			plugins: [this.segmentEditor],
+		});
+
+		this.callParent(arguments);
+	},
+
+	showAddSegmentsWindow: function() {
+		var me = this;
+		if(!this.addSegmentsWindow) {
+			this.addSegmentsWindow = Ext.create('App.ui.SequenceWindow',{
+				handler: function(domains) {
+					me.updateSegments(domains);
+				},
+				title: 'Add segments to system'
+			});
+		}
+		this.addSegmentsWindow.show();
+	},
+	
+	addSegment: function(identity,sequence) {
+		return _.first(this.segmentStore.add({
+			identity: identity,
+			sequence: sequence,
+			color: this.segmentStore.getColor(identity),
+		}));
+	},
+	addSegments: function(map) {
+		var me = this;
+		return this.segmentStore.add(_.map(map,function(sequence,identity) {
+			return {
+				identity: identity,
+				sequence: sequence,
+				color: me.segmentStore.getColor(identity),
+			}
+		}));
+	},
+	updateSegments: function(map) {
+		var me = this;
+		return _.map(map,function(sequence,identity) {
+			var seg = me.segmentStore.findRecord('identity',identity);
+			if(seg) {
+				seg.set('sequence',sequence);
+				return seg;
+			} else {
+				return _.first(me.segmentStore.add({
+					identity: identity,
+					sequence: sequence,
+					color: me.segmentStore.getColor(identity),
+				}));
+			}
+		});
+	},
+	createSegment: function(length) {
+		return _.first(this.segmentStore.addSegment(length));
+	},
+	editSegment: function editSegment (rec) {
+		rec || (rec = this.segmentsGrid.getSelectionModel().getLastSelected());
+		if (rec) {
+			//this.segmentEditor.startEdit(rec, this.segmentsGrid.headerCt.getHeaderAtIndex(2));
+			this.segmentEditor.startEdit(rec, this.headerCt.getHeaderAtIndex(2));
+		}
+	},
+	doEditSegment: function() {
+		return this.editSegment();
+	},
+	deleteSegment: function (rec) {
+		// body...
+	},
+	doDeleteSegment: function() {
+		return this.deleteSegment();
+	},
+
 })
 
 Ext.define('App.ui.StrandEdit', {
@@ -1057,9 +1219,7 @@ Ext.define('App.ui.StrandEdit', {
 		this.complexStore = Ext.create('App.ui.ComplexStore', {
 			strandStore: this.strandStore
 		});
-		this.segmentEditor = Ext.create('Ext.grid.plugin.CellEditing', {
-			clicksToEdit: 1
-		});
+		
 
 		Ext.apply(this, {
 			tbar: [{
@@ -1164,6 +1324,7 @@ Ext.define('App.ui.StrandEdit', {
 				xtype: 'strandsgrid',
 				name: 'strandsGrid',
 				store: this.strandStore,
+				segmentStore: this.segmentStore,
 				region: 'south',
 				collapsible: true,
 				titleCollapse: true,
@@ -1171,7 +1332,7 @@ Ext.define('App.ui.StrandEdit', {
 				height: 200,
 				split: true,
 			}, {
-				xtype: 'grid',
+				xtype: 'segmentsgrid',
 				name: 'segmentsGrid',
 				store: this.segmentStore,
 				title: 'Segments',
@@ -1180,60 +1341,6 @@ Ext.define('App.ui.StrandEdit', {
 				region: 'east',
 				width: 200,
 				split: true,
-				tbar: [Ext.create('App.ui.AddDomainButton', {
-					addDomain: Ext.bind(this.createSegment, this),
-					extraMenuItems: [{
-						text: 'Add many segments...',
-						handler: this.showAddSegmentsWindow,
-						scope: this,
-					}]
-				}),{
-					text: 'Edit',
-					iconCls: 'pencil',
-					handler: this.editSegment,
-					scope: this,
-				},{
-					text: 'Delete',
-					iconCls: 'delete',
-					handler: this.deleteSegment,
-					scope: this,
-				}],
-
-				columns: [{
-					dataIndex: 'color',
-					field: {
-						xtype: 'colorfield',
-						pickerOptions: {
-							colors: [
-								"1F77B4", "AEC7E8", "FF7F0E", "FFBB78", "2CA02C", "98DF8A", "D62728", "FF9896", "9467BD", "C5B0D5", "8C564B", "C49C94", "E377C2", "F7B6D2", "7F7F7F", "C7C7C7", "BCBD22", "DBDB8D", "17BECF", "9EDAE5",
-								"3182BD", "6BAED6", "9ECAE1", "C6DBEF", "E6550D", "FD8D3C", "FDAE6B", "FDD0A2", "31A354", "74C476", "A1D99B", "C7E9C0", "756BB1", "9E9AC8", "BCBDDC", "DADAEB", "636363", "969696", "BDBDBD", "D9D9D9",
-								"393B79", "5254A3", "6B6ECF", "9C9EDE", "637939", "8CA252", "B5CF6B", "CEDB9C", "8C6D31", "BD9E39", "E7BA52", "E7CB94", "843C39", "AD494A", "D6616B", "E7969C", "7B4173", "A55194", "CE6DBD", "DE9ED6",
-							]
-						}
-					},
-					renderer: function(color) {
-						return '<div style="width:12px;height:12px;background-color:'+color+';">&nbsp;</div>'
-					},
-					width: 40,
-				},{
-					text: 'Name',
-					dataIndex: 'identity',
-					flex: 1,
-				}, {
-					text: 'Sequence',
-					dataIndex: 'sequence',
-					field: 'textfield',
-					renderer: CodeMirror.modeRenderer('sequence'),
-					flex: 5,
-				}, {
-					text: 'Length',
-					dataIndex: 'sequence',
-					renderer: function(seq) {
-						return seq.length;
-					},
-					flex: 1,
-				}],
-				plugins: [this.segmentEditor],
 			}, {
 				xtype: 'panel',
 				layout: 'fit',
@@ -1362,73 +1469,9 @@ Ext.define('App.ui.StrandEdit', {
 		_.defer(_.bind(this.complexView.refresh, this.complexView));
 	},
 
-	showAddSegmentsWindow: function() {
-		if(!this.addSegmentsWindow) {
-			this.addSegmentsWindow = Ext.create('App.ui.SequenceWindow',{
-				handler: function(domains) {
-					this.strandEditor.updateSegments(domains);
-				},
-				strandEditor: this,
-				title: 'Add segments to system'
-			});
-		}
-		this.addSegmentsWindow.show();
-	},
-	
-	addSegment: function(identity,sequence) {
-		return _.first(this.segmentStore.add({
-			identity: identity,
-			sequence: sequence,
-			color: this.segmentStore.getColor(identity),
-		}));
-	},
-	addSegments: function(map) {
-		var me = this;
-		return this.segmentStore.add(_.map(map,function(sequence,identity) {
-			return {
-				identity: identity,
-				sequence: sequence,
-				color: me.segmentStore.getColor(identity),
-			}
-		}));
-	},
-	updateSegments: function(map) {
-		var me = this;
-		return _.map(map,function(sequence,identity) {
-			var seg = me.segmentStore.findRecord('identity',identity);
-			if(seg) {
-				seg.set('sequence',sequence);
-				return seg;
-			} else {
-				return _.first(me.segmentStore.add({
-					identity: identity,
-					sequence: sequence,
-					color: me.segmentStore.getColor(identity),
-				}));
-			}
-		});
-	},
-	createSegment: function(length) {
-		return _.first(this.segmentStore.addSegment(length));
-	},
-	editSegment: function editSegment (rec) {
-		rec || (rec = this.segmentsGrid.getSelectionModel().getLastSelected());
-		if (rec) {
-			this.segmentEditor.startEdit(rec, this.segmentsGrid.headerCt.getHeaderAtIndex(2));
-		}
-	},
-	doEditSegment: function() {
-		return this.editSegment();
-	},
-	deleteSegment: function deleteSegment (rec) {
-		// body...
-	},
-	doDeleteSegment: function() {
-		return this.deleteSegment();
-	},
-	deleteSegment: function (rec) {
-		// body...
-	},
+	/* ------------------------------------------------------------------------------------------- 
+	   Complex management                                                                        */
+
 
 	addComplex: function() {
 		return _.first(this.complexStore.addComplex());
@@ -1447,6 +1490,9 @@ Ext.define('App.ui.StrandEdit', {
 		this.editComplex();
 	},
 	
+	/* ------------------------------------------------------------------------------------------- 
+	   Data handling                                                                             */
+
 	/**
 	 * Gets the names of strands, the structure, and the sequences for segments comprising a complex.
 	 * @param  {String/Complex} rec A record or name representing the complex in question
@@ -1488,6 +1534,40 @@ Ext.define('App.ui.StrandEdit', {
 		}
 	},
 
+	getSegmentMap: function() {
+		return this.segmentStore.getSegmentMap()
+	},
+	updateStrandSequences: function() {
+		var segmentMap = this.getSegmentMap();
+		this.strandStore.each(function(strand) {
+			var strandSpec = strand.getFlatSpec();
+			strand.set('sequence', DNA.threadSegments(segmentMap, strandSpec));
+		}, this);
+	},
+	getSegmentColorScale: function() {
+		return this.complexView.getSegmentColorScale();
+	},
+	showEditComplexWindow: function(complex, node) {
+		var name = complex.get('name');
+		node || (this.complexView.getNode(complex));
+		if(!this.editComplexWindows[name]) {
+			this.editComplexWindows[name] = Ext.create('App.ui.EditComplexWindow', {
+				complex: complex,
+				renderTo: Ext.getBody(),
+				title: name,
+				strandManager: this,
+				segmentColors: this.getSegmentColorScale(),
+			});
+		}
+		this.editComplexWindows[name].show();
+		if(node) {
+			this.editComplexWindows[name].alignTo(node, 'tl-tl');
+		}
+	},
+
+	/* ------------------------------------------------------------------------------------------- 
+	   Visualization                                                                             */
+
 	updateSegmentHighlight: function(identity, polarity) {
 		if(identity) {
 			this.highlightSegment(identity, polarity);
@@ -1516,6 +1596,10 @@ Ext.define('App.ui.StrandEdit', {
 
 		this.strandsGrid.unhighlightSegment();
 	},
+
+	/* ------------------------------------------------------------------------------------------- 
+	   Builds                                                                                    */
+
 	buildTarget: function(target) {
 
 		this.requestDocument(function(doc) {
@@ -1590,16 +1674,7 @@ Ext.define('App.ui.StrandEdit', {
 		this.svgWindow.show();
 		this.svgWindow.setValue(value);
 	},
-	getSegmentMap: function() {
-		return this.segmentStore.getSegmentMap()
-	},
-	updateStrandSequences: function() {
-		var segmentMap = this.getSegmentMap();
-		this.strandStore.each(function(strand) {
-			var strandSpec = strand.getFlatSpec();
-			strand.set('sequence', DNA.threadSegments(segmentMap, strandSpec));
-		}, this);
-	},
+	
 
 	loadLibrary: function(library) {
 		library || (library = {});
@@ -1715,24 +1790,5 @@ Ext.define('App.ui.StrandEdit', {
 	getSaveData: function() {
 		return this.serializeDil();
 	},
-	getSegmentColorScale: function() {
-		return this.complexView.getSegmentColorScale();
-	},
-	showEditComplexWindow: function(complex, node) {
-		var name = complex.get('name');
-		node || (this.complexView.getNode(complex));
-		if(!this.editComplexWindows[name]) {
-			this.editComplexWindows[name] = Ext.create('App.ui.EditComplexWindow', {
-				complex: complex,
-				renderTo: Ext.getBody(),
-				title: name,
-				strandEditor: this,
-				segmentColors: this.getSegmentColorScale(),
-			});
-		}
-		this.editComplexWindows[name].show();
-		if(node) {
-			this.editComplexWindows[name].alignTo(node, 'tl-tl');
-		}
-	}
+	
 })

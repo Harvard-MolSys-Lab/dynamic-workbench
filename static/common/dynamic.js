@@ -280,6 +280,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			var structure = strandStructures[0]; 
 			this.strands = [
 				new Strand({
+					name: this.name || 's1',
 					library: this.library,
 					domains: this.domains,
 					structure: structure,
@@ -329,6 +330,45 @@ App.dynamic = module.exports = (function(_,DNA) {
 
 
 	Motif.prototype = {
+		/**
+		 * Returns the absolute polarity of this node
+		 * @returns {Number} node polarity
+		 */
+		getPolarity : function() {
+			return this.polarity;
+		},
+		getStructure: function() {
+			var concatamer = Structure.join(_.map(this.getStrands(),function(strand) {
+				return strand.getStructure();
+			}));
+			
+			if(this.getPolarity() == -1) {
+				return concatamer.reverse();
+			}
+			return concatamer;
+		},
+		/**
+		 * Returns object like:
+		 * 	[{strand: {Strand}, structure:strand.getAnnotatedStructure()},...]
+		 */
+		getAnnotatedStructure: function() {
+			var s = _.map(this.getStrands(),function(strand) {
+				return { strand: strand, structure: strand.getAnnotatedStructure(), dotParen: strand.getStructure().toDotParen() };
+			});
+			s.dotParen = this.getStructure().toDotParen();
+			return s;
+		},
+		getSegmentwiseStructure: function() {
+			return Structure.join(_.map(this.getStrands(),function(strand) {
+				return strand.getSegmentwiseStructure();
+			}));
+		},
+		getOrderedSegmentLengths: function() {
+			return _.comprehend(this.getOrderedStrands(),function(strand) {
+				return strand.getOrderedSegmentLengths();
+			});
+		},
+
 		/**
 		 * Generates a new {@link App.dynamic.Node node} which inherits the properties of this motif
 		 * @return {App.dynamic.Node} node
@@ -616,13 +656,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 	_.extend(Node.prototype, Motif.prototype);
 	_.extend(Node.prototype, {
 		polarity: 0,
-		/**
-		 * Returns the absolute polarity of this node
-		 * @returns {Number} node polarity
-		 */
-		getPolarity : function() {
-			return this.polarity;
-		},
+		
 		/**
 		 * Produces a constraint matrix; essentially a hash describing the relationship between each
 		 * of the {@link App.dynamic.Segment#id segment IDs} of the {@link App.dynamic.Segment segments}
@@ -684,37 +718,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			return identities;
 
 		},
-		getStructure: function() {
-			var concatamer = Structure.join(_.map(this.getStrands(),function(strand) {
-				return strand.getStructure();
-			}));
-			
-			if(this.getPolarity() == -1) {
-				return concatamer.reverse();
-			}
-			return concatamer;
-		},
-		/**
-		 * Returns object like:
-		 * 	[{strand: {Strand}, structure:strand.getAnnotatedStructure()},...]
-		 */
-		getAnnotatedStructure: function() {
-			var s = _.map(this.getStrands(),function(strand) {
-				return { strand: strand, structure: strand.getAnnotatedStructure(), dotParen: strand.getStructure().toDotParen() };
-			});
-			s.dotParen = this.getStructure().toDotParen();
-			return s;
-		},
-		getSegmentwiseStructure: function() {
-			return Structure.join(_.map(this.getStrands(),function(strand) {
-				return strand.getSegmentwiseStructure();
-			}));
-		},
-		getOrderedSegmentLengths: function() {
-			return _.comprehend(this.getOrderedStrands(),function(strand) {
-				return strand.getOrderedSegmentLengths();
-			});
-		},
+
 		getSequences: function() {
 			var segs = this.getSegments(), map = {}, seg;
 			for(var i=0; i<segs.length; i++) {
@@ -1460,9 +1464,12 @@ App.dynamic = module.exports = (function(_,DNA) {
 			return DNA.dotParenToDU(spec);
 		},
 		join: function(structures) {
-			return new Structure(_.map(structures,function(struct) {
-				return struct.toDotParen();
-			}).join('+'));
+			return new Structure({
+				spec: _.map(structures,function(struct) {
+					return struct.toDotParen();
+				}).join('+'),
+				type:'dot-paren'
+			});
 		}
 	})
 
@@ -1647,16 +1654,34 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * A human-readable message which contains information about the error
 		 * which has occured. This message may optionally be a template
 		 * containing EJS (`<% arbitrary code %>` or `<%= variable %>`) tags,
-		 * which will be interpolated by _#template. The scope used will be
-		 * the configuration object passed to the #constructor
+		 * which will be interpolated by {@link _#template}. The scope used will be
+		 * the configuration object passed to the #constructor. Allows you to generate
+		 * human-readable messages that references specific data in the error. 
+		 * For example:
 		 *
+		 *     throw new DynamlError({
+		 *         type : 'invalid complement',
+		 *         message : 'In complement between Node <%= sourceNode %> and Node <%= targetNode %>, source port <%= sourcePort %> not found.',
+		 *         sourceNode : config.sourceNode,
+		 *         targetNode : config.node,
+		 *         sourcePort : config.source,
+		 *         targetPort : config.target,
+		 *     });
 		 */
 		if(config.message) {
 			config.message = _.template(config.message, config);
 		}
+		/**
+		 * @cfg {String} type
+		 * A short string representing the type of error which occurred
+		 */
 		_.copyTo(this, config);
 	}
 	
+	/**
+	 * Serializes the error as a simple JSON object
+	 * @return {Object} 
+	 */
 	DynamlError.prototype.serialize = function() {
 		return _.serialize(_.copy(this));
 	}
@@ -1701,8 +1726,17 @@ App.dynamic = module.exports = (function(_,DNA) {
 			nodes : [],
 			/**
 			 * @cfg {Object[]} import
+			 * An array of objects, each with `type` and `name` properties. `type` should be either `motif` or
+			 * `node`. `name` should refer to an object of that `type` 
+			 * 
 			 */
 			'import' : [],
+			/**
+			 * @cfg {Library[]} includes
+			 * Array of additional {@link Library libraries} to be used in #import statements. The libraries 
+			 * should already be compiled (they'll be instantiated with #fromDil). 
+			 */
+			includes: [],
 			objects: {
 				node: {},
 				motif: {},
@@ -1731,22 +1765,54 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * already been compiled, since we don't want to overwrite things like
 		 * compiled {@link App.dynamic.Segment#identity segment identities} to
 		 * be overwritten. 
+		 *
+		 * @throws {DynamlError} If an item referenced in #import is not found 
+		 * in any of the referenced #includes or in the {@link Compiler#importObject standard library}.
 		 */
 		setup: function(fromDil) {
 			fromDil || (fromDil = false)
 			
 			var library = this;
 			
+			// Parse included libraries
+			if(library['includes']) {
+				library.includes = _.map(library.includes,function(cfg) {
+					return Compiler.fromDil(cfg);
+				});
+			}
+
 			// Import motifs first
 			if(library['import']) {
 				_.each(library['import'],function(statement) {
 					if(statement.type && statement.name) {
 						switch(statement.type) {
 							case 'motif':
-								library.motifs.unshift(Compiler.importObject(statement.type,statement.name));
+								var m = this.searchIncludes(statement.type,statement.name);
+								m || (m = Compiler.importObject(statement.type,statement.name,library.version));
+								if(m) {
+									library.motifs.unshift(m);
+								} else {
+									throw new DynamlError({
+										type: 'unresolved import',
+										message: 'Unable to import <%= importType %> "<%= importName %>"; the object could not be found.',
+										importType: statement.type,
+										importName: statement.name,
+									});
+								}
 								break;
 							case 'node':
-								library.nodes.unshift(Compiler.importObject(statement.type,statement.name));
+								var m = this.searchIncludes(statement.type,statement.name);
+								m || (m = Compiler.importObject(statement.type,statement.name,library.version));
+								if(m) {
+									library.nodes.unshift(m);
+								} else {
+									throw new DynamlError({
+										type: 'unresolved import',
+										message: 'Unable to import <%= importType %> "<%= importName %>"; the object could not be found.',
+										importType: statement.type,
+										importName: statement.name,
+									});
+								}								
 								break;
 							default:
 								break;
@@ -1779,6 +1845,13 @@ App.dynamic = module.exports = (function(_,DNA) {
 				return new Node(node);
 			});
 			
+		},
+		searchIncludes: function (type,name) {
+			var res = null;
+			for(var i=0; i<this.includes.length && !res; i++) {
+				res = this.includes[i].get(type,name);
+			}	
+			return res;
 		},
 		updateOutputProperties: function() {
 			var library = this;
@@ -3329,19 +3402,21 @@ App.dynamic = module.exports = (function(_,DNA) {
 				
 				var s = { };
 				
-				if(parseIdentifier) {					
-					_.extend(s, DNA.parseIdentifier(parts[1]));
-				} else {
-					s.name = parts[1];
-				}
-			
-				var role = expandRole('segment',parts[3]);
-				if(!!role) {s.role = role;}
-				if(!!parts[2]) {
-					if(parts[2].match(/[aAtTcCgGuUnN]+/)) {
-						s.sequence = parts[2]
-					} else if (parts[2].match(/\d+/)) {					
-						s.length = parseInt(parts[2])
+				if(parts) {
+					if(parseIdentifier) {					
+						_.extend(s, DNA.parseIdentifier(parts[1]));
+					} else {
+						s.name = parts[1];
+					}
+				
+					var role = expandRole('segment',parts[3]);
+					if(!!role) {s.role = role;}
+					if(!!parts[2]) {
+						if(parts[2].match(/[aAtTcCgGuUnN]+/)) {
+							s.sequence = parts[2]
+						} else if (parts[2].match(/\d+/)) {					
+							s.length = parseInt(parts[2])
+						}
 					}
 				}
 				return s;
@@ -3396,322 +3471,503 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * @property {Object} standardMotifs
 		 * Hash containing configuration objects for each of the standard motifs, indexed by name.
 		 */
-		var standardMotifs = [{
+		
+		var standardMotifs = {
+			'0':[{
+					name: 'm1',
+					type: 'initiator',
+					structure: '..',
+				    isInitiator: true,
+				    domains: [{
+				    	name: 'A',
+				    	role: 'output',
+				    	type: 'init',
+				    	polarity: '+',
+				    	segments: [
+					      	{name: 'a', role: ''},
+					        {name: 'b', role: ''},
+				    	]
+				    }]
+				},{
+					name: 'm2',
+					type: 'initiator',
+				    isInitiator: true,
+				    structure: '...',
+				    domains: [{
+				    	name: 'A',
+				    	role: 'output',
+				    	type: 'init',
+				    	polarity: '+',
+				    	segments: [
+					      	{name: 'a', role: ''},
+					        {name: 'b', role: ''},
+					        {name: 'c', role: ''},
+				    	]
+				    }]
+				},{
+					name: 'm3',
+					type: 'hairpin',
+					structure: '.(.)',
+				    domains: [{
+				    	name: 'A',
+				    	role: 'input',
+				    	polarity: '+',
+				    	segments: [
+					      	{name: 'a', role: 'toehold'},
+					        {name: 'b', role: ''},
+				    	]
+				    },{
+				    	name: 'B',
+				    	role: 'output',
+				    	type: 'loop',
+				    	polarity: '-',
+				    	segments: [
+					      	{name: 'c', },
+					        {name: 'b*', role: ''},
+				    	]
+				    }]
+				},{
+					name: 'm4',
+					type: 'hairpin',
+					structure: '.((..))..',
+				    domains: [{
+				    	name: 'A',
+				    	role: 'input',
+				    	polarity: '+',
+				    	segments: [
+					      	{name: 'a', role: 'toehold'},
+					        {name: 'b', role: ''},
+					        {name: 'c', role: ''},
+				    	]
+				    },{
+				    	name: 'B',
+				    	role: 'output',
+				    	type: 'loop',
+				    	polarity: '-',
+				    	segments: [
+					      	{name: 'd', },
+					        {name: 'e', },
+					        {name: 'c*', role: ''},
+				    	]
+				    },{
+				    	name: 'C',
+				    	role: 'output',
+				    	type: 'tail',
+				    	polarity: '+',
+				    	segments: [
+					      	{name: 'b*', role: 'toehold'},
+					        {name: 'f', role: ''},
+					        {name: 'g', role: ''},
+				    	]
+				    }]	
+				},{
+					name: 'm5',
+					type: 'hairpin',
+					structure: '.((.))',
+				    domains: [{
+				    	name: 'A',
+				    	role: 'input',
+				    	polarity: '+',
+				    	segments: [
+					      	{name: 'a', role: 'toehold'},
+					        {name: 'b', role: ''},
+					        {name: 'c', role: ''},
+				    	]
+				    },{
+				    	name: 'B',
+				    	role: 'bridge',
+				    	type: 'loop',
+				    	polarity: '+',
+				    	segments: [
+					      	{name: 'd', },
+				    	]
+				    },{
+				    	name: 'C',
+				    	role: 'structural',
+				    	type: 'stem',
+				    	polarity: '+',
+				    	segments: [
+					      	{name: 'b*', role: ''},
+					        {name: 'c*', role: ''},
+				    	]
+				    }]	
+				},{
+					name: 'm6',
+					type: 'hairpin',
+					structure: '.((....))..',
+				    domains: [{
+				    	name: 'A',
+				    	role: 'input',
+				    	polarity: '+',
+				    	segments: [
+					      	{name: 'a', role: 'toehold'},
+					        {name: 'b', role: ''},
+					        {name: 'c', role: ''},
+				    	]
+				    },{
+				    	name: 'B',
+				    	role: 'bridge',
+				    	type: 'loop',
+				    	polarity: '+',
+				    	segments: [
+					      	{name: 'd', },
+				    	]
+				    },{
+				    	name: 'C',
+				    	role: 'output',
+				    	type: 'loop',
+				    	polarity: '-',
+				    	segments: [
+					      	{name: 'e', },
+					      	{name: 'f', },
+					      	{name: 'g', },
+					      	{name: 'c*', },
+				    	]
+				    },{
+				    	name: 'D',
+				    	role: 'output',
+				    	type: 'tail',
+				    	polarity: '+',
+				    	segments: [
+					      	{name: 'b*', role: 'toehold'},
+					        {name: 'h', role: ''},
+					        {name: 'i', role: ''},
+				    	]
+				    }]	
+				},{
+					name: 'm7',
+					type: 'hairpin',
+					structure: '.((..))..',
+				    domains: [{
+				    	name: 'A',
+				    	role: 'input',
+				    	polarity: '+',
+				    	segments: [
+					      	{name: 'a', role: 'toehold'},
+					        {name: 'b', role: ''},
+					        {name: 'c', role: ''},
+				    	]
+				    },{
+				    	name: 'B',
+				    	role: 'output',
+				    	type: 'loop',
+				    	polarity: '-',
+				    	segments: [
+					      	{name: 'd', },
+					      	{name: 'e', },
+					      	{name: 'c*', role: ''},
+				    	]
+				    },{
+				    	name: 'C',
+				    	role: 'bridge',
+				    	type: 'stem',
+				    	polarity: '+',
+				    	segments: [
+					      	{name: 'b*', role: 'toehold'},
+							{name: 'e', role: ''},
+					      	{name: 'f', role: ''},
+				    	]
+				    }]
+				},{
+					name: 'm8',
+					type: 'hairpin',
+					structure: '.((.))..',
+				    domains: [{
+				    	name: 'A',
+				    	role: 'input',
+				    	polarity: '+',
+				    	segments: [
+					      	{name: 'a', role: 'toehold'},
+					        {name: 'b', role: ''},
+					        {name: 'c', role: ''},
+				    	]
+				    },{
+				    	name: 'B',
+				    	role: 'bridge',
+				    	type: 'loop',
+				    	polarity: '+',
+				    	segments: [
+					      	{name: 'd', },
+					      	{name: 'c*', role: ''},
+				    	]
+				    },{
+				    	name: 'C',
+				    	role: 'output',
+				    	type: 'tail',
+				    	polarity: '+',
+				    	segments: [
+					      	{name: 'b*', role: ''},
+					      	{name: 'e', role: ''},
+					      	{name: 'f', role: ''},
+				    	]
+				    }]
+				},{
+					name: 'm9',
+					type: 'hairpin',
+					structure: '.((.))',
+				    domains: [{
+				    	name: 'A',
+				    	role: 'input',
+				    	polarity: '+',
+				    	segments: [
+					      	{name: 'a', role: 'toehold'},
+					        {name: 'b', role: ''},
+					        {name: 'c', role: ''},
+				    	]
+				    },{
+				    	name: 'B',
+				    	role: 'bridge',
+				    	type: 'loop',
+				    	polarity: '+',
+				    	segments: [
+					      	{name: 'd', },
+					      	{name: 'c*', role: ''},
+				    	]
+				    },{
+				    	name: 'C',
+				    	role: 'null',
+				    	type: 'stem',
+				    	polarity: '+',
+				    	segments: [
+					      	{name: 'b*', role: ''},
+				    	]
+				    }]
+				},{	
+					name: 'm1c',
+					type: 'initiator',
+				    isInitiator: true,
+				    structure: '....',
+				    domains: [{
+				    	name: 'A',
+				    	role: 'output',
+				    	type: 'init',
+				    	polarity: '+',
+				    	segments: [
+					      	{name: 'a', role: ''},
+					        {name: 'w', role: 'clamp'},
+					        {name: 'b', role: ''},
+					        {name: 'x', role: 'clamp'},
+				    	]
+				    }]
+				  }, {
+					name: 'm19c',
+					type: 'hairpin',
+					structure: '.(((..)))',
+					// domains: 'A[a:t w:c b x:c]+ B[y:c c x*:c b* w*:c]-'
+					domains: [{
+				    	name: 'A',
+				    	role: 'input',
+				      	polarity: '+',
+				    	segments:  [
+				      		{name: 'a', role: 'toehold'},
+					      	{name: 'w', role: 'clamp'},
+					        {name: 'b', },
+					      	{name: 'x', role: 'clamp'},
+				    	]
+				   },{
+					   name: 'B',
+					   role: 'output',
+					   polarity: '-',
+					   segments: [
+						   {name: 'y', role: 'clamp'},
+						   {name: 'c', },
+						   {name: 'x*', role: 'clamp'},
+						   {name: 'b*', role: 'toehold'},
+						   {name: 'w*', role: 'clamp'},
+					   ]
+				   }]
+				},{
+					"name":"m20",
+					"type":"hairpin",
+					"structure":".(((....)))..",
+					"domains":"A[a:t x:c b c]i+ s[s(1)]x B[d e y:c c*:t]o- C[b*:t x*:c f g]o+"
+				},{
+					"name":"m21",
+					"type":"hairpin",
+					"structure":".(((...))).",
+					"domains":"A[a:t x:c b c]i+ s[s(1)]x B[d(16) y:c c*:t]o- C[b*:t x*:c e(16)]o+"
+				},{
+					"name":"m22",
+					"type":"cooperative",
+					"structure":".(((((.+)))))",
+					"strands":[{
+						"name":"S1",
+						"domains":"A[a:t x:c b(16)]i+ s[s(1)]x B[c(16) y:c d:t]i-"
+					},{
+						"name":"S2",
+						"domains":"C[y*:c c*(16) s*(1) b*(16) x*:c]x"
+					}]
+				},{
+					"name":"m23",
+					"type":"initiator",
+					"structure":"....",
+					"domains":"A[a x:c b c]o+"
+				},{
+					"name":"m24",
+					"type":"cooperative",
+					"structure":".(((((((((((.+)))))))))))",
+					"strands":[{
+						"name":"S1",
+						"domains":"A[a:t x:c b c]i+ s[s(1)]x B[d y:c e f]i- C[g z:c h i:t]i+"
+					},{
+						"name":"S2",
+						"domains":"D[h* z*:c g*]x E[f* e* y*:c d*]x F[s*(1) c* b* x*:c]x"
+					}]
+				},{
+					"name":"m25",
+					"type":"initiator",
+					"structure":"........",
+					"domains":"A[a x:c b y:c]o+ B[z:c c w:c d]o-"
+				},{
+					"name":"m26",
+					"type":"cooperative",
+					"structure":".(((((((.+)))))))",
+					"strands":[{
+						"name":"S1",
+						"domains":"A[a:t x:c b y:c]i+ s[s(1)]x B[z:c c w:c d]i-"
+					},{
+						"name":"S2",
+						"domains":"C[w* c* z* s*(1) y* b* x*]x"
+					}]
+				},{
+					name: 'm27',
+					type: 'hairpin',
+					structure: '.(...)',
+				    domains: 'A[a b]i+ B[c d]o- C[e b*]o-'
+				},{
+					name: 'm27c',
+					type: 'hairpin',
+					structure: '.(((..)))',
+					domains: 'A[a:t v:c b w:c]i+ B[x:c c y:c d]o- C[z:c e w*:c b* v*:c]o-'
+				},
+			],
+			'1':[{
+				name: 'm0',
+				type: 'input',
+				domains: 'A[a b x:c d]o+',
+				structure: '....',
+			},{
 				name: 'm1',
-				type: 'initiator',
-				structure: '..',
-			    isInitiator: true,
-			    domains: [{
-			    	name: 'A',
-			    	role: 'output',
-			    	type: 'init',
-			    	polarity: '+',
-			    	segments: [
-				      	{name: 'a', role: ''},
-				        {name: 'b', role: ''},
-			    	]
-			    }]
+				type:'hairpin',
+				domains:'A[a:t x:c b c]i+ B[d e y:c c*:t]o- C[b* x*:c]x',
+				structure: '.(((...)))',
+				description: '1 input/1 output hairpin'
 			},{
 				name: 'm2',
-				type: 'initiator',
-			    isInitiator: true,
-			    structure: '...',
-			    domains: [{
-			    	name: 'A',
-			    	role: 'output',
-			    	type: 'init',
-			    	polarity: '+',
-			    	segments: [
-				      	{name: 'a', role: ''},
-				        {name: 'b', role: ''},
-				        {name: 'c', role: ''},
-			    	]
-			    }]
+				type:'hairpin',
+				domains:'A[a:t x:c b c]i+ B[d e y:c c*:t]o- C[b*:t x*:c f g]o+',
+				structure: '.(((...)))..',
+				description: '1 input/2 output hairpin'
+			},{
+				name: 'm2a',
+				type:'hairpin',
+				domains:'A[a:t x:c b c]i+ B[d e y:c c*:t]o- C[b*:t x*:c f(16)]o+',
+				structure: '.(((...))).',
+				description: '1 input/2 output hairpin (long tail)'
 			},{
 				name: 'm3',
-				type: 'hairpin',
-				structure: '.(.)',
-			    domains: [{
-			    	name: 'A',
-			    	role: 'input',
-			    	polarity: '+',
-			    	segments: [
-				      	{name: 'a', role: 'toehold'},
-				        {name: 'b', role: ''},
-			    	]
-			    },{
-			    	name: 'B',
-			    	role: 'output',
-			    	type: 'loop',
-			    	polarity: '-',
-			    	segments: [
-				      	{name: 'c', },
-				        {name: 'b*', role: ''},
-			    	]
-			    }]
+				type:'hairpin',
+				domains:'A[a:t x:c b c]i+ B[d]b C[c* b* x*:c]x',
+				structure: '.(((.)))',
+				description: '1 input/1 bridge hairpin'
 			},{
 				name: 'm4',
-				type: 'hairpin',
-				structure: '.((..))..',
-			    domains: [{
-			    	name: 'A',
-			    	role: 'input',
-			    	polarity: '+',
-			    	segments: [
-				      	{name: 'a', role: 'toehold'},
-				        {name: 'b', role: ''},
-				        {name: 'c', role: ''},
-			    	]
-			    },{
-			    	name: 'B',
-			    	role: 'output',
-			    	type: 'loop',
-			    	polarity: '-',
-			    	segments: [
-				      	{name: 'd', },
-				        {name: 'e', },
-				        {name: 'c*', role: ''},
-			    	]
-			    },{
-			    	name: 'C',
-			    	role: 'output',
-			    	type: 'tail',
-			    	polarity: '+',
-			    	segments: [
-				      	{name: 'b*', role: 'toehold'},
-				        {name: 'f', role: ''},
-				        {name: 'g', role: ''},
-			    	]
-			    }]	
+				type:'hairpin',
+				domains:'A[a:t x:c b c]i+ B[d]b C[e f y c*:t]o- D[b* x*:c]x',
+				structure: '.(((....)))',
+				description: '1 input/1 bridge/1 output hairpin'
 			},{
 				name: 'm5',
 				type: 'hairpin',
-				structure: '.((.))',
-			    domains: [{
-			    	name: 'A',
-			    	role: 'input',
-			    	polarity: '+',
-			    	segments: [
-				      	{name: 'a', role: 'toehold'},
-				        {name: 'b', role: ''},
-				        {name: 'c', role: ''},
-			    	]
-			    },{
-			    	name: 'B',
-			    	role: 'bridge',
-			    	type: 'loop',
-			    	polarity: '+',
-			    	segments: [
-				      	{name: 'd', },
-			    	]
-			    },{
-			    	name: 'C',
-			    	role: 'structural',
-			    	type: 'stem',
-			    	polarity: '+',
-			    	segments: [
-				      	{name: 'b*', role: ''},
-				        {name: 'c*', role: ''},
-			    	]
-			    }]	
+				domains: 'A[a:t x:c b c]i+ B[d e y:c c*:t]o- C[b*]b D[x*:c]x',
+				structure: '.(((...)))'
 			},{
-				name: 'm6',
+				name: 'm6a',
 				type: 'hairpin',
-				structure: '.((....))..',
-			    domains: [{
-			    	name: 'A',
-			    	role: 'input',
-			    	polarity: '+',
-			    	segments: [
-				      	{name: 'a', role: 'toehold'},
-				        {name: 'b', role: ''},
-				        {name: 'c', role: ''},
-			    	]
-			    },{
-			    	name: 'B',
-			    	role: 'bridge',
-			    	type: 'loop',
-			    	polarity: '+',
-			    	segments: [
-				      	{name: 'd', },
-			    	]
-			    },{
-			    	name: 'C',
-			    	role: 'output',
-			    	type: 'loop',
-			    	polarity: '-',
-			    	segments: [
-				      	{name: 'e', },
-				      	{name: 'f', },
-				      	{name: 'g', },
-				      	{name: 'c*', },
-			    	]
-			    },{
-			    	name: 'D',
-			    	role: 'output',
-			    	type: 'tail',
-			    	polarity: '+',
-			    	segments: [
-				      	{name: 'b*', role: 'toehold'},
-				        {name: 'h', role: ''},
-				        {name: 'i', role: ''},
-			    	]
-			    }]	
+				domains: 'A[a x:c b c]i+ B[d e y:c]x C[f g z:c h]o- D[f* y*:c e* d*]i+ E[b* x*:c]x',
+				structure: '.((.((((...))))))',
+				description: '2 input/1 output sequential AND gate'
 			},{
-				name: 'm7',
+				name: 'm6b',
 				type: 'hairpin',
-				structure: '.((..))..',
-			    domains: [{
-			    	name: 'A',
-			    	role: 'input',
-			    	polarity: '+',
-			    	segments: [
-				      	{name: 'a', role: 'toehold'},
-				        {name: 'b', role: ''},
-				        {name: 'c', role: ''},
-			    	]
-			    },{
-			    	name: 'B',
-			    	role: 'output',
-			    	type: 'loop',
-			    	polarity: '-',
-			    	segments: [
-				      	{name: 'd', },
-				      	{name: 'e', },
-				      	{name: 'c*', role: ''},
-			    	]
-			    },{
-			    	name: 'C',
-			    	role: 'bridge',
-			    	type: 'stem',
-			    	polarity: '+',
-			    	segments: [
-				      	{name: 'b*', role: 'toehold'},
-						{name: 'e', role: ''},
-				      	{name: 'f', role: ''},
-			    	]
-			    }]
+				domains: 'A[a x:c b c]i+ B[d y:c e]x C[f g z:c h]o- D[f* e* y*:c d*]i+ E[b* x*:c]x',
+				structure: '.((.((((...))))))',
+				description: '2 input/1 output sequential AND gate'
 			},{
-				name: 'm8',
+				name: 'm6c',
 				type: 'hairpin',
-				structure: '.((.))..',
-			    domains: [{
-			    	name: 'A',
-			    	role: 'input',
-			    	polarity: '+',
-			    	segments: [
-				      	{name: 'a', role: 'toehold'},
-				        {name: 'b', role: ''},
-				        {name: 'c', role: ''},
-			    	]
-			    },{
-			    	name: 'B',
-			    	role: 'bridge',
-			    	type: 'loop',
-			    	polarity: '+',
-			    	segments: [
-				      	{name: 'd', },
-				      	{name: 'c*', role: ''},
-			    	]
-			    },{
-			    	name: 'C',
-			    	role: 'output',
-			    	type: 'tail',
-			    	polarity: '+',
-			    	segments: [
-				      	{name: 'b*', role: ''},
-				      	{name: 'e', role: ''},
-				      	{name: 'f', role: ''},
-			    	]
-			    }]
+				domains: 'A[a x:c b c]i+ B[d e y:c]x C[f z:c g h]o+ D[f* y*:c e* d*]i+ E[b* x*:c]x',
+				structure: '.((.((((...))))))',
+				description: '2 input/1 output sequential AND gate'
 			},{
-				name: 'm9',
+				name: 'm6d',
 				type: 'hairpin',
-				structure: '.((.))',
-			    domains: [{
-			    	name: 'A',
-			    	role: 'input',
-			    	polarity: '+',
-			    	segments: [
-				      	{name: 'a', role: 'toehold'},
-				        {name: 'b', role: ''},
-				        {name: 'c', role: ''},
-			    	]
-			    },{
-			    	name: 'B',
-			    	role: 'bridge',
-			    	type: 'loop',
-			    	polarity: '+',
-			    	segments: [
-				      	{name: 'd', },
-				      	{name: 'c*', role: ''},
-			    	]
-			    },{
-			    	name: 'C',
-			    	role: 'null',
-			    	type: 'stem',
-			    	polarity: '+',
-			    	segments: [
-				      	{name: 'b*', role: ''},
-			    	]
-			    }]
-			},{	
-				name: 'm1c',
-				type: 'initiator',
-			    isInitiator: true,
-			    structure: '....',
-			    domains: [{
-			    	name: 'A',
-			    	role: 'output',
-			    	type: 'init',
-			    	polarity: '+',
-			    	segments: [
-				      	{name: 'a', role: ''},
-				        {name: 'w', role: 'clamp'},
-				        {name: 'b', role: ''},
-				        {name: 'x', role: 'clamp'},
-			    	]
-			    }]
-			  }, {
-				name: 'm19c',
+				domains: 'A[a x:c b c]i+ B[d y:c e]x C[f z:c g h]o+ D[f* e* y*:c d*]i+ E[b* x*:c]x',
+				structure: '.((.((((...))))))',
+				description: '2 input/1 output sequential AND gate'
+			},{
+				name: 'm7a',
 				type: 'hairpin',
-				structure: '.(((..)))',
-				// domains: 'A[a:t w:c b x:c]+ B[y:c c x*:c b* w*:c]-'
-				domains: [{
-			    	name: 'A',
-			    	role: 'input',
-			      	polarity: '+',
-			    	segments:  [
-			      		{name: 'a', role: 'toehold'},
-				      	{name: 'w', role: 'clamp'},
-				        {name: 'b', },
-				      	{name: 'x', role: 'clamp'},
-			    	]
-			   },{
-				   name: 'B',
-				   role: 'output',
-				   polarity: '-',
-				   segments: [
-					   {name: 'y', role: 'clamp'},
-					   {name: 'c', },
-					   {name: 'x*', role: 'clamp'},
-					   {name: 'b*', role: 'toehold'},
-					   {name: 'w*', role: 'clamp'},
-				   ]
-			   }]
+				domains: 'A[a x:c b c]i+ B[d y:c e f]i+ C[g h z:c f*]o- D[e* y*:c c* b* x*:c]x',
+				structure: '.(((.(((...))))))',			
+				description: '2 input/1 output sequential AND gate'
+
 			},{
-				"name":"m20",
-				"type":"hairpin",
-				"structure":".(((....)))..",
-				"domains":"A[a:t x:c b c]i+ s[s(1)]x B[d e y:c c*:t]o- C[b*:t x*:c f g]o+"
+				name: 'm7b',
+				type: 'hairpin',
+				domains: 'A[a x:c b c]i+ B[d e y:c f]i- C[g h z:c f*]o- D[y*:c e* c* b* x*:c]x',
+				structure: '.(((.(((...))))))',
+				description: '2 input/1 output sequential AND gate'
 			},{
-				"name":"m21",
-				"type":"hairpin",
-				"structure":".(((...))).",
-				"domains":"A[a:t x:c b c]i+ s[s(1)]x B[d(16) y:c c*:t]o- C[b*:t x*:c e(16)]o+"
+				name: 'm7c',
+				type: 'hairpin',
+				domains: 'A[a x:c b c]i+ B[d y:c e f]i+ C[g z:c h f*]o+ D[e* y*:c c* b* x*:c]x',
+				structure: '.(((.(((...))))))',
+				description: '2 input/1 output sequential AND gate'
 			},{
-				"name":"m22",
-				"type":"cooperative",
+				name: 'm7d',
+				type: 'hairpin',
+				domains: 'A[a x:c b c]i+ B[d e y:c f]i- C[g z:c h f*]o+ D[y*:c e* c* b* x*:c]x',
+				structure: '.(((.(((...))))))',
+				description: '2 input/1 output sequential AND gate'
+			},{
+				name: 'm8a',
+				type: 'hairpin',
+				domains: 'A[a b x:c c]i- B[d e y:c d*]o- C[c* x*:c f g]i+',
+				structure: '..(((..)))..',
+				description: '2 input/1 output OR gate',
+			},{
+				name: 'm8b',
+				type: 'hairpin',
+				domains: 'A[a b x:c c]i- B[d y:c e d*]o+ C[c* x*:c f g]i+',
+				structure: '..(((..)))..',
+				description: '2 input/1 output OR gate',
+			},{
+				name: 'm9a',
+				type: 'hairpin',
+				domains: 'A[a x:c b c]i+ B[d e y:c d*]o- C[c* b* x*:c f]i-',
+				structure: '.((((..)))).',
+				description: '2 input/1 output OR gate',
+			},{
+				name: 'm9b',
+				type: 'hairpin',
+				domains: 'A[a x:c b c]i- B[d y:c e d*]o+ C[c* b* x*:c f]i-',
+				structure: '.((((..)))).',
+				description: '2 input/1 output OR gate',
+			},{
+				name: 'm10a',
+				type: 'cooperative',
+				"structure":".(((((((.+)))))))",
+				"strands":[{
+					"name":"S1",
+					"domains":"A[a:t x:c b c]i+ s[s(1)]x B[d e y:c f:t]i-"
+				},{
+					"name":"S2",
+					"domains":"C[y*:c e* d* s*(1) c* b* x*:c]x"
+				}]
+			},{
+				name: 'm10b',
+				type: 'cooperative',
 				"structure":".(((((.+)))))",
 				"strands":[{
 					"name":"S1",
@@ -3720,58 +3976,19 @@ App.dynamic = module.exports = (function(_,DNA) {
 					"name":"S2",
 					"domains":"C[y*:c c*(16) s*(1) b*(16) x*:c]x"
 				}]
-			},{
-				"name":"m23",
-				"type":"initiator",
-				"structure":"....",
-				"domains":"A[a x:c b c]o+"
-			},{
-				"name":"m24",
-				"type":"cooperative",
-				"structure":".(((((((((((.+)))))))))))",
-				"strands":[{
-					"name":"S1",
-					"domains":"A[a:t x:c b c]i+ s[s(1)]x B[d y:c e f]i- C[g z:c h i:t]i+"
-				},{
-					"name":"S2",
-					"domains":"D[h* z*:c g*]x E[f* e* y*:c d*]x F[s*(1) c* b* x*:c]x"
-				}]
-			},{
-				"name":"m25",
-				"type":"initiator",
-				"structure":"........",
-				"domains":"A[a x:c b y:c]o+ B[z:c c w:c d]o-"
-			},{
-				"name":"m26",
-				"type":"cooperative",
-				"structure":".(((((((.+)))))))",
-				"strands":[{
-					"name":"S1",
-					"domains":"A[a:t x:c b y:c]i+ s[s(1)]x B[z:c c w:c d]i-"
-				},{
-					"name":"S2",
-					"domains":"C[w* c* z* s*(1) y* b* x*]x"
-				}]
-			},{
-				name: 'm27',
-				type: 'hairpin',
-				structure: '.(...)',
-			    domains: 'A[a b]i+ B[c d]o- C[e b*]o-'
-			},{
-				name: 'm27c',
-				type: 'hairpin',
-				structure: '.(((..)))',
-				domains: 'A[a:t v:c b w:c]i+ B[x:c c y:c d]o- C[z:c e w*:c b* v*:c]o-'
-			},
-		];
-		standardMotifs = _.reduce(standardMotifs,function(memo,motif) {
+			}]
+		};
+
+
+
+		standardMotifs = _.reduce(standardMotifs[1],function(memo,motif) {
 			memo[motif.name] = motif;
 			return memo; 
 		},{});
 		
 		var domainColors = {
 			'init' : '#553300',
-			'input' : 'orange',
+			'input' : 'orange', // '#ffa500',
 			'output' : '#33ccff',
 			'output.init' : '#553300', // init (brown)
 			'output.loop' : '#33ccff', // blue
@@ -3781,7 +3998,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			'bridge.stem' : '#9900cc',
 		}
 		
-		function importObject(type,name) {
+		function importObject(type,name,version) {
 			switch(type) {
 				case 'motif': 
 					if(standardMotifs[name]) {

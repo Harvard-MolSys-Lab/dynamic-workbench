@@ -1,5 +1,5 @@
 Ext.define('App.ui.nodal.MotifInspector', {
-	requires : ['App.ui.CodeMirror'],
+	requires : ['App.ui.CodeMirror','App.ui.NodeTypeEditor'],
 	extend : 'Ext.form.Panel',
 	title : 'Motif',
 	bodyPadding : 5,
@@ -29,18 +29,32 @@ Ext.define('App.ui.nodal.MotifInspector', {
 					return String(thumb.value) + '°';
 				}
 			}, {
-				xtype: 'codemirror',
-				objectBinding: 'dynaml',
-				objectBindingEvent: 'blur',
-				height: 300,
-				title: 'DyNAML',
-				collapsed: false,
-				collapsible: true,
-				cls: 'simple-header',
-				mode: {
-					name: 'javascript',
-					json: true,
-				}
+				xtype: 'fieldset',
+				layout: 'anchor',
+				title: 'Motif Definition',
+				items: [{
+					xtype:'button',
+					text: 'Edit Motif',
+					handler: this.showMotifEditor,
+					scope: this,
+					margins: '0 0 3 0',
+				},{
+					xtype: 'codemirror',
+					objectBinding: 'dynaml',
+					objectBindingEvent: 'blur',
+					anchor: '100%',
+					height: 300,
+					title: 'DyNAML Code',
+					collapsed: true,
+					collapsible: true,
+					resizable: true,
+					cls: 'simple-header',
+					mode: {
+						name: 'javascript',
+						json: true,
+					}
+				}]
+
 			}],
 			showIf : function(wtype) {
 				return (wtype == 'Workspace.objects.dna.Motif');
@@ -48,9 +62,52 @@ Ext.define('App.ui.nodal.MotifInspector', {
 		})
 		this.callParent(arguments);
 		this.mixins.boundObjectPanel.initialize.apply(this, arguments);
+		this.motifEditors = {};
 	},
 	mixins : {
 		boundObjectPanel : 'App.ui.BoundObjectPanel'
 	},
+	showMotifEditor : function() {
+		var object = this.getBoundObject();
+		if(!this.motifEditors[object.getId()]) {
 
+			var updateMotifDynaml = (function (motifObject) {
+				return function() {
+					var panel = this.motifEditors[motifObject.getId()];
+					motifObject.set('dynaml',panel.getValue());
+				};
+			})(object);
+
+			var data = object.get('dynaml'), parsedData;
+			try {
+				parsedData = JSON.parse(data || '{}');
+				parsedData.name = parsedData.name || object.get('name');
+				data = JSON.stringify(parsedData);
+			} catch(e) {
+				// TODO: report error
+				return;
+			}
+
+			this.motifEditors[object.getId()] = Ext.create('App.ui.NodeTypeEditorWindow',{
+				width: 700,
+				height: 500,
+				closeAction: 'hide',
+				title: 'Edit Motif: '+object.get('name'),
+				data: object.get('dynaml'),
+				buttons: [{
+					text: 'Save',
+					handler: updateMotifDynaml,
+					scope: this,
+				}],
+			});
+			//this.motifEditors[object.getId()].on('close',updateMotifDynaml,this);
+		} else {
+			this.motifEditors[object.getId()].setValue(object.get('dynaml'))
+		}
+		this.motifEditors[object.getId()].show();
+		
+	},
+	getBoundObject: function () {
+		return this.boundObjects.getAt(0);
+	}
 })

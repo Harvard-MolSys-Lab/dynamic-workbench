@@ -1944,8 +1944,11 @@ var DNA = module.exports.DNA = (function(_) {
 				linkStrands: true,
 			});
 
-			var nodes = [], links = [], hybridization = [], 
-			sequences = DNA.hashComplements(params.sequences) || {},
+			var nodes = [],
+
+			// Separate arrays for different link types so we ensure proper z-order when the structure is rendered
+			wc_links = [], strand_links = [], persistence_links = [],
+			hybridization = [], sequences = DNA.hashComplements(params.sequences) || {},
 			strandIndex = 0, node, n = 0, base = 0;
 			
 			// Remove spaces from structure
@@ -2003,28 +2006,33 @@ var DNA = module.exports.DNA = (function(_) {
 									value : params.hybridizationValue,
 									type : 'wc'
 								};
-								links.push(link);
+								wc_links.push(link);
 							}
 		
 							nodes.push(node);
 							
 							if (params.linkStrands) {
 								if (n > 0 ) {
-									links.push({
+									strand_links.push({
 										source : j,
 										target : j - 1,
 										type : 'strand',
 										value : params.strandValue,
 										
-										segment: g > 0 ? seg.name : null,
-										segment_identity : g > 0 ? id.identity : null,
-										domain:  m > 0 ? dom.name : null,
-										domain_role : m > 0 ? dom.role : null,
+										// segment: g > 0 ? seg.name : null,
+										// segment_identity : g > 0 ? id.identity : null,
+										// domain:  m > 0 ? dom.name : null,
+										// domain_role : m > 0 ? dom.role : null,
+
+										segment: seg ? seg.name : null,
+										segment_identity : id ? id.identity : null,
+										domain:  dom ? dom.name : null,
+										domain_role : dom ? dom.role : null,
 									});
 								}
 								
 								if(!!params.persistenceLength && n > params.persistenceLength) {
-									links.push({
+									persistence_links.push({
 										source : j,
 										target : j - params.persistenceLength,
 										value : params.persistenceValue,
@@ -2049,7 +2057,7 @@ var DNA = module.exports.DNA = (function(_) {
 
 			return {
 				nodes : nodes,
-				links : links,
+				links : wc_links.concat(persistence_links).concat(strand_links),
 				strands : strands,
 			};
 		},

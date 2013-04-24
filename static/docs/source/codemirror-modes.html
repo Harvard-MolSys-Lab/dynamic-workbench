@@ -16,114 +16,118 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js">// CodeMirror.defineMode(&quot;nupack&quot;, function(config) {
-	// var sequenceMode = CodeMirror.getMode(config,'sequence');
-	// return {
-		// startState: function() {
-			// return {value:''};
-		// },
-		// token: function(stream,state) {
-			// stream.eatSpace();
-			// if(state.value=='') {
-				// if(stream.eat('%')) {
-					// stream.skipToEnd();
-					// return 'nupack-comment';
-				// } else 	if(stream.match('structure',true,true)) {
-					// state.value = 'structure-definition-left';
-					// return 'nupack-keyword';
-				// } else if(stream.match('sequence',true,true)) {
-					// state.value = 'sequence-definition-left';
-					// return 'nupack-keyword';
-				// } else {
-					// state.value='structure-name';
-				// }
-			// } else if(state.value=='structure-definition') {
-				// if(stream.eat('[')) {
-					// state.value = 'structure-definition-param';
-					// return 'pepper-param';
-				// } else {
-					// state.value = 'structure-definition-left';
-					// return '';
-				// }
-			// } else if(state.value=='structure-definition-param') {
-			// stream.eatWhile(function(c) {return (c!=']')});
-			// return 'pepper-param';
-			// } else if(state.value=='structure-definition-left') {
-				// stream.eatWhile(/\S/);
-				// state.value = 'structure-definition-assign';
-				// return 'nupack-structure';
-			// } else if(state.value=='structure-definition-assign') {
-				// stream.eatWhile(/[\S=]/);
-				// state.value = 'structure-definition-right';
-				// return '';
-			// } else if(state.value=='structure-definition-right') {
-				// //stream.eatWhile(/[HhUu\d]/);
-				// // if(stream.eol()) {
-					// // state.value='';
-					// // return 'nupack-huplus'
-				// // }
-				// stream.skipToEnd();
-				// state.value='';
-				// return 'nupack-huplus';
-			// } else if(state.value=='sequence-definition-left') {
-				// stream.eatWhile(/\S/);
-				// state.value = 'sequence-definition-assign';
-				// return 'nupack-sequence';
-			// } else if(state.value=='sequence-definition-assign') {
-				// stream.eatWhile(/[\S=]/);
-				// state.value = 'sequence-definition-right';
-				// return '';
-			// } else if(state.value=='sequence-definition-right') {
-				// var token;
-				// if(stream.eat(':')) {
-					// token = 'param'
-				// } else {
-					// token = sequenceMode.token(stream);
-				// }
-				// if(stream.eol()) {
-					// state.value='';
-				// }
-				// return token;
-			// } else if(state.value=='structure-name') {
-				// stream.eatWhile(/\S/);
-				// state.value = 'structure-assign';
-				// return 'nupack-structure';
-			// } else if(state.value=='structure-assign') {
-				// if(stream.eat(':')) {
-					// state.value = 'structure-thread'
-					// return '';
-				// } else if(stream.eat('&lt;')) {
-					// state.value = 'structure-objection';
-					// return '';
-				// } else {
-					// stream.skipToEnd();
-					// state.value = '';
-					// return 'nupack-error';
-				// }
-			// } else if(state.value=='structure-thread') {
-				// stream.skipToEnd();
-				// state.value='';
-				// return 'nupack-sequence';
-			// } else if(state.value=='param') {
-				// stream.skipToEnd();
-				// state.value='';
-				// return 'nupack-param';
-			// }
-		// }
-	// };
+// var sequenceMode = CodeMirror.getMode(config,'sequence');
+// return {
+// startState: function() {
+// return {value:''};
+// },
+// token: function(stream,state) {
+// stream.eatSpace();
+// if(state.value=='') {
+// if(stream.eat('%')) {
+// stream.skipToEnd();
+// return 'nupack-comment';
+// } else 	if(stream.match('structure',true,true)) {
+// state.value = 'structure-definition-left';
+// return 'nupack-keyword';
+// } else if(stream.match('sequence',true,true)) {
+// state.value = 'sequence-definition-left';
+// return 'nupack-keyword';
+// } else {
+// state.value='structure-name';
+// }
+// } else if(state.value=='structure-definition') {
+// if(stream.eat('[')) {
+// state.value = 'structure-definition-param';
+// return 'pepper-param';
+// } else {
+// state.value = 'structure-definition-left';
+// return '';
+// }
+// } else if(state.value=='structure-definition-param') {
+// stream.eatWhile(function(c) {return (c!=']')});
+// return 'pepper-param';
+// } else if(state.value=='structure-definition-left') {
+// stream.eatWhile(/\S/);
+// state.value = 'structure-definition-assign';
+// return 'nupack-structure';
+// } else if(state.value=='structure-definition-assign') {
+// stream.eatWhile(/[\S=]/);
+// state.value = 'structure-definition-right';
+// return '';
+// } else if(state.value=='structure-definition-right') {
+// //stream.eatWhile(/[HhUu\d]/);
+// // if(stream.eol()) {
+// // state.value='';
+// // return 'nupack-huplus'
+// // }
+// stream.skipToEnd();
+// state.value='';
+// return 'nupack-huplus';
+// } else if(state.value=='sequence-definition-left') {
+// stream.eatWhile(/\S/);
+// state.value = 'sequence-definition-assign';
+// return 'nupack-sequence';
+// } else if(state.value=='sequence-definition-assign') {
+// stream.eatWhile(/[\S=]/);
+// state.value = 'sequence-definition-right';
+// return '';
+// } else if(state.value=='sequence-definition-right') {
+// var token;
+// if(stream.eat(':')) {
+// token = 'param'
+// } else {
+// token = sequenceMode.token(stream);
+// }
+// if(stream.eol()) {
+// state.value='';
+// }
+// return token;
+// } else if(state.value=='structure-name') {
+// stream.eatWhile(/\S/);
+// state.value = 'structure-assign';
+// return 'nupack-structure';
+// } else if(state.value=='structure-assign') {
+// if(stream.eat(':')) {
+// state.value = 'structure-thread'
+// return '';
+// } else if(stream.eat('&lt;')) {
+// state.value = 'structure-objection';
+// return '';
+// } else {
+// stream.skipToEnd();
+// state.value = '';
+// return 'nupack-error';
+// }
+// } else if(state.value=='structure-thread') {
+// stream.skipToEnd();
+// state.value='';
+// return 'nupack-sequence';
+// } else if(state.value=='param') {
+// stream.skipToEnd();
+// state.value='';
+// return 'nupack-param';
+// }
+// }
+// };
 // });
 CodeMirror.defineMode(&quot;pepper&quot;, function(config, parserConfig) {
-	var indentUnit = config.indentUnit, keywords = (function() {
-		function makeKeywords(str) {
-			var obj = {}, words = str.split(&quot; &quot;);
-			for (var i = 0; i &lt; words.length; ++i)
+	var indentUnit = config.indentUnit,
+		keywords = (function() {
+			function makeKeywords(str) {
+				var obj = {},
+					words = str.split(&quot; &quot;);
+				for(var i = 0; i &lt; words.length; ++i)
 				obj[words[i]] = true;
-			return obj;
-		}
+				return obj;
+			}
 
-		var pilKeywords = &quot;declare import component system sequence strand structure kinetic equal noninteracting&quot;;
-		return makeKeywords(pilKeywords);
-	})(),
-	cpp = parserConfig.useCPP, multiLineStrings = parserConfig.multiLineStrings, $vars = parserConfig.$vars;
+			var pilKeywords = &quot;declare import component system sequence strand structure kinetic equal noninteracting&quot;;
+			return makeKeywords(pilKeywords);
+		})(),
+		cpp = parserConfig.useCPP,
+		multiLineStrings = parserConfig.multiLineStrings,
+		$vars = parserConfig.$vars;
 	var isOperatorChar = /[+\-*&amp;%=&lt;&gt;!?|]/,
 		dotParen = /[\.\(\)+]/;
 
@@ -133,6 +137,7 @@ CodeMirror.defineMode(&quot;pepper&quot;, function(config, parserConfig) {
 	}
 
 	var type;
+
 	function ret(tp, style) {
 		type = tp;
 		return style;
@@ -140,63 +145,62 @@ CodeMirror.defineMode(&quot;pepper&quot;, function(config, parserConfig) {
 
 	function tokenBase(stream, state) {
 		var ch = stream.next();
-		if (ch == '&quot;' || ch == &quot;'&quot;)
-			return chain(stream, state, tokenString(ch));
+		if(ch == '&quot;' || ch == &quot;'&quot;) return chain(stream, state, tokenString(ch));
 		// else if (/[\[\]{}\(\),;\:\.]/.test(ch))
-			// return ret(ch);
-		else if (ch == &quot;#&quot;) {
+		// return ret(ch);
+		else if(ch == &quot;#&quot;) {
 			stream.skipToEnd();
 			return ret(&quot;comment&quot;, &quot;comment&quot;);
-		} else if (/\d/.test(ch)) {
+		} else if(/\d/.test(ch)) {
 			stream.eatWhile(/[\w\.]/)
 			return ret(&quot;number&quot;, &quot;number&quot;);
-		} else if (ch == &quot;/&quot;) {
-			if (stream.eat(&quot;*&quot;)) {
+		} else if(ch == &quot;/&quot;) {
+			if(stream.eat(&quot;*&quot;)) {
 				return chain(stream, state, tokenComment);
-			} else if (stream.eat(&quot;/&quot;)) {
+			} else if(stream.eat(&quot;/&quot;)) {
 				stream.skipToEnd();
 				return ret(&quot;comment&quot;, &quot;comment&quot;);
 			} else {
 				stream.eatWhile(isOperatorChar);
-				return ret(&quot;operator&quot;,&quot;operator&quot;);
+				return ret(&quot;operator&quot;, &quot;operator&quot;);
 			}
-		} else if (isOperatorChar.test(ch)) {
+		} else if(isOperatorChar.test(ch)) {
 			stream.eatWhile(isOperatorChar);
 			return ret(&quot;operator&quot;);
-		} else if (dotParen.test(ch)) {
+		} else if(dotParen.test(ch)) {
 			stream.eatWhile(dotParen);
-			return ret(&quot;word&quot;,&quot;pepper-dotParen&quot;);
-		} else if ($vars &amp;&amp; ch == &quot;$&quot;) {
+			return ret(&quot;word&quot;, &quot;pepper-dotParen&quot;);
+		} else if($vars &amp;&amp; ch == &quot;$&quot;) {
 			stream.eatWhile(/[\w\$_]/);
 			return ret(&quot;word&quot;, &quot;variable&quot;);
 		} else {
 			stream.eatWhile(/[\w\$_]/);
-			if (keywords &amp;&amp; keywords[stream.current()])
-				return ret(&quot;keyword&quot;, &quot;keyword&quot;);
+			if(keywords &amp;&amp; keywords[stream.current()]) return ret(&quot;keyword&quot;, &quot;keyword&quot;);
 			return ret(&quot;word&quot;, &quot;word&quot;);
 		}
 	}
 
 	function tokenString(quote) {
 		return function(stream, state) {
-			var escaped = false, next, end = false;
-			while ((next = stream.next()) != null) {
-				if (next == quote &amp;&amp; !escaped) {
+			var escaped = false,
+				next, end = false;
+			while((next = stream.next()) != null) {
+				if(next == quote &amp;&amp; !escaped) {
 					end = true;
 					break;
 				}
 				escaped = !escaped &amp;&amp; next == &quot;\\&quot;;
 			}
-			if (end || !(escaped || multiLineStrings))
-				state.tokenize = tokenBase;
+			if(end || !(escaped || multiLineStrings)) state.tokenize = tokenBase;
 			return ret(&quot;string&quot;, &quot;string&quot;);
 		};
 	}
 
 	function tokenComment(stream, state) {
-		var maybeEnd = false, ch;
-		while (ch = stream.next()) {
-			if (ch == &quot;/&quot; &amp;&amp; maybeEnd) {
+		var maybeEnd = false,
+			ch;
+		while(ch = stream.next()) {
+			if(ch == &quot;/&quot; &amp;&amp; maybeEnd) {
 				state.tokenize = tokenBase;
 				break;
 			}
@@ -222,7 +226,6 @@ CodeMirror.defineMode(&quot;pepper&quot;, function(config, parserConfig) {
 	}
 
 	// Interface
-
 	return {
 		startState: function(basecolumn) {
 			return {
@@ -234,52 +237,37 @@ CodeMirror.defineMode(&quot;pepper&quot;, function(config, parserConfig) {
 		},
 		token: function(stream, state) {
 			var ctx = state.context;
-			if (stream.sol()) {
-				if (ctx.align == null)
-					ctx.align = false;
+			if(stream.sol()) {
+				if(ctx.align == null) ctx.align = false;
 				state.indented = stream.indentation();
 				state.startOfLine = true;
 			}
-			if (stream.eatSpace())
-				return null;
+			if(stream.eatSpace()) return null;
 			var style = state.tokenize(stream, state);
-			if (type == &quot;comment&quot;)
-				return style;
-			if (ctx.align == null)
-				ctx.align = true;
+			if(type == &quot;comment&quot;) return style;
+			if(ctx.align == null) ctx.align = true;
 
-			if ((type == &quot;;&quot; || type == &quot;:&quot;) &amp;&amp; ctx.type == &quot;statement&quot;)
-				popContext(state);
-			else if (type == &quot;{&quot;)
-				pushContext(state, stream.column(), &quot;}&quot;);
-			else if (type == &quot;[&quot;)
-				pushContext(state, stream.column(), &quot;]&quot;);
-			else if (type == &quot;(&quot;)
-				pushContext(state, stream.column(), &quot;)&quot;);
-			else if (type == &quot;}&quot;) {
-				if (ctx.type == &quot;statement&quot;)
-					ctx = popContext(state);
-				if (ctx.type == &quot;}&quot;)
-					ctx = popContext(state);
-				if (ctx.type == &quot;statement&quot;)
-					ctx = popContext(state);
-			} else if (type == ctx.type)
-				popContext(state);
-			else if (ctx.type == &quot;}&quot;)
-				pushContext(state, stream.column(), &quot;statement&quot;);
+			if((type == &quot;;&quot; || type == &quot;:&quot;) &amp;&amp; ctx.type == &quot;statement&quot;) popContext(state);
+			else if(type == &quot;{&quot;) pushContext(state, stream.column(), &quot;}&quot;);
+			else if(type == &quot;[&quot;) pushContext(state, stream.column(), &quot;]&quot;);
+			else if(type == &quot;(&quot;) pushContext(state, stream.column(), &quot;)&quot;);
+			else if(type == &quot;}&quot;) {
+				if(ctx.type == &quot;statement&quot;) ctx = popContext(state);
+				if(ctx.type == &quot;}&quot;) ctx = popContext(state);
+				if(ctx.type == &quot;statement&quot;) ctx = popContext(state);
+			} else if(type == ctx.type) popContext(state);
+			else if(ctx.type == &quot;}&quot;) pushContext(state, stream.column(), &quot;statement&quot;);
 			state.startOfLine = false;
 			return style;
 		},
 		indent: function(state, textAfter) {
-			if (state.tokenize != tokenBase)
-				return 0;
-			var firstChar = textAfter &amp;&amp; textAfter.charAt(0), ctx = state.context, closing = firstChar == ctx.type;
-			if (ctx.type == &quot;statement&quot;)
-				return ctx.indented + (firstChar == &quot;{&quot; ? 0 : indentUnit);
-			else if (ctx.align)
-				return ctx.column + (closing ? 0 : 1);
-			else
-				return ctx.indented + (closing ? 0 : indentUnit);
+			if(state.tokenize != tokenBase) return 0;
+			var firstChar = textAfter &amp;&amp; textAfter.charAt(0),
+				ctx = state.context,
+				closing = firstChar == ctx.type;
+			if(ctx.type == &quot;statement&quot;) return ctx.indented + (firstChar == &quot;{&quot; ? 0 : indentUnit);
+			else if(ctx.align) return ctx.column + (closing ? 0 : 1);
+			else return ctx.indented + (closing ? 0 : indentUnit);
 		},
 		electricChars: &quot;{}[]()&quot;
 	};
@@ -293,72 +281,71 @@ CodeMirror.defineMode(&quot;sequence&quot;, function() {
 					return 'sequence-name';
 				}
 			}
-			
+
 			// var urlRegex = new RegExp(&quot;\b(https?|ftp|file)://[-A-Z0-9+&amp;@#/%?=~_|!:,.;]*[A-Z0-9+&amp;@#/%=~_|]&quot;);
 			// if(stream.match(urlRegex)) {
-				// return 'sequence-link';
+			// return 'sequence-link';
 			// }
-			
 			var ch = stream.next();
 			switch(ch) {
-				case '%':
-				case '#':
-					stream.skipToEnd();
-					return &quot;sequence-comment&quot;;
-				case '&gt;':
-					stream.skipToEnd();
-					return 'sequence-name';
-				case 'a':
-				case 'A':
-					return 'sequence-a';
-				case 'u':
-				case 'U':
-					return 'sequence-u';
-				case 't':
-				case 'T':
-					return 'sequence-t';
-				case 'c':
-				case 'C':
-					return 'sequence-c';
-				case 'g':
-				case 'G':
-					return 'sequence-g';
-				
+			case '%':
+			case '#':
+				stream.skipToEnd();
+				return &quot;sequence-comment&quot;;
+			case '&gt;':
+				stream.skipToEnd();
+				return 'sequence-name';
+			case 'a':
+			case 'A':
+				return 'sequence-a';
+			case 'u':
+			case 'U':
+				return 'sequence-u';
+			case 't':
+			case 'T':
+				return 'sequence-t';
+			case 'c':
+			case 'C':
+				return 'sequence-c';
+			case 'g':
+			case 'G':
+				return 'sequence-g';
+
 				// Degenerate bases
-				case 'n':
-				case 'N':
-					return 'sequence-n';
-				case 'r':
-				case 'R':
-					return 'sequence-r';
-				case 'y':
-				case 'Y':
-					return 'sequence-y';
-				case 'k':
-				case 'K':
-					return 'sequence-k';
-				case 'm':
-				case 'M':
-					return 'sequence-m';
-				case 's':
-				case 'S':
-					return 'sequence-s'; 
-				case 'w':
-				case 'W':
-					return 'sequence-w';
-				case 'b':
-				case 'B':
-					return 'sequence-b';
-				case 'd':
-				case 'D':
-					return 'sequence-d';
-				case 'h':
-				case 'H':
-					return 'sequence-h';
-				case 'v':
-				case 'V':
-					return 'sequence-v';
-				
+			case 'n':
+			case 'N':
+				return 'sequence-n';
+			case 'r':
+			case 'R':
+				return 'sequence-r';
+			case 'y':
+			case 'Y':
+				return 'sequence-y';
+			case 'k':
+			case 'K':
+				return 'sequence-k';
+			case 'm':
+			case 'M':
+				return 'sequence-m';
+			case 's':
+			case 'S':
+				return 'sequence-s';
+			case 'w':
+			case 'W':
+				return 'sequence-w';
+			case 'b':
+			case 'B':
+				return 'sequence-b';
+			case 'd':
+			case 'D':
+				return 'sequence-d';
+			case 'h':
+			case 'H':
+				return 'sequence-h';
+			case 'v':
+			case 'V':
+				return 'sequence-v';
+
 			}
 			if(ch.match(/\d/)) {
 				return 'number';
@@ -374,37 +361,37 @@ CodeMirror.defineMode(&quot;dd-sequence&quot;, function() {
 		token: function(stream) {
 			var ch = stream.next();
 			switch(ch) {
-				case '%':
-				case '#':
-					stream.skipToEnd();
-					return &quot;sequence-comment&quot;;
-				case '&gt;':
-					stream.skipToEnd();
-					return 'sequence-name';
-				case 'a':
-					return 'sequence-a';
-				case 'A':
-					return 'sequence-a-lock';
-				case 'u':
-					return 'sequence-u';
-				case 'U':
-					return 'sequence-u-lock';
-				case 't':
-					return 'sequence-t';
-				case 'T':
-					return 'sequence-t-lock';
-				case 'c':
-					return 'sequence-c';
-				case 'C':
-					return 'sequence-c-lock';
-				case 'g':
-					return 'sequence-g';
-				case 'G':
-					return 'sequence-g-lock';
-				case 'n':
-				case 'N':
-						return 'sequence-n';
-				
+			case '%':
+			case '#':
+				stream.skipToEnd();
+				return &quot;sequence-comment&quot;;
+			case '&gt;':
+				stream.skipToEnd();
+				return 'sequence-name';
+			case 'a':
+				return 'sequence-a';
+			case 'A':
+				return 'sequence-a-lock';
+			case 'u':
+				return 'sequence-u';
+			case 'U':
+				return 'sequence-u-lock';
+			case 't':
+				return 'sequence-t';
+			case 'T':
+				return 'sequence-t-lock';
+			case 'c':
+				return 'sequence-c';
+			case 'C':
+				return 'sequence-c-lock';
+			case 'g':
+				return 'sequence-g';
+			case 'G':
+				return 'sequence-g-lock';
+			case 'n':
+			case 'N':
+				return 'sequence-n';
+
 			}
 			if(ch.match(/\d/)) {
 				return 'number';
@@ -415,114 +402,116 @@ CodeMirror.defineMode(&quot;dd-sequence&quot;, function() {
 });
 
 CodeMirror.defineMode(&quot;nupack&quot;, function(config) {
-	var sequenceMode = CodeMirror.getMode(config,'sequence');
-	var ms = !!config &amp;&amp; !!config.mode &amp;&amp; !!config.mode.multisubjective;
+	var sequenceMode = CodeMirror.getMode(config, 'sequence');
+	var ms = !! config &amp;&amp; !! config.mode &amp;&amp; !! config.mode.multisubjective;
 	return {
 		startState: function() {
-			return {value:''};
+			return {
+				value: ''
+			};
 		},
-		token: function(stream,state) {
+		token: function(stream, state) {
 			if(stream.eatSpace()) {
 				return '';
 			}
-			
+
 			// Beginning of line
-			if(state.value=='') {
-				if(stream.match('#`',true,true) || stream.match('#``',true,true)) {
+			if(state.value == '') {
+				if(stream.match('#`', true, true) || stream.match('#``', true, true)) {
 					stream.skipToEnd();
-					return 'builtin';	
+					return 'builtin';
 				} else if(stream.eat('%') || stream.eat('#')) {
 					stream.skipToEnd();
 					return 'comment';
-				} else if(stream.match('structure',true,true)) {
+				} else if(stream.match('structure', true, true)) {
 					state.value = 'structure-definition-left';
 					return 'keyword';
-				} else if(stream.match('sequence',true,true) || stream.match('domain',true,true)) {
+				} else if(stream.match('sequence', true, true) || stream.match('domain', true, true)) {
 					state.value = 'sequence-definition-left';
 					return 'keyword';
-				} else if(stream.match('strand',true,true)) {
-					state.value='structure-name';
+				} else if(stream.match('strand', true, true)) {
+					state.value = 'structure-name';
 					return 'keyword';
 				} else {
-					if(!!ms) {
-						if(stream.match('hairpin',true,true)) {
+					if( !! ms) {
+						if(stream.match('hairpin', true, true)) {
 							state.value = 'ms-definition-left';
 							return 'keyword';
-						} else if(stream.match('coop',true,true)) {
+						} else if(stream.match('coop', true, true)) {
 							state.value = 'ms-definition-left';
 							return 'keyword';
-						} else if(stream.match('bridge',true,true)) {
+						} else if(stream.match('bridge', true, true)) {
 							state.value = 'ms-definition-left';
 							return 'keyword';
-						} else if(stream.match('static',true,true)) {
+						} else if(stream.match('static', true, true)) {
 							state.value = 'ms-definition-key';
 							return 'keyword';
-						} else if(stream.match('length',true,true)) {
+						} else if(stream.match('length', true, true)) {
 							state.value = 'sequence-definition-left';
 							return 'keyword';
 						}
 					}
-					state.value='structure-name';
+					state.value = 'structure-name';
 				}
-				
-			// multisubjective
-			} else if(state.value=='ms-definition-left') {
+
+				// multisubjective
+			} else if(state.value == 'ms-definition-left') {
 				stream.eatWhile(/\S/);
 				state.value = 'ms-definition-assign';
 				return 'string';
-			} else if(state.value=='ms-definition-assign') {
+			} else if(state.value == 'ms-definition-assign') {
 				stream.eatWhile(/[\S:]/);
 				state.value = 'sequence-definition-right';
 				return 'operator';
-			} else if(state.value=='ms-definition-right') {
-				state.value='';
+			} else if(state.value == 'ms-definition-right') {
+				state.value = '';
 				return '';
-			} else if(state.value=='ms-definition-key') {
+			} else if(state.value == 'ms-definition-key') {
 				stream.eatWhile(/\S/);
 				state.value = '';
 				return 'string';
-			// structure (name) = (spec in HU+)
-			} else if(state.value=='structure-definition-left') {
+				// structure (name) = (spec in HU+)
+			} else if(state.value == 'structure-definition-left') {
 				stream.eatWhile(/\S/);
 				state.value = 'structure-definition-assign';
 				return 'nupack-structure';
-			} else if(state.value=='structure-definition-assign') {
+			} else if(state.value == 'structure-definition-assign') {
 				stream.eatWhile(/[\S=]/);
 				state.value = 'structure-definition-right';
 				return 'operator';
-			} else if(state.value=='structure-definition-right') {
+			} else if(state.value == 'structure-definition-right') {
 				//stream.eatWhile(/[HhUu\d]/);
 				// if(stream.eol()) {
-					// state.value='';
-					// return 'nupack-huplus'
+				// state.value='';
+				// return 'nupack-huplus'
 				// }
 				stream.skipToEnd();
-				state.value='';
+				state.value = '';
 				return 'nupack-huplus';
-				
-			// sequence (name) = (spec)
-			// sequence (name) : (spec)
-			// domain (name) = (spec)
-			// domain (name) : (spec)
-			} else if(state.value=='sequence-definition-left') {
+
+				// sequence (name) = (spec)
+				// sequence (name) : (spec)
+				// domain (name) = (spec)
+				// domain (name) : (spec)
+			} else if(state.value == 'sequence-definition-left') {
 				stream.eatWhile(/\S/);
 				state.value = 'sequence-definition-assign';
 				return 'string';
-			} else if(state.value=='sequence-definition-assign') {
+			} else if(state.value == 'sequence-definition-assign') {
 				stream.eatWhile(/[\S=]/);
 				state.value = 'sequence-definition-right';
 				return 'operator';
-			} else if(state.value=='sequence-definition-right') {
+			} else if(state.value == 'sequence-definition-right') {
 				var token = sequenceMode.token(stream);
 				if(stream.eol()) {
-					state.value='';
+					state.value = '';
 				}
 				return token;
-			} else if(state.value=='structure-name') {
+			} else if(state.value == 'structure-name') {
 				stream.eatWhile(/\S/);
 				state.value = 'structure-assign';
 				return 'variable';
-			} else if(state.value=='structure-assign') {
+			} else if(state.value == 'structure-assign') {
 				if(stream.eat('=') || stream.eat(':')) {
 					state.value = 'structure-thread'
 					return 'operator';
@@ -534,13 +523,13 @@ CodeMirror.defineMode(&quot;nupack&quot;, function(config) {
 					state.value = '';
 					return 'nupack-error';
 				}
-			} else if(state.value=='structure-thread') {
+			} else if(state.value == 'structure-thread') {
 				stream.skipToEnd();
-				state.value='';
+				state.value = '';
 				return 'string';
-			} else if(state.value=='structure-objection') {
+			} else if(state.value == 'structure-objection') {
 				stream.skipToEnd();
-				state.value='';
+				state.value = '';
 				return 'qualifier';
 			}
 		}
@@ -548,103 +537,114 @@ CodeMirror.defineMode(&quot;nupack&quot;, function(config) {
 });
 
 CodeMirror.defineMode(&quot;dil-domains&quot;, function(config) {
-	var sequenceMode = CodeMirror.getMode(config,'sequence');
+	var sequenceMode = CodeMirror.getMode(config, 'sequence');
 	return {
 		startState: function() {
-			return {expects:''};
+			return {
+				expects: ''
+			};
 		},
-		token: function(stream,state) {
+		token: function(stream, state) {
 
-			
+
 			switch(state.expects) {
 				// Beginning of line
-				case '':
-					if(stream.eatSpace()) {
-						return '';
-					} else if(stream.eatWhile(/^\w+/)) {						
-						state.expects = 'domain-block-open';
-						return 'variable'
-					}
+			case '':
+				if(stream.match(/^[^\[\]]+$/,false)) {
+					state.expects = 'segment-block';
 					return '';
-				case 'domain-block-open':
-					if(stream.eat('[')) {
-						state.expects = 'domain-block'
-						return 'bracket';
-					}
-					
-					stream.skipToEnd();
-					state.expects = '';
-					return 'error';
-					
-				case 'domain-block':
-					if(stream.eatSpace()) {
-						return '';
-					}
-					
-					if(stream.eat(']')) {
-						state.expects = 'domain-block-specifier'
-						return 'bracket'
-					} else if(stream.match(/^[\w\*']+/)) {
-						state.expects = 'segment-block'
-						return 'variable-2'
-					}
-					
-					stream.skipToEnd();
-					state.expects = '';
-					return 'error';
-					
-				case 'segment-block':
-					if(stream.match(/^\(\d+\)/)) {
-						state.expects = 'segment-block-specifier'
-						return 'number'
-					} else if(stream.eat(':')) {
-						state.expects = 'segment-block-specifier'
-						return 'operator'
-					} 
-					stream.eatSpace();
+				}
+
+				if(stream.eatSpace()) {
+					return '';
+				} else if(stream.eatWhile(/^\w+/)) {
+					state.expects = 'domain-block-open';
+					return 'variable'
+				}
+				return '';
+			case 'domain-block-open':
+				if(stream.eat('[')) {
+					state.expects = 'domain-block'
+					return 'bracket';
+				}
+
+				stream.skipToEnd();
+				state.expects = '';
+				return 'error';
+
+			case 'domain-block':
+				if(stream.eatSpace()) {
+					return '';
+				}
+
+				if(stream.eat(']')) {
+					state.expects = 'domain-block-specifier'
+					return 'bracket'
+				} else if(stream.match(/^[\w\*']+/)) {
+					state.expects = 'segment-block'
+					return 'variable-2'
+				}
+
+				stream.skipToEnd();
+				state.expects = '';
+				return 'error';
+
+			case 'segment-block':
+				if(stream.match(/^\(\d+\)/)) {
+					state.expects = 'segment-block-specifier'
+					return 'number'
+				} else if(stream.eat(':')) {
+					state.expects = 'segment-block-specifier'
+					return 'operator'
+				}
+				stream.eatSpace();
+				state.expects = 'domain-block';
+				return '';
+			case 'segment-block-specifier':
+				if(stream.match(/^\w+/)) {
 					state.expects = 'domain-block';
-					return '';
-				case 'segment-block-specifier':
-					if(stream.match(/^\w+/)) {
-						state.expects = 'domain-block';
-						return 'keyword'
-					} 
-					stream.eatSpace()
-					state.expects = 'domain-block';
-					return '';
-				case 'domain-block-specifier':
-					if(stream.match(/^\w+/)) {
-						state.expects = 'domain-block-polarity'
-						return 'keyword'
-					}
-					state.expects = 'domain-block-polarity';
-					return '';
-				case 'domain-block-polarity':
-					if(stream.eat(/[\+-0]/)) {
-						state.expects = '';
-						return 'atom'
-					}
+					return 'keyword'
+				}
+				stream.eatSpace()
+				state.expects = 'domain-block';
+				return '';
+			case 'domain-block-specifier':
+				if(stream.match(/^\w+/)) {
+					state.expects = 'domain-block-polarity'
+					return 'keyword'
+				}
+				state.expects = 'domain-block-polarity';
+				return '';
+			case 'domain-block-polarity':
+				if(stream.eat(/[\+-0]/)) {
 					state.expects = '';
-					return '';
-					
+					return 'atom'
+				}
+				state.expects = '';
+				return '';
+
 			}
-	
+
 		}
 	};
 });
 
 
-	
-CodeMirror.tokenize = function(string,modespec,callback) {
-	var mode = CodeMirror.getMode({indentUnit: 2}, modespec);
-	var lines = CodeMirror.splitLines(string), state = CodeMirror.startState(mode), stream, out = [];
-	for (var i = 0, e = lines.length; i &lt; e; ++i) {
+
+CodeMirror.tokenize = function(string, modespec, callback) {
+	var mode = CodeMirror.getMode({
+		indentUnit: 2
+	}, modespec);
+	var lines = CodeMirror.splitLines(string),
+		state = CodeMirror.startState(mode),
+		stream, out = [];
+	for(var i = 0, e = lines.length; i &lt; e; ++i) {
 		out[i] = [];
 		stream = new CodeMirror.StringStream(lines[i]);
-		while (!stream.eol()) {
+		while(!stream.eol()) {
 			var style = mode.token(stream, state);
-			if(!!style) {
-				out[i].push([style,stream.current()]);
+			if( !! style) {
+				out[i].push([style, stream.current()]);
 			}
 			stream.start = stream.pos;
 		}
@@ -652,30 +652,91 @@ CodeMirror.tokenize = function(string,modespec,callback) {
 	return out;
 }
 
-CodeMirror.modeRenderer = function(mode,wrapperCls) {
-	wrapperCls || (wrapperCls = ''); 
+CodeMirror.modeRenderer = function(mode, wrapperCls) {
+	wrapperCls || (wrapperCls = '');
 	return function(v) {
 		var x = {
-			innerHTML : '',
-			nodeType : 1
+			innerHTML: '',
+			nodeType: 1
 		};
 		CodeMirror.runMode(v, mode, x);
-		if(!!wrapperCls) {
-			return '&lt;span class=&quot;' + wrapperCls + '&quot;&gt;' + x.innerHTML + '&lt;/span&gt;';			
+		if( !! wrapperCls) {
+			return '&lt;span class=&quot;' + wrapperCls + '&quot;&gt;' + x.innerHTML + '&lt;/span&gt;';
 		} else {
 			return x.innerHTML;
 		}
 	}
 }
 
-CodeMirror.renderMode = function(mode,v) {
+CodeMirror.renderMode = function(mode, v) {
 	var x = {
-		innerHTML : '',
-		nodeType : 1
+		innerHTML: '',
+		nodeType: 1
 	};
 	CodeMirror.runMode(v, mode, x);
 	return x.innerHTML;
 }
-</pre>
+
+CodeMirror.getModeRenderer = function(modespec, options) {
+	function esc(str) {
+		return str.replace(/[&lt;&amp;]/g, function(ch) {
+			return ch == &quot;&lt;&quot; ? &quot;&amp;lt;&quot; : &quot;&amp;amp;&quot;;
+		});
+	}
+
+	var mode = CodeMirror.getMode(CodeMirror.defaults, modespec);
+	var tabSize = (options &amp;&amp; options.tabSize) || CodeMirror.defaults.tabSize;
+	var renderer = options.renderer || function(text,style,col) {
+		if(style) 
+			return &quot;&lt;span class=\&quot;cm-&quot; + style + &quot;\&quot;&gt;&quot; + text + &quot;&lt;/span&gt;&quot;
+		else 
+			return text;
+	}
+	return function(string) {
+		var accum = [],
+			col = 0;
+		callback = function(text, style) {
+			if(text == &quot;\n&quot;) {
+				accum.push(&quot;&lt;br&gt;&quot;);
+				col = 0;
+				return;
+			}
+			var escaped = &quot;&quot;;
+			// HTML-escape and replace tabs
+			for(var pos = 0;;) {
+				var idx = text.indexOf(&quot;\t&quot;, pos);
+				if(idx == -1) {
+					escaped += esc(text.slice(pos));
+					col += text.length - pos;
+					break;
+				} else {
+					col += idx - pos;
+					escaped += esc(text.slice(pos, idx));
+					var size = tabSize - col % tabSize;
+					col += size;
+					for(var i = 0; i &lt; size; ++i) escaped += &quot; &quot;;
+					pos = idx + 1;
+				}
+			}
+
+			accum.push(renderer(escaped,esc(style),col))
+		};
+
+		var lines = CodeMirror.splitLines(string),
+			state = CodeMirror.startState(mode);
+		for(var i = 0, e = lines.length; i &lt; e; ++i) {
+			if(i) callback(&quot;\n&quot;);
+			var stream = new CodeMirror.StringStream(lines[i]);
+			while(!stream.eol()) {
+				var style = mode.token(stream, state);
+				callback(stream.current(), style, i, stream.start);
+				stream.start = stream.pos;
+			}
+		}
+		return accum.join(&quot;&quot;);
+	}
+
+
+};</pre>
 </body>
 </html>

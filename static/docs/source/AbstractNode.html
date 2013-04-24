@@ -79,13 +79,13 @@ Ext.define('Workspace.objects.dna.AbstractNode', {
 		//debugger;
 		this.callParent(arguments);
 		this.toBack();
-		this.addShim(new Workspace.ConnectionLabel({
-			cls: 'workspace-label-plain workspace-label-small',
-			offsets:[0,2],
-			//offsets: [11,26],
-			property: 'motif',
-			editable: false
-		}));
+		// this.addShim(new Workspace.ConnectionLabel({
+		// 	cls: 'workspace-label-plain workspace-label-small',
+		// 	offsets:[0,2],
+		// 	//offsets: [11,26],
+		// 	property: 'motif',
+		// 	editable: false
+		// }));
 		this.layout.doFirstLayout();
 
 	},

@@ -189,7 +189,20 @@
 		var defaultConc = this.down('[name=conc_value]').getValue();
 		
 		var partition_sequence = _.compact(_.map(strands,function(strand,i) {			
-			var list = strand.trim().match(/(\w+)?\s?(\[(\d+)([pnumd])M\])?\s?:?\s?([AaTtCcGgUu]+)/);
+			var list;
+
+			// Simple case; just sequence, no fancy input
+			if(/^\s*([AaTtCcGgUu]+)\s*$/.test(strand)) {
+				strand = strand.trim();
+				return {
+					name: i, 
+					concentration: defaultConc,
+					scale: scales[defaultScale],
+					contents: strand
+				};
+			}
+
+			list = strand.trim().match(/(\w+)?\s?(\[(\d+)([pnumd])M\])?\s?:?\s?([AaTtCcGgUu]+)/);
 			// [&quot;m1 [1uM] : ATCG&quot;, &quot;m1&quot;, &quot;[1uM]&quot;, &quot;1&quot;, &quot;u&quot;, &quot;ATCG&quot;]
 			if(list) {
 				return {

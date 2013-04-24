@@ -159,7 +159,14 @@ Ext.define('App.ui.DD', {
 					header : 'Sequence',
 					dataIndex : 'sequence',
 					renderer: CodeMirror.modeRenderer('dd-sequence','dd-sequence'),
-					// renderer : function(v) {						// var x = {							// innerHTML : '',							// nodeType : 1						// };						// CodeMirror.runMode(v, 'dd-sequence', x);						// return '&lt;span class=&quot;dd-sequence&quot;&gt;' + x.innerHTML + '&lt;/span&gt;';					// },
+					// renderer : function(v) {
+						// var x = {
+							// innerHTML : '',
+							// nodeType : 1
+						// };
+						// CodeMirror.runMode(v, 'dd-sequence', x);
+						// return '&lt;span class=&quot;dd-sequence&quot;&gt;' + x.innerHTML + '&lt;/span&gt;';
+					// },
 					editor : {
 						allowBlank : false,
 						selectOnFocus: true,	
@@ -207,7 +214,12 @@ Ext.define('App.ui.DD', {
 					renderer : Ext.bind(function(v) {
 						v = this.designer.printComposition(v);
 						return CodeMirror.renderMode('sequence',v.toUpperCase());
-						// var x = {							// innerHTML : '',							// nodeType : 1						// };						// CodeMirror.runMode(v.toUpperCase(), 'sequence', x);						// return x.innerHTML;
+						// var x = {
+							// innerHTML : '',
+							// nodeType : 1
+						// };
+						// CodeMirror.runMode(v.toUpperCase(), 'sequence', x);
+						// return x.innerHTML;
 					}, this),
 					width : 100,
 					editor : {
@@ -380,6 +392,18 @@ Ext.define('App.ui.DD', {
 							iconCls: 'thread-sequence',
 							handler: this.threadStrands,
 							scope: this,
+						},'-',{
+							text: 'View DD file',
+							iconCls: 'dd',
+							handler: this.showDDFile,
+							scope: this,
+							tooltip: 'Show the raw DD file containing each of the sequences, their importances and compositions as plain text.'
+						},{
+							text: 'View Sequences',
+							iconCls: 'seq',
+							handler: this.showDomainsPlaintext,
+							scope: this,
+							tooltip: 'Show the sequences sequence of each domain as plain text suitable for copying and pasting into other programs.'
 						}]
 					}, '-&gt;', Ext.create('App.ui.SaveButton', {
 						text : 'Save Domains',
@@ -387,7 +411,11 @@ Ext.define('App.ui.DD', {
 						app : this,
 						defaultExtension : 'ddjs',
 						forceDefaultExtension : false,
-					})]
+					}), {
+						text : 'Help',
+						iconCls : 'help',
+						handler : App.ui.Launcher.makeLauncher('help:web-dd'),
+					}]
 				},
 				bbar : {
 <span id='App-ui-DD-property-ref'>					/**
@@ -590,7 +618,8 @@ Ext.define('App.ui.DD', {
 	eachSelected: function(f) {
 		var me = this;
 		f = f.bind(me);
-		var recs = this.grid.getSelectionModel().getSelection();		if (recs) {
+		var recs = this.grid.getSelectionModel().getSelection();
+		if (recs) {
 			_.each(recs,function(rec,i) {
 				var j = me.store.indexOf(rec)
 				f(rec,j);
@@ -704,10 +733,17 @@ Ext.define('App.ui.DD', {
 	 */
 	doDeleteDomains : function() {
 		this.eachSelected(function(rec,dom) {
-			this.designer.removeDomain(this.store.indexOf(rec));			this.store.remove(rec);
+			this.designer.removeDomain(this.store.indexOf(rec));
+			this.store.remove(rec);
 		});
 		
-		// var recs = this.grid.getSelectionModel().getSelection();		// if (recs) {			// _.each(recs, function(rec) {				// this.designer.removeDomain(this.store.indexOf(rec));				// this.store.remove(rec);			// }, this);		// }
+		// var recs = this.grid.getSelectionModel().getSelection();
+		// if (recs) {
+			// _.each(recs, function(rec) {
+				// this.designer.removeDomain(this.store.indexOf(rec));
+				// this.store.remove(rec);
+			// }, this);
+		// }
 	},
 <span id='App-ui-DD-method-syncDomains'>	/**
 </span>	 * Synchronizes domains in the view and the designer with domains in the
@@ -770,13 +806,57 @@ Ext.define('App.ui.DD', {
 				value : data || '',
 				handler : function(data) {
 					this.designer.loadFile(data);
-					this.addDomains(this.designer.printfSequences(), [], this.designer.getCompositions(), this.designer.getImportances());
+					this.addDomains(this.designer.printfDomains(), [], this.designer.getCompositions(), this.designer.getImportances());
 				},
 				scope : this,
 			});
 		}
 		this.loadDDFileWindow.show();
 
+	},
+	showDDFile: function() {
+		var data = this.designer.saveFile();
+		if (!this.showDDFileWindow) {
+<span id='App-ui-DD-property-showDDFileWindow'>			/**
+</span>			 * @property {App.ui.dd.SequenceWindow} showDDFileWindow
+			 * Allows the user to copy sequences out of the editor
+			 */
+			this.showDDFileWindow = Ext.create('App.ui.dd.SequenceWindow', {
+				designer : this,
+				title: 'Raw DD file',
+				buttonText: 'Close',
+				buttonIconCls: 'cross',
+				value : data || '',
+				handler : function(data) {
+					this.close();
+				}
+			});
+		} else {
+			this.showDDFileWindow.setValue(data);
+		}
+		this.showDDFileWindow.show();
+	},
+	showDomainsPlaintext: function() {
+		var data = this.designer.printfDomains().join('\n');
+		if (!this.showDomainsWindow) {
+<span id='App-ui-DD-property-showDomainsWindow'>			/**
+</span>			 * @property {App.ui.dd.SequenceWindow} showDomainsWindow
+			 * Allows the user to copy sequences out of the editor
+			 */
+			this.showDomainsWindow = Ext.create('App.ui.dd.SequenceWindow', {
+				designer : this,
+				title: 'Raw domain sequences',
+				buttonText: 'Close',
+				buttonIconCls: 'cross',
+				value : data || '',
+				handler : function(data) {
+					this.close();
+				}
+			});
+		} else {
+			this.showDomainsWindow.setValue(data);
+		}
+		this.showDomainsWindow.show();
 	},
 <span id='App-ui-DD-method-addDomains'>	/**
 </span>	 * Adds the passed domains to the designer
@@ -938,7 +1018,12 @@ Ext.define('App.ui.DD', {
 	threadStrands: function() {
 		var win = Ext.create('App.ui.SequenceThreader');
 		win.show();
-		// var segments = _.reduce(this.store.getRange(), function(memo, rec) {			// var name = rec.get('name'), i = this.store.indexOf(rec);			// memo[ name ? name : i + 1] = this.designer.printDomainById(i);			// return memo;		// }, {}, this);// 		
+		// var segments = _.reduce(this.store.getRange(), function(memo, rec) {
+			// var name = rec.get('name'), i = this.store.indexOf(rec);
+			// memo[ name ? name : i + 1] = this.designer.printDomainById(i);
+			// return memo;
+		// }, {}, this);
+// 		
 		var segments = _.map(this.store.getRange(), function(rec) {
 			var name = rec.get('name'), i = this.store.indexOf(rec);
 			name = !!name ? name : i + 1;

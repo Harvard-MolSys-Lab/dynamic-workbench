@@ -40,7 +40,7 @@
 						// cellCls: 'table-cell-padded',
 					},
 					items: [{
-						iconCls: 'build-24',
+						iconCls: 'domains-24',
 						text: 'Compile',
 						rowspan: 2,
 						iconAlign: 'top',
@@ -202,22 +202,22 @@
 		this.updateMenus(false);
 	},
 	updateMenus: function(firstTime) {
-		firstTime = firstTime || false;
-		if(!firstTime) {
-			this.ribbon.canvas.renew();
-		}
-		var doc = this.getDoc(), basename = doc.getBasename();
-		if(doc) {
-			_.each(['txt','dynaml','pil','svg','nupack','spur','domains'],function(ext) {
-				if(doc.getSiblingByName(App.Path.repostfix(basename,ext))) {
-					this.sequenceMenu.enable();
-					this.serializeMenu.enable();
-					this[ext].enable();			
-				} else {
-					this[ext].disable();
-				}
-			},this);
-		}
+		// firstTime = firstTime || false;
+		// if(!firstTime) {
+		// 	this.ribbon.canvas.renew();
+		// }
+		// var doc = this.getDoc(), basename = doc.getBasename();
+		// if(doc) {
+		// 	_.each(['txt','dynaml','pil','svg','nupack','spur','domains'],function(ext) {
+		// 		if(doc.getSiblingByName(App.Path.repostfix(basename,ext))) {
+		// 			this.sequenceMenu.enable();
+		// 			this.serializeMenu.enable();
+		// 			this[ext].enable();			
+		// 		} else {
+		// 			this[ext].disable();
+		// 		}
+		// 	},this);
+		// }
 	},
 	enableMenus: function() {
 		this.sequenceMenu.enable();
@@ -275,16 +275,19 @@
 	},
 	compileDynamicServer: function() {
 		var data = Ext.encode(this.serializeDynaml()),
-			node = this.ribbon.canvas.doc.getDocumentPath(); //App.path.repostfix([this.ribbon.canvas.doc.getDocumentPath(),'txt']);
+			node = this.ribbon.canvas.doc.getDocumentPath(),
+			dilNode = App.path.repostfix(node,'dil');
 		App.runTask('Nodal',{
 			node:node,
 			data:data,
-			action: 'dynamic',
-		},_.bind(function() {
+			action: 'dil',
+		},function() {
 			//this.enableMenus();
 			Ext.msg('Nodal Build','Build of system &lt;strong&gt;{0}&lt;/strong&gt; completed.',this.getDoc().getBasename());
 			this.highlightOutput();
-		},this));
+		},this,{
+			openOnEnd: [dilNode],
+		});
 	},
 	compileDynamicServerAllTargets: function() {
 		var data = Ext.encode(this.serializeDynaml()),

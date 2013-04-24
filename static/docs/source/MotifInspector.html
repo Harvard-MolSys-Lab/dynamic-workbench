@@ -16,7 +16,7 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js">Ext.define('App.ui.nodal.MotifInspector', {
-	requires : ['App.ui.CodeMirror'],
+	requires : ['App.ui.CodeMirror','App.ui.NodeTypeEditor'],
 	extend : 'Ext.form.Panel',
 	title : 'Motif',
 	bodyPadding : 5,
@@ -51,13 +51,18 @@
 				objectBindingEvent: 'blur',
 				height: 300,
 				title: 'DyNAML',
-				collapsed: false,
+				collapsed: true,
 				collapsible: true,
 				cls: 'simple-header',
 				mode: {
 					name: 'javascript',
 					json: true,
 				}
+			}, {
+				xtype: 'button',
+				text: 'Edit Motif',
+				handler: this.showMotifEditor,
+				scope: this,
 			}],
 			showIf : function(wtype) {
 				return (wtype == 'Workspace.objects.dna.Motif');
@@ -65,11 +70,25 @@
 		})
 		this.callParent(arguments);
 		this.mixins.boundObjectPanel.initialize.apply(this, arguments);
+		this.motifEditors = {};
 	},
 	mixins : {
 		boundObjectPanel : 'App.ui.BoundObjectPanel'
 	},
-
+	showMotifEditor : function() {
+		var object = this.getBoundObject();
+		if(!this.motifEditors[object.getId()]) {
+			this.motifEditors[object.getId()] = Ext.create('App.ui.NodeTypeEditorWindow',{
+				width: 500,
+				height: 400,
+			});
+		}
+		this.motifEditors[object.getId()].show();
+		
+	},
+	getBoundObject: function () {
+		return this.boundObjects.getAt(0);
+	}
 })</pre>
 </body>
 </html>

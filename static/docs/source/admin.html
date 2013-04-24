@@ -24,7 +24,7 @@ function msg(message) {
 	return function() {
 		if(!!message)
 			Ext.Msg.show({
-				title : 'Login',
+				title : 'Admin',
 				msg : message,
 				buttons : Ext.Msg.OK,
 				iconCls : 'lock'
@@ -106,7 +106,89 @@ Ext.onReady(function() {
         clicksToEdit: 1
     });
 
-
+    var grid = Ext.create('Ext.grid.Panel',{
+		plugins: [cellEditing],
+		region : 'center',
+		layout : 'anchor',
+		frame : true,
+		store: store,
+		autoScroll: true,
+		tbar: [{
+			text: 'Reset Password',
+			handler: function() {
+				var selection = grid.getSelectionModel().getLastSelected();
+				if(selection) {
+					Ext.Ajax.request({
+						url: '/admin/reset',
+						params: {
+							'_id':selection.get('_id')
+						},
+						callback: function(options,success,response) {
+							var res = JSON.parse(response.responseText);
+							if(res.success) {
+								Ext.Msg.show({
+									title : 'Admin',
+									msg : 'Password reset succeeded. Password reset URL: /login/reset/'+res.code+'. '+ res.message,
+									buttons : Ext.Msg.OK,
+									iconCls : 'lock'
+								});
+							} else {
+								Ext.Msg.show({
+									title : 'Admin',
+									msg : 'Password reset failed: '+res.message,
+									buttons : Ext.Msg.OK,
+									iconCls : 'lock'
+								});
+							}
+						}, 
+					})
+				}
+			}, 
+			scope: this,
+		}],
+		columns: [{
+            text: 'ID',
+            width: 40,
+            sortable: true,
+            dataIndex: '_id'
+        }, {
+            header: 'Email',
+            flex: 1,
+            sortable: true,
+            dataIndex: 'email',
+            field: {
+                type: 'textfield'
+            }
+        }, {
+            header: 'Name',
+            width: 100,
+            sortable: true,
+            dataIndex: 'name',
+            field: {
+                type: 'textfield'
+            }
+        }, {
+            header: 'Institution',
+            width: 100,
+            sortable: true,
+            dataIndex: 'institution',
+            field: {
+                type: 'textfield'
+            }
+        },{
+        	header: 'Active',
+        	dataIndex: 'active',
+        	xtype: 'checkcolumn',
+        	sortable: true,
+        	editable: true,
+        },{
+        	header: 'Admin',
+        	dataIndex: 'admin',
+        	xtype: 'checkcolumn',
+        	sortable: true,
+        	editable: true,
+        }]
+	});
 	var adminWindow = Ext.create('Ext.Window',{
 		closable : false,
 		width : 500,
@@ -115,63 +197,13 @@ Ext.onReady(function() {
 		layout : 'border',
 		title : &quot;Administration for &quot; + App.name,
 		iconCls : 'lock',
-		overflow: 'auto',
 		items : [{
 			html : 'Edit users who have access to ' + App.name + '.',
 			frame : true,
 			region : 'north',
 			split : true,
 			margins : '5 5 0 5'
-		}, {
-			xtype : 'grid',
-			plugins: [cellEditing],
-			region : 'center',
-			layout : 'anchor',
-			frame : true,
-			store: store,
-			columns: [{
-                text: 'ID',
-                width: 40,
-                sortable: true,
-                dataIndex: '_id'
-            }, {
-                header: 'Email',
-                flex: 1,
-                sortable: true,
-                dataIndex: 'email',
-                field: {
-                    type: 'textfield'
-                }
-            }, {
-                header: 'Name',
-                width: 100,
-                sortable: true,
-                dataIndex: 'name',
-                field: {
-                    type: 'textfield'
-                }
-            }, {
-                header: 'Institution',
-                width: 100,
-                sortable: true,
-                dataIndex: 'institution',
-                field: {
-                    type: 'textfield'
-                }
-            },{
-            	header: 'Active',
-            	dataIndex: 'active',
-            	xtype: 'checkcolumn',
-            	sortable: true,
-            	editable: true,
-            },{
-            	header: 'Admin',
-            	dataIndex: 'admin',
-            	xtype: 'checkcolumn',
-            	sortable: true,
-            	editable: true,
-            }]
-		}]
+		}, grid ]
 	});
 	adminWindow.show();
 

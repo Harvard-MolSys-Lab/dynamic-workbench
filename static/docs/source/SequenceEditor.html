@@ -142,14 +142,14 @@ Ext.define('App.ui.SequenceEditor', {
 				tooltip: '',
 				menu: [{
 						text: 'Reverse',
-						iconCls: 'arrow-reverse',
+						iconCls: 'seq-reverse',
 						handler: this.reverse,
 						scope: this,
 						tooltip: 'Reverse the order of bases in each strand in the selection. If &quot;Replace Selection&quot; '+
 						'is unchecked, the reverse strands will be inserted below the originals.',
 					},{
 						text: 'Complement',
-						iconCls: 'arrow-complement',
+						iconCls: 'seq-complement',
 						handler: this.complement,
 						scope: this,
 						tooltip: 'Insert the Watson-Crick complement of each base in each strand in the selection.'+ 
@@ -158,7 +158,7 @@ Ext.define('App.ui.SequenceEditor', {
 						'direction, use &quot;Reverse Complement.&quot;'
 					},{
 						text: 'Reverse Complement',
-						iconCls: 'arrow-reverse-complement',
+						iconCls: 'seq-reverse-complement',
 						handler: this.reverseComplement,
 						scope: this,
 						tooltip: 'Insert the Watson-Crick complement of each base in each strand in the selection, in the '+
@@ -333,6 +333,7 @@ Ext.define('App.ui.SequenceEditor', {
 						scope: this,
 						iconCls: 'tbi',
 					},'-',{
+						disabled: true,
 						text: 'MFE Complexes',
 						iconCls: 'nupack-icon',
 						menu: Ext.create('App.ui.CreateMenu',{
@@ -353,6 +354,7 @@ Ext.define('App.ui.SequenceEditor', {
 						// handler: this.mfeComplexes,
 						// scope: this,
 					},{
+						disabled: true,
 						text: 'Pairwise MFE Complexes',
 						iconCls: 'nupack-icon',
 						menu: Ext.create('App.ui.CreateMenu',{
@@ -394,6 +396,7 @@ Ext.define('App.ui.SequenceEditor', {
 							autoCreateMenu: false,
 						}),
 					},{
+						disabled: true,
 						text: 'Subsets MFE Complexes',
 						iconCls: 'nupack-icon',
 						menu: Ext.create('App.ui.CreateMenu',{
@@ -418,6 +421,7 @@ Ext.define('App.ui.SequenceEditor', {
 						// handler: this.mfeComplexes,
 						// scope: this,
 					},'-',{
+						disabled: true,
 						text: 'Brute Force',
 						menu: [{
 							text: 'Target length: ',

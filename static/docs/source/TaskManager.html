@@ -26,9 +26,9 @@ Ext.define('App.ui.TaskManager', {
 			store: App.TaskRunner.taskStore,
 			columns: [{
 				dataIndex: 'tool',
-				renderer: function(tool) {
-					return '&lt;img src=&quot;'+Ext.BLANK_IMAGE_URL+'&quot; style=&quot;width:18px;height:18px;&quot; class=&quot;'+App.TaskRunner.serverTools[tool].iconCls+'&quot; /&gt;';
-				}
+				// renderer: function(tool) {
+				// 	return '&lt;img src=&quot;'+Ext.BLANK_IMAGE_URL+'&quot; style=&quot;width:18px;height:18px;&quot; class=&quot;'+App.TaskRunner.serverTools[tool].iconCls+'&quot; /&gt;';
+				// }
 			},{
 				header: 'Tool',
 				dataIndex: 'tool'

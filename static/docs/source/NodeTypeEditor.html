@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define('App.ui.NodeTypeEditor',{
+	extend:'Ext.panel.Panel',
+	layout: 'border',
+	border: false,
+	bodyBorder: false,
+	initComponent: function() {
+
+		this.segmentStore = Ext.create('App.ui.SegmentStore', {});
+		this.strandStore = Ext.create('App.ui.StrandStore', {
+			segmentStore: this.segmentStore
+		});
+		this.complexStore = Ext.create('App.ui.ComplexStore', {
+			strandStore: this.strandStore
+		});
+
+		this.loadDynaml(this.data);
+		this.complex = this.complexStore.getAt(0) || _.first(this.complexStore.addComplex());
+
+		Ext.apply(this,{
+			items: [{
+				region: 'center',
+				xtype: 'editcomplexpanel',
+				strandManager: this,
+				complex: this.complex,
+				border: false,
+				bodyBorder: false,
+			},{
+				region: 'west',
+				xtype: 'd3panel',
+				width: 200,
+				border: false,
+				bodyBorder: false,
+			},{
+				region: 'south',
+				layout: 'border',
+				height: 200,
+				split: true,
+				border: false,
+				bodyBorder: false,
+				items: [{
+					region: 'center',
+					xtype: 'strandsgrid',
+					name: 'strandsGrid',
+					store: this.strandStore,
+					segmentStore: this.segmentStore,
+					collapsible: true,
+					titleCollapse: true,
+					title: 'Strands',
+					
+				},{
+					region: 'east',
+					xtype: 'segmentsgrid',
+					name: 'segmentsGrid',
+					store: this.segmentStore,
+					title: 'Segments',
+					width: 200,
+					split: true,
+				}]
+			}]
+		});	
+
+		this.callParent(arguments);
+	},
+
+
+	/* ------------------------------------------------------------------------------------------- 
+	   Data handling                                                                             
+
+	/**
+	 * Gets the names of strands, the structure, and the sequences for segments comprising a complex.
+	 * @param  {String/Complex} rec A record or name representing the complex in question
+	 * @return {Object} An object containing the complexData
+	 * @return {Object[]} return.strands (see #getStrandData)
+	 * @return {String} return.structure
+	 * @return {Object} return.sequences (see #getSegmentMap)
+	 */
+	getComplexData: function(rec) {
+		if(_.isString(rec)) {
+			rec = this.complexStore.findRecord('name', rec);
+		}
+		if(rec) {
+			return {
+				strands: _.map(rec.getStrands(), this.getStrandData, this),
+				structure: rec.get('structure'),
+				sequences: this.getSegmentMap(),
+			}
+		}
+	},
+<span id='global-method-getStrandData'>	/**
+</span>	 * Gets the name, the list of domains, and the list of segments in a strand
+	 * @param  {String/Strand} rec A record or name representing the strand in question
+	 * @return {Object} An object containing the strandData
+	 * @return {String} return.name
+	 * @return {Object[]} return.domains
+	 * @return {Object[]} return.segments
+	 */
+	getStrandData: function(rec) {
+		if(_.isString(rec)) {
+			rec = this.strandStore.findRecord('name', rec);
+		}
+		if(rec) {
+			return {
+				name: rec.get('name'),
+				domains: _.clone(rec.getParsedSpec()),
+				segments: _.clone(rec.getFlatSpec()),
+			}
+		}
+	},
+
+	getSegmentMap: function() {
+		return this.segmentStore.getSegmentMap();
+	},
+	updateStrandSequences: function() {
+		var segmentMap = this.getSegmentMap();
+		this.strandStore.each(function(strand) {
+			var strandSpec = strand.getFlatSpec();
+			strand.set('sequence', DNA.threadSegments(segmentMap, strandSpec));
+		}, this);
+	},
+
+	loadDynaml: function(input) {
+		input || (input = '{}');
+		var cfg;
+		try {
+			cfg = JSON.parse(input);
+		} catch(e) {
+
+		}
+		this.library || (this.library = App.dynamic.Library.dummy());
+		cfg.library = this.library;
+		var motif = new App.dynamic.Motif(cfg);
+		this.loadMotif(motif);
+	},
+
+	loadMotif: function(motif) {
+		motif || (motif = {});
+		var complexStore = this.complexStore,
+			strandStore = this.strandStore,
+			segmentStore = this.segmentStore,
+			segmentColors = d3.scale.category20();
+
+		segmentStore.colorGenerator = segmentColors;
+		segmentStore.add(_.map(motif.getSegments() || [], function(seg) {
+			return {
+				identity: seg.getIdentity(),
+				sequence: seg.getSequence(),
+				color: !!seg.color ? seg.color : segmentColors(seg.getIdentity()),
+			};
+		}));
+
+		complexStore.add([(function(node) {
+			strandStore.add(_.map(node.getStrands() || [], function(strand) {
+				return {
+					name: strand.getQualifiedName(),
+					sequence: strand.getSequence(),
+					complex: strand.getNode().getName(),
+					spec: strand.printDomains( /* omitLengths */ true),
+					polarity: strand.getPolarity()
+				};
+			}));
+
+			return {
+				name: node.getName(),
+				polarity: node.polarity(),
+				structure: node.getSegmentwiseStructure().toDotParen(),
+				strands: _.map(node.getStrands(), function(strand) {
+					return strand.getQualifiedName()
+				})
+			};
+		})(motif)]);
+	},
+	buildLibrary: function() {
+		var segmentIds = this.segmentStore.getRange(),
+			strandRecs = this.strandStore.getRange(),
+			complexRecs = this.complexStore.getRange(),
+			segmentMap = {},
+			allSegments = [],
+			strandMap = {},
+			strands = [],
+			nodes = [];
+
+
+		// Build map of segment identities to sequences
+		for(var i = 0; i &lt; segmentIds.length; i++) {
+			var rec = segmentIds[i],
+				seg = {
+					identity: rec.get('identity'),
+					sequence: rec.get('sequence'),
+					color: rec.get('color')
+				};
+			allSegments.push(seg);
+			segmentMap[seg.identity] = seg.sequence;
+		}
+
+		// Build objects for strands
+		for(var i = 0; i &lt; strandRecs.length; i++) {
+			var rec = strandRecs[i],
+				strand, doms = _.clone(rec.getParsedSpec());
+
+			// Update domain objects (built from spec) with sequence info
+			for(var j = 0; j &lt; doms.length; j++) {
+				var dom = doms[j];
+				for(var k = 0; k &lt; dom.segments.length; k++) {
+					var seg = dom.segments[k];
+					seg.sequence = segmentMap[seg.identity];
+				}
+			}
+
+			strand = {
+				name: rec.get('name'),
+				domains: doms
+			};
+			strands.push(strand);
+			strandMap[strand.name] = strand;
+		}
+
+		// Build objects for nodes
+		for(var i = 0; i &lt; complexRecs.length; i++) {
+			var complex = complexRecs[i],
+				complexStrands = complex.getStrands(),
+				node;
+
+			node = {
+				name: complex.get('name'),
+				structure: complex.get('structure'),
+				polarity: complex.get('polarity'),
+				strands: _.map(complexStrands, function(strand) {
+					return strandMap[strand]
+				})
+			};
+
+			nodes.push(node);
+		}
+
+		// Build new library object
+		return new App.dynamic.Library({
+			nodes: nodes,
+			allSegments: allSegments
+		});
+	},
+	serializeDil: function() {
+		var lib = this.buildLibrary();
+		return lib.toDilOutput();
+	},
+
+});
+
+
+Ext.define('App.ui.NodeTypeEditorWindow',{
+	extend: 'Ext.window.Window',
+	requires: ['App.ui.NodeTypeEditor'],
+	border: false,
+	bodyBorder: false,
+	width: 600,
+	height: 400,
+	layout: 'fit',
+	initComponent: function() {
+		this.items = [Ext.create('App.ui.NodeTypeEditor',{
+			data: this.data,
+		})];
+		this.callParent(arguments);
+	},
+})
+</pre>
+</body>
+</html>

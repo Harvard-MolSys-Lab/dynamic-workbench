@@ -45,6 +45,15 @@ Ext.define('App.ui.CreateMenu', {
 	 * Icon class for the #createButton
 	 */
 	createIconCls: 'tick',
+
+<span id='App-ui-CreateMenu-cfg-smartCreate'>	/**
+</span>	 * @cfg
+	 * True to create the file upon click of the #createButton (not #createMenu).
+	 * This option does not apply if 
+	 */
+	smartCreate: false,
+	defaultType: 'txt',
+
 <span id='App-ui-CreateMenu-cfg-autoCreateMenu'>	/**
 </span>	 * @cfg
 	 * True to automatically build the file type menu by calling #getCreateMenu
@@ -132,18 +141,26 @@ Ext.define('App.ui.CreateMenu', {
 	},
 	
 <span id='App-ui-CreateMenu-method-onCreateButton'>	/**
-</span>	 * Override to provide custom logic upon clicking the #createButton
+</span>	 * Override to provide custom logic upon clicking the #createButton. By default, creates a file by
+	 * calling #onCreate if the #smartCreate option is set. 
 	 * @param {String} fileName The current value of the &quot;name&quot; field
 	 */
 	onCreateButton: function(fileName) {
-		
+		if(this.smartCreate) {
+			var name = this.fileNameField.getValue(), 
+				type = this.defaultType, 
+				fullName = (type!='folder') ? App.Path.addExt(name,type) : name;
+			this.onCreate(type,name,fullName);
+		}
 	},
 <span id='App-ui-CreateMenu-method-onCreate'>	/**
 </span>	 * Action to perform when the &quot;Create&quot; menu item is selected. By default, creates a new file under the selected item in
-	 * {@link App.ui.filesTree}.
+	 * the {@link App.ui.filesTree files tree} and opens the file.
 	 */
 	onCreate: function(type,name,fullName) {
-		App.ui.filesTree.newFileUnderSelection(fullName);
+		App.ui.filesTree.newFileUnderSelection(fullName,function(rec) {
+			App.ui.filesTree.open(rec);
+		});
 	},
 <span id='App-ui-CreateMenu-method-getCreateMenu'>	/**
 </span>	 * Builds the menu of file types. Each child item in this menu should have a &lt;var&gt;type&lt;/var&gt; property referring to the
@@ -162,6 +179,10 @@ Ext.define('App.ui.CreateMenu', {
 				text: 'DyNAML File',
 				iconCls: 'dynaml',
 				type: 'dynaml',
+			},{
+				text: 'DyNAMiC Intermediate (DIL)',
+				iconCls: 'dil',
+				type: 'dil',
 			},'-',{
 				text: 'Pepper System',
 				iconCls: 'pepper',

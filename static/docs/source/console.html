@@ -23,8 +23,8 @@
  */
 Ext.oldLog = Ext.log;
 Ext.apply(App, {
-<span id='Ext-method-log'>	/**
-</span>	 * @member Ext
+<span id='App-method-log'>	/**
+</span>	 * @member App
 	 * See {@link Ext.debug.LogPanel#log}.
 	 */
 	log : function(args, options) {
@@ -90,45 +90,41 @@ Ext.apply(App, {
 	}
 });
 
-Ext.apply(Ext, (function() {
+Ext.apply(App, (function() {
 	var msgCt;
 
 	function createBox(t, s) {
-		// return ['&lt;div class=&quot;msg&quot;&gt;',
-		//         '&lt;div class=&quot;x-box-tl&quot;&gt;&lt;div class=&quot;x-box-tr&quot;&gt;&lt;div class=&quot;x-box-tc&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;',
-		//         '&lt;div class=&quot;x-box-ml&quot;&gt;&lt;div class=&quot;x-box-mr&quot;&gt;&lt;div class=&quot;x-box-mc&quot;&gt;&lt;h3&gt;', t, '&lt;/h3&gt;', s, '&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;',
-		//         '&lt;div class=&quot;x-box-bl&quot;&gt;&lt;div class=&quot;x-box-br&quot;&gt;&lt;div class=&quot;x-box-bc&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;',
-		//         '&lt;/div&gt;'].join('');
-		return '&lt;div class=&quot;msg&quot;&gt;&lt;h3&gt;' + t + '&lt;/h3&gt;&lt;p&gt;' + s + '&lt;/p&gt;&lt;/div&gt;';
+		return '&lt;div class=&quot;msg&quot;&gt;&lt;h3&gt;' + (t || '') + '&lt;/h3&gt;&lt;p&gt;' + (s || '') + '&lt;/p&gt;&lt;/div&gt;';
 	}
 
 	return {
-<span id='Ext-method-msg'>		/**
+<span id='App-method-msg'>		/**
 </span>		 * Displays pop-up messages on the top of the screen.
 		 * @param {String} title Title to display in bold atop the message
-		 * @param {String} format/body Either formatted string (containing 
-		 * `{0}`-style numbered placeholders to be passed to Ext.String.format)
-		 * or just a regular string. In either case it will be displayed in the
-		 * message body.
-		 * @param {Object} [options] Hash containing additional options
-		 * @param {Number} [options.delay=3000] Length of time (in ms) that the
-		 * message should be displayed
-		 * @param {Function} [options.callback] function to be called 
-		 * upon display of message. Recieves the following arguments:
-		 * @param {Ext.Element} [options.callback.element] The generated 
-		 * messag element 
-		 * @param {String} [options.callback.message] The formatted message 
-		 * text
-		 * @param {Mixed} [options.scope] Scope in which to execute the 
-		 * `callback` function
-		 * @param {String[]} [options.params] Parameters to fill the numbered 
-		 * placeholders in the message string.
+		 * @param {String} format/body 
+		 * Either format string (containing `{0}`-style numbered placeholders to be passed to Ext.String.format)
+		 * or just a regular string. In either case it will be displayed in the message body.
+		 * 
+		 * @param {Object} [options] 
+		 * Hash containing additional options
+		 * 
+		 * @param {Number} [options.delay=3000] 
+		 * Length of time (in ms) that the message should be displayed
+		 * 
+		 * @param {Function} [options.callback] 
+		 * Function to be called upon display of message. Recieves the following arguments:
+		 *
+		 * @param {Ext.Element} [options.callback.element] The generated message element 
+		 * @param {String} [options.callback.message] The formatted message text
+		 * 
+		 * @param {Mixed} [options.scope] Scope in which to execute the `callback` function
+		 * @param {String[]} [options.params] Parameters to fill the numbered placeholders in the message string.
 		 * 
 		 * @param {String...} [parameters] If options is not specified, the 
 		 * remaining arguments will be treated as arguments to the numbered
 		 * parameters in the format string.
 		 *  
-		 * @member Ext
+		 * @member App
 		 */
 		msg : function(title, format) {
 			var options, params;
@@ -166,6 +162,13 @@ Ext.apply(Ext, (function() {
 			
 			// Insert message element
 			var m = Ext.core.DomHelper.append(msgCt, createBox(title, s), true);
+			if(options.handler) {
+				if(options.handler == 'console') {
+					m.on('click',App.ui.Launcher.showConsole,App.ui.Launcher);
+				} else {
+					m.on('click',options.handler,options.scope);
+				}
+			}
 			m.hide();
 			m.slideIn('t').ghost(&quot;t&quot;, {
 				delay : options.delay,
@@ -176,6 +179,13 @@ Ext.apply(Ext, (function() {
 		},
 	};
 })());
+
+<span id='Ext-method-msg'>/**
+</span> * Alias for App#msg
+ * @method msg
+ * @member Ext
+ */
+Ext.msg = App.msg;
 
 Ext.debug = {};
 </pre>

@@ -488,18 +488,23 @@ Ext.define('App.ui.FilesTree', {
 <span id='App-ui-FilesTree-method-newFileUnderSelection'>	/**
 </span>	 * Creates a new document underneath the last selected record with the passed name
 	 * @param {String} name of the new file 
+	 * @param {Function} callback Callback to execute upon file creation
+	 * @param {App.Document} callback.rec The newly created document
+	 * @param {Object} scope Scope in which to execute the callback
 	 */
-	newFileUnderSelection: function(name) {
+	newFileUnderSelection: function(name,callback,scope) {
 		var rec = this.getSelectionModel().getLastSelected();
-		return this.newFile(rec,name);
+		return this.newFile(rec,name,callback,scope);
 	},
 <span id='App-ui-FilesTree-method-newFile'>	/**
 </span>	 * Create a new document underneath the passed `rec`, if `rec` is a folder; else creates a 
 	 * sibling to `rec`. 
-	 * @param {App.Document} rec
-	 * @param {String} name 
+	 * @param {App.Document} rec The new document will be a child or sibling of this Document.
+	 * @param {Function} callback Callback to execute upon file creation
+	 * @param {App.Document} callback.rec The newly created document
+	 * @param {Object} scope Scope in which to execute the callback
 	 */
-	newFile: function(rec,name) {
+	newFile: function(rec,name,callback,scope) {
 		(rec) || (rec = this.getRootNode());
 		if(rec.isLeaf() &amp;&amp; rec.parentNode) {
 			rec = rec.parentNode;
@@ -509,10 +514,10 @@ Ext.define('App.ui.FilesTree', {
 			text: name,
 			leaf: !App.Path.isFolder(name),
 		});
+		this.store.on('update',function(store,newRecFromServer,operation) {
+			Ext.callback(callback,scope,[newRecFromServer]);
+		},null,{ single: true })
 		rec.appendChild(newRec);
-		//hack?
-		//newRec.phantom = true;
-		//this.getStore().sync();
 		rec.expand();
 		return newRec;
 	},

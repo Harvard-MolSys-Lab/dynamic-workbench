@@ -31,7 +31,21 @@
 			items : [{
 				objectBinding : 'name',
 				anchor : &quot;100%&quot;,
-			}, ],
+			}, {
+				//objectBinding: 'segments',
+				objectBinding: 'footprint',
+				fieldLabel: 'Footprint',
+				xtype: 'displayfield',
+				// renderer: function(segments) {
+				// 	return _.map(segments,function footprint (seg) {
+				// 		return (seg.role &amp;&amp; seg.role == 'toehold') ? '&lt;u&gt;'+seg.getLength()+'&lt;/u&gt;' : seg.getLength();
+				// 	}).join(' ');
+				// },
+			},{
+				objectBinding: 'computedPolarity',
+				fieldLabel: 'Polarity',
+				xtype: 'displayfield',
+			}],
 			showIf : function(wtype) {
 				return (wtype == 'Workspace.objects.dna.InputPort') || (wtype == 'Workspace.objects.dna.OutputPort') || (wtype == 'Workspace.objects.dna.BridgePort');
 			},

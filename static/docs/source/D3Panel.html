@@ -186,6 +186,10 @@ Ext.define('App.ui.D3Panel', {
 		}
 		return this.vis;
 	},
+	getCanvasMarkup : function() {
+		var html = this.body.getHTML();
+		return html.replace(/&lt;div\s+id=&quot;[\w-]+&quot;\s+class=&quot;x-clear&quot;\s+role=&quot;presentation&quot;&gt;&lt;\/div&gt;/g,'');
+	},
 	redraw : function() {
 		this.vis.attr(&quot;transform&quot;, &quot;translate(&quot; + d3.event.translate + &quot;)&quot; + &quot; scale(&quot; + d3.event.scale + &quot;)&quot;);
 	}

@@ -16,7 +16,7 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='App-ui-Help'>/**
-</span> * 
+</span> * Allows the user to browse help documentation
  */
 Ext.define('App.ui.Help',{
 	extend: 'App.ui.Browser',
@@ -28,6 +28,23 @@ Ext.define('App.ui.Help',{
 		this.callParent(arguments);
 	}
 })
-</pre>
+
+Ext.define('App.ui.HelpButton',{
+	extend: 'Ext.button.Button',
+	iconCls: 'help',
+	text: 'Help',
+	xtype: 'helpbutton',
+<span id='App-ui-Help-cfg-topic'>	/**
+</span>	 * @cfg {String} topic
+	 * Name of the help topic to open upon click
+	 */
+	
+	initComponent: function() {
+		Ext.apply(this,{
+			handler: App.ui.Launcher.makeLauncher(this.topic)
+		});
+		this.callParent(arguments);
+	}
+})</pre>
 </body>
 </html>

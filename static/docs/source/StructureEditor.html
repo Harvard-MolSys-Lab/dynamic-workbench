@@ -15,34 +15,27 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='App-ui-Pepper'>/**
-</span> * Allows editing of Pepper scripts.
- */
-Ext.define('App.ui.Pepper', {
-	extend: 'App.ui.TextEditor',
-	title: 'Pepper',
-	initComponent: function() {
-		Ext.applyIf(this, {
-			tbar: [{
-				text: 'Save',
-				iconCls: 'save',
-				handler: function() {
-					this.saveFile();
-				},
-				scope: this,
-			},{
-				text: 'Compile',
-				iconCls: 'compile',
-				handler: function() {
-					App.runTask('Pepper', {
-						node: this.getDocumentPath()
-					});
-				},
-				scope: this,
-			}]
-		});
-		this.callParent(arguments);
-	}
-});</pre>
+  <pre class="prettyprint lang-js">Ext.define('App.ui.StructureEditor',{
+	extend: 'Ext.panel.Panel',
+	mixins: {
+        labelable: 'Ext.form.Labelable',
+        field: 'Ext.form.field.Field'
+    },
+    initComponent: function () {
+    	this.callParent(arguments);
+    	this.initLabelable();
+    	this.initField();
+    },
+    getValue: function () {
+    	
+    },
+    setValue: function (value) {
+
+    },
+});
+
+function StructureEditor() {
+	
+}</pre>
 </body>
 </html>

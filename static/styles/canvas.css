@@ -544,15 +544,6 @@ ul.dashboard-actions li a:hover {
 	overflow: auto;
 }
 
-.workspace-label-port {
-	font-weight:bold;
-}
-.workspace-label-footprint {
-	/* text-shadow: 2px 2px 2px white; */
-	font-weight: bold;
-	padding: 2px 4px 2px 4px;
-	margin-bottom:-2px;
-}
 
 .workspace-label-small {
 	font-size: 10px;
@@ -604,6 +595,19 @@ ul.dashboard-actions li a:hover {
 .workspace-label-callout {
 	border-radius: 4px 4px 4px 0px;
 }
+
+.workspace-label-port {
+	font-size: 0.8em;
+	font-weight:lighter;
+	margin:-1px 0px 0px -1px;
+}
+.workspace-label-footprint {
+	/* text-shadow: 2px 2px 2px white; */
+	font-weight: bold;
+	padding: 2px 4px 2px 4px;
+	margin-bottom:-2px;
+}
+
 
 /* Enumerator reaction graph */
 
@@ -1002,7 +1006,7 @@ path.resting-state-hull {
 
 /* strand bubbles */
 
-.strand-glyph {
+.strand-glyph, .strand-glyph-container {
 border-width: 1px;
 border-style: solid;
 display: inline-block;
@@ -1011,17 +1015,26 @@ border-radius: 3px;
 margin:3px 0px;
 /*line-height:1.8;*/
 }
-.strand-glyph-name {
+.strand-glyph-container .domain-glyph {
+	margin: 2px;
+	display: inline-block;
+}
+.strand-glyph-container .strand-glyph-name {
+	padding: 5px 5px 3px 5px;
+	margin: 0px 0px 0px -1px;
+} 
+
+.strand-glyph .strand-glyph-name {
 margin: -1px 5px -1px -1px;
 padding: 1px 6px 1px 4px;
-color: white;
 }
-.strand-glyph {
+.strand-glyph, .strand-glyph-container {
 	background-color: #ddd;
 	border-color: #777;
 }
-.strand-glyph .strand-glyph-name{
+.strand-glyph .strand-glyph-name, .strand-glyph-container .strand-glyph-name{
 	background-color: #777;
+	color: white;
 }
 
 .strand-glyph-unknown {

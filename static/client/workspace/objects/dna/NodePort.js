@@ -42,7 +42,7 @@ Ext.define('Workspace.objects.dna.NodePort', {
 			property : 'computedPolarity',
 			editable : false,
 			format : function(polarity) {
-				return polarity == 1 ? '+' : (polarity == -1 ? '-' : '0');
+				return polarity == 1 ? '+' : (polarity == -1 ? '–' : '±');
 			}
 		}));
 		this.footprintShim = Ext.create('Workspace.Label', {
@@ -50,7 +50,11 @@ Ext.define('Workspace.objects.dna.NodePort', {
 			offsets : [0, 4],
 			property : 'segments',
 			editable : false,
-			format : function(segments) {
+			format : function(segments,obj) {
+				// var pol = obj.get('computedPolarity');
+				// return (pol==-1 ? "5'–" : "3'–") + _.map(segments,function footprint (seg) {
+				// 	return (seg.role && seg.role == 'toehold') ? '<u>'+seg.getLength()+'</u>' : seg.getLength();
+				// }).join(' ') + (pol==-1 ? "–3'" : "–5'");
 				return _.map(segments,function footprint (seg) {
 					return (seg.role && seg.role == 'toehold') ? '<u>'+seg.getLength()+'</u>' : seg.getLength();
 				}).join(' ');

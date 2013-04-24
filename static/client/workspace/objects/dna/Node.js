@@ -50,6 +50,9 @@ Ext.define('Workspace.objects.dna.Node', {
 			}
 			return null;
 		});
+		this.expose('strands',function () {
+			return this.getRealtime('strands');
+		},false,false,false);
 
 	},
 	isReal: function() {
@@ -62,6 +65,7 @@ Ext.define('Workspace.objects.dna.Node', {
 	onRebuild: function() {
 		this.change('computedPolarity',this.get('computedPolarity'));
 		this.change('structure',this.get('structure'));
+		this.change('strands',this.get('strands'));
 	},
 	getRealtime: function(prop) {
 		if(this.workspace.buildManager)

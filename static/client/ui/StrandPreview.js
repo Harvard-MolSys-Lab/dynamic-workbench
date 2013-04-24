@@ -201,7 +201,7 @@ function StrandPreview() {
 				} else if(l.type == 'strand') {
 					return 0.7;
 				}
-			}).gravity(0.02);
+			}).gravity(0.005);
 			
 			// Bind nodes to the force layout
 			var forceNodes = nodes;
@@ -375,13 +375,15 @@ function StrandPreview() {
 						.duration(fade_in_duration)
 						.style("opacity", 1);
 				}
-		
-				// force.start();
-				// force.on("tick", doTick);
+					
+				data.force = force;
 
+				// force.start();
 				force.start();
 				doTick();
 				force.stop();
+				//force.on("tick", doTick);
+
 				// _.delay(function() { me.force.start(); },2000);	
 				
 				
@@ -400,6 +402,8 @@ function StrandPreview() {
 			redrawNodes: redrawNodes,
 			each: each,
 			expandSelection: expandSelection,
+			start: start,
+			stop: stop, 
 		};
 
 		return c;
@@ -567,6 +571,18 @@ function StrandPreview() {
 				});
 			});
 		}
+
+		function start() {
+			each(function(data) {
+				data.force.resume();
+			})
+		}
+
+		function stop() {
+			each(function(data) {
+				data.force.stop();
+			})
+		}
 	}
 	
 	/* **********************
@@ -689,6 +705,8 @@ Ext.define('App.ui.StrandPreview', {
 			if(structure.strands) {
 				this.strands = structure.strands;
 			}
+		} else if(arguments.length==1) {
+			this.data = structure;
 		} else {
 			this.structure = structure; 
 			this.strands = strands;
@@ -745,9 +763,24 @@ Ext.define('App.ui.StrandPreview', {
 				scope: this,
 				tooltip: 'Show SVG code for structure'
 			},'->',
+			// {
+			// 	text: 'Interactive',
+			// 	enableToggle: true,
+			// 	toggleHandler: this.toggleForce,
+			// 	scope: this,
+			// },
 				Ext.create('App.ui.StrandPreviewViewMenu',{view: this})];
 		}
 		this.callParent(arguments);
+	},
+	toggleForce: function() {
+		if(!this.forceEnabled) {
+			this.forceEnabled = true;
+			this.preview.start();
+		} else {
+			this.forceEnabled = false;
+			this.preview.stop();
+		}
 	},
 	showWindow: function(title,data,button) {
 		if(!this.textWindow) {

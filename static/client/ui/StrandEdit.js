@@ -158,9 +158,19 @@ Ext.define('App.ui.SegmentStore', {
 	constructor: function() {
 		this.callParent(arguments);
 		this.on('update', function(segmentStore, rec, op, modifiedFieldNames) {
+			
+			// If the sequence of one segment has changed, we can just update that
 			if(modifiedFieldNames.indexOf('sequence') != -1) {
 				this.updateSegmentMap(rec);
 			}
+
+			// If the field names have changed, we need to rebuild the whole 
+			// segment map to get rid of the entry for the old name(s)
+			if(modifiedFieldNames.indexOf('identity') != -1) {
+				this.updateSegmentMap();
+			}
+
+			// If the color has changed, we need to update the color map
 			if(modifiedFieldNames.indexOf('color') != -1) {
 				this.updateSegmentColorMap(rec);	
 			}
@@ -433,11 +443,11 @@ Ext.define('App.ui.StrandPreviewGrid', {
 	showBases : true,
 	showIndexes : true,
 	showSegments : true,
-
+	zoom: -1,
 
 	initComponent: function() {
 		this.strandPreviews = {};
-		this.tpl = ['<tpl for=".">', '<div style="border:solid 1px white;padding:4px;margin:10px;float:left;width:' + this.cellWidth + 'px;height:' + this.cellHeight + 'px;" class="complex-wrap">',
+		this.tpl = ['<tpl for=".">', '<div style="border:solid 1px white;padding:4px;margin:10px;float:left;width:' + this.cellWidth + 'px;height:' + (this.cellHeight+this.paddingHeight) + 'px;" class="complex-wrap">',
 		//'<span>{name}</span> = <span>{[values.strands.join(" + ")]}</span> : <span>{structure}</span>',
 		'<span style="position:absolute;">{name}</span>', '</div>', '</tpl>'].join(''),
 
@@ -484,12 +494,25 @@ Ext.define('App.ui.StrandPreviewGrid', {
 		return this.chart;
 	},
 	updateChartProperties: function() {
-		this.tpl = new Ext.XTemplate(['<tpl for=".">', '<div style="border:solid 1px white;padding:4px;margin:10px;float:left;width:' + this.cellWidth + 'px;height:' + this.cellHeight + 'px;" class="complex-wrap">',
+		this.tpl = new Ext.XTemplate(['<tpl for=".">', '<div style="border:solid 1px white;padding:4px;margin:10px;float:left;width:' + this.cellWidth + 'px;height:' + (this.cellHeight+this.paddingHeight) + 'px;" class="complex-wrap">',
 		//'<span>{name}</span> = <span>{[values.strands.join(" + ")]}</span> : <span>{structure}</span>',
-		'<span style="font-weight:bold;">{name}</span>', '</div>', '</tpl>'].join(''));
+		'<span style="position:absolute;">{name}</span>', '</div>', '</tpl>'].join(''));
 
 		this.getChart(true);
 		this.refresh();
+	},
+	setCellSize: function(sizeX,sizeY) {
+		if(arguments.length < 2) {
+			sizeY = sizeX;
+		}
+		this.cellWidth = sizeX;
+		this.cellHeight = sizeY;
+
+		this.updateChartProperties();
+	},
+	setZoom: function (zoom) {
+		this.zoom = zoom;
+		this.updateChartProperties();
 	},
 	refresh: function() {
 		this.callParent(arguments);
@@ -700,6 +723,7 @@ Ext.define('App.ui.EditComplexPanel', {
 					xtype: 'textarea',
 					name: 'strandsField',
 					validator: Ext.bind(this.validateStrands, this),
+					minHeight: 12,
 					// floating: true,
 					// autoRender: true,
 				},
@@ -1036,7 +1060,7 @@ Ext.define('App.ui.StrandsGrid',{
 		this.editStrand(rec);
 	},
 	editStrand: function editStrand (rec) {
-		rec || (rec = this.strandsGrid.getSelectionModel().getLastSelected());
+		rec || (rec = this.getSelectionModel().getLastSelected());
 		if (rec) {
 			this.strandEditor.startEdit(rec, this.headerCt.getHeaderAtIndex(2));
 		}
@@ -1102,6 +1126,10 @@ Ext.define('App.ui.SegmentsGrid',{
 				text: 'Name',
 				dataIndex: 'identity',
 				flex: 1,
+				editor: {
+					xtype:'textfield',
+					selectOnFocus:  true,
+				}
 			}, {
 				text: 'Sequence',
 				dataIndex: 'sequence',
@@ -1376,7 +1404,44 @@ Ext.define('App.ui.StrandEdit', {
 					scope: this,
 					disabled: true,
 				},'->',
-				Ext.create('App.ui.StrandPreviewViewMenu',{view:null,name:'complexViewMenu'})],
+				{
+					xtype: 'slider',
+					fieldLabel: 'Size',
+					labelWidth: 40,
+					width: 100,
+					minValue: 100,
+					maxValue: 400,
+					value: 200,
+					increment: 10,
+					listeners: {
+						'changecomplete': {
+							fn: function (slider, newValue) {
+								this.complexView.setCellSize(newValue);
+							},
+							scope: this,
+						}
+					}
+				},'-', Ext.create('App.ui.StrandPreviewViewMenu',{view:null,name:'complexViewMenu'}), 
+				
+				// {
+				// 	xtype: 'slider',
+				// 	fieldLabel: 'Zoom',
+				// 	labelWidth: 40,
+				// 	width: 200,
+				// 	minValue: 100,
+				// 	maxValue: 400,
+				// 	value: 200,
+				// 	increment: 10,
+				// 	listeners: {
+				// 		'changecomplete': {
+				// 			fn: function (slider, newValue) {
+				// 				this.complexView.setZoom(newValue);
+				// 			},
+				// 			scope: this,
+				// 		}
+				// 	}
+				// },
+				],
 			}]
 		});
 		this.on('afterrender', this.loadFile, this);
@@ -1436,7 +1501,7 @@ Ext.define('App.ui.StrandEdit', {
 							var segmentElement = Ext.get(tip.triggerElement).up('span.sequence-segment'),
 								identity = segmentElement.getAttribute('data-segment-identity'),
 								polarity = segmentElement.getAttribute('data-segment-polarity'),
-								index = tip.triggerElement.getAttribute('data-base-index')+1;
+								index = parseInt(tip.triggerElement.getAttribute('data-base-index'))+1;
 							//tip.setTitle(DNA.makeIdentifier(identity, polarity));
 							//tip.update(index + ' nt');
 							tip.update('Segment: <b>'+DNA.makeIdentifier(identity, polarity) + '</b> / Base: ' + index);

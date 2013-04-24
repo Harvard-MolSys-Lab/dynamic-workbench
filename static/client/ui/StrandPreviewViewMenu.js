@@ -3,12 +3,15 @@ Ext.define('App.ui.StrandPreviewViewMenu',{
 	text: 'View',
 	iconCls: 'view',
 	complexViewMode: 'segment',
+	segmentIconCls: 'domain',
+	domainIconCls: 'domain-caps',
+	sequenceIconCls: 'sequence',
 	initComponent: function() {
 		Ext.apply(this,{
 			menu: [{
 				text: 'Segments',
 				checked: true,
-				iconCls: 'domain',
+				iconCls: this.segmentIconCls,
 				name: 'coloringSegments',
 				group: 'coloring',
 				xtype: 'menucheckitem',
@@ -19,7 +22,7 @@ Ext.define('App.ui.StrandPreviewViewMenu',{
 			}, {
 				text: 'Domains',
 				checked: false,
-				iconCls: 'domain-caps',
+				iconCls: this.domainIconCls,
 				name: 'coloringDomains',
 				group: 'coloring',
 				xtype: 'menucheckitem',
@@ -30,7 +33,7 @@ Ext.define('App.ui.StrandPreviewViewMenu',{
 			}, {
 				text: 'Base identity',
 				checked: true,
-				iconCls: 'sequence',
+				iconCls: this.sequenceIconCls,
 				name: 'coloringSequences',
 				group: 'coloring',
 				xtype: 'menucheckitem',
@@ -95,6 +98,8 @@ Ext.define('App.ui.StrandPreviewViewMenu',{
 		});
 		this.callParent(arguments);
 
+		this.setIconCls(this.segmentIconCls);
+
 		this.showBubbles = this.menu.down('[name=showBubbles]');
 		this.showBases = this.menu.down('[name=showBases]');
 
@@ -110,6 +115,8 @@ Ext.define('App.ui.StrandPreviewViewMenu',{
 		var opts;
 		switch(mode) {
 			case 'segment':
+				this.setIconCls(this.segmentIconCls);
+
 				if(this.showBubbles.checked) {
 					opts = {
 						nodeStrokeMode : 'segment',
@@ -124,6 +131,8 @@ Ext.define('App.ui.StrandPreviewViewMenu',{
 				}
 				break;
 			case 'domain':
+				this.setIconCls(this.domainIconCls);
+
 				if(this.showBubbles.checked) {
 					opts = {
 						lineStrokeMode : '',
@@ -138,6 +147,8 @@ Ext.define('App.ui.StrandPreviewViewMenu',{
 				}
 				break;
 			case 'identity':
+				this.setIconCls(this.sequenceIconCls);
+
 				if(this.showBubbles.checked) {
 					opts = {
 						lineStrokeMode : 'default',

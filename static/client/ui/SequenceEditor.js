@@ -25,6 +25,7 @@ Ext.define('App.ui.SequenceEditor', {
 				iconCls: 'ruler',
 				menu: {
 					items: [{
+						disabled:true,
 						text:  'Stats',
 						menu: Ext.create('App.ui.SequenceStats',{
 							ref: 'statsPanel'
@@ -137,7 +138,7 @@ Ext.define('App.ui.SequenceEditor', {
 						scope: this,
 						tooltip: 'Insert the Watson-Crick complement of each base in each strand in the selection.'+ 
 						'If "Replace Selection" is unchecked, the complement strands will be inserted below the originals. '+
-						'<b>Note:</b> this will not reverse the order of the bases; to present the complement in the 5\'$rarr;3\' '+
+						'<b>Note:</b> this will not reverse the order of the bases; to present the complement in the 5\'&rarr;3\' '+
 						'direction, use "Reverse Complement."'
 					},{
 						text: 'Reverse Complement',
@@ -145,7 +146,7 @@ Ext.define('App.ui.SequenceEditor', {
 						handler: this.reverseComplement,
 						scope: this,
 						tooltip: 'Insert the Watson-Crick complement of each base in each strand in the selection, in the '+
-						'5\'$rarr;3\' direction. '+ 
+						'5\'&rarr;3\' direction. '+ 
 						'If "Replace Selection" is unchecked, the complement strands will be inserted below the originals. ',
 					},{
 						text: 'Duplicate',
@@ -171,7 +172,19 @@ Ext.define('App.ui.SequenceEditor', {
 							handler: this.truncate,
 							scope: this,
 						}]
+					},'-',{
+						text: 'To DNA',
+						handler: this.convertToDNA,
+						scope: this,
+						iconCls: 'document-d',
+						tooltip: 'Convert the selection to DNA',
 					},{
+						text: 'To RNA',
+						handler: this.convertToRNA,
+						scope: this,
+						iconCls: 'document-r',
+						tooltip: 'Convert the selection to RNA',
+					},'-',{
 						text: 'Pairwise Align',
 						iconCls: 'pairwise-align',
 						ref: 'align',
@@ -182,6 +195,71 @@ Ext.define('App.ui.SequenceEditor', {
 						checked: true,
 						ref: 'replaceSelection',
 					},]
+			},{
+				text: 'Insert',
+				iconCls: 'plus-button',
+				tooltip: 'Generate and insert sequences',
+				menu: {
+					items: [{
+						text: 'Insert Poly-X sequence',
+						iconCls: '',
+						tooltip: 'Inserts a sequence containing a single base or degenerate base, repeated several times (e.g. AAAAA, TTTTT, RRRRRR, etc.)',
+						menu: [{
+							text: 'Base(s): ',
+							tooltip: "Specify which base(s) (e.g. A, T, C, G, N, ...) you would like inserted",
+							canActivate: false,
+						},{
+							xtype: 'textfield',
+							value: 'N',
+							ref: 'insertionBase',
+							indent: true,
+						},{
+							text: 'Count: ',
+							tooltip: "Specify which how many copies of the above you would like inserted",
+							canActivate: false,
+						},{
+							xtype: 'numberfield',
+							ref: 'insertionCount',
+							indent: true,
+						},{
+							text: 'Insert',
+							iconCls: 'tick',
+							handler: this.insertNMer,
+							scope: this,
+						}]
+					},{
+						text: 'Generate Poly-X sequence',
+						iconCls: '',
+						tooltip: 'Generates a random sequence according to the base or degenerate base specified (e.g. NNNN -> ATCG; YYYY -> CTCT, etc.)',
+						menu: [{
+							text: 'Base(s): ',
+							tooltip: "Specify which base(s) (e.g. A, T, C, G, N, ...) you would like to use; degenerate bases following the IUPAC nucleotide codes are allowed, "+
+							"and will be replaced by randomly selected bases matching the specification (e.g N becomes any base, R becomes A or G, Y becomes C or T, etc.)",
+							canActivate: false,
+						},{
+							xtype: 'textfield',
+							value: 'N',
+							ref: 'generateBase',
+							indent: true,
+						},{
+							text: 'Count: ',
+							tooltip: "Specify which how many copies of the above you would like inserted",
+							canActivate: false,
+						},{
+							xtype: 'numberfield',
+							ref: 'generateCount',
+							indent: true,
+							minValue: 1,
+						},{
+							text: 'Insert',
+							iconCls: 'tick',
+							handler: this.generateNMer,
+							scope: this,
+						}]
+					}]
+
+					// generateNMer
+				}
 			},{
 				text: 'Format',
 				iconCls: 'pencil',
@@ -233,18 +311,6 @@ Ext.define('App.ui.SequenceEditor', {
 				tooltip: 'Generate various input and output formats, or transform the strands for output',
 				menu: {
 					items:[{
-						text: 'To DNA',
-						handler: this.convertToDNA,
-						scope: this,
-						iconCls: 'document-d',
-						tooltip: 'Convert the selection to DNA',
-					},{
-						text: 'To RNA',
-						handler: this.convertToRNA,
-						scope: this,
-						iconCls: 'document-r',
-						tooltip: 'Convert the selection to RNA',
-					},'-',{
 						iconCls: 'seq',
 						text: 'Make DD input file',
 						handler: this.insertDD,
@@ -906,6 +972,18 @@ Ext.define('App.ui.SequenceEditor', {
 			// newVal = sel + '\n'+newVal;
 		// }
 		// this.editor.codemirror.replaceSelection(newVal);
+	},
+	insertNMer:function () {
+		var seq = this.insertionBase.getValue(),
+			repeats = this.insertionCount.getValue(),
+			newVal = Array(repeats+1).join(seq);
+		this.editor.codemirror.replaceSelection(newVal);
+	},
+	generateNMer: function (spec,repeats) {
+		var seq = this.generateBase.getValue(),
+			repeats = this.generateCount.getValue(),
+			newVal = DNA.populateDegenerate(Array(repeats+1).join(seq));
+		this.editor.codemirror.replaceSelection(newVal);
 	},
 	populateShannon: function() {
 		var menu = this.shannon.menu;

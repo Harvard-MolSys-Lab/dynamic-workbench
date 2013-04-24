@@ -1395,6 +1395,16 @@ var DNA = module.exports.DNA = (function(_) {
 		'N':['A', 'C', 'G', 'T', 'U'], // aNy
 		'X':[], //masked
 	};
+	var degenerateDna = {};
+	for(var b in degenerate) {
+		if(b!='U') degenerateDna[b] = _.filter(degenerate[b], function(x) { return x != 'U'; });
+	}
+
+	var degenerateRna = {};
+	for(var b in degenerate) {
+		if(b!='T') degenerateRna[b] = _.filter(degenerateRna[b], function(x) { return x != 'T'; });
+	}
+
 	var degenerateRegexes = _.reduce(_.keys(degenerate),function(memo,key) {
 		memo[key] = new RegExp('/['+degenerate[key].join('')+']/i');
 		return memo;
@@ -1452,6 +1462,23 @@ var DNA = module.exports.DNA = (function(_) {
 	function matchDegenerate(deg,base) {
 		return degenerateRegexes[deg].test(base)
 	}
+
+	function populateDegenerate(spec,options) {
+		var degenerateMap; options || (options = {}); 
+		if(options.rna) { 
+			degenerateMap = degenerateRna;
+		} else {
+			degenerateMap = degenerateDna
+		}
+		return _.map(spec.split(''),function (x) {
+			return chooseDegenerate(x,degenerateMap);
+		}).join('');
+	}
+
+	function chooseDegenerate(base,degenerateMap)  {
+		var x = degenerateMap[base];
+		return x[Math.floor(Math.random() * x.length)];
+	}
 	
 	// Exports
 	return {
@@ -1465,7 +1492,8 @@ var DNA = module.exports.DNA = (function(_) {
 		parseNamedSequences: parseNamedSequences,
 
 		matchDegenerate : matchDegenerate,
-		
+		populateDegenerate : populateDegenerate,
+
 		stripNupackHeaders : stripNupackHeaders,
 		indexTable : indexTable,
 		indexBy : indexBy,

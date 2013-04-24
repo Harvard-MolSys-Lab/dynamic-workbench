@@ -5,6 +5,7 @@ Ext.define('App.ui.nodal.MotifInspector', {
 	bodyPadding : 5,
 	enableBoundFields : true,
 	initComponent : function() {
+		var me = this;
 
 		Ext.apply(this, {
 			defaults : {
@@ -37,7 +38,21 @@ Ext.define('App.ui.nodal.MotifInspector', {
 					text: 'Edit Motif',
 					handler: this.showMotifEditor,
 					scope: this,
-					margins: '0 0 3 0',
+					margin: '0 3 3 0',
+				},{
+					xtype:'button',
+					text:'Load from Built-in',
+					margin: '0 3 3 0',
+					menu: _.map(App.dynamic.Compiler.standardMotifs,function (mot) {
+						return (function(motif) { 
+							return {
+								text: motif.name,
+								handler: function() {
+									me.codeEditor.setValue(JSON.stringify(motif,null,"\t"));
+								}
+							};
+						})(mot);
+					}),
 				},{
 					xtype: 'codemirror',
 					objectBinding: 'dynaml',
@@ -63,6 +78,7 @@ Ext.define('App.ui.nodal.MotifInspector', {
 		this.callParent(arguments);
 		this.mixins.boundObjectPanel.initialize.apply(this, arguments);
 		this.motifEditors = {};
+		this.codeEditor = this.down('[xtype=codemirror]');
 	},
 	mixins : {
 		boundObjectPanel : 'App.ui.BoundObjectPanel'
@@ -93,7 +109,7 @@ Ext.define('App.ui.nodal.MotifInspector', {
 				height: 500,
 				closeAction: 'hide',
 				title: 'Edit Motif: '+object.get('name'),
-				data: object.get('dynaml'),
+				data: data, //object.get('dynaml'),
 				buttons: [{
 					text: 'Save',
 					handler: updateMotifDynaml,

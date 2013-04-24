@@ -470,9 +470,9 @@ test("printDomainString", function() {
 		output3 = 'A[a x:c b c]i+ s[s*]x0 B[d e y:c c*]o-',
 		doms3 = makeDomains(App.dynamic.Compiler.parseDomainString(input3));
 
-	deepEqual(App.dynamic.Compiler.printDomainString(doms1, 1, true), output1);
-	deepEqual(App.dynamic.Compiler.printDomainString(doms2, 1, true), output2);
-	deepEqual(App.dynamic.Compiler.printDomainString(doms3, 1, true), output3);
+	deepEqual(App.dynamic.Compiler.printDomainString(doms1, 1, true), output1, "Omitting lengths");
+	deepEqual(App.dynamic.Compiler.printDomainString(doms2, 1, true), output2, "Omitting lengths");
+	deepEqual(App.dynamic.Compiler.printDomainString(doms3, 1, true), output3, "Omitting lengths");
 
 	// Including lengths
 	var input1 = 'A[a(8) x(2)c b(7) c(4)]i+ s[s(1)]x0 B[d(3) e(15) y(3)c c*(2)]o- C[b*(3) x*(14)c f(8) g(12)]o+',
@@ -485,9 +485,23 @@ test("printDomainString", function() {
 		output3 = 'A[a(8) x(2)c b(8) c(8)]i+ s[s*(1)]x0 B[d(8) e(8) y(2)c c*(8)]o-';
 	doms3 = makeDomains(App.dynamic.Compiler.parseDomainString(input3));
 
-	deepEqual(App.dynamic.Compiler.printDomainString(doms1, 1, false), output1);
-	deepEqual(App.dynamic.Compiler.printDomainString(doms2, 1, false), output2);
-	deepEqual(App.dynamic.Compiler.printDomainString(doms3, 1, false), output3);
+	deepEqual(App.dynamic.Compiler.printDomainString(doms1, 1, false), output1, "Including lengths");
+	deepEqual(App.dynamic.Compiler.printDomainString(doms2, 1, false), output2, "Including lengths");
+	deepEqual(App.dynamic.Compiler.printDomainString(doms3, 1, false), output3, "Including lengths");
 
+	// Flipping polarity
+	var input1 = 'A[a(8) x(2)c b(7) c(4)]i+ s[s(1)]x0 B[d(3) e(15) y(3)c c*(2)]o- C[b*(3) x*(14)c f(8) g(12)]o+',
+		output1 = 'C[g(12) f(8) x*(14)c b*(3)]o+ B[c*(2) y(3)c e(15) d(3)]o- s[s(1)]x0 A[c(4) b(7) x(2)c a(8)]i+',
+		doms1 = makeDomains(App.dynamic.Compiler.parseDomainString(input1)),
+		input2 = 's[s(1)]x0',
+		output2 = 's[s(1)]x0',
+		doms2 = makeDomains(App.dynamic.Compiler.parseDomainString(input2)),
+		input3 = 'A[a x:c b c]i+ s[s*(1)]x B[d e y:c c*]o-',
+		output3 = 'B[c*(8) y(2)c e(8) d(8)]o- s[s*(1)]x0 A[c(8) b(8) x(2)c a(8)]i+';
+	doms3 = makeDomains(App.dynamic.Compiler.parseDomainString(input3));
+
+	deepEqual(App.dynamic.Compiler.printDomainString(doms1, -1, false), output1, "Flipping polarity");
+	deepEqual(App.dynamic.Compiler.printDomainString(doms2, -1, false), output2, "Flipping polarity");
+	deepEqual(App.dynamic.Compiler.printDomainString(doms3, -1, false), output3, "Flipping polarity");
 
 })

@@ -37,16 +37,28 @@ Ext.define('App.ui.NodalCanvas', {
 			}],
 		});
 
-		this.customMotifStore = Ext.create('Ext.data.Store', {
-			model : Workspace.objects.dna.motifStore.model
-		});
-
+		// this.customMotifStore = Ext.create('Ext.data.Store', {
+		// 	model : Workspace.objects.dna.motifStore.model,
+		// 	loadFromArray: function (array) {
+		// 		for(var m in array) {
+		// 			data[i] = {
+		// 				number: m, //parseInt(m),
+		// 				spec: array[m]
+		// 			};
+		// 			i++;
+		// 		}
+		// 	}
+		// });
+		this.customMotifStore = Ext.create('Workspace.objects.dna.MotifStore');
+		this.motifStore = Ext.create('Workspace.objects.dna.MotifStore');
+		
 		/**
 		 * @property {App.ui.MotifPalette} palette
 		 */
 		this.palettes = [Ext.create('App.ui.MotifPalette', {
 			ref : 'palatte',
 			title : 'Standard',
+			store: this.motifStore,
 		}), Ext.create('App.ui.MotifPalette', {
 			ref : 'customPalatte',
 			title : 'Custom',
@@ -92,6 +104,12 @@ Ext.define('App.ui.NodalCanvas', {
 		this.callParent(arguments);
 		this.mixins.refHelper.init.apply(this);
 	},
+	/**
+	 * Assign the workspace the version associated with the current version of the Compiler standard library.
+	 */
+	createBlankWorkspace: function () {
+		return {version: App.dynamic.Compiler.standardMotifsCurrentVersion};
+	},
 	setupWorkspace : function() {
 		if(!this.workspace.buildManager) {
 			this.workspace.buildManager = this.workspace.createObject({
@@ -99,6 +117,28 @@ Ext.define('App.ui.NodalCanvas', {
 			});
 		}
 		this.workspace.buildManager.customMotifStore = this.customMotifStore;
+
+		// Check the {@link Workspace#version standard motif library version}, and load the 
+		// appropriate motifs into the #motifStore 
+		if(this.workspace.version != App.dynamic.Compiler.standardMotifsCurrentVersion) {
+			if(!('version' in this.workspace)) {
+				this.workspace.version = 0;
+			}
+			this.motifStore.loadFromHash(Workspace.objects.dna.OldMotifs[this.workspace.version]);
+		} else {
+			this.motifStore.loadFromHash(Workspace.objects.dna.Motifs); 
+		}
+
+		/**
+		 * @property {Number} version 
+		 * Tracks which version of the {@link App.dynamic.Compiler.standardMotifsVersions standard motif library} 
+		 * the workspace uses. This affects which motifs appear in the #palette and from where motifs in the compiled
+		 * library are fetched. 
+		 * @class  Workspace
+		 */
+
+		this.workspace.expose('version',true,true,true);
+
 		this.workspace.buildManager.on('beforerebuild', this.beforeRebuild, this);
 		this.workspace.buildManager.on('rebuild', this.onRebuild, this);
 		this.workspace.buildManager.on('error', this.showError, this);

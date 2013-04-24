@@ -457,6 +457,7 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 			'import' : imports,
 			nodes : nodes,
 			motifs: motifs,
+			version: workspace.version,
 		}
 	},
 	serializeDynaml : function() {

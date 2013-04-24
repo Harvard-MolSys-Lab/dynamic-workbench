@@ -988,7 +988,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			return seq;
 		},
 		printDomains: function(omitLengths) {
-			return Compiler.printDomainString(this.getDomains(),this.getPolarity(),omitLengths);
+			return Compiler.printDomainString(this.getDomains(),this.getAbsolutePolarity(),omitLengths);
 		},
 		orphan: function() {
 			this.polarity = this.getAbsolutePolarity();
@@ -2692,11 +2692,17 @@ App.dynamic = module.exports = (function(_,DNA) {
 				// Import Motifs, build Node, Motif objects
 				library.setup();
 				
-				// Blast node polarities
+				// Blast node polarities, but make sure at least one is set.
+				var specified_polarities = 0;
 				for(var i=0;i<library.nodes.length;i++) {
 					if(!library.nodes[i].isInitiator) {
 						delete library.nodes[i].polarity;						
+					} else {
+						specified_polarities++;
 					}
+				}
+				if(specified_polarities == 0 && library.nodes.length > 0) {
+					library.nodes[0].polarity = 1;
 				}
 
 				// Generate array of Complement objects
@@ -3161,6 +3167,13 @@ App.dynamic = module.exports = (function(_,DNA) {
 			return out;
 		}
 		
+		/**
+		 * Prints a textual description of a given array of strands for sequence design
+		 * @param {App.dynamic.Strand[]} strands
+		 * @param {Object} [options]
+		 * @param {Object} [options.annotations=true] True to display brackets around domains and to indicate strand/domain polarities
+		 * @param {Object} [options.originalSegmentNames=false] True to use the original {@link App.dynamic.Segment#name segment names} in the strand descriptions
+		 */
 		function printStrandsFromArray(strands,options) {
 			options = options || {};
 			_.defaults(options,{
@@ -3360,7 +3373,19 @@ App.dynamic = module.exports = (function(_,DNA) {
 			omitLengths || (omitLengths = false);
 			
 			return order(_.map(doms,function(dom) {
-				return [dom.getName(),'[',printSegmentString(order(dom.getSegments()),omitLengths),']',abbrevRole('domain',dom.role || ''),printPolarity(dom.getPolarity())].join('')
+				return [
+					// Domain name
+					dom.getName(),
+
+					// Segments, e.g. [1 2 3* 4]
+					'[',printSegmentString(order(dom.getSegments(),polarity),omitLengths),']',
+					
+					// Domain role identifier, e.g. i o b x
+					abbrevRole('domain',dom.role || ''),
+
+					// Polarity specifier, e.g. + - 0
+					printPolarity(dom.getPolarity())
+				].join('')
 			}),polarity).join(' ')
 		}
 		
@@ -3468,12 +3493,21 @@ App.dynamic = module.exports = (function(_,DNA) {
 		
 		
 		/**
-		 * @property {Object} standardMotifs
-		 * Hash containing configuration objects for each of the standard motifs, indexed by name.
+		 * @property {Array} standardMotifsVersions
+		 * An array containing the various versions of the standard motif library. 
+		 * The current version number is given by #standardMotifsCurrentVersion,
+		 * and is found in #standardMotifs. 
+		 *
+		 * Each element of this array contains an object mapping motif names to 
+		 * {@link App.dynamic.Motif} configuration objects. Note that these are _not_
+		 * full, usable motifs; they must be passed to the 
+		 * {@link App.dynamic.Motif#constructor App.dynamic.Motif constructor}, along 
+		 * with a {@link App.dynamic.Motif#cfg-library reference} to an active 
+		 * {@link App.dynamic.Library library}, in order to be used.
 		 */
-		
-		var standardMotifs = {
-			'0':[{
+		var standardMotifsVersions = [
+			// Version 0
+			[{
 					name: 'm1',
 					type: 'initiator',
 					structure: '..',
@@ -3841,122 +3875,57 @@ App.dynamic = module.exports = (function(_,DNA) {
 					domains: 'A[a:t v:c b w:c]i+ B[x:c c y:c d]o- C[z:c e w*:c b* v*:c]o-'
 				},
 			],
-			'1':[{
-				name: 'm0',
-				type: 'input',
-				domains: 'A[a b x:c d]o+',
-				structure: '....',
+			
+			// Version 1
+			[{
+				"name": "m0",
+				"type": "input",
+				//"domains": "A[a:t x:c b d]o+",
+				"domains": "A[c b x:c a:t]o-",
+				"structure": "....",
+				"description": "Initiator",
+				"isInitiator": true
 			},{
-				name: 'm1',
-				type:'hairpin',
-				domains:'A[a:t x:c b c]i+ B[d e y:c c*:t]o- C[b* x*:c]x',
-				structure: '.(((...)))',
-				description: '1 input/1 output hairpin'
+				"name": "m1",
+				"type":"hairpin",
+				"domains":"A[a:t x:c b c]i+ B[d e y:c c*:t]o- C[b* x*:c]x",
+				"structure": ".(((...)))",
+				"description": "1 input/1 output hairpin"
 			},{
-				name: 'm2',
-				type:'hairpin',
-				domains:'A[a:t x:c b c]i+ B[d e y:c c*:t]o- C[b*:t x*:c f g]o+',
-				structure: '.(((...)))..',
-				description: '1 input/2 output hairpin'
+				"name": "m2",
+				"type":"hairpin",
+				"domains":"A[a:t x:c b c]i+ B[d e y:c c*:t]o- C[b*:t x*:c f g]o+",
+				"structure": ".(((...)))..",
+				"description": "1 input/2 output hairpin"
+			},
+			// {
+			// 	name: "m2a",
+			// 	type:"hairpin",
+			// 	domains:"A[a:t x:c b c]i+ B[d e y:c c*:t]o- C[b*:t x*:c f(16)]o+",
+			// 	structure: ".(((...))).",
+			// 	description: "1 input/2 output hairpin (long tail)"
+			// },
+			{
+				"name": "m3",
+				"type":"hairpin",
+				"domains":"A[a:t x:c b c]i+ B[d]b C[c* b* x*:c]x",
+				"structure": ".(((.)))",
+				"description": "1 input/1 bridge hairpin"
 			},{
-				name: 'm2a',
-				type:'hairpin',
-				domains:'A[a:t x:c b c]i+ B[d e y:c c*:t]o- C[b*:t x*:c f(16)]o+',
-				structure: '.(((...))).',
-				description: '1 input/2 output hairpin (long tail)'
+				"name": "m4",
+				"type":"hairpin",
+				"domains":"A[a:t x:c b c]i+ B[d]b C[e f y c*:t]o- D[b* x*:c]x",
+				"structure": ".(((....)))",
+				"description": "1 input/1 bridge/1 output hairpin"
 			},{
-				name: 'm3',
-				type:'hairpin',
-				domains:'A[a:t x:c b c]i+ B[d]b C[c* b* x*:c]x',
-				structure: '.(((.)))',
-				description: '1 input/1 bridge hairpin'
+				"name": "m5",
+				"type": "hairpin",
+				"domains": "A[a:t x:c b c]i+ B[d e y:c c*:t]o- C[b*]b D[x*:c]x",
+				"structure": ".(((...)))",
+				"description": "1 input/1 output/1 bridge hairpin"
 			},{
-				name: 'm4',
-				type:'hairpin',
-				domains:'A[a:t x:c b c]i+ B[d]b C[e f y c*:t]o- D[b* x*:c]x',
-				structure: '.(((....)))',
-				description: '1 input/1 bridge/1 output hairpin'
-			},{
-				name: 'm5',
-				type: 'hairpin',
-				domains: 'A[a:t x:c b c]i+ B[d e y:c c*:t]o- C[b*]b D[x*:c]x',
-				structure: '.(((...)))'
-			},{
-				name: 'm6a',
-				type: 'hairpin',
-				domains: 'A[a x:c b c]i+ B[d e y:c]x C[f g z:c h]o- D[f* y*:c e* d*]i+ E[b* x*:c]x',
-				structure: '.((.((((...))))))',
-				description: '2 input/1 output sequential AND gate'
-			},{
-				name: 'm6b',
-				type: 'hairpin',
-				domains: 'A[a x:c b c]i+ B[d y:c e]x C[f g z:c h]o- D[f* e* y*:c d*]i+ E[b* x*:c]x',
-				structure: '.((.((((...))))))',
-				description: '2 input/1 output sequential AND gate'
-			},{
-				name: 'm6c',
-				type: 'hairpin',
-				domains: 'A[a x:c b c]i+ B[d e y:c]x C[f z:c g h]o+ D[f* y*:c e* d*]i+ E[b* x*:c]x',
-				structure: '.((.((((...))))))',
-				description: '2 input/1 output sequential AND gate'
-			},{
-				name: 'm6d',
-				type: 'hairpin',
-				domains: 'A[a x:c b c]i+ B[d y:c e]x C[f z:c g h]o+ D[f* e* y*:c d*]i+ E[b* x*:c]x',
-				structure: '.((.((((...))))))',
-				description: '2 input/1 output sequential AND gate'
-			},{
-				name: 'm7a',
-				type: 'hairpin',
-				domains: 'A[a x:c b c]i+ B[d y:c e f]i+ C[g h z:c f*]o- D[e* y*:c c* b* x*:c]x',
-				structure: '.(((.(((...))))))',			
-				description: '2 input/1 output sequential AND gate'
-
-			},{
-				name: 'm7b',
-				type: 'hairpin',
-				domains: 'A[a x:c b c]i+ B[d e y:c f]i- C[g h z:c f*]o- D[y*:c e* c* b* x*:c]x',
-				structure: '.(((.(((...))))))',
-				description: '2 input/1 output sequential AND gate'
-			},{
-				name: 'm7c',
-				type: 'hairpin',
-				domains: 'A[a x:c b c]i+ B[d y:c e f]i+ C[g z:c h f*]o+ D[e* y*:c c* b* x*:c]x',
-				structure: '.(((.(((...))))))',
-				description: '2 input/1 output sequential AND gate'
-			},{
-				name: 'm7d',
-				type: 'hairpin',
-				domains: 'A[a x:c b c]i+ B[d e y:c f]i- C[g z:c h f*]o+ D[y*:c e* c* b* x*:c]x',
-				structure: '.(((.(((...))))))',
-				description: '2 input/1 output sequential AND gate'
-			},{
-				name: 'm8a',
-				type: 'hairpin',
-				domains: 'A[a b x:c c]i- B[d e y:c d*]o- C[c* x*:c f g]i+',
-				structure: '..(((..)))..',
-				description: '2 input/1 output OR gate',
-			},{
-				name: 'm8b',
-				type: 'hairpin',
-				domains: 'A[a b x:c c]i- B[d y:c e d*]o+ C[c* x*:c f g]i+',
-				structure: '..(((..)))..',
-				description: '2 input/1 output OR gate',
-			},{
-				name: 'm9a',
-				type: 'hairpin',
-				domains: 'A[a x:c b c]i+ B[d e y:c d*]o- C[c* b* x*:c f]i-',
-				structure: '.((((..)))).',
-				description: '2 input/1 output OR gate',
-			},{
-				name: 'm9b',
-				type: 'hairpin',
-				domains: 'A[a x:c b c]i- B[d y:c e d*]o+ C[c* b* x*:c f]i-',
-				structure: '.((((..)))).',
-				description: '2 input/1 output OR gate',
-			},{
-				name: 'm10a',
-				type: 'cooperative',
+				"name": "m6",
+				"type": "cooperative",
 				"structure":".(((((((.+)))))))",
 				"strands":[{
 					"name":"S1",
@@ -3964,27 +3933,125 @@ App.dynamic = module.exports = (function(_,DNA) {
 				},{
 					"name":"S2",
 					"domains":"C[y*:c e* d* s*(1) c* b* x*:c]x"
-				}]
+				}],
+				"description":"2-input cooperative complex"
+			},
+			// {
+			// 	name: "m6b",
+			// 	type: "cooperative",
+			// 	"structure":".(((((.+)))))",
+			// 	"strands":[{
+			// 		"name":"S1",
+			// 		"domains":"A[a:t x:c b(16)]i+ s[s(1)]x B[c(16) y:c d:t]i-"
+			// 	},{
+			// 		"name":"S2",
+			// 		"domains":"C[y*:c c*(16) s*(1) b*(16) x*:c]x"
+			// 	}]
+			// },
+			{
+				"name": "m7a",
+				"type": "hairpin",
+				"domains": "A[a:t x:c b c]i+ B[d e y:c]x C[f g z:c h:t]o- D[f*:t y*:c e* d*]i+ E[b* x*:c]x",
+				"structure": ".((.((((...))))))",
+				"description": "2 input/1 output sequential AND gate"
 			},{
-				name: 'm10b',
-				type: 'cooperative',
-				"structure":".(((((.+)))))",
-				"strands":[{
-					"name":"S1",
-					"domains":"A[a:t x:c b(16)]i+ s[s(1)]x B[c(16) y:c d:t]i-"
-				},{
-					"name":"S2",
-					"domains":"C[y*:c c*(16) s*(1) b*(16) x*:c]x"
-				}]
+				"name": "m7b",
+				"type": "hairpin",
+				"domains": "A[a:t x:c b c]i+ B[d y:c e]x C[f g z:c h:t]o- D[f* e* y*:c d*:t]i- E[b* x*:c]x",
+				"structure": ".((.((((...))))))",
+				"description": "2 input/1 output sequential AND gate"
+			},{
+				"name": "m7c",
+				"type": "hairpin",
+				"domains": "A[a:t x:c b c]i+ B[d e y:c]x C[f:t z:c g h]o+ D[f*:t y*:c e* d*]i+ E[b* x*:c]x",
+				"structure": ".((.((((...))))))",
+				"description": "2 input/1 output sequential AND gate"
+			},{
+				"name": "m7d",
+				"type": "hairpin",
+				"domains": "A[a:t x:c b c]i+ B[d y:c e]x C[f:t z:c g h]o+ D[f* e* y*:c d*:t]i- E[b* x*:c]x",
+				"structure": ".((.((((...))))))",
+				"description": "2 input/1 output sequential AND gate"
+			},{
+				"name": "m8a",
+				"type": "hairpin",
+				"domains": "A[a:t x:c b c]i+ B[d:t y:c e f]i+ C[g h z:c f*:t]o- D[e* y*:c c* b* x*:c]x",
+				"structure": ".(((.(((...))))))",			
+				"description": "2 input/1 output sequential AND gate"
+
+			},{
+				"name": "m8b",
+				"type": "hairpin",
+				"domains": "A[a:t x:c b c]i+ B[d e y:c f:t]i- C[g h z:c f*:t]o- D[y*:c e* c* b* x*:c]x",
+				"structure": ".(((.(((...))))))",
+				"description": "2 input/1 output sequential AND gate"
+			},{
+				"name": "m8c",
+				"type": "hairpin",
+				"domains": "A[a:t x:c b c]i+ B[d:t y:c e f]i+ C[g:t z:c h f*]o+ D[e* y*:c c* b* x*:c]x",
+				"structure": ".(((.(((...))))))",
+				"description": "2 input/1 output sequential AND gate"
+			},{
+				"name": "m8d",
+				"type": "hairpin",
+				"domains": "A[a:t x:c b c]i+ B[d e y:c f:t]i- C[g:t z:c h f*]o+ D[y*:c e* c* b* x*:c]x",
+				"structure": ".(((.(((...))))))",
+				"description": "2 input/1 output sequential AND gate"
+			},
+			// Doesn't make sense; footprints would have to be backwards
+			// {
+			// 	name: "m9a",
+			// 	type: "hairpin",
+			// 	domains: "A[a b x:c c]i- B[d e y:c d*]o- C[c* x*:c f g]i+",
+			// 	structure: "..(((..)))..",
+			// 	description: "2 input/1 output OR gate",
+			// },{
+			// 	name: "m9b",
+			// 	type: "hairpin",
+			// 	domains: "A[a b x:c c]i- B[d y:c e d*]o+ C[c* x*:c f g]i+",
+			// 	structure: "..(((..)))..",
+			// 	description: "2 input/1 output OR gate",
+			// },
+			{
+				"name": "m9a",
+				"type": "hairpin",
+				"domains": "A[a:t x:c b c]i+ B[d e y:c d*:t]o- C[c* b* x*:c f:t]i-",
+				"structure": ".((((..)))).",
+				"description": "2 input/1 output OR gate",
+			},{
+				"name": "m9b",
+				"type": "hairpin",
+				"domains": "A[a:t x:c b c]i+ B[d:t y:c e d*]o+ C[c* b* x*:c f:t]i-",
+				"structure": ".((((..)))).",
+				"description": "2 input/1 output OR gate",
 			}]
-		};
+		];
 
+		/**
+		 * @property {Number} standardMotifsCurrentVersion
+		 * Version number of the current standard library of motifs.
+		 */
+		var standardMotifsCurrentVersion = standardMotifsVersions.length-1,
+			standardMotifs;
+	
+		standardMotifsVersions = _.map(standardMotifsVersions,function(motifs) {
+			return _.reduce(motifs,function(memo,motif) {
+				memo[motif.name] = motif;
+				return memo; 
+			},{});
+		});
 
-
-		standardMotifs = _.reduce(standardMotifs[1],function(memo,motif) {
-			memo[motif.name] = motif;
-			return memo; 
-		},{});
+		/**
+		 * @property {Object} standardMotifs
+		 * Object containing the current {@link #standardMotifsCurrentVersion version} 
+		 * of the {@link #standardMotifsVersions library of standard motifs}. This is a
+		 * Hash containing configuration objects for each of the standard motifs, indexed by name.
+		 */
+		standardMotifs = standardMotifsVersions[standardMotifsCurrentVersion]
+		// standardMotifs = _.reduce(standardMotifsVersions[standardMotifsCurrentVersion],function(memo,motif) {
+		// 	memo[motif.name] = motif;
+		// 	return memo; 
+		// },{});
 		
 		var domainColors = {
 			'init' : '#553300',
@@ -3998,9 +4065,21 @@ App.dynamic = module.exports = (function(_,DNA) {
 			'bridge.stem' : '#9900cc',
 		}
 		
+		/**
+		 * Returns a configuration object for the `type` of object indicated
+		 * with the given name. This is used primarily to import 
+		 * {@link App.dynamic.Motif motif} configuration objects from the 
+		 * {@link #standardMotifsVersions standard motifs library}.
+		 * @param  {'motif'} type The type of object to import
+		 * @param  {String} name The name of the object (e.g. the motif) to import
+		 * @param  {Number} version Version of the {@link #standardMotifsVersions standard motifs library} to use.
+		 * @return {Object} configuration object for the requested type.
+		 */
 		function importObject(type,name,version) {
 			switch(type) {
 				case 'motif': 
+					var standardMotifs = Compiler.standardMotifsVersions[version] || Compiler.standardMotifs; 
+
 					if(standardMotifs[name]) {
 						return standardMotifs[name];
 					} else if (standardMotifs['m'+name]) {
@@ -4016,6 +4095,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 			}
 		}
 		
+		/**
+		 * Returns the appropriate color for a particular {@link App.dynamic.Domain domain object}
+		 * @param  {App.dynamic.Domain} domain
+		 * @return {String} a CSS color
+		 */
 		function getColor (domain) {
 			if(domain.role && domain.type) {
 				return domainColors[[domain.role, domain.type].join('.')];
@@ -4030,7 +4114,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 			printStrands: printStrands, 
 			printStrandsFromArray: printStrandsFromArray,
 			importObject : importObject,
+			
 			standardMotifs : standardMotifs,
+			standardMotifsVersions: standardMotifsVersions,
+			standardMotifsCurrentVersion: standardMotifsCurrentVersion,
+
 			domainColors: domainColors,
 			getColor : getColor,
 			expandRole: expandRole,

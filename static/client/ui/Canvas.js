@@ -185,11 +185,19 @@ Ext.define('App.ui.Canvas', {
 	 * True to automatically hide the loading mask
 	 */
 	autoHideLoadingMask: false,
+
+	/**
+	 * Override to provide custom logic upon the creation of a new (blank) workspace. 
+	 * This is called by #onLoad if the passed #data from the loaded file is empty.
+	 */
+	createBlankWorkspace: function () {
+		return {}
+	},
 	/**
 	 * Builds the {@link Workspace} with the data loaded from the {@link App.Document} body
 	 */
 	onLoad: function() {
-		this.workspaceData = Ext.isEmpty(this.data) ? {} : Ext.decode(this.data);
+		this.workspaceData = Ext.isEmpty(this.data) ? this.createBlankWorkspace() : Ext.decode(this.data);
 		this.workspaceData.path = this.getPath();
 
 		/**

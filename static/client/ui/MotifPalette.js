@@ -13,7 +13,7 @@ Ext.define('App.ui.MotifPalette', {
 	constructor : function(config) {
 		if(!config.store) {
 			//Ext.apply(this,{
-			Ext.apply(config, {
+			Ext.applyIf(config, {
 				store : Workspace.objects.dna.motifStore,
 			});
 		}

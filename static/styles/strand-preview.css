@@ -12,12 +12,14 @@
 }
 
 .link-strand, .link-tail {
-	stroke-width: 2px;
+	stroke-width: 5px;
 	stroke: #aaa;
+	stroke-linecap: round;
 }
 .tail {
-	stroke-width: 2px;
+	stroke-width: 5px;
 	stroke: #aaa;
+	stroke-linecap: round;
 	fill: none;
 }
 

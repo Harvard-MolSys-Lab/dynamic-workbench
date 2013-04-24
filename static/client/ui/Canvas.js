@@ -66,9 +66,10 @@ Ext.define('App.ui.Canvas', {
 						ref: 'zoomField', //ref: '../../zoomField',
 						xtype: 'slider',
 						value: 1,
-						minValue: 0.25,
+						minValue: 0.2,
 						maxValue: 4,
 						decimalPrecision: 2,
+						increment: 0.1,
 						animate: true,
 						plugins: Ext.create('Ext.slider.Tip',{
 							getText: function(thumb) {

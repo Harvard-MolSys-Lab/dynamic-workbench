@@ -75,4 +75,49 @@ Task.prototype.getErrorStream = function(callback) {
 
 };
 
+/**
+ * @static
+ * @property {String[]} params 
+ * An array of parameters accepted by this Task and expected in the `data` parameter of the constructor. 
+ * When the task is started, the client will pass, via socket.io, an object containing some amount of 
+ * input data along with the request to start the task. This data is 
+ * {@link TaskService#processInputData processed} by the {@link TaskService} to guard against cross-site 
+ * scripting and overflow attacks. In order for this processing to occur, the Task subclass must 
+ * explicitly whitelist the names of the parameters it expects to recieve, via this static property.
+ *
+ * See also: #files
+ */
+/**
+ * @static
+ * @property {Object} files 
+ * A hash specifying some {@link #params expected parameter names} which should be treated as file paths relative to
+ * the requesting user's home directory, and should be converted to absolute file paths before being passed to the 
+ * task constructor. 
+ *   
+ * Keys of this object represent names of _new_ parameters which should be passed to the `data` parameter of this 
+ * subclass's constructor. Values represent names of parameters expected from the input data. For instance, if the
+ * value of #files were this:
+ *
+ *     {
+ *         'inputFile':'node'
+ *     }
+ *
+ * ...and the input data from the client were this:
+ *
+ *     {
+ *         'node':'some/relative/file/path/input.txt'
+ *     }
+ *
+ * ...then the value of the parameter `node` in the input data would be parsed, and an absolute path would be derived. 
+ * If the user requesting the task was example@example.com, then the `data` passed to the constructor would be as 
+ * follows:
+ *
+ *     {
+ *         'node':'some/relative/file/path/input.txt',
+ *         'inputFile':'/absolute/path/to/user/home/directories/example@example.com/some/relative/file/path/input.txt'
+ *     }
+ *
+ * Note that the original parameter remains in the input.
+ */
+
 module.exports = Task;

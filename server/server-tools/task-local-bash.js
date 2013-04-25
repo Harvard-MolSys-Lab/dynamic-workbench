@@ -1,7 +1,7 @@
 var child_process = require('child_process'),
 	util = require('util'),
 	_ = require('underscore'),
-var Task = require('task-local');
+	Task = require('./task-local');
 
 /**
  * @class BashTask
@@ -14,7 +14,7 @@ function BashTask() {
 	});
 	Task.apply(this,arguments);
 }
-utils.inherits(BashTask,Task);
+util.inherits(BashTask,Task);
 
 
 /**
@@ -51,9 +51,14 @@ BashTask.prototype.getOptions = function() {
  * @param  {Function} callback Callback to be executed once the task has begun
  * @param {Error} callback.err Error if task starts unsuccessfully, or `null` if task starts successfully
  */
-BashTask.prototype.start = function(data, callback) {
+BashTask.prototype.start = function(callback) {
 	this.process = child_process.spawn(this.getCommand(), this.getArguments(), this.getOptions());
-	child_process.on('exit',_.bind(this.endTaskCallback,this));
+	this.process.stdout.pause();
+	this.process.stdout.setEncoding('utf8');
+	this.process.stderr.pause();
+	this.process.stderr.setEncoding('utf8');
+	
+	this.process.on('exit',_.bind(this.endTaskCallback,this));
 	callback(null);
 };
 
@@ -83,7 +88,8 @@ BashTask.prototype.endTaskCallback = function(status) {
  */
 BashTask.prototype.getInputStream = function(callback) {
 	if(this.process) {
-		callback(null,this.process.stdin)		
+		callback(null,this.process.stdin)
+		//this.process.stdin.resume();		
 	} else {
 		callback(null,null);
 	}
@@ -97,7 +103,8 @@ BashTask.prototype.getInputStream = function(callback) {
  */
 BashTask.prototype.getOutputStream = function(callback) {
 	if(this.process) {
-		callback(null,this.process.stdout)		
+		callback(null,this.process.stdout)
+		this.process.stdout.resume();		
 	} else {
 		callback(null,null);
 	}
@@ -112,7 +119,8 @@ BashTask.prototype.getOutputStream = function(callback) {
  */
 BashTask.prototype.getErrorStream = function(callback) {
 	if(this.process) {
-		callback(null,this.process.stderr)		
+		callback(null,this.process.stderr)
+		this.process.stderr.resume();		
 	} else {
 		callback(null,null);
 	}

@@ -862,6 +862,9 @@ Ext.define('App.LiveTaskRunner.StreamingBus',{
 	taskIdFromRoom: function (room) {
 		return _.last(room.split('task/'));
 	},
+	taskIdToRoom: function (taskId) {
+		return 'task/'+taskId;
+	},
 	emit: function () {
 		this.taskStream.emit.apply(this.taskStream,arguments);
 	}
@@ -1070,7 +1073,10 @@ Ext.define('App.LiveTaskRunner.Task', {
 		this.set('tempId',identifier);
 
 		App.LiveTaskRunner.bus.emit('start',{toolName: this.module, data:args, tempId: identifier  });
-
+	},
+	input: function(data,callback) {
+		// TODO: Buffer in case taskId isn't available yet
+		App.LiveTaskRunner.bus.emit('input',{room:App.LiveTaskRunner.bus.taskIdToRoom(this.get('taskId')) ,data:data});
 	},
 	/**
 	 * Override this callback to provide custom logic on start of the task. By default, opens a log window and prints a message that the task has begun.
@@ -1080,6 +1086,9 @@ Ext.define('App.LiveTaskRunner.Task', {
 	},
 	onData: function (data) {
 		this.log(data);	
+	},
+	onError: function(err) {
+		this.log(err);
 	},
 	/**
 	 * Override this callback to provide custom logic on task end. By default, logs output and, if a `node` argument is 

@@ -47,4 +47,11 @@ Realtime.prototype.iopipe = function iopipe (stream,namespace,room,event) {
 	});
 };
 
+Realtime.prototype.iopush = function(data,namespace,room,event) {
+	var me = this;
+	event || (event = 'stream');
+
+	me.io.of(namespace).in(room).emit(event,{'room':room,'data':data});
+};
+
 module.exports = Realtime;

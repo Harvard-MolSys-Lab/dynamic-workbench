@@ -1,5 +1,6 @@
-var child_process = require('child_process');
-var Task = require('task-local');
+var BashTask = require('./task-local-bash'),
+	child_process = require('child_process'),
+	util = require('util');
 
 /**
  * @class NodeTask
@@ -8,9 +9,9 @@ var Task = require('task-local');
 function NodeTask() { 
 	BashTask.apply(this,arguments);
 }
-utils.inherits(NodeTask,BashTask);
+util.inherits(NodeTask,BashTask);
 
-NodeTask.prototype.getCommand = function() {
+NodeTask.prototype.getModule = function() {
 	return this.module;
 };
 
@@ -20,8 +21,14 @@ NodeTask.prototype.getCommand = function() {
  * @param  {Function} callback Callback to be executed once the task has begun
  * @param {Error} callback.err Error if task starts unsuccessfully, or `null` if task starts successfully
  */
-NodeTask.prototype.start = function(data, callback) {
-	this.process = child_process.fork(this.getCommand(), this.getArguments(), this.getOptions());
-	child_process.on('exit',_.bind(this.endTaskCallback,this));
+NodeTask.prototype.start = function(callback) {
+	this.process = child_process.exec('node', [this.getModule()].concat(this.getArguments()), this.getOptions());
+	this.process.stdout.pause();
+	this.process.stdout.setEncoding('utf8');
+	this.process.stderr.pause();
+	this.process.stderr.setEncoding('utf8');
+	this.process.on('exit',_.bind(this.endTaskCallback,this));
 	callback(null);
 };
+
+module.exports = NodeTask;

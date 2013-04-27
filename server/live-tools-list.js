@@ -1,1 +1,1 @@
-exports.list = ['simple', 'simple-bash-task', 'enumerator'];
+exports.list = ['simple', 'simple-bash-task', 'enumerator','dd'];

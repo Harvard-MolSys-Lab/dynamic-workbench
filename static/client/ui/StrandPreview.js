@@ -859,7 +859,7 @@ Ext.define('App.ui.StrandPreviewTextWindow',{
 	plain: true,
 	headerPosition: 'left', 
 	initComponent: function () {
-		this.editor = Ext.create('App.ui.TextEditor');
+		this.editor = Ext.create('App.usr.text.Editor');
 		Ext.apply(this,{
 			items: [this.editor]
 		});

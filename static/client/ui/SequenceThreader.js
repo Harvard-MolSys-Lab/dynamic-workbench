@@ -7,7 +7,7 @@ Ext.define('App.ui.SequenceThreader', {
 	extend : 'Ext.window.Window',
 	title: 'Thread Sequences',
 	iconCls: 'thread-sequence',
-	requires : ['App.ui.SequenceEditor','App.ui.CodeMirror',],
+	requires : ['App.usr.seq.Editor','App.ui.CodeMirror',],
 	layout : 'fit',
 	minimize : function() {
 		this.toggleCollapse();
@@ -69,9 +69,9 @@ Ext.define('App.ui.SequenceThreader', {
 				title : 'Strands',
 				//margins: '5 5 0 0',
 				/**
-				 * @property {App.ui.SequenceEditor} resultsPane
+				 * @property {App.usr.seq.Editor} resultsPane
 				 */
-			}), Ext.create('App.ui.SequenceEditor',{
+			}), Ext.create('App.usr.seq.Editor',{
 				region : 'south',
 				ref : 'resultsPane',
 				mode : 'sequence',
@@ -90,10 +90,10 @@ Ext.define('App.ui.SequenceThreader', {
 		}, this);
 	},
 	/**
-	 * inheritdocs App.ui.SequenceEditor#smartSplit
+	 * inheritdocs App.usr.seq.Editor#smartSplit
 	 */
 	smartSelect : function(editor) {
-		return App.ui.SequenceEditor.prototype.smartSplit.call(editor, editor.getValue());
+		return App.usr.seq.Editor.prototype.smartSplit.call(editor, editor.getValue());
 	},
 	/**
 	 * Intelligently selects strands and sequences and threads them to strands

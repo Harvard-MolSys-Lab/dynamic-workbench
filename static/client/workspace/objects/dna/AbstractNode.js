@@ -1,6 +1,6 @@
 
 /**
- * Represents a single node in a {@link App.ui.NodalCanvas nodal system}
+ * Represents a single node in a {@link App.usr.nodal.Canvas nodal system}
  */
 Ext.define('Workspace.objects.dna.AbstractNode', {
 	extend: 'Workspace.objects.IdeaObject',

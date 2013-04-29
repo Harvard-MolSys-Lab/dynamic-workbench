@@ -1,5 +1,5 @@
 /**
- * Allows selection of a subset of DNA bases (A, T, C, G). Used in {@link App.ui.DD DD}.
+ * Allows selection of a subset of DNA bases (A, T, C, G). Used in {@link App.usr.dd.DD DD}.
  */
 Ext.define('App.ui.BasePicker',{
 	alias: 'widget.basepicker',

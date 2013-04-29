@@ -1,6 +1,6 @@
 
 /**
- * Represents a single motif in a {@link App.ui.NodalCanvas nodal system}
+ * Represents a single motif in a {@link App.usr.nodal.Canvas nodal system}
  */
 Ext.define('Workspace.objects.dna.Motif', {
 	extend: 'Workspace.objects.dna.AbstractNode',

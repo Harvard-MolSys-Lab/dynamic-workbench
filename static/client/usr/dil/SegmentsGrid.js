@@ -1,0 +1,146 @@
+Ext.define('App.usr.dil.SegmentsGrid',{
+	extend: 'Ext.grid.Panel',
+	alias: 'widget.segmentsgrid',
+	requires: ['App.usr.dil.SegmentStore'],
+	mixins: {
+		tip: 'App.ui.TipHelper'
+	},
+	initComponent: function (argument) {
+		this.segmentEditor = Ext.create('Ext.grid.plugin.CellEditing', {
+			clicksToEdit: 1
+		});
+
+		this.segmentStore = this.store;
+
+		Ext.apply(this,{
+			tbar: [Ext.create('App.ui.AddDomainButton', {
+				addDomain: Ext.bind(this.createSegment, this),
+				extraMenuItems: [{
+					text: 'Add many segments...',
+					handler: this.showAddSegmentsWindow,
+					scope: this,
+				}]
+			}),{
+				text: 'Edit',
+				iconCls: 'pencil',
+				handler: this.editSegment,
+				scope: this,
+			},{
+				text: 'Delete',
+				iconCls: 'delete',
+				handler: this.deleteSegment,
+				scope: this,
+			}],
+
+			columns: [{
+				dataIndex: 'color',
+				field: {
+					xtype: 'colorfield',
+					pickerOptions: {
+						colors: [
+							"1F77B4", "AEC7E8", "FF7F0E", "FFBB78", "2CA02C", "98DF8A", "D62728", "FF9896", "9467BD", "C5B0D5", "8C564B", "C49C94", "E377C2", "F7B6D2", "7F7F7F", "C7C7C7", "BCBD22", "DBDB8D", "17BECF", "9EDAE5",
+							"3182BD", "6BAED6", "9ECAE1", "C6DBEF", "E6550D", "FD8D3C", "FDAE6B", "FDD0A2", "31A354", "74C476", "A1D99B", "C7E9C0", "756BB1", "9E9AC8", "BCBDDC", "DADAEB", "636363", "969696", "BDBDBD", "D9D9D9",
+							"393B79", "5254A3", "6B6ECF", "9C9EDE", "637939", "8CA252", "B5CF6B", "CEDB9C", "8C6D31", "BD9E39", "E7BA52", "E7CB94", "843C39", "AD494A", "D6616B", "E7969C", "7B4173", "A55194", "CE6DBD", "DE9ED6",
+						]
+					}
+				},
+				renderer: function(color) {
+					return '<div style="width:12px;height:12px;background-color:'+color+';">&nbsp;</div>'
+				},
+				width: 40,
+			},{
+				text: 'Name',
+				dataIndex: 'identity',
+				flex: 1,
+				editor: {
+					xtype:'textfield',
+					selectOnFocus:  true,
+				}
+			}, {
+				text: 'Sequence',
+				dataIndex: 'sequence',
+				field: 'textfield',
+				renderer: CodeMirror.modeRenderer('sequence'),
+				flex: 5,
+			}, {
+				text: 'Length',
+				dataIndex: 'sequence',
+				renderer: function(seq) {
+					return seq.length;
+				},
+				flex: 1,
+			}],
+			plugins: [this.segmentEditor],
+		});
+
+		this.callParent(arguments);
+		this.mixins.tip.init.call(this,[]);
+	},
+
+	showAddSegmentsWindow: function() {
+		var me = this;
+		if(!this.addSegmentsWindow) {
+			this.addSegmentsWindow = Ext.create('App.ui.SequenceWindow',{
+				handler: function(domains) {
+					me.updateSegments(domains);
+				},
+				title: 'Add segments to system'
+			});
+		}
+		this.addSegmentsWindow.show();
+	},
+	
+	addSegment: function(identity,sequence) {
+		return _.first(this.segmentStore.add({
+			identity: identity,
+			sequence: sequence,
+			color: this.segmentStore.getColor(identity),
+		}));
+	},
+	addSegments: function(map) {
+		var me = this;
+		return this.segmentStore.add(_.map(map,function(sequence,identity) {
+			return {
+				identity: identity,
+				sequence: sequence,
+				color: me.segmentStore.getColor(identity),
+			}
+		}));
+	},
+	updateSegments: function(map) {
+		var me = this;
+		return _.map(map,function(sequence,identity) {
+			var seg = me.segmentStore.findRecord('identity',identity);
+			if(seg) {
+				seg.set('sequence',sequence);
+				return seg;
+			} else {
+				return _.first(me.segmentStore.add({
+					identity: identity,
+					sequence: sequence,
+					color: me.segmentStore.getColor(identity),
+				}));
+			}
+		});
+	},
+	createSegment: function(length) {
+		return _.first(this.segmentStore.addSegment(length));
+	},
+	editSegment: function editSegment (rec) {
+		rec || (rec = this.segmentsGrid.getSelectionModel().getLastSelected());
+		if (rec) {
+			//this.segmentEditor.startEdit(rec, this.segmentsGrid.headerCt.getHeaderAtIndex(2));
+			this.segmentEditor.startEdit(rec, this.headerCt.getHeaderAtIndex(2));
+		}
+	},
+	doEditSegment: function() {
+		return this.editSegment();
+	},
+	deleteSegment: function (rec) {
+		// body...
+	},
+	doDeleteSegment: function() {
+		return this.deleteSegment();
+	},
+
+})

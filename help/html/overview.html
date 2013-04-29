@@ -1,0 +1,46 @@
+<h1 id="overview">Overview</h1>
+<p>DyNAMiC Workbench is an <em>Integrated Development Environment</em> for dynamic DNA systems. This document aims to survey the goals and architecture of Workbench and to acquaint you with important features. For a more rapid introduction, see the <a href="quickstart">Getting Started guide</a>.</p>
+<h2 id="design-goals">Design Goals</h2>
+<p>Workbench has been designed with several goals in mind:</p>
+<ul>
+<li><strong>Integration</strong> - Workbench allows access to the full set of tools necessary for designing assembly and computation systems based on DNA strand displacement, and it streamlines the workflow between these tools.</li>
+<li><strong>Usability</strong> - Workbench presents an intuitive, cross-browser/cross-platform, web-based interface</li>
+<li><strong>Scalability</strong> - Workbench has built-in task deployment system (see <em>Architecture</em> below) which can execute computationally-intensive tasks on a variety of targets, including the local web server, a cluster such as Orchestra, or a number of remote web services, such as the NUPACK or Mfold web servers.</li>
+<li><strong>Extensibility</strong> - Workbench includes powerful, but simple tools for automating various tasks. The client-side interface is entirely scriptable, and tools are included for developing entirely new client-side applications. New server tools can be easily added to Workbench as well. Since the client and server are written in the same language (Javascript), code can be easily re-used between the client and server.</li>
+</ul>
+<h2 id="architecture">Architecture</h2>
+<p>Workbench includes two main components:</p>
+<ul>
+<li><strong>Workbench Server</strong> – The server is responsible for storing and managing files, as well as deploying and execting computationally intensive tasks. If you're accessing a hosted version of Workbench, you likely won't interact directly with the Workbench server at all. If you're hosting Workbench yourself, it's helpful to understand a bit about the server. <a href="server">Read more</a>.
+<ul>
+<li><strong>Server tools</strong> - The server can run several types of computational tasks, each of which is encapsulated by a <em>server tool</em>. Server tools require a wrapper written in Javascript, but they can easily access and call tools written in any language. Most tools included with Workbench are written in C, while others are written in Python. <a href="server-tools">Read more</a></li>
+<li><strong>File management</strong> - The server maintains a &quot;home directory&quot; for each user. Many types of files can be opened and edited within Workbench, including DNA-related files (.seq, .nupack, .nodal), and other relevant files not strictly related to DNA (.txt, .xml, .html, .tex), while other file types (.svg, .pdf) can be previewed from within Workbench. <a href="files">Read More</a></li>
+<li><strong>Users</strong> - To access the server, you need a user account. This is true even if you're hosting your own server instance. Workbench will redirect you to a login page from which you can make an account. <a href="users">Read More</a></li>
+</ul></li>
+<li><strong>Workbench Client</strong> - The client is the main interface to Workbench. It can be run as a standalone application on Mac OS X, accessed within any modern web browser.
+<ul>
+<li><strong>Applications</strong> - Workbench does lots of different things; <em>Workbench Applications</em> implement all of these different tasks on the client. Workbench includes applications for everything from <a href="nodal">behavioral design with the nodal abstraction</a> to <a href="web-dd">stochastic sequence design with Web DD</a>. You can even write your own Workbench applications <a href="applications">Read More</a></li>
+<li><strong>Tasks</strong> - Workbench allows you to launch and manage server tools from the client using the Task Manger. <a href="task-manager">Read More</a></li>
+</ul></li>
+</ul>
+<h2 id="contents-of-your-installation">Contents of your Installation</h2>
+<p>If you downloaded Workbench as a disk image (.dmg) file for Mac OS X, several utilities have been provided to make your life a bit easier. These applications will be copied to your Applications directory as part of the <a href="install">installation</a> process</p>
+<ul>
+<li>DyNAMiC Workbench.app - This contains a &quot;site-specific broweser&quot; -- a mini web browser, automatically configured to connect to a locally hosted Workbench server. This is just for conveinience; you can just as easily navigate to the specified URL in a web browser.</li>
+<li><p>Workbench Server.app - This is a helper to allow you to launch and log in to the server. To start the server:</p>
+<ol style="list-style-type: decimal">
+<li>Launch the 'Workbench Server' application from your Applications folder</li>
+<li>Click 'Start' from the server control window. You will see a Terminal window open with lots of output. You'll also see a VirtualBox window open. Wait until you see <code>webserver-user@192.168.56.10's password:</code>; then enter the password for your server (the default is <code>&quot; &quot;</code>, a single space).</li>
+<li>Wait until you see <code>Server running from /media/sf_vmshare/infomachine2 at http://192.168.56.10:3000</code>. Congratulations, your server is running!</li>
+</ol></li>
+</ul>
+<p>See the <a href="quickstart">Getting Started guide</a> for details on how to start on another operating system.</p>
+<h2 id="installing-workbench">Installing Workbench</h2>
+<p>See <a href="install">Installation</a> for details on how to install Workbench server.</p>
+<h2 id="getting-started">Getting started</h2>
+<p>See the <a href="quickstart">Getting Started guide</a> for a quick introduction to the various things you can do with Workbench.</p>
+<h2 id="further-reading">Further Reading</h2>
+<ul>
+<li><a href="quickstart">Getting Started</a></li>
+<li><a href="applications">Applications</a></li>
+</ul>

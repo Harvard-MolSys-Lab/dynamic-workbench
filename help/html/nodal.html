@@ -1,0 +1,69 @@
+<h1 id="designing-nodal-systems">Designing Nodal Systems</h1>
+<h2 id="overview">Overview</h2>
+<p>The nodal formalism allows you to express complicated computational or assembly processes in terms of simple behavioral units, called nodes. Many types of nodes exist---these types are called &quot;motifs&quot;; motifs are defined by mapping a structural unit of DNA or RNA (such as a hairpin) to a simple behavioral function. Nodes generally have several <em>ports</em> which correspond to <em>domains</em> of the underlying nucleic acid species. Nodal programs are written by adding instances of motifs (nodes) to a workspace, then connecting the ports together to indicate behavioral relationships. These behavioral relationships in turn imply sequence complementarities. The nodal compiler, called DyNAMiC (the Dynamic Nucleic Acid Mechanism Compiler) propagates those sequence complementarity requirements to generate a list of distinct sequences which must be designed by a sequence designer (such as <a href="web-dd">DD</a> or <a href="nupack">NUPACK</a> ).</p>
+<p>The basic workflow is like this:</p>
+<ul>
+<li>Nodal systems are assembled using the nodal designer</li>
+<li>The nodal compiler runs in real-time, verifying the system as you design it.</li>
+<li>Once your system has been designed you can generate a DIL (DyNAMiC Intermediate Language) file, which represents your system as a scheme of complementarity relationships between segments of the strands in your ensemble (see &quot;Compiling&quot;, below)</li>
+<li>From the DIL file, DyNAMiC can generate input files for many different sequence designers.</li>
+<li>Sequences can be designed using sequence designers</li>
+</ul>
+<p>DyNAMiC actually uses a <a href="http://json.org/">JSON</a>-based input format, called <a href="dynaml">DyNAML</a>. You can enter DyNAML directly using the DyNAML editor application, or you can design custom DyNAML motifs from within workbench. The DyNAML language is described in <a href="/etc/papers/nodal.pdf">this whitepaper</a>.</p>
+<h2 id="adding-nodes">Adding Nodes</h2>
+<p>You can add nodes to the system by draging and droping existing motifs from the &quot;Standard&quot; panel in the lower-left, onto the workspace. You can also define new motifs (see <a href="#motif-editor">below</a>), which will appear in the &quot;Custom&quot; tab of the same panel.</p>
+<h2 id="defining-motifs">Defining Motifs</h2>
+<p>You can create new motifs in two ways, each using the &quot;Create Motif&quot; tool in the ribbon. First, click the &quot;Create Motif&quot; button, then either:</p>
+<ul>
+<li>Click on the workspace to generate an empty motif. Then select this motif and use the inspector on the right to describe its implementation. You can either:
+<ul>
+<li>Click the &quot;Edit Motif&quot; button, and use a graphical interface to define the structure of the motif, or</li>
+<li>Expand the &quot;DyNAML Code&quot; box and enter a custom <a href="/etc/papers/nodal.pdf">DyNAML</a> description. If you want to use one of the built-in motifs as template, click the &quot;Copy from Built-in&quot; button and select a built-in motif from the dropdown menu.</li>
+</ul></li>
+<li>Alternatively, click and drag on the workspace to select and existing system of nodes, and wrap that system in a new motif.
+<ul>
+<li>This will effectively remove those nodes from the system, and transform them into part of the motif.</li>
+<li>All outgoing connections will be removed.</li>
+<li>To &quot;expose&quot; ports within the motif to external complementarities, use the &quot;Add Port&quot; or &quot;Expose&quot; tool:
+<ul>
+<li>&quot;Add Port&quot; : Select the &quot;Add Port&quot; tool, then click on the motif to add a port (hold 'alt' for an input, or 'shift' for a bridge). Then use the &quot;Expose&quot; tool to drag from the internal port to the external (motif-level) port</li>
+<li>&quot;Expose&quot;: Select the &quot;Expose&quot; tool; drag from the internal port to the motif itself; a new port will be created and exposed</li>
+</ul></li>
+<li>You'll need to instantiate the new motif by dragging and dropping it from the &quot;Custom&quot; panel in the lower-left.</li>
+</ul></li>
+</ul>
+<p>If you decide you want to restore the nodes inside a motif to the workspace as normal nodes, select a motif and click the &quot;Unwrap motif&quot; button.</p>
+<h3 id="motif-editor">Using the Motif Editor to edit or define motifs.</h3>
+<p>The Motif Editor is a small graphical tool for defining custom motifs. It can be launched by creating a new motif (see above), selecting the motif in the workspace, and clicking &quot;Edit Motif&quot; in the inspector on the right side. To create a new motif:</p>
+<ul>
+<li>Start in the &quot;Segments&quot; pane in the top-left. Click the &quot;Add&quot; button to add new segments. You can click the arrow to the right to add segments of different lengths, or to add many specific sequences.</li>
+<li>Then use the &quot;Strands&quot; pane to thread segments together into strands. Click &quot;Add&quot; to add a new strand, and then type a strand specification in the DyNAML compact format. You can add as many strands as you'd like.</li>
+<li>In the &quot;Structure&quot; pane, click the &quot;Strand Order&quot; field and enter the names of your strands, separated by + signs, to describe the order in which the strands should appear in the starting complex. Once your cursor leaves the Strands field, the field will be populated with a simple graphic depicting the segments that comprise the strands you've selected. Note: If you create a strand using the &quot;Strands&quot; pane but don't add the strand name to the &quot;Strand Order&quot; field, it will be omitted from the final motif.</li>
+<li>Then, in the &quot;Structure&quot; field, enter the structure for your strand in dot-parenthesis notation. Once a valid structure has been entered, an image of your complex and a depiction of the nodal motif will appear to the right.</li>
+</ul>
+<h2 id="complementarities">Complementarities</h2>
+<p>To declare complementarities between ports:</p>
+<ul>
+<li>Select the &quot;Complementarity&quot; tool</li>
+<li>Drag from one port to another to declare complementarity. You may drag from Input to output, or Bridge to bridge; other connections will be disallowed. You may also add connections between ports within a motif, but not between ports inside and outside the motif.</li>
+</ul>
+<p>Complementarities may only be drawn from output ports to input ports, or between bridge (square) ports. Some connections are not possible, depending on the shape, or &quot;footprint&quot; of the underlying domain. For instance, a connection between a domain with 3 segments: <code>a b c</code>, each of length 8, and a domain with 4 segments <code>a b c d</code> each of length 4 would be invalid, since the total number of nucleotides (24 and 16) do not match up. Likewise, a connection between a domain with 2 segments <code>a b</code> each of length 8 (total length 16) and a domain of one segment <code>a</code> of length 16 (total length 16) would <em>also</em> be invalid, since the number of segments in each domain is different. The nodal editor doesn't prohibit these connections from being drawn, but it will highlight the relevant nodes in red and report an error. See &quot;Errors&quot; below for how DyNAMiC and the Nodal editor handle these errors.</p>
+<p>You can inspect the footprint of a port by moving your mouse over the port. A small tooltip will appear and will display the length of each segment in the underlying domain</p>
+<h2 id="errors">Errors</h2>
+<p>Some connections may be drawn which are invalid. In these cases, DyNAMiC will report an error, and the Nodal interface will indicate this by changing the Build status indicator (in the lower right) to read &quot;Error&quot;. You can mouse over this field to view the error message. You can also click the field and select &quot;Check for errors&quot; to recompile the system, or &quot;Show full results&quot; to view the compiled library before sending to a sequence designer.</p>
+<h2 id="compiling">Compiling</h2>
+<p>Once your system is assembled, you can generate a picture of the underlying species, and generate input to sequence designers, using the &quot;Build&quot; tool. Select the &quot;Build&quot; tab in the ribbon, then click &quot;Compile&quot;. This will generate a new file with the extension <code>.dil</code>; this is a DyNAMiC Intermediate Language (DIL) file, and it contains your compiled system. The DIL file will open automatically, and you should see the species used to generate your system. From there, you can send results to one of several sequence designers. See <a href="dil">DIL system editor</a> for details.</p>
+<p>Additionally, you can bypass the DIL step and select &quot;Build all targets&quot; from the dropdown next to the &quot;Compile&quot; button. This generates several files, which will appear as siblings to your system in the files tree:</p>
+<ul>
+<li>(system)<code>.dynaml</code> - A formal, textual representation of your system (in the Dynamic Nucleic Acid Markup Language--DyNAML)</li>
+<li>(system)<code>.svg</code> - A graphical representation of the underlying species in your system</li>
+<li>(system)<code>.nupack</code> - A textual input file for the NUPACK multi-objective thermodynamic sequence designer</li>
+<li>(system)<code>.domains</code> - A textual input file for <a href="web-dd">WebDD</a></li>
+<li>(system)<code>.pil</code> - A version of the compiled system in the <a href="pepper">Pepper Intermediate Language</a> (PIL)</li>
+</ul>
+<p>You can select several other options from the drop-down next to the &quot;Compile&quot; button:</p>
+<ul>
+<li>Clean – Deletes any of the above files in the same directory as your system.</li>
+<li>Compile with Compiler v2b – Compile with an old version of the compiler</li>
+<li>Compile locally – Compile in your browser (not on the server); this will not generate any output, but can be used for debugging.</li>
+</ul>

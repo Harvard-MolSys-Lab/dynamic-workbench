@@ -1,0 +1,54 @@
+<h1 id="domain-design-web-dd">Domain Design (Web DD)</h1>
+<h2 id="overview">Overview</h2>
+<p>Web DD (Web Domain Designer) is a domain-based stochastic sequence designer. This means that DD works by designing sequences for a set of domains, then performing random mutations on those domains. Random mutations are evaluated for fitness by examining whether they improve an objective function (you can read more about this under &quot;Scoring Function&quot; below).</p>
+<p>Web DD can be used to rapidly design a set of non-interacting sequences which also satisfy several important criteria, such as minimizing base repeats.</p>
+<p>Web DD is based on Domain Designer (DD), written by Dave Zhang. Reading his <a href="/etc/papers/dd_lncs.pdf">original whitepaper</a> on DD is highly recommended.</p>
+<h2 id="adding-deleting-and-editing-domains">Adding, Deleting, and Editing Domains</h2>
+<p>Domains can be added to DD using the &quot;Add&quot; button. By default, added domains will be of length 8. You can click the drop-down arrow to the right of the &quot;Add&quot; button to specify a different length. Once a value is entered for &quot;New domain length:&quot;, that will become the new default (i.e. entering 9, then clicking the &quot;Add&quot; button 3 times will insert 3 new domains of length 9).</p>
+<p>A list of specific domains can be added by selecting &quot;Add specific domains...&quot; from the &quot;Add&quot; button dropdown.</p>
+<p>Domains can be deleted using the &quot;Delete&quot; button. Select a domain in the domain list, then click &quot;Delete&quot;</p>
+<p>The current sequence of a domain can be edited by:</p>
+<ul>
+<li>double-clicking their sequence, composition, importance, or targeting, entering a new value, and pressing enter/return, or:</li>
+<li>selecting the domain and clicking &quot;Edit&quot;</li>
+</ul>
+<p>Individual bases of a domain can be locked by typing capitalizing them; this will prevent DD from mutating them.</p>
+<h2 id="composition-importance-and-targeting">Composition, Importance, and Targeting</h2>
+<p>There are three parameters which can be modified for each domain within the domain list:</p>
+<ul>
+<li>Importance is a multiplicative factor which tells DD how heavily to weight a particular domain when scoring. A higher importance will mean that defects in that domain will be more heavily penalized.</li>
+<li>Composition determines which bases should be allowed in a given domain</li>
+<li>Target – if any domains are marked to be &quot;targeted&quot;, then mutations will only occur within those domains. If no domains are targeted, then the domain with the lowest score in the ensemble will be targeted for a mutation.
+<ul>
+<li>Targeting several domains can also be thought of as locking all other domains in the ensemble.</li>
+</ul></li>
+</ul>
+<h2 id="mutating">Mutating</h2>
+<p>Mutations may be started and stopped by clicking the &quot;Mutate&quot; button. In the lower right hand corner of the domains list, you can view the current (lowest) score, as well as the number of mutation attempts and the number of successful mutations.</p>
+<h2 id="design-options-rules">Design options (rules)</h2>
+<p>There are lots of options which you can change to affect how DD chooses domains; you may wish to change these depending on the specific needs of your project, but usually the defaults are sufficient.</p>
+<h2 id="threading-structures">Threading structures</h2>
+<p>DD can also assemble your domains into a larger structure, using an input format similar to the NUPACK multiobjective design script.</p>
+<p>To thread sequences from an existing DD session onto strands:</p>
+<ul>
+<li>Open the &quot;Structure&quot; pane on the right hand side of the designer</li>
+<li>Describe a series of strands in NUPACK domain composition syntax:</li>
+<li>Click the &quot;Update&quot; button</li>
+<li>Begin mutations; your strands will appear in the &quot;Strands&quot; pane on the bottom of the designer.</li>
+</ul>
+<p>To generate sequences for a NUPACK-style design specification:</p>
+<ul>
+<li>Open the &quot;Structure&quot; pane on the right hand side of the designer</li>
+<li>Save your design as a <code>.domains</code> file, and open it in Web DD, OR copy and paste your design into the &quot;Structure&quot; panel</li>
+<li>Click the &quot;Update&quot; button within the &quot;Structure&quot; window.
+<ul>
+<li>Note: If you have domains within your design with the same names as domains in your structure, the domains in your design will not be overwritten. If you select &quot;Reseed existing domains&quot; under the &quot;Update&quot; button drop-down, domains in your design will be resized and reseeded according to your structure specification</li>
+</ul></li>
+</ul>
+<p>You can separately save your structure, strands, and domains using the &quot;Save&quot; buttons in each of the panels.</p>
+<h3 id="naming-domains">Naming domains</h3>
+<p>Domains can be named in your structure specification. If you add additional domains using the &quot;Add&quot; button, they will be named auomatically with numbers.</p>
+<h2 id="score-parameters">Score parameters</h2>
+<p>Score parameters affect the weighting of specific factors in the domain scoring function (described below and in <a href="/etc/papers/dd_lncs.pdf">Dave's whitepaper</a>). You should very rarely need to change these based on specific needs of your project; however, our choices for these parameter values were mostly arbitrary, so feel free to change as you wish.</p>
+<h2 id="scoring-function">Scoring function</h2>
+<p>Details forthcoming; for now see <a href="/etc/papers/dd_lncs.pdf">Dave's whitepaper</a>.</p>

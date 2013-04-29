@@ -1,0 +1,21 @@
+<h1 id="working-with-sequences">Working with Sequences</h1>
+<p>Workbench has many powerful tools for working with sequences of bases.</p>
+<h2 id="sequence-editor">Sequence Editor</h2>
+<p>The sequence editor provides lots of tools for working with sequences as standard text files: The editor color-codes bases in the sequence, allows various metrics to be easily calculated, and exposes functions for formatting, transforming, and manipulating sequences.</p>
+<p>Most operations in the sequence editor operate on a set of strands. Each separate line is assumed to be on a separate strand. Most operations will replace the selection with the indicated transformation (e.g. selecting &quot;Transform&quot;, then &quot;Reverse&quot; will replace the selected sequence with its bases in reverse order). For operations in the &quot;Transform&quot; menu, this can be disabled by unchecking &quot;Replace Selection&quot;; this will cause the transformation to be inserted below each strand.</p>
+<p>To view details about each of the menu items in the sequence editor, just hover your mouse over it; help will appear in a tooltip.</p>
+<h2 id="sequence-designers">Sequence Designers</h2>
+<ul>
+<li><a href="web-dd">Web DD</a> - A stochastic, domain-based sequence designer; can be used to design sequences for large systems very quickly by designing a set of noninteracting domains and then threading those domains together to form full strands.</li>
+<li>NUPACK Thermodynamic sequence designer - Uses Caltech's NUPACK web server to perform multi-objective thermodynamic sequence design. NUPACK produces thermodynamically optimized sequences, but can be slow for some systems. To use: Enter a design using the NUPACK multi-objective sequence design script, select relevant parameters, and click &quot;Design&quot;; the task will be submitted to the Caltech server, and a popup window will be opened taking you to the results page.</li>
+<li>Multisubjective sequence designer (coming soon)</li>
+</ul>
+<h2 id="analysis-and-simulation">Analysis and Simulation</h2>
+<p>NOTE: The below features are deprecated. Please see <a href="simulation-analysis">Simulation and Analysis</a> instead.</p>
+<p>Workbench provides an interface to the powerful nucleic acid computation package <a href="http://www.nupack.org">NUPACK</a>. To perform NUPACK calculations of sequences, from the sequence editor, select a set of strands, then select one of the available calculations from the &quot;Compute&quot; menu:</p>
+<ul>
+<li>MFE Complexes - Computes the structure, free energy, and relative concentrations of the various complexes expected at equilibrium. To speed up computation, you can select a maximum complex size to prevent NUPACK from comparing complexes containing more than the indicated number of species.</li>
+<li>Pairwise MFE Complexes - Same as MFE, except the max complex size defaults to 2.</li>
+<li>Subsets MFE - not implemented</li>
+<li>Brute force - not implemented</li>
+</ul>

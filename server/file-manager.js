@@ -116,7 +116,32 @@ exports.configure = function(app, express) {
 	});
 
 	app.get('/help/:page', restrict('html'), function(req, res) {
-		var page = req.param('page') || 'index', fullPath = path.join('help', page) + '.md';
+		// var page = req.param('page') || 'index', fullPath = path.join('help', page) + '.md';
+
+		// fs.readFile(fullPath, 'utf8', function(err, data) {
+		// 	if(err) {
+		// 		sendError(res, 'Not Found', 404);
+		// 		utils.log({
+		// 			source: '/help/:page',
+		// 			level:"warn",
+		// 			message:"Can't find documentation. ", 
+		// 			page : page,
+		// 			fullPath : fullPath,
+		// 			err : err,
+		// 		});
+		// 		return;
+		// 	}
+		// 	res.render('layout.jade', {
+		// 		layout : false,
+		// 		body : md.toHTML(data, 'Maruku'),
+		// 		page : page,
+		// 	});
+		
+
+		var page = req.param('page') || 'index', fullPath;
+
+		// page = _.first(page.split('#'));
+		fullPath = path.join('help/html', page) + '.html';
 
 		fs.readFile(fullPath, 'utf8', function(err, data) {
 			if(err) {
@@ -133,9 +158,10 @@ exports.configure = function(app, express) {
 			}
 			res.render('layout.jade', {
 				layout : false,
-				body : md.toHTML(data, 'Maruku'),
+				body : data,
 				page : page,
 			});
+
 		});
 	});
 

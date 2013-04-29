@@ -1,0 +1,63 @@
+<h1 id="getting-started">Getting Started</h1>
+<p>This document will get you started with Workbench as quickly as possible. For a more detailed introduction, see the <a href="overview">Overview</a>.</p>
+<h2 id="setup">Setup</h2>
+<p><strong>Note:</strong> This part assumes you've already <a href="install">installed</a> Workbench Server, or that you're using a hosted installation. If you didn't configure this server, you're on a hosted installation; go on to the next section. See the <a href="server">server</a> page if you're confused.</p>
+<h2 id="designing-a-nodal-system">Designing a Nodal System</h2>
+<p>To design a system using the Nodal Abstraction described in <a href="http://yin.hms.harvard.edu/people/yin.peng/paper/pathway/index.html">Yin et al., 2008</a>:</p>
+<ol style="list-style-type: decimal">
+<li>Create a new file
+<ul>
+<li>Select &quot;New&quot; from the main menu bar</li>
+<li>Enter a filename, like &quot;system.nodal&quot; (you can omit the file extension)</li>
+<li>From the menu under &quot;Create,&quot; select &quot;Nodal System.&quot; Your new file should appear in the tree on the left (labeled &quot;Files&quot;)</li>
+<li>Open the file by double-clicking on its name in the Files tres</li>
+</ul></li>
+<li>Add some nodes to the workspace
+<ul>
+<li>Drag and drop motifs from the palatte labelled &quot;Motifs&quot; onto the main white area (the &quot;Workspace&quot;). Nodes can be renamed by clicking on the gray label above.</li>
+<li>For a full reference of the different motifs, see <a href="nodal">nodal systems</a>.</li>
+</ul></li>
+<li>Connect nodes together
+<ul>
+<li>To indicate complementarities, select the Complementarity tool (labeled &quot;Connect&quot;). Click and drag from output ports (circular) to input ports (triangular).</li>
+<li>You can delete complementarities by switching back to the pointer tool (arrow), and pressing the large red &quot;X&quot;</li>
+</ul></li>
+<li>Build your project and send output to a sequence designer
+<ul>
+<li>Select the &quot;Build&quot; tab, then click &quot;Compile&quot;. You should see a bunch of output files appear in the files tree to the left:
+<ul>
+<li>(nodal system name).txt: this is a serialized (textual) representation of the reaction graph you've just drawn</li>
+<li>(nodal system name).svg: a graphical representation of the strands necessary to implement your system</li>
+<li>(nodal system name).nupack: a script for the <a href="http://nupack.org/design/new">NUPACK Multiobjective designer</a> to design sequences using <a href="http://www.nupack.org/downloads/serve_public_file/jcc11b.pdf?type=pdf">thermodynamic ensemble defect minimization</a>.</li>
+<li>(nodal system name).domains: a file which will allow you to quickly and easily generate and optimize sequences stochastically in your browser, using the Molecular Systems lab's Web Domain Designer (Web DD).</li>
+</ul></li>
+</ul></li>
+</ol>
+<p><a href="nodal">Read more</a> about the nodal designer.</p>
+<h2 id="sequence-design-with-web-dd">Sequence design with Web DD</h2>
+<p>To design some sequences for the structure you've just described:</p>
+<ol style="list-style-type: decimal">
+<li>Open the .domains file by double-clicking its name in the Files tree</li>
+<li>Click &quot;Mutate&quot; to begin optimizting the design. You'll see the individual domains being designed in the center pane, a schematic of the various construct strands in the &quot;Structure&quot; pane to the right, and a real-time visualization of the candidate sequences in the &quot;Strands&quot; pane below. You can pause the mutation and save any part of this view by clicking the &quot;Save&quot; button and selecting a file name.
+<ul>
+<li>Mutate the design for a while</li>
+<li>Once you're satisfied with the score (lower is better), pause mutations by clicking the &quot;Mutate&quot; button again.</li>
+<li>Save your final strands by clicking &quot;Save&quot; in the &quot;Strands&quot; pane, and selecting a file (how about &quot;system.seq&quot;).</li>
+</ul></li>
+</ol>
+<p><a href="web-dd">Read more</a> about Web DD, or <a href="sequence">Sequence design</a>.</p>
+<h2 id="thermodynamic-analysis-and-simulation-with-nupack">Thermodynamic analysis and simulation with NUPACK</h2>
+<p>To perform full physical model calculations using NUPACK on the sequences we've just designed:</p>
+<ol style="list-style-type: decimal">
+<li>In the &quot;Strands&quot; pane within Web DD, select &quot;Compute&quot;</li>
+<li>Hover over &quot;Pairwise MFE Complexes,&quot; then enter a file name and click &quot;Run.&quot; You don't need to provide and extension, just a prefix, since NUPACK will generate lots of files, and Workbench will wrap them up in a &quot;package&quot; file for you.</li>
+<li>The Console should pop up, and a message should be displayed indicating that the NUPACK task is being run. Wait until you see a bunch more output (starting with &quot;Permutation generation complete.&quot;). This will indicate that the task has completed. Your Files tree will also refresh.</li>
+<li>You should see a new file called (file name you entered earlier).package; double-click it to view the results, which may take a moment to load. You should see a list of the distinct strands analyzed, a graph of the minimum free energy (∆G) for the various possible complexes, and a list of complexes ordered by concentration. Click one of these complexes in order to view the minimum free energy structure as a 2D visualization, an arc diagram, or a matrix visualization.</li>
+</ol>
+<p><a href="nupack">Read more</a> about using NUPACK in Workbench, or check out the <a href="http://www.nupack.org">NUPACK Website at Caltech</a></p>
+<h2 id="next-steps">Next steps</h2>
+<ul>
+<li>Read more about the <a href="applications">Applications</a> available in Workbench</li>
+<li>Learn more about the <a href="files">File system</a></li>
+<li>Discover how to <a href="customization">customize Workbench</a> by scripting and developing applications.</li>
+</ul>

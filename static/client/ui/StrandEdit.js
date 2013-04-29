@@ -697,6 +697,9 @@ Ext.define('App.ui.EditComplexWindow', {
 Ext.define('App.ui.EditComplexPanel', {
 	extend: 'Ext.panel.Panel',
 	alias: 'widget.editcomplexpanel',
+	mixins: {
+		tip: 'App.ui.TipHelper'
+	},
 	layout: 'border',
 	border: false,
 	bodyBorder: false,
@@ -724,19 +727,24 @@ Ext.define('App.ui.EditComplexPanel', {
 					name: 'strandsField',
 					validator: Ext.bind(this.validateStrands, this),
 					minHeight: 12,
+					tooltip: "Enter the name(s) of your strand(s) order in which they should appear in the complex. Separate strand names with + signs." + 
+					"If you do not enter a strand\'s name here, it will not appear in the complex. Strand names can be used multiple times—this will "+
+					"create a complex with multiple copies of that strand. ",
 					// floating: true,
 					// autoRender: true,
 				},
 				 {
-					fieldLabel: 'Strands',
+					fieldLabel: 'Strand Order',
 					xtype: 'displayfield',
 					name: 'segmentsField',
 					cls: 'strand-glyph-well',
+					tooltip: "Click to edit the order in which strands will appear in the complex. If you do not enter a strand\'s name here, it will not appear in the complex."
 				}, {
 					fieldLabel: 'Structure',
 					xtype: 'textarea',
 					name: 'structureField',
 					validator: Ext.bind(this.validateStructure, this),
+					tooltip: "Enter the structure for the complex in dot-parenthesis notation."
 				}]
 			}],
 		});
@@ -778,6 +786,8 @@ Ext.define('App.ui.EditComplexPanel', {
 		this.formPanel.on('validitychange',function(panel,valid) {
 			if(valid) this.updateComplex();
 		},this,{buffer: 100});
+
+		this.mixins.tip.init.call(this,[]);
 	},
 
 	/**
@@ -910,6 +920,9 @@ Ext.define('App.ui.EditComplexPanel', {
 Ext.define('App.ui.StrandsGrid',{
 	extend: 'Ext.grid.Panel',
 	alias: 'widget.strandsgrid',
+	mixins: {
+		tip: 'App.ui.TipHelper'
+	},
 	/**
 	 * @cfg {App.ui.StrandStore} store (required)
 	 * Store containing Strand records
@@ -925,22 +938,51 @@ Ext.define('App.ui.StrandsGrid',{
 		});
 		this.strandStore = this.store;
 
+		this.segmentsField = Ext.create('Ext.form.field.Text',{
+			//xtype: 'textfield',
+			tooltip: { 
+				html: "Describe the segments that comprise this strand, using the DyNAML short notation. "+
+				"For example, to describe a strand with two domains, an input A containing segments 1, 2, and 3, "+
+				"and an output B (containing segments 4, 5, and 6), you could write: <pre>\tA[1 2 3]i B[4 5 6]o</pre> <a href=\""+App.ui.Help.getLink('dynaml#short-notation')+"\">Details</a>",
+				hideDelay: 2000,
+				anchor: "bottom",
+				anchorToTarget: true,
+			},
+			validator: Ext.bind(function(value) {
+				var segmentMap = this.getSegmentMap();
+				var doms = App.dynamic.Compiler.parseDomainString(value,/*parseIdentifier*/ true);
+				for(var i=0; i<doms.length; i++) {
+					var segs = doms[i].segments;
+					for(var j=0; j<segs.length; j++) {
+						var seg = segs[j];
+						if(!segmentMap[seg.identity]) {
+							return "Unknown segment: '"+seg.identity+"'";
+						}
+					}
+				}
+				return true;
+			},this),
+		});
+
 		Ext.apply(this,{
 			tbar: [{
 				text: 'Add',
 				iconCls: 'plus',
 				handler: this.doAddStrand,
 				scope: this,
+				tooltip: "Click to add a strand. You'll also need to add a strand to a complex in order for it to appear in the design."
 			},{
 				text: 'Edit',
 				iconCls: 'pencil',
 				handler: this.doEditStrand,
 				scope: this,
+				tooltip: "Click to edit the definition of the selected strand."
 			},{
 				text: 'Delete',
 				iconCls: 'delete',
 				handler: this.doDeleteStrand,
 				scope: this,
+				tooltip: "Click to delete the selected strand(s)."
 			}],
 
 			columns: [{
@@ -983,41 +1025,7 @@ Ext.define('App.ui.StrandsGrid',{
 			}, {
 				text: 'Segments',
 				dataIndex: 'spec',
-				field: {
-					xtype: 'textfield',
-					validator: Ext.bind(function(value) {
-						var segmentMap = this.getSegmentMap();
-						var doms = App.dynamic.Compiler.parseDomainString(value,/*parseIdentifier*/ true);
-						for(var i=0; i<doms.length; i++) {
-							var segs = doms[i].segments;
-							for(var j=0; j<segs.length; j++) {
-								var seg = segs[j];
-								if(!segmentMap[seg.identity]) {
-									return "Unknown segment: '"+seg.identity+"'";
-								}
-							}
-						}
-						return true;
-					},this),
-					listeners: {
-						// 'focus': {
-						// 	fn: function onFocus (cmp,e) {
-						// 		cmp.origVal = cmp.getValue();
-						// 	},
-						// 	scope: this,
-						// }
-						// 'blur':  {
-						// 	fn: function onBlur (cmp,e) {
-						// 		var value = cmp.getValue();
-						// 		if(value != cmp.origVal && cmp.isValid()) {
-
-						// 		}
-						// 		delete cmp.origVal;
-						// 	},
-						// 	scope: this,
-						// }
-					}
-				},
+				field: this.segmentsField,
 				renderer: function(str) {
 					var spec = App.dynamic.Compiler.parseDomainOrSegmentString(str, /*parseIdentifier*/ true); // App.dynamic.Compiler.parseDomainString(str);
 					return _.map(spec,function(dom) {
@@ -1035,8 +1043,9 @@ Ext.define('App.ui.StrandsGrid',{
 			}, ],
 			plugins: [this.strandEditor],
 		});
-
+		
 		this.callParent(arguments);
+		this.mixins.tip.init.call(this,[this.segmentsField]);
 	},
 	getSegmentMap: function () {
 		return this.segmentStore.getSegmentMapWithComplements()
@@ -1079,6 +1088,9 @@ Ext.define('App.ui.StrandsGrid',{
 Ext.define('App.ui.SegmentsGrid',{
 	extend: 'Ext.grid.Panel',
 	alias: 'widget.segmentsgrid',
+	mixins: {
+		tip: 'App.ui.TipHelper'
+	},
 	initComponent: function (argument) {
 		this.segmentEditor = Ext.create('Ext.grid.plugin.CellEditing', {
 			clicksToEdit: 1
@@ -1148,6 +1160,7 @@ Ext.define('App.ui.SegmentsGrid',{
 		});
 
 		this.callParent(arguments);
+		this.mixins.tip.init.call(this,[]);
 	},
 
 	showAddSegmentsWindow: function() {

@@ -9,6 +9,11 @@ Ext.define('App.ui.Help',{
 	constructor: function(config) {
 		this.url = App.path.join(['help',config.triggers[0] || 'index']);
 		this.callParent(arguments);
+	},
+	statics: {
+		getLink: function(topic) {
+			return "javascript:App.ui.Launcher.launch('help:"+topic+"');"
+		}
 	}
 })
 
@@ -24,7 +29,7 @@ Ext.define('App.ui.HelpButton',{
 	
 	initComponent: function() {
 		Ext.apply(this,{
-			handler: App.ui.Launcher.makeLauncher(this.topic)
+			handler: App.ui.Launcher.makeLauncher('help:'+this.topic)
 		});
 		this.callParent(arguments);
 	}

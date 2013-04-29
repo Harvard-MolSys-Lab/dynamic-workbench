@@ -670,7 +670,7 @@ function StrandPreview() {
 }
 
 /**
- * Allows viewing of secondary structures
+ * Allows visualization of secondary structures
  */
 Ext.define('App.ui.StrandPreview', {
 	extend : 'App.ui.D3Panel',
@@ -805,12 +805,18 @@ Ext.define('App.ui.StrandPreview', {
 		this.textWindow.setTitle(title);
 		this.textWindowBox.setValue(data);
 	},
+	/**
+	 * Returns the structure currently displayed in this window, in dot-parenthesis notation
+	 */
+	getStructure: function () {
+		return _.isString(this.data) ? this.data : this.data.dotParen || this.data.structure || null;
+	},
 	toDotParen: function(btn) {
-		var value = this.data;
+		var value = this.getStructure();
 		this.showWindow('Dot-Parentheses',value,btn);
 	},
 	toDUPlus: function(btn) {
-		var value = DNA.dotParenToDU(this.data);
+		var value = DNA.dotParenToDU(this.getStructure());
 		this.showWindow('DU+',value,btn);
 	},
 	toSVG: function(btn) {

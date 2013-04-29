@@ -1,6 +1,10 @@
 Ext.define('App.ui.nodal.MotifInspector', {
 	requires : ['App.ui.CodeMirror','App.ui.NodeTypeEditor'],
 	extend : 'Ext.form.Panel',
+	mixins : {
+		boundObjectPanel : 'App.ui.BoundObjectPanel',
+		tip: 'App.ui.TipHelper'
+	},
 	title : 'Motif',
 	bodyPadding : 5,
 	enableBoundFields : true,
@@ -36,12 +40,17 @@ Ext.define('App.ui.nodal.MotifInspector', {
 				items: [{
 					xtype:'button',
 					text: 'Edit Motif',
+					iconCls: 'edit',
 					handler: this.showMotifEditor,
 					scope: this,
 					margin: '0 3 3 0',
+					tooltip: 'Edit this motif using the graphical motif editor.'
 				},{
 					xtype:'button',
-					text:'Load from Built-in',
+					text:'Copy from Built-in',
+					iconCls: 'duplicate',
+					tooltip: 'Update the definition of this motif to duplicate one of the built-in motifs. '+
+						'You can then use the graphical Motif Editor (left) or directly edit the DyNAML code (below) to make changes to this new motif.',
 					margin: '0 3 3 0',
 					menu: _.map(App.dynamic.Compiler.standardMotifs,function (mot) {
 						return (function(motif) { 
@@ -77,12 +86,11 @@ Ext.define('App.ui.nodal.MotifInspector', {
 		})
 		this.callParent(arguments);
 		this.mixins.boundObjectPanel.initialize.apply(this, arguments);
+		this.mixins.tip.init.apply(this,arguments);
 		this.motifEditors = {};
 		this.codeEditor = this.down('[xtype=codemirror]');
 	},
-	mixins : {
-		boundObjectPanel : 'App.ui.BoundObjectPanel'
-	},
+	
 	showMotifEditor : function() {
 		var object = this.getBoundObject();
 		if(!this.motifEditors[object.getId()]) {
@@ -110,8 +118,9 @@ Ext.define('App.ui.nodal.MotifInspector', {
 				closeAction: 'hide',
 				title: 'Edit Motif: '+object.get('name'),
 				data: data, //object.get('dynaml'),
-				buttons: [{
+				buttons: ['->',{
 					text: 'Save',
+					iconCls: 'tick',
 					handler: updateMotifDynaml,
 					scope: this,
 				}],

@@ -173,6 +173,9 @@ Ext.define('App.ui.MotifPreview',{
 
 Ext.define('App.ui.NodeTypeEditor',{
 	extend:'Ext.panel.Panel',
+	mixins: {
+		tip: 'App.ui.TipHelper',
+	},
 	layout: 'border',
 	border: false,
 	bodyBorder: false,
@@ -477,6 +480,8 @@ Ext.define('App.ui.NodeTypeEditorWindow',{
 			data: this.data,
 		});
 		this.items = [this.nodeTypeEditor];
+		this.buttons || (this.buttons = []);
+		this.buttons.unshift(Ext.create('App.ui.HelpButton',{topic: 'nodal#motif-editor'}));
 		this.callParent(arguments);
 	},
 	getValue: function () {

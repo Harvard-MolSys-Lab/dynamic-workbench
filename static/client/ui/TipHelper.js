@@ -17,13 +17,17 @@ Ext.define('App.ui.TipHelper', {
 	 * @property {Ext.tip.ToolTip} tip Each child component with a configured {@link #tooltip} will have a reference to
 	 * the generated {@link Ext.tip.ToolTip tooltip} attached to this property.
 	 */
-	
 	/**
 	 * Initializer; should be called by the included class: <code>this.mixins.[mixinName].init.apply(this,arguments)</code>
+	 * @param {Ext.Component} otherComponents 
+	 * An array of other components on which the #buildTip method should be called after said
+	 * components are rendered. Can be used for components which aren't part of 
+	 * the Ext#query component hierarchy but on which you would like to use the #tooltip configuration.
 	 */
-	init : function() {
+	init : function(otherComponents) {
+		otherComponents || (otherComponents = []);
 		this.tips || (this.tips = []);
-		_.each(this.query('*[tooltip]'), function(field) {
+		_.each((this.query('*[tooltip]') || []).concat(otherComponents), function(field) {
 			field.on('afterrender', this.buildTip, this);
 		}, this);
 		this.on('destroy',this.destroyTips,this);

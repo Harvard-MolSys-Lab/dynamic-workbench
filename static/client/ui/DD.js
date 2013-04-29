@@ -629,6 +629,9 @@ Ext.define('App.ui.DD', {
 		this.designer.reseed();
 		this.updateInterface(true);
 	},
+	/**
+	 * Locks all bases of all selected domains in the design.
+	 */
 	lock: function() {
 		//var rec = this.grid.getSelectionModel().getLastSelected(), dom = this.store.indexOf(rec);
 		
@@ -640,6 +643,9 @@ Ext.define('App.ui.DD', {
 			}
 		})
 	},
+	/**
+	 * Unlocks all bases of all selected domains in the design.
+	 */
 	unlock: function() {
 		//var rec = this.grid.getSelectionModel().getLastSelected(), dom = this.store.indexOf(rec);
 		
@@ -652,7 +658,7 @@ Ext.define('App.ui.DD', {
 		});
 	},
 	/**
-	 * Syncs UI for a particular domain with the {@link #designer}
+	 * Updates the data in the {@link #designer} to reflect that of the passed record.
 	 * @param {Ext.data.Model} domain Record for a particular domain to sync
 	 */
 	updateDomain : function(rec) {
@@ -660,12 +666,18 @@ Ext.define('App.ui.DD', {
 	},
 	/**
 	 * Updates the score parameters in the designer
+	 * @param {Object} v A hash of mapping parameter names to parameter values.
+	 *
+	 * See also DD#updateParams
 	 */
 	updateParams : function(v) {
 		this.designer.updateParams(v);
 	},
 	/**
 	 * Updates the design rules in the designer
+	 * @param {Object} v A hash of mapping rule names to values.
+	 *
+	 * See also DD#updateRules
 	 */
 	updateRules : function() {
 		this.designer.updateRules(v);
@@ -730,7 +742,7 @@ Ext.define('App.ui.DD', {
 	},
 	/**
 	 * Synchronizes domains in the view and the designer with domains in the
-	 * {@link #strands strand threading spec}
+	 * {@link #strands strand threading specification}
 	 *
 	 * @param {Object} domains Hash mapping names (or numbers) of domains
 	 * described in the spec to domain sequences (which could be Ns).
@@ -756,7 +768,7 @@ Ext.define('App.ui.DD', {
 		}, this);
 	},
 	/**
-	 * Shows the {@link #addDomainsWindow}
+	 * Shows the #addDomainsWindow
 	 */
 	addManyDomains : function(data) {
 		/**
@@ -797,6 +809,9 @@ Ext.define('App.ui.DD', {
 		this.loadDDFileWindow.show();
 
 	},
+	/**
+	 * Shows the #showDDFileWindow, which displays a dd-formatted output file.
+	 */
 	showDDFile: function() {
 		var data = this.designer.saveFile();
 		if (!this.showDDFileWindow) {
@@ -819,6 +834,9 @@ Ext.define('App.ui.DD', {
 		}
 		this.showDDFileWindow.show();
 	},
+	/**
+	 * Shows the #showDomainsWindow, which allows the user to copy sequences out of the designer as plaintext.
+	 */
 	showDomainsPlaintext: function() {
 		var data = this.designer.printfDomains().join('\n');
 		if (!this.showDomainsWindow) {
@@ -983,6 +1001,9 @@ Ext.define('App.ui.DD', {
 			}).join('\n'));
 		}
 	},
+	/**
+	 * Updates the #strandsPane view, threading sequences for the domains onto full strands.
+	 */
 	updateStrandsPane : function() {
 		var segments = _.reduce(this.store.getRange(), function(memo, rec) {
 			var name = rec.get('name'), i = this.store.indexOf(rec);
@@ -1058,84 +1079,5 @@ Ext.define('App.ui.DD', {
 			Ext.TaskManager.stop(this.mutationTask);
 		}
 		this.mutating = false;
-	}
-});
-
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
-/**
- * @class Ext.ux.PreviewPlugin
- * @extends Ext.AbstractPlugin
- *
- * The Preview enables you to show a configurable preview of a record.
- *
- * This plugin assumes that it has control over the features used for this
- * particular grid section and may conflict with other plugins.
- *
- * @alias plugin.preview
- * @ptype preview
- */
-Ext.define('Ext.ux.PreviewPlugin', {
-	extend : 'Ext.AbstractPlugin',
-	alias : 'plugin.preview',
-	requires : ['Ext.grid.feature.RowBody', 'Ext.grid.feature.RowWrap'],
-
-	// private, css class to use to hide the body
-	hideBodyCls : 'x-grid-row-body-hidden',
-
-	/**
-	 * @cfg {String} bodyField
-	 * Field to display in the preview. Must me a field within the Model definition
-	 * that the store is using.
-	 */
-	bodyField : '',
-
-	/**
-	 * @cfg {Boolean} previewExpanded
-	 */
-	previewExpanded : true,
-
-	constructor : function(config) {
-		this.callParent(arguments);
-		var bodyField = this.bodyField, hideBodyCls = this.hideBodyCls, section = this.getCmp(), features = [{
-			ftype : 'rowbody',
-			getAdditionalData : function(data, idx, record, orig, view) {
-				var o = Ext.grid.feature.RowBody.prototype.getAdditionalData.apply(this, arguments);
-				Ext.apply(o, {
-					rowBody : data[bodyField],
-					rowBodyCls : section.previewExpanded ? '' : hideBodyCls
-				});
-				return o;
-			}
-		}, {
-			ftype : 'rowwrap'
-		}];
-
-		section.previewExpanded = this.previewExpanded;
-		if (!section.features) {
-			section.features = [];
-		}
-		section.features = features.concat(section.features);
-	},
-	/**
-	 * Toggle between the preview being expanded/hidden
-	 * @param {Boolean} expanded Pass true to expand the record and false to not show the preview.
-	 */
-	toggleExpanded : function(expanded) {
-		var view = this.getCmp();
-		this.previewExpanded = view.previewExpanded = expanded;
-		view.refresh();
 	}
 });

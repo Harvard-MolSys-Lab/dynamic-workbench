@@ -4,31 +4,32 @@ Designing Nodal Systems
 Overview
 --------
 
-The nodal formalism allows you to express complicated computational or assembly processes in terms of simple behavioral units, called nodes. Many types of nodes exist--these types are called "motifs"; motifs are defined by mapping a structural unit of DNA or RNA (such as a hairpin) to a simple behavioral function. Nodes generally have several "ports" which correspond to domains of the underlying nucleic acid species. Nodal programs are written by adding instances of motifs (nodes) to a workspace, then connecting the ports together to indicate behavioral relationships, and in turn sequence complementarities. The nodal compiler, called DyNAMiC (the Dynamic Nucleic Acid Mechanism Compiler) propagates those sequence complementarity requirements to generate a list of distinct sequences which must be designed by a sequence designer (such as [DD](web-dd) or [NUPACK](nupack)&nbsp;). 
+The nodal formalism allows you to express complicated computational or assembly processes in terms of simple behavioral units, called nodes. Many types of nodes exist---these types are called "motifs"; motifs are defined by mapping a structural unit of DNA or RNA (such as a hairpin) to a simple behavioral function. Nodes generally have several _ports_ which correspond to _domains_ of the underlying nucleic acid species. Nodal programs are written by adding instances of motifs (nodes) to a workspace, then connecting the ports together to indicate behavioral relationships. These behavioral relationships in turn imply sequence complementarities. The nodal compiler, called DyNAMiC (the Dynamic Nucleic Acid Mechanism Compiler) propagates those sequence complementarity requirements to generate a list of distinct sequences which must be designed by a sequence designer (such as [DD](web-dd) or [NUPACK](nupack)&nbsp;).
 
 The basic workflow is like this:
 
 -	Nodal systems are assembled using the nodal designer
 -	The nodal compiler runs in real-time, verifying the system as you design it.
--	Once your system has been designed, input to sequence designers can be generated with the "Build" command (see "Compiling", below)
+-	Once your system has been designed you can generate a DIL (DyNAMiC Intermediate Language) file, which represents your system as a scheme of complementarity relationships between segments of the strands in your ensemble (see "Compiling", below)
+-	From the DIL file, DyNAMiC can generate input files for many different sequence designers.
 -	Sequences can be designed using sequence designers
 
-Note: The nodal compiler generates a bunch of files, so it's recommended that you place each nodal system in a folder by itself.
-
-DyNAMiC actually uses a [JSON](http://json.org/)-based input format, called DyNAML. You can enter DyNAML directly using the DyNAML editor application, or you can design custom DyNAML motifs from within workbench. The DyNAML language is described in [this whitepaper](/etc/papers/nodal.pdf).
+DyNAMiC actually uses a [JSON](http://json.org/)-based input format, called [DyNAML](dynaml). You can enter DyNAML directly using the DyNAML editor application, or you can design custom DyNAML motifs from within workbench. The DyNAML language is described in [this whitepaper](/etc/papers/nodal.pdf).
 
 Adding Nodes
 -------------
 
-You can add motifs by draging and droping existing motifs from the "Standard" panel in the lower-left, onto the workspace.
+You can add nodes to the system by draging and droping existing motifs from the "Standard" panel in the lower-left, onto the workspace. You can also define new motifs (see [below](#motif-editor)), which will appear in the "Custom" tab of the same panel.
 
 Defining Motifs
 ---------------
 
 You can create new motifs in two ways, each using the "Create Motif" tool in the ribbon. First, click the "Create Motif" button, then either:
 
--	Click on the workspace to generate an empty motif. Then select this motif and enter a custom [DyNAML](/etc/papers/nodal.pdf) description using the inspector on the right, or:
--	Click and drag on the workspace to select and existing system of nodes, and wrap that system in a new motif. 
+-	Click on the workspace to generate an empty motif. Then select this motif and use the inspector on the right to describe its implementation. You can either:
+	-	Click the "Edit Motif" button, and use a graphical interface to define the structure of the motif, or
+	-	Expand the "DyNAML Code" box and enter a custom [DyNAML](/etc/papers/nodal.pdf) description. If you want to use one of the built-in motifs as template, click the "Copy from Built-in" button and select a built-in motif from the dropdown menu. 
+-	Alternatively, click and drag on the workspace to select and existing system of nodes, and wrap that system in a new motif. 
 	-	This will effectively remove those nodes from the system, and transform them into part of the motif. 
 	-	All outgoing connections will be removed. 
 	-	To "expose" ports within the motif to external complementarities, use the "Add Port" or "Expose" tool:
@@ -39,6 +40,16 @@ You can create new motifs in two ways, each using the "Create Motif" tool in the
 
 If you decide you want to restore the nodes inside a motif to the workspace as normal nodes, select a motif and click the "Unwrap motif" button.
 
+### Using the Motif Editor to edit or define motifs. {#motif-editor}
+
+The Motif Editor is a small graphical tool for defining custom motifs. It can be launched by creating a new motif (see above), selecting the motif in the workspace, and clicking "Edit Motif" in the inspector on the right side. To create a new motif:
+
+-	Start in the "Segments" pane in the top-left. Click the "Add" button to add new segments. You can click the arrow to the right to add segments of different lengths, or to add many specific sequences. 
+-	Then use the "Strands" pane to thread segments together into strands. Click "Add" to add a new strand, and then type a strand specification in the DyNAML compact format. You can add as many strands as you'd like.
+-	In the "Structure" pane, click the "Strand Order" field and enter the names of your strands, separated by + signs, to describe the order in which the strands should appear in the starting complex. Once your cursor leaves the Strands field, the field will be populated with a simple graphic depicting the segments that comprise the strands you've selected. Note: If you create a strand using the "Strands" pane but don't add the strand name to the "Strand Order" field, it will be omitted from the final motif. 
+-	Then, in the "Structure" field, enter the structure for your strand in dot-parenthesis notation. Once a valid structure has been entered, an image of your complex and a depiction of the nodal motif will appear to the right. 
+
+
 Complementarities
 -----------------
 
@@ -47,7 +58,9 @@ To declare complementarities between ports:
 -	Select the "Complementarity" tool
 -	Drag from one port to another to declare complementarity. You may drag from Input to output, or	Bridge to bridge; other connections will be disallowed. You may also add connections between ports within a motif, but not between ports inside and outside the motif.
 
-Complementarities may only be drawn from output ports to input ports, or between bridge (square) ports. Some connections are invalid, depending on the shape of the underlying domain. The nodal editor doesn't prohibit these connections from being drawn, but it will highlight the relevant nodes in red and report an error. For instance, a connection between a domain with 3 segments: `a b c`, each of length 8, and a domain with 4 segments `a b c d` each of length 4 would be invalid, since the total number of nucleotides (24 and 16) do not match up. Likewise, a connection between a domain with 2 segments `a b` each of length 8 (total length 16) and a domain of one segment `a` of length 16 (total length 16) would _also_ be invalid, since the number of segments in each domain is different. See "Errors" below for how DyNAMiC and the Nodal editor handle these errors.
+Complementarities may only be drawn from output ports to input ports, or between bridge (square) ports. Some connections are not possible, depending on the shape, or "footprint" of the underlying domain. For instance, a connection between a domain with 3 segments: `a b c`, each of length 8, and a domain with 4 segments `a b c d` each of length 4 would be invalid, since the total number of nucleotides (24 and 16) do not match up. Likewise, a connection between a domain with 2 segments `a b` each of length 8 (total length 16) and a domain of one segment `a` of length 16 (total length 16) would _also_ be invalid, since the number of segments in each domain is different. The nodal editor doesn't prohibit these connections from being drawn, but it will highlight the relevant nodes in red and report an error. See "Errors" below for how DyNAMiC and the Nodal editor handle these errors.
+
+You can inspect the footprint of a port by moving your mouse over the port. A small tooltip will appear and will display the length of each segment in the underlying domain
 
 Errors
 ------

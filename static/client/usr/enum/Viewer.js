@@ -1,3 +1,6 @@
+/**
+ * Allows visualization of the results of enumeration for files in the ENJS format.
+ */
 Ext.define('App.usr.enum.Viewer', {
 	extend : 'App.ui.D3Panel',
 	requires : ['App.usr.nodal.StrandPreview'],

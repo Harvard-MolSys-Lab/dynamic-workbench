@@ -15,7 +15,10 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('App.usr.dil.EditComplexPanel', {
+  <pre class="prettyprint lang-js"><span id='App-usr-dil-EditComplexPanel'>/**
+</span> * Allows editing of Complex objects by prescribing an ordering of strands and a segment-level secondary structure.
+ */
+Ext.define('App.usr.dil.EditComplexPanel', {
 	extend: 'Ext.panel.Panel',
 	alias: 'widget.editcomplexpanel',
 	requires: ['App.usr.dil.SegmentStore','App.usr.dil.StrandStore','App.usr.dil.ComplexStore'],
@@ -112,7 +115,7 @@
 		this.mixins.tip.init.call(this,[]);
 	},
 
-<span id='global-method-loadData'>	/**
+<span id='App-usr-dil-EditComplexPanel-method-loadData'>	/**
 </span>	 * Loads #complexData for the record in #complex from the corresponding #strandManager
 	 */
 	loadData: function() {
@@ -123,7 +126,7 @@
 		this.updateView();
 	},
 
-<span id='global-method-updateComplex'>	/**
+<span id='App-usr-dil-EditComplexPanel-method-updateComplex'>	/**
 </span>	 * Updates the record stored in #complex with the data from #getStrands and #getStructure.
 	 * Updates the #complexData and {@link #updateView updates the view}.
 	 */

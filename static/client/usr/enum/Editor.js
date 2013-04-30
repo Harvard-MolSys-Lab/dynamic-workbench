@@ -1,5 +1,5 @@
 /**
- * Allows editing of scripts for Karthik Sarma's enumerator
+ * Allows editing of scripts for Karthik Sarma's domain-level reaction enumerator.
  */
 Ext.define('App.usr.enum.Editor', {
 	extend: 'App.usr.text.Editor',

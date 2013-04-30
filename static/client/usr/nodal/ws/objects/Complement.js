@@ -1,5 +1,7 @@
-////////////////////////////////////////////////////////////////////////////////////////////////
-
+/**
+ * Represents a prescribed behavioral relationship (and in turn a complementarity relationship) between two 
+ * {@link App.usr.nodal.ws.objects.NodePort ports}. Compiles to an {@link App.dynamic.Complement} object.
+ */
 Ext.define('App.usr.nodal.ws.objects.Complement', {
 	extend : 'Workspace.objects.Connection',
 	showLabel : false,

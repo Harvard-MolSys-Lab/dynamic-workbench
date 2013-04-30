@@ -1,3 +1,6 @@
+/**
+ * Shows a window allowing editing of Complex objects
+ */
 Ext.define('App.usr.dil.EditComplexWindow', {
 	extend: 'Ext.window.Window',
 	requires: ['App.usr.dil.EditComplexPanel'],

@@ -1,5 +1,5 @@
 /**
- * Allows viewing of scripts for the NUPACK multi-objective designer
+ * Allows viewing of results from the Multisubjective designer
  */
 Ext.define('App.usr.ms.Viewer', {
 	extend : 'App.ui.D3Panel',

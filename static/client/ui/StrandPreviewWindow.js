@@ -1,3 +1,6 @@
+/**
+ * Window containing a {@link App.ui.StrandPreview StrandPreview} widget and a text box; allows the user to preview a particular secondary structure.
+ */
 Ext.define('App.ui.StrandPreviewWindow',{
 	requires: ['App.ui.StrandPreview'],
 	extend:'Ext.window.Window',

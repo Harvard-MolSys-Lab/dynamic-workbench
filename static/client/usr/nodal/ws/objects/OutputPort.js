@@ -1,4 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * Represents a single Output port on a {@link App.usr.nodal.ws.objects.Node Node}. Compiles to a {@link App.dynamic.Domain domain} with {@link App.dynamic.Domain#role role}`='output'`.
+ */
 Ext.define('App.usr.nodal.ws.objects.OutputPort', {
 	extend: 'Workspace.objects.Ellipse',
 	mixins: {

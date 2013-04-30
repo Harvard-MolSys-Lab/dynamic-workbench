@@ -1,3 +1,6 @@
+/**
+ * Displays citations below applications
+ */
 Ext.define('App.ui.CitationBar',{
 	alias: 'widget.cite',
 	extend: 'Ext.panel.Panel',
@@ -20,6 +23,11 @@ Ext.define('App.ui.CitationBar',{
 			this.cite = App.ui.Attribution.getCite(this.cite);
 		}
 		
+		/**
+		 * @cfg {Object/String} cite
+		 * The citation that this object should display; can be either a citation configuration 
+		 * object, or a reference to a {@link App.ui.Attribution#getCite named citation}. 
+		 */
 		if (!this.cite) this.cite = {};
 		Ext.applyIf(this.cite,{
 			authors: [],

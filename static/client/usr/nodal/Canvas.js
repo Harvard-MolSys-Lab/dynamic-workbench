@@ -134,7 +134,7 @@ Ext.define('App.usr.nodal.Canvas', {
 		 * Tracks which version of the {@link App.dynamic.Compiler.standardMotifsVersions standard motif library} 
 		 * the workspace uses. This affects which motifs appear in the #palette and from where motifs in the compiled
 		 * library are fetched. 
-		 * @class  Workspace
+		 * @member  Workspace
 		 */
 
 		this.workspace.expose('version',true,true,true);

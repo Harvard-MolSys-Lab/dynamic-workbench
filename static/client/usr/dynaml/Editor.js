@@ -1,3 +1,6 @@
+/**
+ * Allows editing and compilation of DyNAML code
+ */
 Ext.define('App.usr.dynaml.Editor', {
 	extend : 'App.usr.text.Editor',
 	

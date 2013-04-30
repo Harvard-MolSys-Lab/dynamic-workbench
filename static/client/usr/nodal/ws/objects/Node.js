@@ -1,6 +1,5 @@
-
 /**
- * Represents a single node in a {@link App.usr.nodal.Canvas nodal system}
+ * Represents a single node in a {@link App.usr.nodal.Canvas nodal system}. Compiles to an {@link App.dynamic.Node}.
  */
 Ext.define('App.usr.nodal.ws.objects.Node', {
 	extend: 'App.usr.nodal.ws.objects.AbstractNode',

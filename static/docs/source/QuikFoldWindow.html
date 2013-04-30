@@ -15,7 +15,11 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('App.ui.mfold.QuikFoldWindow',{
+  <pre class="prettyprint lang-js"><span id='App-ui-mfold-QuikFoldWindow'>/**
+</span> * Shows a window allowing access to the SUNY Albany [QuikFold software](http://mfold.rna.albany.edu/cgi-bin/DINAMelt/quikfold.cgi) 
+ * as a web service.
+ */
+Ext.define('App.ui.mfold.QuikFoldWindow',{
 	extend:'App.ui.sequence.AnalysisWindow',
 	title: &quot;QuikFold Secondary Structure Calculator&quot;,
 	url: 'http://mfold.rna.albany.edu/cgi-bin/DINAMelt/quikfold.cgi',

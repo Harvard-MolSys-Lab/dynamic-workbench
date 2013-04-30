@@ -1,3 +1,6 @@
+/**
+ * Shows a grid allowing definition of a collection of Segments.
+ */
 Ext.define('App.usr.dil.SegmentsGrid',{
 	extend: 'Ext.grid.Panel',
 	alias: 'widget.segmentsgrid',

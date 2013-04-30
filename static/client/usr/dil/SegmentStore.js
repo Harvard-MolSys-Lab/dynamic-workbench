@@ -9,6 +9,9 @@ Ext.define('Segment', {
 	}],
 });
 
+/**
+ * Store representing a collection of {@link App.dynamic.Segment DyNAML segments}.
+ */
 Ext.define('App.usr.dil.SegmentStore', {
 	extend: 'Ext.data.Store',
 	model: 'Segment',

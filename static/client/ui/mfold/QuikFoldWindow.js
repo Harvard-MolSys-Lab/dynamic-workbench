@@ -1,3 +1,7 @@
+/**
+ * Shows a window allowing access to the SUNY Albany [QuikFold software](http://mfold.rna.albany.edu/cgi-bin/DINAMelt/quikfold.cgi) 
+ * as a web service.
+ */
 Ext.define('App.ui.mfold.QuikFoldWindow',{
 	extend:'App.ui.sequence.AnalysisWindow',
 	title: "QuikFold Secondary Structure Calculator",

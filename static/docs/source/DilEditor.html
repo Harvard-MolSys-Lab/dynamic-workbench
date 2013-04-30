@@ -15,7 +15,10 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('App.usr.dil.DilEditor', {
+  <pre class="prettyprint lang-js"><span id='App-usr-dil-DilEditor'>/**
+</span> * Allows editing of DyNAMiC Intermediate Language (DIL) systems via a graphical interface.
+ */
+Ext.define('App.usr.dil.DilEditor', {
 	extend: 'Ext.panel.Panel',
 	layout: 'border',
 	border: false,
@@ -357,7 +360,7 @@
 	/* ------------------------------------------------------------------------------------------- 
 	   Data handling                                                                             */
 
-<span id='global-method-getComplexData'>	/**
+<span id='App-usr-dil-DilEditor-method-getComplexData'>	/**
 </span>	 * Gets the names of strands, the structure, and the sequences for segments comprising a complex.
 	 * @param  {String/Complex} rec A record or name representing the complex in question
 	 * @return {Object} An object containing the complexData
@@ -377,7 +380,7 @@
 			}
 		}
 	},
-<span id='global-method-getStrandData'>	/**
+<span id='App-usr-dil-DilEditor-method-getStrandData'>	/**
 </span>	 * Gets the name, the list of domains, and the list of segments in a strand
 	 * @param  {String/Strand} rec A record or name representing the strand in question
 	 * @return {Object} An object containing the strandData

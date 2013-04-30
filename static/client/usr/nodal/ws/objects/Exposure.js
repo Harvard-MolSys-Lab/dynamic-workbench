@@ -1,5 +1,7 @@
-////////////////////////////////////////////////////////////////////////////////////////////////
-
+/**
+ * Allows a domain within a motif comprising several nodes to be "exposed" as a port on nodes that instantiate the motif. 
+ * Represents an {@link App.dynamic.Domain#expose expose} statement in a {@link App.dynamic.Domain domain} within a {@link App.dynamic.Motif}.
+ */
 Ext.define('App.usr.nodal.ws.objects.Exposure', {
 	extend : 'Workspace.objects.Connection',
 	showLabel : false,

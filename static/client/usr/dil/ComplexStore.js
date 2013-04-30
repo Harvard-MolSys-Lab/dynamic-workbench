@@ -53,6 +53,9 @@ Ext.define('Complex', {
 	proxy: 'memory',
 });
 
+/**
+ * Store representing a collection of {@link App.dynamic.Complex DyNAML complexes}.
+ */
 Ext.define('App.usr.dil.ComplexStore', {
 	extend: 'Ext.data.Store',
 	model: 'Complex',

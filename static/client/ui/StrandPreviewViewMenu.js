@@ -1,3 +1,6 @@
+/**
+ * Menu allowing the user to select several display options for a {@link App.ui.StrandPreview}
+ */
 Ext.define('App.ui.StrandPreviewViewMenu',{
 	extend: 'Ext.button.Button',
 	text: 'View',

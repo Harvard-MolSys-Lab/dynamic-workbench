@@ -1,3 +1,6 @@
+/**
+ * Allows editing of Complex objects by prescribing an ordering of strands and a segment-level secondary structure.
+ */
 Ext.define('App.usr.dil.EditComplexPanel', {
 	extend: 'Ext.panel.Panel',
 	alias: 'widget.editcomplexpanel',

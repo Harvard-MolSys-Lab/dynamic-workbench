@@ -1,3 +1,6 @@
+/**
+ * Shows a 2D Grid of {@link App.ui.StrandPreview DNA complex previews}.
+ */
 Ext.define('App.usr.dil.StrandPreviewGrid', {
 	extend: 'Ext.view.View',
 	requires: ['App.usr.dil.SegmentStore','App.usr.dil.ComplexStore'],

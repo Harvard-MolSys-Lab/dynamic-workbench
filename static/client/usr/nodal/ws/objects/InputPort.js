@@ -1,5 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////////////////////
-
+/**
+ * Represents a single Input port on a {@link App.usr.nodal.ws.objects.Node Node}. Compiles to a {@link App.dynamic.Domain domain} with {@link App.dynamic.Domain#role role}`='input'`.
+ */
 Ext.define('App.usr.nodal.ws.objects.InputPort', {
 	extend:'Workspace.objects.Path',
 	mixins: {

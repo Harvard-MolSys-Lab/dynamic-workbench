@@ -15,7 +15,10 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('App.ui.AddDomainButton', {
+  <pre class="prettyprint lang-js"><span id='App-ui-AddDomainButton'>/**
+</span> * Split button which allows the user to add domains/segments of varying length to a design.
+ */
+Ext.define('App.ui.AddDomainButton', {
 	extend: 'Ext.button.Split',
 	text: 'Add',
 	iconCls: 'plus',
@@ -25,7 +28,7 @@
 			addDomain: function(len) {}
 		});
 		this.addDomLen = Ext.widget({
-<span id='global-property-addDomLen'>			/**
+<span id='App-ui-AddDomainButton-property-addDomLen'>			/**
 </span>			 * @property {Ext.form.field.Number} addDomLen
 			 * Control allowing the user to select the number of bases in the domain to be added
 			 */
@@ -39,7 +42,7 @@
 			text: 'New domain length: ',
 			canActivate: false,
 		}, this.addDomLen, {
-<span id='global-property-addDomainItem'>			/**
+<span id='App-ui-AddDomainButton-property-addDomainItem'>			/**
 </span>			 * @property {Ext.menu.Item} addDomainItem
 			 * Menu item which triggers a domain of length specified in {@link #addDomLen} to be added to the designer.
 			 */

@@ -28,18 +28,26 @@ Ext.define('App.ui.Help',{
 		this.callParent(arguments);
 	},
 	statics: {
+<span id='App-ui-Help-method-getLink'>		/**
+</span>		 * Generates a javascript: URL pointing to a particular help topic
+		 * @param  {String} topic Name of the help topic
+		 * @return {String} URL
+		 */
 		getLink: function(topic) {
 			return &quot;javascript:App.ui.Launcher.launch('help:&quot;+topic+&quot;');&quot;
 		}
 	}
 })
 
+<span id='App-ui-HelpButton'>/**
+</span> * Creates a button linking to a particular help documentation topic
+ */
 Ext.define('App.ui.HelpButton',{
 	extend: 'Ext.button.Button',
 	iconCls: 'help',
 	text: 'Help',
 	xtype: 'helpbutton',
-<span id='App-ui-Help-cfg-topic'>	/**
+<span id='App-ui-HelpButton-cfg-topic'>	/**
 </span>	 * @cfg {String} topic
 	 * Name of the help topic to open upon click
 	 */

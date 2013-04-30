@@ -1,3 +1,6 @@
+/**
+ * Allows editing of DyNAMiC Intermediate Language (DIL) systems via a graphical interface.
+ */
 Ext.define('App.usr.dil.DilEditor', {
 	extend: 'Ext.panel.Panel',
 	layout: 'border',

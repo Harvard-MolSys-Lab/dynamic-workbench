@@ -15,7 +15,10 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('App.ui.files.FileUploader', {
+  <pre class="prettyprint lang-js"><span id='App-ui-files-FileUploader'>/**
+</span> * Manages HTML5 file uploading events onto an {@link App.FilesTree}
+ */
+Ext.define('App.ui.files.FileUploader', {
 	statics : {
 		buildStandardHandlers : function() {
 			var types = ['jpg', 'png', 'gif', 'txt', 'pdf', 'svg', 'txt', 'seq', 'nupack', 'nodal', 'workspace', 'html', 'js', 'xml'];

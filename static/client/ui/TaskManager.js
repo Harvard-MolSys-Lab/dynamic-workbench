@@ -1,5 +1,4 @@
 /**
- * @class App.ui.TaskManager
  * Shows current and past tasks running on server
  */
 Ext.define('App.ui.TaskManager', {

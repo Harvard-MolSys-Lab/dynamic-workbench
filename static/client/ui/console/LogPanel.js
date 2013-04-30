@@ -1,4 +1,3 @@
-
 /**
  * Displays console output. Can also show "sub-console" windows for things like {@link App.TaskRunner.Task}s 
  * which display several related outputs. 

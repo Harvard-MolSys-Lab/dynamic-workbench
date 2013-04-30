@@ -15,7 +15,10 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('App.usr.dil.StrandPreviewGrid', {
+  <pre class="prettyprint lang-js"><span id='App-usr-dil-StrandPreviewGrid'>/**
+</span> * Shows a 2D Grid of {@link App.ui.StrandPreview DNA complex previews}.
+ */
+Ext.define('App.usr.dil.StrandPreviewGrid', {
 	extend: 'Ext.view.View',
 	requires: ['App.usr.dil.SegmentStore','App.usr.dil.ComplexStore'],
 	cellWidth: 200,
@@ -63,7 +66,7 @@
 
 		this.callParent(arguments);
 	},
-<span id='global-method-getChart'>	/**
+<span id='App-usr-dil-StrandPreviewGrid-method-getChart'>	/**
 </span>	 * Returns a StrandPreview chart object
 	 * @param  {Boolean} update
 	 * True to force the chart to be updated with #cellHeight, #cellWidth, #nodeStrokeMode, etc. properties.

@@ -15,7 +15,10 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('App.ui.Attribution', {
+  <pre class="prettyprint lang-js"><span id='App-ui-Attribution'>/**
+</span> * Window displaying attribution information for Workbench.
+ */
+Ext.define('App.ui.Attribution', {
 	'statics' : {
 		getCite : function(cite) {
 			return _.copy(this.cites[cite]);

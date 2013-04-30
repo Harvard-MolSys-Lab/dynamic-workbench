@@ -1,5 +1,5 @@
 /**
- * Allows editing of scripts for the NUPACK multi-objective designer
+ * Allows editing of scripts for the Multisubjective sequence designer
  */
 Ext.define('App.usr.ms.Editor', {
 	extend: 'App.usr.text.Editor',

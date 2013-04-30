@@ -1,3 +1,6 @@
+/**
+ * Manages HTML5 file uploading events onto an {@link App.FilesTree}
+ */
 Ext.define('App.ui.files.FileUploader', {
 	statics : {
 		buildStandardHandlers : function() {

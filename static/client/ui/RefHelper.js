@@ -1,6 +1,6 @@
 /**
  * Small mixin to attach references to all child components with a 'ref' 
- * property to this.
+ * property to `this`.
  */
 Ext.define('App.ui.RefHelper',{
 	init:function() {

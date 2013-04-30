@@ -1,3 +1,6 @@
+/**
+ * Window displaying attribution information for Workbench.
+ */
 Ext.define('App.ui.Attribution', {
 	'statics' : {
 		getCite : function(cite) {

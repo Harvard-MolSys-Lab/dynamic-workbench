@@ -1,6 +1,14 @@
+/**
+ * Manages HTML drag-and-drop events on to an {@link App.FilesTree}.
+ */
 Ext.define('App.ui.files.DragDropManager', {
 	constructor : function() {
 		this.callParent(arguments);
+
+		/**
+		 * @cfg {App.FilesTree} filesTree
+		 * Reference to the FilesTree to which this component should manage uploads.
+		 */
 		if(this.filesTree && this.filesTree.getEl()) {
 			this.element = this.filesTree.getEl();
 		}

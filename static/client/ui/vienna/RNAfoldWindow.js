@@ -1,3 +1,7 @@
+/**
+ * Shows a window allowing access to the TBI Vienna [RNAfold software](http://rna.tbi.univie.ac.at/cgi-bin/RNAfold.cgi) 
+ * as a web service.
+ */
 Ext.define('App.ui.vienna.RNAfoldWindow',{
 	extend:'App.ui.sequence.AnalysisWindow',
 	title: "RNAfold Secondary Structure Calculator",

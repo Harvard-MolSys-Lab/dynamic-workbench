@@ -1,5 +1,6 @@
 /**
- * @class 
+ * Shows a grid of {@link App.dynamic.Strand DyNAML strands}. Allows editing of strand definition using DyNAML short syntax. 
+ * Renders the sequence for the strands based on their segment composition.
  */
 Ext.define('App.usr.dil.StrandsGrid',{
 	extend: 'Ext.grid.Panel',

@@ -88,7 +88,9 @@ Ext.define('Domain', {
 })
 
 
-
+/**
+ * Store representing a collection of {@link App.dynamic.Strand DyNAML strands}.
+ */
 Ext.define('App.usr.dil.StrandStore', {
 	extend: 'Ext.data.Store',
 	model: 'Strand',

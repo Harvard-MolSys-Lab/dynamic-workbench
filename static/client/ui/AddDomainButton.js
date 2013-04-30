@@ -1,3 +1,6 @@
+/**
+ * Split button which allows the user to add domains/segments of varying length to a design.
+ */
 Ext.define('App.ui.AddDomainButton', {
 	extend: 'Ext.button.Split',
 	text: 'Add',

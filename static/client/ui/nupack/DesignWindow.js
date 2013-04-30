@@ -1,3 +1,6 @@
+/**
+ * Shows a window allowing the user to enter a design for the NUPACK multi-objective thermodynamic sequence designer.
+ */
 Ext.define('App.ui.nupack.DesignWindow',{
 	extend:'Ext.window.Window',
 	width: 400,

@@ -1,3 +1,6 @@
+/**
+ * Displays a window allowing the user to enter sequences in a flexible input format, based on {@link DNA#parseNamedSequences}.
+ */
 Ext.define('App.ui.SequenceWindow',{
 	extend: 'Ext.window.Window',
 	width: 600,

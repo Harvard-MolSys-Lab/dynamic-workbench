@@ -15,9 +15,17 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('App.ui.files.DragDropManager', {
+  <pre class="prettyprint lang-js"><span id='App-ui-files-DragDropManager'>/**
+</span> * Manages HTML drag-and-drop events on to an {@link App.FilesTree}.
+ */
+Ext.define('App.ui.files.DragDropManager', {
 	constructor : function() {
 		this.callParent(arguments);
+
+<span id='App-ui-files-DragDropManager-cfg-filesTree'>		/**
+</span>		 * @cfg {App.FilesTree} filesTree
+		 * Reference to the FilesTree to which this component should manage uploads.
+		 */
 		if(this.filesTree &amp;&amp; this.filesTree.getEl()) {
 			this.element = this.filesTree.getEl();
 		}

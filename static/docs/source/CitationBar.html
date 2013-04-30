@@ -15,7 +15,10 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('App.ui.CitationBar',{
+  <pre class="prettyprint lang-js"><span id='App-ui-CitationBar'>/**
+</span> * Displays citations below applications
+ */
+Ext.define('App.ui.CitationBar',{
 	alias: 'widget.cite',
 	extend: 'Ext.panel.Panel',
 	requires: ['App.ui.Attribution'],
@@ -37,6 +40,11 @@
 			this.cite = App.ui.Attribution.getCite(this.cite);
 		}
 		
+<span id='App-ui-CitationBar-cfg-cite'>		/**
+</span>		 * @cfg {Object/String} cite
+		 * The citation that this object should display; can be either a citation configuration 
+		 * object, or a reference to a {@link App.ui.Attribution#getCite named citation}. 
+		 */
 		if (!this.cite) this.cite = {};
 		Ext.applyIf(this.cite,{
 			authors: [],

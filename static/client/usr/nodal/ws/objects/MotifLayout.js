@@ -1,5 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////////////////////
-
+/**
+ * Handles layout of {@link App.usr.nodal.ws.Motif} objects.
+ */
 Ext.define('App.usr.nodal.ws.objects.MotifLayout', {
 	extend : 'Workspace.idea.BaseLayout',
 	doLayout : function() {

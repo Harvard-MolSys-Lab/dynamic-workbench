@@ -1,3 +1,6 @@
+/**
+ * Shows a window allowing submission of sequences to the NUPACK web server for Partition function and MFE structure calculation.
+ */
 Ext.define('App.ui.nupack.PartitionWindow',{
 	extend:'App.ui.sequence.AnalysisWindow',
 	title: "NUPACK Partition Calculator",

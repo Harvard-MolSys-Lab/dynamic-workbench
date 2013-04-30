@@ -1,3 +1,6 @@
+/**
+ * Shows a collapsible console panel allowing powerful logging and scripting capabilities.
+ */
 Ext.define('App.ui.Console', {
 	extend : 'Ext.panel.Panel',
 	iconCls : 'terminal',

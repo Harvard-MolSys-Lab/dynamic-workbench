@@ -15,7 +15,11 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('App.ui.vienna.RNAfoldWindow',{
+  <pre class="prettyprint lang-js"><span id='App-ui-vienna-RNAfoldWindow'>/**
+</span> * Shows a window allowing access to the TBI Vienna [RNAfold software](http://rna.tbi.univie.ac.at/cgi-bin/RNAfold.cgi) 
+ * as a web service.
+ */
+Ext.define('App.ui.vienna.RNAfoldWindow',{
 	extend:'App.ui.sequence.AnalysisWindow',
 	title: &quot;RNAfold Secondary Structure Calculator&quot;,
 	url: 'http://rna.tbi.univie.ac.at/cgi-bin/RNAfold.cgi',

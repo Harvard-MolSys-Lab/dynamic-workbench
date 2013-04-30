@@ -1,3 +1,6 @@
+/**
+ * Abstract class for showing dialogs that allow submission of sequence analysis tasks to various web services, such as Caltech's NUPACK, TBI Vienna's RNAfold, and SUNY Albany's QuikFold.
+ */
 Ext.define('App.ui.sequence.AnalysisWindow',{
 	extend:'Ext.window.Window',
 	width: 400,

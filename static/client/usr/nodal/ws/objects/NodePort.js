@@ -1,5 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////////////////////
-
+/**
+ * Represents a single port on a {@link App.usr.nodal.ws.objects.Node Node}. Compiles to a {@link App.dynamic.Domain domain}.
+ */
 Ext.define('App.usr.nodal.ws.objects.NodePort', {
 	requires : ['Workspace.objects.Ellipse', 'Workspace.ConnectionLabel'],
 	constructor : function() {

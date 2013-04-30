@@ -1,5 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////////////////////
-
+/**
+ * Represents a single Bridge port on a {@link App.usr.nodal.ws.objects.Node Node}.
+ */
 Ext.define('App.usr.nodal.ws.objects.BridgePort', {
 	extend:'Workspace.objects.Rectangle',
 	mixins: {

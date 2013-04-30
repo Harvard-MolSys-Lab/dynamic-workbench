@@ -1,4 +1,3 @@
-
 /**
  * Represents a single motif in a {@link App.usr.nodal.Canvas nodal system}
  */

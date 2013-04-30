@@ -868,7 +868,7 @@ Ext.define('Workspace', {
  * {@link Machine.core.Serializable#wtype}s. 
  */
 Workspace.Components = (function() {
-	var types = {},
+	var types = {}, aliases = {},
 	objects = new Ext.util.MixedCollection(),
 	typeStore = Ext.create('Ext.data.ArrayStore', {
 		fields: [{
@@ -908,10 +908,33 @@ Workspace.Components = (function() {
 			typeStore.add(rec);
 		},
 		/**
+		 * Registers one wtype to be an alias for another wtype. This is only a one-way mapping; if the `alias` is passed to
+		 * #getType or #create, an object will be created  with the wtype given by `wtype`; memory that the object was 
+		 * instantiated with `alias` will be lost.
+		 * 
+		 * @param  {String} alias The name that will serve as the alias
+		 * @param  {String} wtype The actual wtype of the object that should be created
+		 * @return {[type]} [description]
+		 */
+		registerAlias: function (alias, wtype) {
+			aliases[alias] = wtype;	
+		},
+		/**
+		 * Given a `wtype`, determines whether the `wtype` is an alias for another `wtype`; if so, returns the name of the 
+		 * true `wtype`; else returns the passed `wtype`.
+		 * @param  {String} wtype A `wtype` or alias
+		 * @return {String} The resolved `wtype`
+		 */
+		resolveAlias: function (wtype) {
+			return aliases[wtype] || wtype;
+		},
+		/**
 		 * Returns the class corresponding to the passed wtype
 		 * @param {String} wtype The mneumonic name of the type to lookup
 		 */
 		getType: function(wtype) {
+			wtype = Workspace.Components.resolveAlias(wtype);
+
 			return types[wtype];
 		},
 		/**
@@ -940,12 +963,16 @@ Workspace.Components = (function() {
 			objectClass;
 			if (arguments.length == 1) {
 				config = arguments[0]
-				if (config && config.wtype && types[config.wtype]) {
-					objectClass = types[config.wtype];
+				if (config && config.wtype) {
+					config.wtype = Workspace.Components.resolveAlias(config.wtype);
+					if(types[config.wtype]) {
+						objectClass = Workspace.Components.getType(config.wtype);
+					}
 				}
 			} else {
 				objectClass = arguments[0];
 				config = arguments[1];
+				config.wtype = Workspace.Components.resolveAlias(config.wtype);
 			}
 
 			if (config && objectClass && Ext.isFunction(objectClass)) {
@@ -954,7 +981,8 @@ Workspace.Components = (function() {
 				return o;
 			} else {
 				if(config.wtype) {
-					Ext.create(config.wtype,config);		
+					config.wtype = Workspace.Components.resolveAlias(config.wtype);
+					return Ext.create(config.wtype,config);		
 				}
 			}
 			return false;
@@ -1102,6 +1130,8 @@ Workspace.Components = (function() {
  * @member Workspace
  */
 Workspace.reg = Workspace.Components.register;
+Workspace.regAlias = Workspace.Components.registerAlias;
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 

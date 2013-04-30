@@ -49,7 +49,7 @@ Ext.define('App.usr.nodal.NodeInspector', {
 				resizable: true,
 			}), {
 				xtype : 'combo',
-				store : Workspace.objects.dna.motifStore,
+				store : App.usr.nodal.ws.objects.motifStore,
 				queryMode : 'local',
 				displayField : 'number',
 				valueField : 'number',
@@ -95,7 +95,7 @@ Ext.define('App.usr.nodal.NodeInspector', {
 			// }
 			],
 			showIf : function(wtype) {
-				return (wtype == 'Workspace.objects.dna.Node');
+				return (wtype == 'App.usr.nodal.ws.objects.Node');
 			},
 		})
 		this.callParent(arguments);

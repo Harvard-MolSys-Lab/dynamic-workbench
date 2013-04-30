@@ -1,8 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Ext.define('Workspace.tools.nodal.ExposureTool', {
+Ext.define('App.usr.nodal.ws.tools.ExposureTool', {
 	extend:'Workspace.tools.ConnectorTool',
-	requires: ['Workspace.objects.dna.Exposure',],
+	requires: ['App.usr.nodal.ws.objects.Exposure',],
 	parameters: {
 		"arrow-end": 'classic-wide-long',
 		"stroke-dasharray": '.',
@@ -10,18 +10,18 @@ Ext.define('Workspace.tools.nodal.ExposureTool', {
 		"stroke-width":1.5,
 	},
 	acceptLeft: function() {
-		return Workspace.objects.dna.Exposure.prototype.acceptLeft.apply(this,arguments);
+		return App.usr.nodal.ws.objects.Exposure.prototype.acceptLeft.apply(this,arguments);
 	},
 	acceptRight: function() {
-		return Workspace.objects.dna.Exposure.prototype.acceptRight.apply(this,arguments);
+		return App.usr.nodal.ws.objects.Exposure.prototype.acceptRight.apply(this,arguments);
 	},
 	canConnect: function() {
-		return Workspace.objects.dna.Exposure.prototype.canConnect.apply(this,arguments);
+		return App.usr.nodal.ws.objects.Exposure.prototype.canConnect.apply(this,arguments);
 	},
 	beforeConnect: function(left,right) {
 		
 		// If we dragged directly to a motif
-		if(right.hasWType('Workspace.objects.dna.Motif')) {
+		if(right.hasWType('App.usr.nodal.ws.objects.Motif')) {
 			
 			// Make a new port object
 			var port = this.workspace.buildManager.buildPort({
@@ -35,8 +35,8 @@ Ext.define('Workspace.tools.nodal.ExposureTool', {
 			this.rightObject = port;
 		}
 	},
-	targetWType: 'Workspace.objects.dna.Exposure'
+	targetWType: 'App.usr.nodal.ws.objects.Exposure'
 }, function() {
-	Workspace.Tools.register('exposure',Workspace.tools.nodal.ExposureTool);
+	Workspace.Tools.register('exposure',App.usr.nodal.ws.tools.ExposureTool);
 });
 

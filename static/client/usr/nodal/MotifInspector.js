@@ -81,7 +81,7 @@ Ext.define('App.usr.nodal.MotifInspector', {
 
 			}],
 			showIf : function(wtype) {
-				return (wtype == 'Workspace.objects.dna.Motif');
+				return (wtype == 'App.usr.nodal.ws.objects.Motif');
 			},
 		})
 		this.callParent(arguments);

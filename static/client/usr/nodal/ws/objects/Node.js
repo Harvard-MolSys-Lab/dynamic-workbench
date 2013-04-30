@@ -2,9 +2,9 @@
 /**
  * Represents a single node in a {@link App.usr.nodal.Canvas nodal system}
  */
-Ext.define('Workspace.objects.dna.Node', {
-	extend: 'Workspace.objects.dna.AbstractNode',
-	wtype: 'Workspace.objects.dna.Node',
+Ext.define('App.usr.nodal.ws.objects.Node', {
+	extend: 'App.usr.nodal.ws.objects.AbstractNode',
+	wtype: 'App.usr.nodal.ws.objects.Node',
 	
 	motif: '0',
 	name: false,
@@ -57,7 +57,7 @@ Ext.define('Workspace.objects.dna.Node', {
 	},
 	isReal: function() {
 		var parent = this.getParent();
-		return !!parent ? parent.isWType('Workspace.objects.dna.Motif') : false;
+		return !!parent ? parent.isWType('App.usr.nodal.ws.objects.Motif') : false;
 	},
 	nextName: function() {
 		return this.workspace.buildManager.getNextNodeName()
@@ -76,6 +76,7 @@ Ext.define('Workspace.objects.dna.Node', {
 		return this.workspace.buildManager.getRealtime('node',this.get('name'),'this');
 	},
 }, function() {
-	Workspace.reg('Workspace.objects.dna.Node',Workspace.objects.dna.Node);
+	Workspace.reg('App.usr.nodal.ws.objects.Node',App.usr.nodal.ws.objects.Node);
+	Workspace.regAlias('Workspace.objects.dna.Node','App.usr.nodal.ws.objects.Node');
 
 });

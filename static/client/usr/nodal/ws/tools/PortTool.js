@@ -1,11 +1,11 @@
 /**
- * @class Workspace.tools.nodal.PortTool
+ * @class App.usr.nodal.ws.tools.PortTool
  * Allows adding {@link Workspace.objects.nodal.NodePort ports} to 
  * {@link Workspace.objects.nodal.Node nodes}.
  */
-Ext.define('Workspace.tools.nodal.PortTool', {
+Ext.define('App.usr.nodal.ws.tools.PortTool', {
 	extend:'Workspace.tools.BaseTool',
-	require: ['Workspace.objects.dna.OutputPort','Workspace.objects.dna.InputPort',],
+	require: ['App.usr.nodal.ws.objects.OutputPort','App.usr.nodal.ws.objects.InputPort',],
 	mixins: {
 		highlightable: 'Workspace.tools.Highlightable'
 	},
@@ -17,21 +17,21 @@ Ext.define('Workspace.tools.nodal.PortTool', {
 			if(e.altKey) {
 				port = this.workspace.createObject({
 					name: name,
-					wtype: 'Workspace.objects.dna.OutputPort',
+					wtype: 'App.usr.nodal.ws.objects.OutputPort',
 					x: pos.x,
 					y: pos.y
 				});
 			} else if(e.shiftKey) {
 				port = this.workspace.createObject({
 					name: name,
-					wtype: 'Workspace.objects.dna.BridgePort',
+					wtype: 'App.usr.nodal.ws.objects.BridgePort',
 					x: pos.x,
 					y: pos.y
 				});
 			} else {
 				port = this.workspace.createObject({
 					name: name,
-					wtype: 'Workspace.objects.dna.InputPort',
+					wtype: 'App.usr.nodal.ws.objects.InputPort',
 					x: pos.x,
 					y: pos.y
 				});
@@ -40,7 +40,7 @@ Ext.define('Workspace.tools.nodal.PortTool', {
 		}
 	},
 	accept: function(item) {
-		return (item.isWType(['Workspace.objects.dna.Node','Workspace.objects.dna.Motif']));
+		return (item.isWType(['App.usr.nodal.ws.objects.Node','App.usr.nodal.ws.objects.Motif']));
 	},
 	mouseover: function(e,item) {
 		this.mixins.highlightable.mouseover.apply(this,arguments);
@@ -49,12 +49,12 @@ Ext.define('Workspace.tools.nodal.PortTool', {
 		this.mixins.highlightable.mouseout.apply(this,arguments);
 	},
 	/**
-	 * @inheritdoc Workspace.objects.dna.BuildManager#buildPort
+	 * @inheritdoc App.usr.nodal.ws.objects.BuildManager#buildPort
 	 */
 	buildPort: function(config) {
 		return this.workspace.buildManager.buildPort(config);
 	}
 }, function() {
-	Workspace.Tools.register('port', Workspace.tools.nodal.PortTool);
+	Workspace.Tools.register('port', App.usr.nodal.ws.tools.PortTool);
 });
 ////////////////////////////////////////////////////////////////////////////////////////////////

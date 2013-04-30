@@ -2,7 +2,7 @@
  * Manages serializing a graphical nodal system to DyNAML or TerseML and then
  * compiling to domains with either engine
  */
-Ext.define("Workspace.objects.dna.BuildManager", {
+Ext.define("App.usr.nodal.ws.objects.BuildManager", {
 	extend : 'Workspace.objects.Object',
 	errorClsName: 'dynaml-error-message',
 	statics: {
@@ -40,37 +40,37 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 	// },
 	onCreate: function(obj) {
 		if(!obj) return;
-		if(obj.isWType('Workspace.objects.dna.Node')) {
+		if(obj.isWType('App.usr.nodal.ws.objects.Node')) {
 			this.nodes.push(obj);
-			_.each(Workspace.objects.dna.BuildManager.dynaml.nodeProperties,function(prop) {
+			_.each(App.usr.nodal.ws.objects.BuildManager.dynaml.nodeProperties,function(prop) {
 				obj.on('change:'+prop,this.needsRebuild,this);
 			},this);
 			this.needsRebuild();
-		} else if (obj.isWType('Workspace.objects.dna.Complementarity')){
+		} else if (obj.isWType('App.usr.nodal.ws.objects.Complement')){
 			this.needsRebuild();
-		} else if (obj.isWType('Workspace.objects.dna.Motif')) {
+		} else if (obj.isWType('App.usr.nodal.ws.objects.Motif')) {
 			this.needsRebuild();
 			
-			_.each(Workspace.objects.dna.BuildManager.dynaml.motifProperties,function(prop) {
+			_.each(App.usr.nodal.ws.objects.BuildManager.dynaml.motifProperties,function(prop) {
 				obj.on('change:'+prop,this.needsRebuild,this);
 			},this);
 		}
 	},
 	onDestroy: function(obj) {
 		if(!obj) return;
-		if(obj.isWType('Workspace.objects.dna.Node')) {
+		if(obj.isWType('App.usr.nodal.ws.objects.Node')) {
 			this.nodes = _.without(this.nodes,obj);
 
-			_.each(Workspace.objects.dna.BuildManager.dynaml.nodeProperties,function(prop) {
+			_.each(App.usr.nodal.ws.objects.BuildManager.dynaml.nodeProperties,function(prop) {
 				obj.un('change:'+prop,this.needsRebuild,this);
 			},this);
 			this.needsRebuild();
-		} else if (obj.isWType('Workspace.objects.dna.Complementarity')){
+		} else if (obj.isWType('App.usr.nodal.ws.objects.Complement')){
 			this.needsRebuild();
-		} else if (obj.isWType('Workspace.objects.dna.Motif')) {
+		} else if (obj.isWType('App.usr.nodal.ws.objects.Motif')) {
 			this.needsRebuild();
 			
-			_.each(Workspace.objects.dna.BuildManager.dynaml.motifProperties,function(prop) {
+			_.each(App.usr.nodal.ws.objects.BuildManager.dynaml.motifProperties,function(prop) {
 				obj.un('change:'+prop,this.needsRebuild,this);
 			},this);
 		}
@@ -88,7 +88,7 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 		/**
 		 * @event beforerebuild
 		 * Fires before a rebuild occurs
-		 * @param {Workspace.objects.dna.BuildManager} buildManager
+		 * @param {App.usr.nodal.ws.objects.BuildManager} buildManager
 		 * @param {Object} dynaml
 		 */
 		this.fireEvent('beforerebuild',this,dynaml);
@@ -98,7 +98,7 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 			/**
 			 * @event rebuild
 			 * Fires upon successful rebuild of a system
-			 * @param {Workspace.objects.dna.BuildManager} buildManager
+			 * @param {App.usr.nodal.ws.objects.BuildManager} buildManager
 			 * @param {App.dynamic.Library} library
 			 */
 			this.fireEvent('rebuild',this,lib);
@@ -113,7 +113,7 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 			
 			// Hide error proxies
 			_.each(this.workspace.getAllObjects(),function(obj) {
-				if(obj.isWType('Workspace.objects.dna.Node')) {
+				if(obj.isWType('App.usr.nodal.ws.objects.Node')) {
 					obj.hideError();
 				}
 			})
@@ -192,7 +192,7 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 			switch (type) {
 				case 'node':		
 					return this.workspace.findObjectBy(function(obj) {
-						return obj.isWType('Workspace.objects.dna.Node') && (obj.get('name') == name);
+						return obj.isWType('App.usr.nodal.ws.objects.Node') && (obj.get('name') == name);
 					});
 				case 'connection':
 					return null
@@ -200,7 +200,7 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 					return false;
 				case 'motif':
 					return this.workspace.findObjectBy(function(obj) {
-						return obj.isWType('Workspace.objects.dna.Motif') && (obj.get('name') == name);
+						return obj.isWType('App.usr.nodal.ws.objects.Motif') && (obj.get('name') == name);
 					});
 			}		
 		} else { 
@@ -292,13 +292,13 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 	},
 	/**
 	 * Build a DyNAML library for a collection of {@link Workspace.objects.Object objects};
-	 * these should generally be a mix of {@link Workspace.objects.dna.Node nodes},
-	 * {@link Workspace.objects.dna.Motif motifs}, and {@link Workspace.objects.dna.Complementarity complements}.
+	 * these should generally be a mix of {@link App.usr.nodal.ws.objects.Node nodes},
+	 * {@link App.usr.nodal.ws.objects.Motif motifs}, and {@link App.usr.nodal.ws.objects.Complement complements}.
 	 * 
-	 * @param {Workspace.objects.dna.Node[]/Workspace.objects.dna.Motif[]/Workspace.objects.dna.Complementarity[]} objects
+	 * @param {App.usr.nodal.ws.objects.Node[]/App.usr.nodal.ws.objects.Motif[]/App.usr.nodal.ws.objects.Complement[]} objects
 	 * 
 	 * @param {Boolean} [fromMotif=false] 
-	 * True if we're compiling a library from children of a motif and should therefore look for {@link Workspace.objects.dna.NodePort#exposure exposure} properties
+	 * True if we're compiling a library from children of a motif and should therefore look for {@link App.usr.nodal.ws.objects.NodePort#exposure exposure} properties
 	 */
 	buildDynaml: function(objects,fromMotif) {
 		var workspace = this.workspace;
@@ -307,14 +307,14 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 
 		// Sort through passed-in objects, picking out the interesting ones:
 		_.each(objects,function(obj) {
-			if(obj.isWType('Workspace.objects.dna.Node')) {
+			if(obj.isWType('App.usr.nodal.ws.objects.Node')) {
 				nodeNameMap[obj.get('name')] = obj;
 				nodes.push(obj);
 
 				if(obj.get('motif')) {
 					imports.push(obj.get('motif'));
 				}
-			} else if(obj.isWType('Workspace.objects.dna.Complementarity')) {
+			} else if(obj.isWType('App.usr.nodal.ws.objects.Complement')) {
 				var leftPort = obj.get('leftObject'), leftNode, leftNodeId;
 				if(leftPort) {
 					leftNode = leftPort.getParent();
@@ -330,17 +330,17 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 					complements[leftNodeId] = [];
 
 				complements[leftNodeId].push(obj);
-			} else if(obj.isWType('Workspace.objects.dna.Motif')) {
+			} else if(obj.isWType('App.usr.nodal.ws.objects.Motif')) {
 				
-				// Build a hash mapping motif names to Workspace.objects.dna.Motif objects
+				// Build a hash mapping motif names to App.usr.nodal.ws.objects.Motif objects
 				motifMap[obj.get('name')] = obj;
 				motifs.push(obj);
 				
 			} 
 			/*
-			else if(fromMotif && obj.isWType(['Workspace.objects.dna.InputPort',
-				'Workspace.objects.dna.OutputPort',
-				'Workspace.objects.dna.BridgePort',
+			else if(fromMotif && obj.isWType(['App.usr.nodal.ws.objects.InputPort',
+				'App.usr.nodal.ws.objects.OutputPort',
+				'App.usr.nodal.ws.objects.BridgePort',
 			])) {
 				
 			}
@@ -365,7 +365,7 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 			var nodes = motif.get('nodes');
 			if(nodes && nodes.length > 0) {
 				var lib = this.buildDynaml(motif.getChildren(),true);
-				return _.reduce(Workspace.objects.dna.BuildManager.dynaml.motifProperties, function(memo, property) {
+				return _.reduce(App.usr.nodal.ws.objects.BuildManager.dynaml.motifProperties, function(memo, property) {
 					if(motif.has(property)) {
 						memo[property] = motif.get(property);
 					}
@@ -378,7 +378,7 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 				} catch (e) {
 					throw { message: ["In motif",motif.get('name'),":\n",e.message].join(' ')}
 				}
-				return _.reduce(Workspace.objects.dna.BuildManager.dynaml.motifProperties, function(memo, property) {
+				return _.reduce(App.usr.nodal.ws.objects.BuildManager.dynaml.motifProperties, function(memo, property) {
 					if(motif.has(property)) {
 						memo[property] = motif.get(property);
 					}
@@ -405,13 +405,13 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 					// This is a bit cryptic; allow me to elucidate:
 					
 					// Match port objects
-					if(child.isWType(['Workspace.objects.dna.InputPort',
-						'Workspace.objects.dna.OutputPort',
-						'Workspace.objects.dna.BridgePort'])) {
+					if(child.isWType(['App.usr.nodal.ws.objects.InputPort',
+						'App.usr.nodal.ws.objects.OutputPort',
+						'App.usr.nodal.ws.objects.BridgePort'])) {
 						
 						// Iterate across the array of properties in the static member #dynaml.domainProperties
 						// Check if the child has each one, if so, put it in the dynaml
-						return _.reduce(Workspace.objects.dna.BuildManager.dynaml.domainProperties, function(memo, property) {
+						return _.reduce(App.usr.nodal.ws.objects.BuildManager.dynaml.domainProperties, function(memo, property) {
 							if(child.has(property)) {
 								memo[property] = child.get(property);
 							}
@@ -424,7 +424,7 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 							
 							// If we're making dynaml from children of a motif, this domain may be "exposed"
 							// outside the motif with an "exposure" property linking it to *another*
-							// Workspace.objects.dna.NodePort object. We pull properties from that object
+							// App.usr.nodal.ws.objects.NodePort object. We pull properties from that object
 							// to put in the dynaml
 							expose: fromMotif ? (function(exposed) { 
 								return exposed ? {
@@ -434,17 +434,17 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 							})(child.get('exposure')) : null
 						});
 					}
-					// if(child.isWType('Workspace.objects.dna.InputPort')) {
+					// if(child.isWType('App.usr.nodal.ws.objects.InputPort')) {
 					// return {
 					// name : child.get('name') || 'p'+i,
 					// identity : child.get('identity')
 					// }
-					// } else if(child.isWType('Workspace.objects.dna.OutputPort')) {
+					// } else if(child.isWType('App.usr.nodal.ws.objects.OutputPort')) {
 					// return {
 					// name : child.get('name') || 'p'+i,
 					// identity : child.get('identity')
 					// }
-					// } else if(child.isWType('Workspace.objects.dna.BridgePort')) {
+					// } else if(child.isWType('App.usr.nodal.ws.objects.BridgePort')) {
 					// return {
 					// name : child.get('name') || 'p'+i,
 					// identity : child.get('identity')
@@ -467,12 +467,12 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 		var workspace = this.workspace;
 		var nodes = [], complementarities = [], indexMap = {}, i = 1, out = [];
 		workspace.objects.each(function(obj) {
-			if(obj.isWType('Workspace.objects.dna.Node')) {
+			if(obj.isWType('App.usr.nodal.ws.objects.Node')) {
 				indexMap[obj.getId()] = i;
 				i++;
 
 				nodes.push(obj);
-			} else if(obj.isWType('Workspace.objects.dna.Complementarity')) {
+			} else if(obj.isWType('App.usr.nodal.ws.objects.Complement')) {
 				complementarities.push(obj);
 			}
 		});
@@ -488,7 +488,7 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 			}
 			var row = [obj.get('name').replace(/\s/g, '_') || ("Untitled_" + (++untitledCount)), motif], complementaryPort, complementaryNode;
 			obj.children.each(function(port) {
-				if(port.isWType('Workspace.objects.dna.OutputPort') || port.isWType('Workspace.objects.dna.BridgePort')) {
+				if(port.isWType('App.usr.nodal.ws.objects.OutputPort') || port.isWType('App.usr.nodal.ws.objects.BridgePort')) {
 					if(port.get('complementarity')) {
 						complementaryPort = port.get('complementarity');
 						if(complementaryPort.hasParent()) {
@@ -509,13 +509,13 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 	
 	/**
 	 * Builds a node of the given motif type at the provided coordinates
-	 * @param {String} type The name of the motif in Workspace.objects.dna.Motifs
+	 * @param {String} type The name of the motif in App.usr.nodal.ws.objects.Motifs
 	 * @param {Number} x
 	 * @param {Number} y
-	 * @returns {Workspace.objects.dna.Node} node
+	 * @returns {App.usr.nodal.ws.objects.Node} node
 	 */
 	buildMotif: function(spec,x,y) {
-		//var spec = Workspace.objects.dna.Motifs[name], node;
+		//var spec = App.usr.nodal.ws.objects.Motifs[name], node;
 		var node,name;
 		//spec.serialize();
 		if(spec) {
@@ -525,7 +525,7 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 			name = spec.name;
 			//spec.serialize();
 			node = this.workspace.createObject({
-				wtype: 'Workspace.objects.dna.Node',
+				wtype: 'App.usr.nodal.ws.objects.Node',
 				x: x,
 				y: y,
 				motif: name,
@@ -535,9 +535,9 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 			_.each(spec.getDomains(), function(dom,i) {
 				var port = _.clone(dom); 
 				var cfg = {};
-				if(_.isObject(port) && Workspace.objects.dna.PortClasses[port.role]) {
+				if(_.isObject(port) && App.usr.nodal.ws.objects.PortClasses[port.role]) {
 					cfg.name = port.name;//'p'+(i+1);
-					cfg.wtype = Workspace.objects.dna.PortClasses[port.role];
+					cfg.wtype = App.usr.nodal.ws.objects.PortClasses[port.role];
 					cfg.stroke = App.dynamic.Compiler.getColor(port);
 					cfg.segments = port.segments;
 					//cfg.identity = port.name;
@@ -553,12 +553,12 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 	},
 	/**
 	 * Constructs a {@link Workspace.objects.nodal.NodePort port}
-	 * @param {String/Object} config String name of a port class in Workspace.objects.dna.Ports or configuration object for a Workspace.objects.nodal.NodePort. 
+	 * @param {String/Object} config String name of a port class in App.usr.nodal.ws.objects.Ports or configuration object for a Workspace.objects.nodal.NodePort. 
 	 */
 	buildPort: function(config) {
 		config || (config = {});
 		if(_.isString(config)) {
-			return this.workspace.createObject(Workspace.objects.dna.Ports[config]);
+			return this.workspace.createObject(App.usr.nodal.ws.objects.Ports[config]);
 		} else {
 			if(!config.name) {
 				
@@ -568,5 +568,7 @@ Ext.define("Workspace.objects.dna.BuildManager", {
 	}
 	
 }, function() {
-	Workspace.reg('Workspace.objects.dna.BuildManager', Workspace.objects.dna.BuildManager);
+	Workspace.reg('App.usr.nodal.ws.objects.BuildManager', App.usr.nodal.ws.objects.BuildManager);
+	Workspace.regAlias('Workspace.objects.dna.BuildManager', 'App.usr.nodal.ws.objects.BuildManager');
+
 })

@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Ext.define('Workspace.objects.dna.NodeLayout', {
+Ext.define('App.usr.nodal.ws.objects.NodeLayout', {
 	extend:'Workspace.idea.BaseLayout',
 	doLayout: function() {
 		if(!this.ignore) {
@@ -31,6 +31,7 @@ Ext.define('Workspace.objects.dna.NodeLayout', {
 	paddingTop: 5,
 	paddingLeft: 5,
 }, function() {
-	Workspace.Layouts.register('Workspace.objects.dna.NodeLayout',Workspace.objects.dna.NodeLayout);
+	Workspace.Layouts.register('App.usr.nodal.ws.objects.NodeLayout',App.usr.nodal.ws.objects.NodeLayout);
+	Workspace.Layouts.register('Workspace.objects.dna.NodeLayout',App.usr.nodal.ws.objects.NodeLayout);
 });
 ////////////////////////////////////////////////////////////////////////////////////////////////

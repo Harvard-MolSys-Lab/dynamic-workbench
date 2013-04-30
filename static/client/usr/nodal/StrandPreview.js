@@ -125,7 +125,7 @@ Ext.define('App.usr.nodal.StrandPreview', {
 // var sqrt = Math.sqrt;
 // var polarity = 1;
 //
-// var motifSpec = Workspace.objects.dna.Motifs[motif];
+// var motifSpec = App.usr.nodal.ws.objects.Motifs[motif];
 // var paths = [];
 // return;
 // if(motifSpec) {
@@ -142,7 +142,7 @@ Ext.define('App.usr.nodal.StrandPreview', {
 // paths.push({
 // type : 'path',
 // path : Ext.String.format("M {0} {1} L {2} {3}", x + H * .15, y + V * .45, x + H * .6, y + V * .45),
-// stroke : Workspace.objects.dna.Ports.init.stroke,
+// stroke : App.usr.nodal.ws.objects.Ports.init.stroke,
 // 'stroke-width' : 2,
 // 'arrow-start' : (polarity == -1 ? 'classic-medium-long' : 'none'),
 // 'arrow-end' : (polarity == 1 ? 'classic-medium-long' : 'none'),
@@ -154,7 +154,7 @@ Ext.define('App.usr.nodal.StrandPreview', {
 // paths.push({
 // type : 'path',
 // path : Ext.String.format("M {0} {1} L {2} {3}", x + H * .15, y + V * .45, x + H * .6, y + V * .45),
-// stroke : Workspace.objects.dna.Ports.input.stroke,
+// stroke : App.usr.nodal.ws.objects.Ports.input.stroke,
 // 'stroke-width' : 2,
 // 'arrow-start' : (polarity == -1 ? 'classic-medium-long' : 'none'),
 // });
@@ -165,7 +165,7 @@ Ext.define('App.usr.nodal.StrandPreview', {
 // paths.push({
 // type : 'path',
 // path : ports.blue ? (Ext.String.format("M {0} {1} a {2} {3} 0 0 1 {4} {5}", x + H * .6, y + V * .45, H * .1, V * .25, H * .1 * sqrt(.99), V * (.05 / 2 - .25))) : (Ext.String.format("M {0} {1} a {2} {3} 0 1 1 {4} {5}", x + H * .6, y + V * .45, H * .05, V * .25, 0, V * .05)),
-// stroke : Workspace.objects.dna.Ports.pink.stroke,
+// stroke : App.usr.nodal.ws.objects.Ports.pink.stroke,
 // 'stroke-width' : 2,
 // });
 // }
@@ -175,7 +175,7 @@ Ext.define('App.usr.nodal.StrandPreview', {
 // paths.push({
 // type : 'path',
 // path : Ext.String.format("M {0} {1} a {2} {3} 0 1 1 {4} {5} L {6} {7}", ports.pink ? (x + H * .6 + H * .1 * sqrt(.99)) : (x + H * .6), ports.pink ? (y + V * (.45 + .05 / 2 - .25)) : (y + V * .45), ports.pink ? (H * .1) : (H * .07), ports.pink ? (V * .25) : (V * .25), ports.pink ? (-H * .1 * sqrt(.99)) : 0, ports.pink ? (V * (.25 + .05 / 2)) : (V * .05), x + H * .45, y + V * .5),
-// stroke : Workspace.objects.dna.Ports.blue.stroke,
+// stroke : App.usr.nodal.ws.objects.Ports.blue.stroke,
 // 'stroke-width' : 2,
 // 'arrow-end' : (polarity == 1 && !ports.green && !ports.purple ? 'classic-medium-long' : 'none'),
 // });
@@ -185,7 +185,7 @@ Ext.define('App.usr.nodal.StrandPreview', {
 // paths.push({
 // type : 'path',
 // path : Ext.String.format("M {0} {1} L {2} {3}", x + H * .45, y + V * .5, x + H * .3, y + V * .5),
-// stroke : Workspace.objects.dna.Ports.purple.stroke,
+// stroke : App.usr.nodal.ws.objects.Ports.purple.stroke,
 // 'stroke-width' : 2,
 // 'arrow-end' : (polarity == 1 && !ports.green ? 'classic-medium-long' : 'none'),
 // });
@@ -195,7 +195,7 @@ Ext.define('App.usr.nodal.StrandPreview', {
 // paths.push({
 // type : 'path',
 // path : Ext.String.format("M {0} {1} L {2} {3} L {4} {5}", x + H * .45, y + V * .5, x + H * .3, y + V * .5, x + H * .15, y + V * .8),
-// stroke : Workspace.objects.dna.Ports.green.stroke,
+// stroke : App.usr.nodal.ws.objects.Ports.green.stroke,
 // 'stroke-width' : 2,
 // 'arrow-end' : (polarity == 1 && !ports.purple ? 'classic-medium-long' : 'none'),
 // });

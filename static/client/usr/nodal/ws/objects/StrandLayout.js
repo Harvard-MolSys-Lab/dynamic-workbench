@@ -1,8 +1,8 @@
 /**
- * @class Workspace.objects.dna.StrandLayout
+ * @class App.usr.nodal.ws.objects.StrandLayout
  * @extends Workspace.idea.BaseLayout
  */
-Ext.define('Workspace.objects.dna.StrandLayout', {
+Ext.define('App.usr.nodal.ws.objects.StrandLayout', {
 	extend : 'Workspace.idea.BaseLayout',
 	doLayout : function() {
 		if(!this.ignore) {
@@ -23,5 +23,6 @@ Ext.define('Workspace.objects.dna.StrandLayout', {
 	paddingTop : 5,
 	paddingLeft : 5,
 }, function() {
-	Workspace.Layouts.register('Workspace.objects.dna.StrandLayout', Workspace.objects.dna.StrandLayout);
+	Workspace.Layouts.register('App.usr.nodal.ws.objects.StrandLayout', App.usr.nodal.ws.objects.StrandLayout);
+	Workspace.Layouts.register('Workspace.objects.dna.StrandLayout', App.usr.nodal.ws.objects.StrandLayout);
 });

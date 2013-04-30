@@ -30,7 +30,7 @@ Ext.define('App.usr.nodal.PortInspector', {
 				xtype: 'displayfield',
 			}],
 			showIf : function(wtype) {
-				return (wtype == 'Workspace.objects.dna.InputPort') || (wtype == 'Workspace.objects.dna.OutputPort') || (wtype == 'Workspace.objects.dna.BridgePort');
+				return (wtype == 'App.usr.nodal.ws.objects.InputPort') || (wtype == 'App.usr.nodal.ws.objects.OutputPort') || (wtype == 'App.usr.nodal.ws.objects.BridgePort');
 			},
 		})
 		this.callParent(arguments);

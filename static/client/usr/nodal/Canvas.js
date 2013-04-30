@@ -7,9 +7,9 @@ Ext.define('App.usr.nodal.Canvas', {
 	title: 'Nodal',
 	iconCls : 'nodal',
 	requires : ['App.usr.nodal.HomeTab', 'App.usr.nodal.BuildTab', 'App.usr.nodal.CommandTab', 'App.usr.canvas.FillStrokeTab', //
-	'Workspace.objects.dna.BuildManager', 'Workspace.objects.dna.Node', 'Workspace.objects.dna.Complementarity', //
-	'Workspace.tools.nodal.NodeTool', 'Workspace.tools.nodal.PortTool', 'Workspace.tools.nodal.ComplementarityTool', //
-	'Workspace.tools.nodal.MotifTool', 'Workspace.tools.nodal.ExposureTool', //
+	'App.usr.nodal.ws.objects.BuildManager', 'App.usr.nodal.ws.objects.Node', 'App.usr.nodal.ws.objects.Complement', //
+	'App.usr.nodal.ws.tools.NodeTool', 'App.usr.nodal.ws.tools.PortTool', 'App.usr.nodal.ws.tools.ComplementarityTool', //
+	'App.usr.nodal.ws.tools.MotifTool', 'App.usr.nodal.ws.tools.ExposureTool', //
 	'App.usr.nodal.NodeInspector', 'App.usr.nodal.PortInspector', 'App.usr.nodal.MotifInspector', 'App.usr.nodal.MotifPalette',
 	'App.usr.nodal.LibraryWindow'],
 	border : false,
@@ -38,7 +38,7 @@ Ext.define('App.usr.nodal.Canvas', {
 		});
 
 		// this.customMotifStore = Ext.create('Ext.data.Store', {
-		// 	model : Workspace.objects.dna.motifStore.model,
+		// 	model : App.usr.nodal.ws.objects.motifStore.model,
 		// 	loadFromArray: function (array) {
 		// 		for(var m in array) {
 		// 			data[i] = {
@@ -49,8 +49,8 @@ Ext.define('App.usr.nodal.Canvas', {
 		// 		}
 		// 	}
 		// });
-		this.customMotifStore = Ext.create('Workspace.objects.dna.MotifStore');
-		this.motifStore = Ext.create('Workspace.objects.dna.MotifStore');
+		this.customMotifStore = Ext.create('App.usr.nodal.ws.objects.MotifStore');
+		this.motifStore = Ext.create('App.usr.nodal.ws.objects.MotifStore');
 		
 		/**
 		 * @property {App.usr.nodal.MotifPalette} palette
@@ -113,7 +113,7 @@ Ext.define('App.usr.nodal.Canvas', {
 	setupWorkspace : function() {
 		if(!this.workspace.buildManager) {
 			this.workspace.buildManager = this.workspace.createObject({
-				wtype : 'Workspace.objects.dna.BuildManager'
+				wtype : 'App.usr.nodal.ws.objects.BuildManager'
 			});
 		}
 		this.workspace.buildManager.customMotifStore = this.customMotifStore;
@@ -124,9 +124,9 @@ Ext.define('App.usr.nodal.Canvas', {
 			if(!('version' in this.workspace)) {
 				this.workspace.version = 0;
 			}
-			this.motifStore.loadFromHash(Workspace.objects.dna.OldMotifs[this.workspace.version]);
+			this.motifStore.loadFromHash(App.usr.nodal.ws.objects.MotifLibraries[this.workspace.version]);
 		} else {
-			this.motifStore.loadFromHash(Workspace.objects.dna.Motifs); 
+			this.motifStore.loadFromHash(App.usr.nodal.ws.objects.Motifs); 
 		}
 
 		/**

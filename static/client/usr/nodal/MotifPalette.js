@@ -3,7 +3,7 @@
  */
 Ext.define('App.usr.nodal.MotifPalette', {
 	extend : 'App.usr.canvas.Palette',
-	requires : ['Workspace.objects.dna.Motifs'],
+	requires : ['App.usr.nodal.ws.objects.Motifs'],
 	tpl : '<tpl for=".">' + '<div class="motif-template">' +
 	//'<img src="images/motifs/{number}.gif" />'+
 	'</div>' + '</tpl><div class="x-clear" />',
@@ -14,7 +14,7 @@ Ext.define('App.usr.nodal.MotifPalette', {
 		if(!config.store) {
 			//Ext.apply(this,{
 			Ext.applyIf(config, {
-				store : Workspace.objects.dna.motifStore,
+				store : App.usr.nodal.ws.objects.motifStore,
 			});
 		}
 		this.callParent(arguments);

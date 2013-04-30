@@ -7,7 +7,7 @@
  * @param {Object} config
  */
 Ext.define('Workspace.tools.LineTool', {
-	requires: ['Workspace.objects.Path','Workspace.objects.secondary.Domain'],
+	requires: ['Workspace.objects.Path', ], //'Workspace.objects.secondary.Domain'],
 	constructor: function(workspace, config) {
 		this.workspace = workspace;
 		Ext.apply(this, config, {
@@ -25,7 +25,7 @@ Ext.define('Workspace.tools.LineTool', {
 	extend:'Workspace.tools.BaseTool',
 	targetWType: 'Workspace.objects.Path',
 	//targetWType: 'Workspace.objects.Path',
-	targetWType: 'Workspace.objects.secondary.Domain',
+	//targetWType: 'Workspace.objects.secondary.Domain',
 	
 	click: function(e, item) {
 

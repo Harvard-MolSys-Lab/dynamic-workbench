@@ -1,8 +1,8 @@
 /**
- * @class Workspace.objects.dna.Domain
+ * @class App.usr.nodal.ws.objects.Domain
  * @extends Workspace.objects.Line
  */
-Ext.define('Workspace.objects.dna.Domain', {
+Ext.define('App.usr.nodal.ws.objects.Domain', {
 	extend : 'Workspace.objects.Path',
 	buildPathPolar : function(x1, y1, length, arc) {
 		return [['M', x1, x2], ['L', x1 + Math.cos(arc) * v, y1 + Math.sin(arc) * v]];
@@ -41,9 +41,9 @@ Ext.define('Workspace.objects.dna.Domain', {
 			this.set('path', this.buildPath(p[0], p[1], v, this.get('arc')));
 		}, true, false);
 		this.expose('complement', function() {
-			return Workspace.objects.dna.Domain.getComplement(this);
+			return App.usr.nodal.ws.objects.Domain.getComplement(this);
 		}, function(value) {
-			return Workspace.objects.dna.Domain.setComplement(this, value);
+			return App.usr.nodal.ws.objects.Domain.setComplement(this, value);
 		}, true, false);
 		this.expose('arc', function() {
 			return Math.atan2(this.getHeight(), this.getWidth());

@@ -1,11 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Ext.define('Workspace.objects.dna.BridgePort', {
+Ext.define('App.usr.nodal.ws.objects.BridgePort', {
 	extend:'Workspace.objects.Rectangle',
 	mixins: {
-		port: 'Workspace.objects.dna.NodePort'
+		port: 'App.usr.nodal.ws.objects.NodePort'
 	},
-	wtype: 'Workspace.objects.dna.BridgePort',
+	wtype: 'App.usr.nodal.ws.objects.BridgePort',
 	width: 8,
 	height: 8,
 	polarity: 1,
@@ -18,7 +18,7 @@ Ext.define('Workspace.objects.dna.BridgePort', {
 
 	path: false,
 	constructor: function() {
-		Workspace.objects.dna.BridgePort.superclass.constructor.apply(this,arguments);
+		App.usr.nodal.ws.objects.BridgePort.superclass.constructor.apply(this,arguments);
 		this.mixins.port.constructor.apply(this,arguments);
 		this.expose('complementarity',true,true,true,false);
 	},
@@ -36,5 +36,6 @@ Ext.define('Workspace.objects.dna.BridgePort', {
 		this.callParent(arguments);
 	},
 }, function() {
-	Workspace.reg('Workspace.objects.dna.BridgePort',Workspace.objects.dna.BridgePort);
+	Workspace.reg('App.usr.nodal.ws.objects.BridgePort',App.usr.nodal.ws.objects.BridgePort);
+	Workspace.regAlias('Workspace.objects.dna.BridgePort','App.usr.nodal.ws.objects.BridgePort');
 });

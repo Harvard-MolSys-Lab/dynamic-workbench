@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Ext.define('Workspace.objects.dna.NodePort', {
+Ext.define('App.usr.nodal.ws.objects.NodePort', {
 	requires : ['Workspace.objects.Ellipse', 'Workspace.ConnectionLabel'],
 	constructor : function() {
 		this.expose('dynaml', true, true, true, false);
@@ -28,7 +28,7 @@ Ext.define('Workspace.objects.dna.NodePort', {
 			this.workspace.buildManager.on('rebuild', this.onRebuild, this);
 
 	},
-	//	wtype: 'Workspace.objects.dna.NodePort',
+	//	wtype: 'App.usr.nodal.ws.objects.NodePort',
 	role : '',
 	fill : '#fff',
 	iconCls: 'node-ports',
@@ -94,7 +94,7 @@ Ext.define('Workspace.objects.dna.NodePort', {
 		return obj ? obj[prop] : false;
 	},
 	getLibraryObject : function() {
-		if(this.parent && this.getParent().isWType('Workspace.objects.dna.Node')) {
+		if(this.parent && this.getParent().isWType('App.usr.nodal.ws.objects.Node')) {
 			var node = this.parent.getLibraryObject(), name = this.get('name');
 			if(node) {
 				var me = _.find(node.getDomains(), function(dom) {
@@ -106,5 +106,5 @@ Ext.define('Workspace.objects.dna.NodePort', {
 		return null;
 	},
 }, function() {
-	Workspace.objects.dna.NodePort.borrow(Workspace.objects.Ellipse, ['getRadiusX', 'getRadiusY', 'getCenterX', 'getCenterY']);
+	App.usr.nodal.ws.objects.NodePort.borrow(Workspace.objects.Ellipse, ['getRadiusX', 'getRadiusY', 'getCenterX', 'getCenterY']);
 });

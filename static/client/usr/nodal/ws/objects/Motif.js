@@ -2,19 +2,19 @@
 /**
  * Represents a single motif in a {@link App.usr.nodal.Canvas nodal system}
  */
-Ext.define('Workspace.objects.dna.Motif', {
-	extend: 'Workspace.objects.dna.AbstractNode',
-	wtype: 'Workspace.objects.dna.Motif',
-	layout: 'Workspace.objects.dna.MotifLayout',
+Ext.define('App.usr.nodal.ws.objects.Motif', {
+	extend: 'App.usr.nodal.ws.objects.AbstractNode',
+	wtype: 'App.usr.nodal.ws.objects.Motif',
+	layout: 'App.usr.nodal.ws.objects.MotifLayout',
 	name: false,
 	proxifyOnMove : true,
 	polarity: 0,
 	stroke: '#888',
-	requires: ['Workspace.objects.dna.MotifLayout',],
+	requires: ['App.usr.nodal.ws.objects.MotifLayout',],
 	constructor: function() {
 		this.callParent(arguments);
 		this.expose('nodes',function() {
-			return _.filter(this.getChildren(),function(child) { return child.hasWType('Workspace.objects.dna.Node')});
+			return _.filter(this.getChildren(),function(child) { return child.hasWType('App.usr.nodal.ws.objects.Node')});
 		},false,false,false);
 		
 		if(this.workspace.buildManager)
@@ -52,9 +52,9 @@ Ext.define('Workspace.objects.dna.Motif', {
 			var childGroups = _.groupBy(this.getChildren(),'wtype');
 			
 			var ports = {
-				input: _.groupBy(childGroups['Workspace.objects.dna.InputPort'] || [],function(p) {return p.get('name')}),
-				output: _.groupBy(childGroups['Workspace.objects.dna.OutputPort'] || [],function(p) {return p.get('name')}),
-				bridge: _.groupBy(childGroups['Workspace.objects.dna.BridgePort'] || [],function(p) {return p.get('name')}),
+				input: _.groupBy(childGroups['App.usr.nodal.ws.objects.InputPort'] || [],function(p) {return p.get('name')}),
+				output: _.groupBy(childGroups['App.usr.nodal.ws.objects.OutputPort'] || [],function(p) {return p.get('name')}),
+				bridge: _.groupBy(childGroups['App.usr.nodal.ws.objects.BridgePort'] || [],function(p) {return p.get('name')}),
 			};
 			
 			var portsToRemove = [];
@@ -103,9 +103,9 @@ Ext.define('Workspace.objects.dna.Motif', {
 	makePort: function (dom) {
 		var port = _.clone(dom); 
 		var cfg = {};
-		if(_.isObject(port) && Workspace.objects.dna.PortClasses[port.role]) {
+		if(_.isObject(port) && App.usr.nodal.ws.objects.PortClasses[port.role]) {
 			cfg.name = port.name;//'p'+(i+1);
-			cfg.wtype = Workspace.objects.dna.PortClasses[port.role];
+			cfg.wtype = App.usr.nodal.ws.objects.PortClasses[port.role];
 			cfg.stroke = App.dynamic.Compiler.getColor(port);
 			cfg.segments = port.segments;
 			//cfg.identity = port.name;
@@ -129,6 +129,7 @@ Ext.define('Workspace.objects.dna.Motif', {
 		return this.workspace.buildManager.getRealtime('motif',this.get('name'),'this');
 	},
 }, function() {
-	Workspace.reg('Workspace.objects.dna.Motif',Workspace.objects.dna.Motif);
+	Workspace.reg('App.usr.nodal.ws.objects.Motif',App.usr.nodal.ws.objects.Motif);
+	Workspace.regAlias('Workspace.objects.dna.Motif','App.usr.nodal.ws.objects.Motif');
 
 });

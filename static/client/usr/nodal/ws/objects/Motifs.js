@@ -1,11 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-Ext.ns('Workspace.objects.dna');
+Ext.ns('App.usr.nodal.ws.objects');
 
 /**
- * @class Workspace.objects.dna.Motifs
+ * @class App.usr.nodal.ws.objects.Motifs
  * @singleton
  */
-Workspace.objects.dna.Motifs = function() {
+App.usr.nodal.ws.objects.Motifs = function() {
 	var library = App.dynamic.Library.dummy();
 	return _.reduce(_.deepClone(App.dynamic.Compiler.standardMotifs),function(memo, value, key) {
 		value.library = library;
@@ -14,16 +14,16 @@ Workspace.objects.dna.Motifs = function() {
 	},{}) 
 }();
 /**
- * @class Workspace.objects.dna.OldMotifs
+ * @class App.usr.nodal.ws.objects.MotifLibraries
  * @singleton
  *
- * This class is actually an array of objects similar to Workspace.objects.dna.Motifs. Each object
+ * This class is actually an array of objects similar to App.usr.nodal.ws.objects.Motifs. Each object
  * maps motif names to App.dynamic.Motif objects. These mappings are used by 
- * Workspace.objects.dna.MotifStore#loadFromHash to add Motif objects to the {@link Workspace.objects.dna.MotifStore motif stores}.
+ * App.usr.nodal.ws.objects.MotifStore#loadFromHash to add Motif objects to the {@link App.usr.nodal.ws.objects.MotifStore motif stores}.
  *
  * Elements of this array correspond to {@link App.dynamic.Compiler#standardMotifsVersions versions of the standard motifs library}.
  */
-Workspace.objects.dna.OldMotifs = (function () {
+App.usr.nodal.ws.objects.MotifLibraries = (function () {
 	var out = [];
 	for(var i = 0, l = App.dynamic.Compiler.standardMotifsVersions.length; i<l; i++) {
 		var library = App.dynamic.Library.dummy();
@@ -51,52 +51,52 @@ Workspace.objects.dna.OldMotifs = (function () {
 // };
 
 /**
- * @class Workspace.objects.dna.Ports
+ * @class App.usr.nodal.ws.objects.Ports
  * @singleton
  */
 
-Workspace.objects.dna.PortClasses = {
-	'input' : 'Workspace.objects.dna.InputPort',
-	'init' : 'Workspace.objects.dna.OutputPort',
-	'output' : 'Workspace.objects.dna.OutputPort',
-	'bridge' : 'Workspace.objects.dna.BridgePort',
+App.usr.nodal.ws.objects.PortClasses = {
+	'input' : 'App.usr.nodal.ws.objects.InputPort',
+	'init' : 'App.usr.nodal.ws.objects.OutputPort',
+	'output' : 'App.usr.nodal.ws.objects.OutputPort',
+	'bridge' : 'App.usr.nodal.ws.objects.BridgePort',
 }
 
-Workspace.objects.dna.Ports = {
+App.usr.nodal.ws.objects.Ports = {
 	'input': {
-		wtype: 'Workspace.objects.dna.InputPort',
+		wtype: 'App.usr.nodal.ws.objects.InputPort',
 		stroke: 'orange',
 	},
 	'init': {
-		wtype: 'Workspace.objects.dna.OutputPort',
+		wtype: 'App.usr.nodal.ws.objects.OutputPort',
 		stroke:'#553300'
 	},
 	'green': {
-		wtype: 'Workspace.objects.dna.OutputPort',
+		wtype: 'App.usr.nodal.ws.objects.OutputPort',
 		stroke:'#66ff33'
 	},
 	'blue': {
-		wtype: 'Workspace.objects.dna.OutputPort',
+		wtype: 'App.usr.nodal.ws.objects.OutputPort',
 		stroke:'#33ccff'
 	},
 	'pink': {
-		wtype: 'Workspace.objects.dna.BridgePort',
+		wtype: 'App.usr.nodal.ws.objects.BridgePort',
 		stroke:'#ff1177'
 	},
 	'purple': {
-		wtype: 'Workspace.objects.dna.BridgePort',
+		wtype: 'App.usr.nodal.ws.objects.BridgePort',
 		stroke:'#9900cc'
 	},
 };
 
 // TODO: just grab built-in motifs from App.dynamic.Compiler#standardMotifs
-// Workspace.objects.dna.Motifs = function(motifs) {
+// App.usr.nodal.ws.objects.Motifs = function(motifs) {
 	// var newMotifs = {};
 	// _.each(motifs,function(spec,name) {
 		// if(_.isArray(spec)) {
 			// newMotifs[name] = _.map(spec,function(port) {
 				// if(_.isString(port)) {
-					// return Workspace.objects.dna.Ports[port];
+					// return App.usr.nodal.ws.objects.Ports[port];
 				// }
 			// });
 		// } else {
@@ -104,14 +104,14 @@ Workspace.objects.dna.Ports = {
 		// }
 	// });
 	// return newMotifs;
-// }(Workspace.objects.dna.Motifs);
+// }(App.usr.nodal.ws.objects.Motifs);
 
-Workspace.objects.dna.motifStore = (function() {
+App.usr.nodal.ws.objects.motifStore = (function() {
 	var data = [], i=0;
-	for(var m in Workspace.objects.dna.Motifs) {
+	for(var m in App.usr.nodal.ws.objects.Motifs) {
 		data[i] = {
 			number: m, //parseInt(m),
-			spec: Workspace.objects.dna.Motifs[m]
+			spec: App.usr.nodal.ws.objects.Motifs[m]
 		};
 		i++;
 	}
@@ -133,9 +133,9 @@ Workspace.objects.dna.motifStore = (function() {
 })();
 
 
-Ext.define('Workspace.objects.dna.MotifStore',{
+Ext.define('App.usr.nodal.ws.objects.MotifStore',{
 	extend: 'Ext.data.Store',
-	model : Workspace.objects.dna.motifStore.model,
+	model : App.usr.nodal.ws.objects.motifStore.model,
 	/**
 	 * Loads records from an object containing a name:motif mapping, like this:
 	 *
@@ -145,7 +145,7 @@ Ext.define('Workspace.objects.dna.MotifStore',{
 	 *     	... 
 	 *     }
 	 *
-	 * Workspace.objects.dna.OldMotifs is an array of such mappings (for all versions of the standard motif library).
+	 * App.usr.nodal.ws.objects.MotifLibraries is an array of such mappings (for all versions of the standard motif library).
 	 * 
 	 * @param  {Object} hash An object mapping motif names to {@link App.dynamic.Motif objects}
 	 */

@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Ext.define('Workspace.objects.dna.Complementarity', {
+Ext.define('App.usr.nodal.ws.objects.Complement', {
 	extend : 'Workspace.objects.Connection',
 	showLabel : false,
 	property : 'complementarity',
@@ -20,26 +20,28 @@ Ext.define('Workspace.objects.dna.Complementarity', {
 	stroke:"#999",
 	acceptLeft : function(item) {
 		return (item.getId && 
-			item.isWType(['Workspace.objects.dna.OutputPort','Workspace.objects.dna.BridgePort'])
+			item.isWType(['App.usr.nodal.ws.objects.OutputPort','App.usr.nodal.ws.objects.BridgePort'])
 			);
 	},
 	acceptRight : function(item) {
 		return (item.getId && 
-			item.isWType(['Workspace.objects.dna.InputPort','Workspace.objects.dna.BridgePort']));
+			item.isWType(['App.usr.nodal.ws.objects.InputPort','App.usr.nodal.ws.objects.BridgePort']));
 	},
 	canConnect : function(left, right) {
 		var lnode = left.getParent(), rnode = right.getParent();
 
 		// make sure we're:
 		// connecting output -> input
-		return ((left.isWType('Workspace.objects.dna.OutputPort') && right.isWType('Workspace.objects.dna.InputPort')) ||
+		return ((left.isWType('App.usr.nodal.ws.objects.OutputPort') && right.isWType('App.usr.nodal.ws.objects.InputPort')) ||
 		 
 		 // or bridge -> bridge
-		 (left.isWType('Workspace.objects.dna.BridgePort') && right.isWType('Workspace.objects.dna.BridgePort'))) &&
+		 (left.isWType('App.usr.nodal.ws.objects.BridgePort') && right.isWType('App.usr.nodal.ws.objects.BridgePort'))) &&
 		 
 		 // AND, both nodes are part of the same motif, or global
 		 ( lnode && rnode ? lnode.getParent() == rnode.getParent() : false );
 	},
 }, function() {
-	Workspace.reg('Workspace.objects.dna.Complementarity', Workspace.objects.dna.Complementarity);
+	Workspace.reg('App.usr.nodal.ws.objects.Complement', App.usr.nodal.ws.objects.Complement);
+	Workspace.regAlias('Workspace.objects.dna.Complementarity', 'App.usr.nodal.ws.objects.Complement');
+
 });

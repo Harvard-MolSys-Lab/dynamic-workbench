@@ -15,17 +15,17 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='App-ui-DD'>/**
-</span> * @class App.ui.DD
+  <pre class="prettyprint lang-js"><span id='App-usr-dd-DD'>/**
+</span> * @class App.usr.dd.DD
  * Provides an interface allowing the user to performs domain-based sequence design using Web {@link DD}.
  */
-Ext.define('App.ui.DD', {
+Ext.define('App.usr.dd.DD', {
 	extend : 'Ext.panel.Panel',
 	mixins : {
 		app : 'App.ui.Application',
 		tip : 'App.ui.TipHelper',
 	},
-	requires : ['App.ui.SequenceEditor', 'App.ui.dd.RulesWindow', 'App.ui.dd.ScoreParametersWindow', 'App.ui.dd.SequenceWindow', 'App.ui.SequenceThreader',],
+	requires : ['App.usr.seq.Editor', 'App.usr.dd.RulesWindow', 'App.usr.dd.ScoreParametersWindow', 'App.usr.dd.SequenceWindow', 'App.ui.SequenceThreader',],
 	constructor : function() {
 		this.mixins.app.constructor.apply(this, arguments);
 		this.callParent(arguments);
@@ -35,7 +35,7 @@ Ext.define('App.ui.DD', {
 	editorType : 'WebDD',
 	border : false,
 	bodyBorder : false,
-<span id='App-ui-DD-property-mutating'>	/**
+<span id='App-usr-dd-DD-property-mutating'>	/**
 </span>	 * @property
 	 * Reports whether the designer is currently mutating
 	 */
@@ -48,7 +48,7 @@ Ext.define('App.ui.DD', {
 	}],
 
 	initComponent : function() {
-<span id='App-ui-DD-property-designer'>		/**
+<span id='App-usr-dd-DD-property-designer'>		/**
 </span>		 * @property {DD} designer
 		 * The domain-based sequence designer
 		 */
@@ -91,7 +91,7 @@ Ext.define('App.ui.DD', {
 			}]
 		});
 
-<span id='App-ui-DD-property-cellEditor'>		/**
+<span id='App-usr-dd-DD-property-cellEditor'>		/**
 </span>		 * @property {Ext.grid.plugin.CellEditing} cellEditor
 		 */
 		var cellEditor = this.cellEditor = Ext.create('Ext.grid.plugin.CellEditing2', {
@@ -124,7 +124,7 @@ Ext.define('App.ui.DD', {
 			// ref: 'output',
 			// },
 			items : [{
-<span id='App-ui-DD-property-grid'>				/**
+<span id='App-usr-dd-DD-property-grid'>				/**
 </span>				 * @property {Ext.grid.Panel} grid
 				 */
 				xtype : 'gridpanel',
@@ -262,7 +262,7 @@ Ext.define('App.ui.DD', {
 				tbar : {
 					// cls: 'noborder-top noborder-left noborder-right',
 					items : [{
-<span id='App-ui-DD-property-mutateButton'>						/**
+<span id='App-usr-dd-DD-property-mutateButton'>						/**
 </span>						 * @property {Ext.button.Button} mutateButton
 						 * Starts and stops mutation
 						 */
@@ -275,7 +275,7 @@ Ext.define('App.ui.DD', {
 						tooltip : 'Click to start/pause mutations. Must add domains first.',
 
 					}, '-', {
-<span id='App-ui-DD-property-addDomainButton'>						/**
+<span id='App-usr-dd-DD-property-addDomainButton'>						/**
 </span>						 * @property {Ext.button.Button} addDomainButton
 						 * Shows a menu allowing the user to add domains to the designer
 						 */
@@ -290,7 +290,7 @@ Ext.define('App.ui.DD', {
 							text : 'New domain length: ',
 							canActivate : false,
 						}, {
-<span id='App-ui-DD-property-addDomLen'>							/**
+<span id='App-usr-dd-DD-property-addDomLen'>							/**
 </span>							 * @property {Ext.form.field.Number} addDomLen
 							 * Control allowing the user to select the number of bases in the domain to be added
 							 */
@@ -300,7 +300,7 @@ Ext.define('App.ui.DD', {
 							min : 2,
 							indent : true,
 						}, {
-<span id='App-ui-DD-property-addDomainItem'>							/**
+<span id='App-usr-dd-DD-property-addDomainItem'>							/**
 </span>							 * @property {Ext.menu.Item} addDomainItem
 							 * Menu item which triggers a domain of length specified in {@link #addDomLen} to be added to the designer.
 							 */
@@ -326,7 +326,7 @@ Ext.define('App.ui.DD', {
 
 						}]
 					}, {
-<span id='App-ui-DD-property-modDomainButton'>						/**
+<span id='App-usr-dd-DD-property-modDomainButton'>						/**
 </span>						 * @property {Ext.button.Button} modDomainButton
 						 */
 						text : 'Modify',
@@ -363,7 +363,7 @@ Ext.define('App.ui.DD', {
 							scope : this,
 						}]
 					}, {
-<span id='App-ui-DD-property-delDomainButton'>						/**
+<span id='App-usr-dd-DD-property-delDomainButton'>						/**
 </span>						 * @property {Ext.button.Button} delDomainButton
 						 */
 						text : 'Delete',
@@ -418,7 +418,7 @@ Ext.define('App.ui.DD', {
 					}]
 				},
 				bbar : {
-<span id='App-ui-DD-property-ref'>					/**
+<span id='App-usr-dd-DD-property-ref'>					/**
 </span>					 * @property {Ext.ux.statusbar.Statusbar}
 					 */
 					ref : 'statusBar',
@@ -452,7 +452,7 @@ Ext.define('App.ui.DD', {
 				bodyBorder : false,
 				border : true, //'0 1 1 0',
 				split : true,
-			}, Ext.create('App.ui.NupackEditor', {
+			}, Ext.create('App.usr.nupack.Editor', {
 				region : 'east',
 				title : 'Structure',
 				editorType : 'Structure',
@@ -495,7 +495,7 @@ Ext.define('App.ui.DD', {
 						}
 					}
 				}
-			}), Ext.create('App.ui.SequenceEditor', {
+			}), Ext.create('App.usr.seq.Editor', {
 				region : 'south',
 				title : 'Strands',
 				editorType : 'Strands',
@@ -578,7 +578,7 @@ Ext.define('App.ui.DD', {
 			//this.designer.printfDomains().join('\n');
 		}
 	},
-<span id='App-ui-DD-method-onLoad'>	/**
+<span id='App-usr-dd-DD-method-onLoad'>	/**
 </span>	 * Loads the given design from a *.nupack or *.domains file
 	 */
 	onLoad : function() {
@@ -603,7 +603,7 @@ Ext.define('App.ui.DD', {
 			}
 		}
 	},
-<span id='App-ui-DD-method-eachSelected'>	/**
+<span id='App-usr-dd-DD-method-eachSelected'>	/**
 </span>	 * Applies the passed function to each selected record
 	 * 
 	 * @param {Function} f
@@ -629,7 +629,7 @@ Ext.define('App.ui.DD', {
 		return false;
 	},
 	
-<span id='App-ui-DD-method-reseed'>	/**
+<span id='App-usr-dd-DD-method-reseed'>	/**
 </span>	 * Reseeds the last-selected domain
 	 */
 	reseed : function() {
@@ -639,13 +639,16 @@ Ext.define('App.ui.DD', {
 			rec.set('sequence', this.designer.printfDomainById(dom));
 		}
 	},
-<span id='App-ui-DD-method-reseedAll'>	/**
+<span id='App-usr-dd-DD-method-reseedAll'>	/**
 </span>	 * Reseeds all domains
 	 */
 	reseedAll : function() {
 		this.designer.reseed();
 		this.updateInterface(true);
 	},
+<span id='App-usr-dd-DD-method-lock'>	/**
+</span>	 * Locks all bases of all selected domains in the design.
+	 */
 	lock: function() {
 		//var rec = this.grid.getSelectionModel().getLastSelected(), dom = this.store.indexOf(rec);
 		
@@ -657,6 +660,9 @@ Ext.define('App.ui.DD', {
 			}
 		})
 	},
+<span id='App-usr-dd-DD-method-unlock'>	/**
+</span>	 * Unlocks all bases of all selected domains in the design.
+	 */
 	unlock: function() {
 		//var rec = this.grid.getSelectionModel().getLastSelected(), dom = this.store.indexOf(rec);
 		
@@ -668,31 +674,37 @@ Ext.define('App.ui.DD', {
 			}
 		});
 	},
-<span id='App-ui-DD-method-updateDomain'>	/**
-</span>	 * Syncs UI for a particular domain with the {@link #designer}
+<span id='App-usr-dd-DD-method-updateDomain'>	/**
+</span>	 * Updates the data in the {@link #designer} to reflect that of the passed record.
 	 * @param {Ext.data.Model} domain Record for a particular domain to sync
 	 */
 	updateDomain : function(rec) {
 		this.designer.updateDomain(this.store.indexOf(rec), rec.get('sequence'), rec.get('importance'), rec.get('composition'));
 	},
-<span id='App-ui-DD-method-updateParams'>	/**
+<span id='App-usr-dd-DD-method-updateParams'>	/**
 </span>	 * Updates the score parameters in the designer
+	 * @param {Object} v A hash of mapping parameter names to parameter values.
+	 *
+	 * See also DD#updateParams
 	 */
 	updateParams : function(v) {
 		this.designer.updateParams(v);
 	},
-<span id='App-ui-DD-method-updateRules'>	/**
+<span id='App-usr-dd-DD-method-updateRules'>	/**
 </span>	 * Updates the design rules in the designer
+	 * @param {Object} v A hash of mapping rule names to values.
+	 *
+	 * See also DD#updateRules
 	 */
 	updateRules : function() {
 		this.designer.updateRules(v);
 	},
-<span id='App-ui-DD-method-designOptions'>	/**
+<span id='App-usr-dd-DD-method-designOptions'>	/**
 </span>	 * Shows the design rules window
 	 */
 	designOptions : function() {
 		if (!this.designOptionsWindow) {
-			this.designOptionsWindow = Ext.create('App.ui.dd.RulesWindow', {
+			this.designOptionsWindow = Ext.create('App.usr.dd.RulesWindow', {
 				designer : this.designer,
 				closeAction : 'hide'
 			});
@@ -700,12 +712,12 @@ Ext.define('App.ui.DD', {
 		this.designOptionsWindow.setValues(this.designer.getRules());
 		this.designOptionsWindow.show();
 	},
-<span id='App-ui-DD-method-scoreParams'>	/**
+<span id='App-usr-dd-DD-method-scoreParams'>	/**
 </span>	 * Shows the score parameters window
 	 */
 	scoreParams : function() {
 		if (!this.scoreParamsWindow) {
-			this.scoreParamsWindow = Ext.create('App.ui.dd.ScoreParametersWindow', {
+			this.scoreParamsWindow = Ext.create('App.usr.dd.ScoreParametersWindow', {
 				designer : this.designer,
 				closeAction : 'hide'
 			});
@@ -713,7 +725,7 @@ Ext.define('App.ui.DD', {
 		this.scoreParamsWindow.setValues(this.designer.getParams());
 		this.scoreParamsWindow.show();
 	},
-<span id='App-ui-DD-method-updateStatusBar'>	/**
+<span id='App-usr-dd-DD-method-updateStatusBar'>	/**
 </span>	 * Updates the status bar to reflect the number of attempts and successful mutations
 	 */
 	updateStatusBar : function() {
@@ -728,7 +740,7 @@ Ext.define('App.ui.DD', {
 		this.deltaField.setText(this.deltaField.baseText + Ext.util.Format.number(delta, this.scoreFormat));
 		this.boredField.setText(this.boredField.baseText + bored);
 	},
-<span id='App-ui-DD-method-doDeleteDomains'>	/**
+<span id='App-usr-dd-DD-method-doDeleteDomains'>	/**
 </span>	 * Deletes the selected domain(s)
 	 */
 	doDeleteDomains : function() {
@@ -745,9 +757,9 @@ Ext.define('App.ui.DD', {
 			// }, this);
 		// }
 	},
-<span id='App-ui-DD-method-syncDomains'>	/**
+<span id='App-usr-dd-DD-method-syncDomains'>	/**
 </span>	 * Synchronizes domains in the view and the designer with domains in the
-	 * {@link #strands strand threading spec}
+	 * {@link #strands strand threading specification}
 	 *
 	 * @param {Object} domains Hash mapping names (or numbers) of domains
 	 * described in the spec to domain sequences (which could be Ns).
@@ -772,36 +784,36 @@ Ext.define('App.ui.DD', {
 			}
 		}, this);
 	},
-<span id='App-ui-DD-method-addManyDomains'>	/**
-</span>	 * Shows the {@link #addDomainsWindow}
+<span id='App-usr-dd-DD-method-addManyDomains'>	/**
+</span>	 * Shows the #addDomainsWindow
 	 */
 	addManyDomains : function(data) {
-<span id='App-ui-DD-property-addDomainsWindow'>		/**
-</span>		 * @property {App.ui.dd.SequenceWindow} addDomainsWindow
+<span id='App-usr-dd-DD-property-addDomainsWindow'>		/**
+</span>		 * @property {App.usr.dd.SequenceWindow} addDomainsWindow
 		 * Sequence-editing window which allows the user to add many domains by
 		 * typing or copying and pasting.
 		 */
 		if (!this.addDomainsWindow) {
-			this.addDomainsWindow = Ext.create('App.ui.dd.SequenceWindow', {
+			this.addDomainsWindow = Ext.create('App.usr.dd.SequenceWindow', {
 				designer : this,
 				value : data || '',
 			});
 		}
 		this.addDomainsWindow.show();
 	},
-<span id='App-ui-DD-method-loadFromDDFile'>	/**
+<span id='App-usr-dd-DD-method-loadFromDDFile'>	/**
 </span>	 * Shows the #loadDDFileWindow
 	 * @param {String} [data] If provided, seeds the
 	 */
 	loadFromDDFile : function(data) {
 		if (!this.loadDDFileWindow) {
-<span id='App-ui-DD-property-loadDDFileWindow'>			/**
-</span>			 * @property {App.ui.dd.SequenceWindow} loadDDFileWindow
+<span id='App-usr-dd-DD-property-loadDDFileWindow'>			/**
+</span>			 * @property {App.usr.dd.SequenceWindow} loadDDFileWindow
 			 * Allows the user to add domains by pasting from an old DD text
 			 * format file. Also the best way to add many domains with
 			 * different importances/compositions.
 			 */
-			this.loadDDFileWindow = Ext.create('App.ui.dd.SequenceWindow', {
+			this.loadDDFileWindow = Ext.create('App.usr.dd.SequenceWindow', {
 				designer : this,
 				value : data || '',
 				handler : function(data) {
@@ -814,14 +826,17 @@ Ext.define('App.ui.DD', {
 		this.loadDDFileWindow.show();
 
 	},
+<span id='App-usr-dd-DD-method-showDDFile'>	/**
+</span>	 * Shows the #showDDFileWindow, which displays a dd-formatted output file.
+	 */
 	showDDFile: function() {
 		var data = this.designer.saveFile();
 		if (!this.showDDFileWindow) {
-<span id='App-ui-DD-property-showDDFileWindow'>			/**
-</span>			 * @property {App.ui.dd.SequenceWindow} showDDFileWindow
+<span id='App-usr-dd-DD-property-showDDFileWindow'>			/**
+</span>			 * @property {App.usr.dd.SequenceWindow} showDDFileWindow
 			 * Allows the user to copy sequences out of the editor
 			 */
-			this.showDDFileWindow = Ext.create('App.ui.dd.SequenceWindow', {
+			this.showDDFileWindow = Ext.create('App.usr.dd.SequenceWindow', {
 				designer : this,
 				title: 'Raw DD file',
 				buttonText: 'Close',
@@ -836,14 +851,17 @@ Ext.define('App.ui.DD', {
 		}
 		this.showDDFileWindow.show();
 	},
+<span id='App-usr-dd-DD-method-showDomainsPlaintext'>	/**
+</span>	 * Shows the #showDomainsWindow, which allows the user to copy sequences out of the designer as plaintext.
+	 */
 	showDomainsPlaintext: function() {
 		var data = this.designer.printfDomains().join('\n');
 		if (!this.showDomainsWindow) {
-<span id='App-ui-DD-property-showDomainsWindow'>			/**
-</span>			 * @property {App.ui.dd.SequenceWindow} showDomainsWindow
+<span id='App-usr-dd-DD-property-showDomainsWindow'>			/**
+</span>			 * @property {App.usr.dd.SequenceWindow} showDomainsWindow
 			 * Allows the user to copy sequences out of the editor
 			 */
-			this.showDomainsWindow = Ext.create('App.ui.dd.SequenceWindow', {
+			this.showDomainsWindow = Ext.create('App.usr.dd.SequenceWindow', {
 				designer : this,
 				title: 'Raw domain sequences',
 				buttonText: 'Close',
@@ -858,7 +876,7 @@ Ext.define('App.ui.DD', {
 		}
 		this.showDomainsWindow.show();
 	},
-<span id='App-ui-DD-method-addDomains'>	/**
+<span id='App-usr-dd-DD-method-addDomains'>	/**
 </span>	 * Adds the passed domains to the designer
 	 * @param {String[]} seqs Array of sequences to add
 	 */
@@ -893,7 +911,7 @@ Ext.define('App.ui.DD', {
 			};
 		}, this));
 	},
-<span id='App-ui-DD-method-doAddDomain'>	/**
+<span id='App-usr-dd-DD-method-doAddDomain'>	/**
 </span>	 * Add a domain from the {@link #addDomainButton}
 	 */
 	doAddDomain : function() {
@@ -907,7 +925,7 @@ Ext.define('App.ui.DD', {
 		var seq = this.designer.randomSequence(1,len)[0];
 		this.addDomain(this.designer.printfDomain(seq), 1, comp);
 	},
-<span id='App-ui-DD-method-addDomain'>	/**
+<span id='App-usr-dd-DD-method-addDomain'>	/**
 </span>	 * Adds a domain to the {@link #designer}
 	 */
 	addDomain : function(seq, imp, comp, name) {
@@ -926,7 +944,7 @@ Ext.define('App.ui.DD', {
 		this.scoresDirty = true;
 		this.mutateButton.enable();
 	},
-<span id='App-ui-DD-method-toggleMutation'>	/**
+<span id='App-usr-dd-DD-method-toggleMutation'>	/**
 </span>	 * Starts or stops mutations
 	 */
 	toggleMutation : function() {
@@ -936,17 +954,17 @@ Ext.define('App.ui.DD', {
 			this.startMutation();
 		}
 	},
-<span id='App-ui-DD-cfg-mutationStep'>	/**
+<span id='App-usr-dd-DD-cfg-mutationStep'>	/**
 </span>	 * @cfg {Number}
 	 * Number of mutations to perform before updating the UI
 	 */
 	mutationStep : 50,
-<span id='App-ui-DD-property-mutationCount'>	/**
+<span id='App-usr-dd-DD-property-mutationCount'>	/**
 </span>	 * @property {Number}
 	 * Number of mutations performed since the UI was last updated
 	 */
 	mutationCount : 0,
-<span id='App-ui-DD-method-mutationLoop'>	/**
+<span id='App-usr-dd-DD-method-mutationLoop'>	/**
 </span>	 * Method run on a loop; to perform mutations and occasionally updating the UI with {@link #updateInterface}
 	 * started by {@link #startMutation}, paused by {@link #pauseMutation}
 	 */
@@ -961,7 +979,7 @@ Ext.define('App.ui.DD', {
 	doMutation : function() {
 		this.designer.mutate();
 	},
-<span id='App-ui-DD-method-updateInterface'>	/**
+<span id='App-usr-dd-DD-method-updateInterface'>	/**
 </span>	 * Updates the UI after {@link #mutationStep} mutations
 	 */
 	updateInterface : function(refreshSequences, refreshScores) {
@@ -1000,6 +1018,9 @@ Ext.define('App.ui.DD', {
 			}).join('\n'));
 		}
 	},
+<span id='App-usr-dd-DD-method-updateStrandsPane'>	/**
+</span>	 * Updates the #strandsPane view, threading sequences for the domains onto full strands.
+	 */
 	updateStrandsPane : function() {
 		var segments = _.reduce(this.store.getRange(), function(memo, rec) {
 			var name = rec.get('name'), i = this.store.indexOf(rec);
@@ -1010,7 +1031,7 @@ Ext.define('App.ui.DD', {
 			return name + ' : ' + DNA.threadSegments(segments, spec);
 		}).join('\n'));
 	},
-<span id='App-ui-DD-method-threadStrands'>	/**
+<span id='App-usr-dd-DD-method-threadStrands'>	/**
 </span>	 * Opens a {@link App.ui.SequenceThreader sequence threader}, allowing the 
 	 * user to thread together sequences based on a sequence specification into
 	 * full strands.
@@ -1037,7 +1058,7 @@ Ext.define('App.ui.DD', {
 		win.setSequences(segments.join('\n'));
 		win.setStrands(strands.join('\n'));
 	},
-<span id='App-ui-DD-method-startMutation'>	/**
+<span id='App-usr-dd-DD-method-startMutation'>	/**
 </span>	 * Begins mutating on a timer
 	 */
 	startMutation : function() {
@@ -1065,7 +1086,7 @@ Ext.define('App.ui.DD', {
 		}
 		this.mutating = true;
 	},
-<span id='App-ui-DD-method-pauseMutation'>	/**
+<span id='App-usr-dd-DD-method-pauseMutation'>	/**
 </span>	 * Stops the mutation timer task
 	 */
 	pauseMutation : function() {
@@ -1075,85 +1096,6 @@ Ext.define('App.ui.DD', {
 			Ext.TaskManager.stop(this.mutationTask);
 		}
 		this.mutating = false;
-	}
-});
-
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
-<span id='Ext-ux-PreviewPlugin'>/**
-</span> * @class Ext.ux.PreviewPlugin
- * @extends Ext.AbstractPlugin
- *
- * The Preview enables you to show a configurable preview of a record.
- *
- * This plugin assumes that it has control over the features used for this
- * particular grid section and may conflict with other plugins.
- *
- * @alias plugin.preview
- * @ptype preview
- */
-Ext.define('Ext.ux.PreviewPlugin', {
-	extend : 'Ext.AbstractPlugin',
-	alias : 'plugin.preview',
-	requires : ['Ext.grid.feature.RowBody', 'Ext.grid.feature.RowWrap'],
-
-	// private, css class to use to hide the body
-	hideBodyCls : 'x-grid-row-body-hidden',
-
-<span id='Ext-ux-PreviewPlugin-cfg-bodyField'>	/**
-</span>	 * @cfg {String} bodyField
-	 * Field to display in the preview. Must me a field within the Model definition
-	 * that the store is using.
-	 */
-	bodyField : '',
-
-<span id='Ext-ux-PreviewPlugin-cfg-previewExpanded'>	/**
-</span>	 * @cfg {Boolean} previewExpanded
-	 */
-	previewExpanded : true,
-
-	constructor : function(config) {
-		this.callParent(arguments);
-		var bodyField = this.bodyField, hideBodyCls = this.hideBodyCls, section = this.getCmp(), features = [{
-			ftype : 'rowbody',
-			getAdditionalData : function(data, idx, record, orig, view) {
-				var o = Ext.grid.feature.RowBody.prototype.getAdditionalData.apply(this, arguments);
-				Ext.apply(o, {
-					rowBody : data[bodyField],
-					rowBodyCls : section.previewExpanded ? '' : hideBodyCls
-				});
-				return o;
-			}
-		}, {
-			ftype : 'rowwrap'
-		}];
-
-		section.previewExpanded = this.previewExpanded;
-		if (!section.features) {
-			section.features = [];
-		}
-		section.features = features.concat(section.features);
-	},
-<span id='Ext-ux-PreviewPlugin-method-toggleExpanded'>	/**
-</span>	 * Toggle between the preview being expanded/hidden
-	 * @param {Boolean} expanded Pass true to expand the record and false to not show the preview.
-	 */
-	toggleExpanded : function(expanded) {
-		var view = this.getCmp();
-		this.previewExpanded = view.previewExpanded = expanded;
-		view.refresh();
 	}
 });
 </pre>

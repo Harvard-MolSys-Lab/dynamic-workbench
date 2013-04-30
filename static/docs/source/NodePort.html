@@ -17,7 +17,7 @@
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js">////////////////////////////////////////////////////////////////////////////////////////////////
 
-Ext.define('Workspace.objects.dna.NodePort', {
+Ext.define('App.usr.nodal.ws.objects.NodePort', {
 	requires : ['Workspace.objects.Ellipse', 'Workspace.ConnectionLabel'],
 	constructor : function() {
 		this.expose('dynaml', true, true, true, false);
@@ -45,7 +45,7 @@ Ext.define('Workspace.objects.dna.NodePort', {
 			this.workspace.buildManager.on('rebuild', this.onRebuild, this);
 
 	},
-	//	wtype: 'Workspace.objects.dna.NodePort',
+	//	wtype: 'App.usr.nodal.ws.objects.NodePort',
 	role : '',
 	fill : '#fff',
 	iconCls: 'node-ports',
@@ -59,7 +59,7 @@ Ext.define('Workspace.objects.dna.NodePort', {
 			property : 'computedPolarity',
 			editable : false,
 			format : function(polarity) {
-				return polarity == 1 ? '+' : (polarity == -1 ? '-' : '0');
+				return polarity == 1 ? '+' : (polarity == -1 ? '–' : '±');
 			}
 		}));
 		this.footprintShim = Ext.create('Workspace.Label', {
@@ -67,7 +67,11 @@ Ext.define('Workspace.objects.dna.NodePort', {
 			offsets : [0, 4],
 			property : 'segments',
 			editable : false,
-			format : function(segments) {
+			format : function(segments,obj) {
+				// var pol = obj.get('computedPolarity');
+				// return (pol==-1 ? &quot;5'–&quot; : &quot;3'–&quot;) + _.map(segments,function footprint (seg) {
+				// 	return (seg.role &amp;&amp; seg.role == 'toehold') ? '&lt;u&gt;'+seg.getLength()+'&lt;/u&gt;' : seg.getLength();
+				// }).join(' ') + (pol==-1 ? &quot;–3'&quot; : &quot;–5'&quot;);
 				return _.map(segments,function footprint (seg) {
 					return (seg.role &amp;&amp; seg.role == 'toehold') ? '&lt;u&gt;'+seg.getLength()+'&lt;/u&gt;' : seg.getLength();
 				}).join(' ');
@@ -107,7 +111,7 @@ Ext.define('Workspace.objects.dna.NodePort', {
 		return obj ? obj[prop] : false;
 	},
 	getLibraryObject : function() {
-		if(this.parent &amp;&amp; this.getParent().isWType('Workspace.objects.dna.Node')) {
+		if(this.parent &amp;&amp; this.getParent().isWType('App.usr.nodal.ws.objects.Node')) {
 			var node = this.parent.getLibraryObject(), name = this.get('name');
 			if(node) {
 				var me = _.find(node.getDomains(), function(dom) {
@@ -119,7 +123,7 @@ Ext.define('Workspace.objects.dna.NodePort', {
 		return null;
 	},
 }, function() {
-	Workspace.objects.dna.NodePort.borrow(Workspace.objects.Ellipse, ['getRadiusX', 'getRadiusY', 'getCenterX', 'getCenterY']);
+	App.usr.nodal.ws.objects.NodePort.borrow(Workspace.objects.Ellipse, ['getRadiusX', 'getRadiusY', 'getCenterX', 'getCenterY']);
 });
 </pre>
 </body>

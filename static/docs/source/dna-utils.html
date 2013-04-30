@@ -1412,6 +1412,16 @@ var DNA = module.exports.DNA = (function(_) {
 		'N':['A', 'C', 'G', 'T', 'U'], // aNy
 		'X':[], //masked
 	};
+	var degenerateDna = {};
+	for(var b in degenerate) {
+		if(b!='U') degenerateDna[b] = _.filter(degenerate[b], function(x) { return x != 'U'; });
+	}
+
+	var degenerateRna = {};
+	for(var b in degenerate) {
+		if(b!='T') degenerateRna[b] = _.filter(degenerateRna[b], function(x) { return x != 'T'; });
+	}
+
 	var degenerateRegexes = _.reduce(_.keys(degenerate),function(memo,key) {
 		memo[key] = new RegExp('/['+degenerate[key].join('')+']/i');
 		return memo;
@@ -1469,6 +1479,23 @@ var DNA = module.exports.DNA = (function(_) {
 	function matchDegenerate(deg,base) {
 		return degenerateRegexes[deg].test(base)
 	}
+
+	function populateDegenerate(spec,options) {
+		var degenerateMap; options || (options = {}); 
+		if(options.rna) { 
+			degenerateMap = degenerateRna;
+		} else {
+			degenerateMap = degenerateDna
+		}
+		return _.map(spec.split(''),function (x) {
+			return chooseDegenerate(x,degenerateMap);
+		}).join('');
+	}
+
+	function chooseDegenerate(base,degenerateMap)  {
+		var x = degenerateMap[base];
+		return x[Math.floor(Math.random() * x.length)];
+	}
 	
 	// Exports
 	return {
@@ -1482,7 +1509,8 @@ var DNA = module.exports.DNA = (function(_) {
 		parseNamedSequences: parseNamedSequences,
 
 		matchDegenerate : matchDegenerate,
-		
+		populateDegenerate : populateDegenerate,
+
 		stripNupackHeaders : stripNupackHeaders,
 		indexTable : indexTable,
 		indexBy : indexBy,
@@ -1961,8 +1989,11 @@ var DNA = module.exports.DNA = (function(_) {
 				linkStrands: true,
 			});
 
-			var nodes = [], links = [], hybridization = [], 
-			sequences = DNA.hashComplements(params.sequences) || {},
+			var nodes = [],
+
+			// Separate arrays for different link types so we ensure proper z-order when the structure is rendered
+			wc_links = [], strand_links = [], persistence_links = [],
+			hybridization = [], sequences = DNA.hashComplements(params.sequences) || {},
 			strandIndex = 0, node, n = 0, base = 0;
 			
 			// Remove spaces from structure
@@ -2020,28 +2051,33 @@ var DNA = module.exports.DNA = (function(_) {
 									value : params.hybridizationValue,
 									type : 'wc'
 								};
-								links.push(link);
+								wc_links.push(link);
 							}
 		
 							nodes.push(node);
 							
 							if (params.linkStrands) {
 								if (n &gt; 0 ) {
-									links.push({
+									strand_links.push({
 										source : j,
 										target : j - 1,
 										type : 'strand',
 										value : params.strandValue,
 										
-										segment: g &gt; 0 ? seg.name : null,
-										segment_identity : g &gt; 0 ? id.identity : null,
-										domain:  m &gt; 0 ? dom.name : null,
-										domain_role : m &gt; 0 ? dom.role : null,
+										// segment: g &gt; 0 ? seg.name : null,
+										// segment_identity : g &gt; 0 ? id.identity : null,
+										// domain:  m &gt; 0 ? dom.name : null,
+										// domain_role : m &gt; 0 ? dom.role : null,
+
+										segment: seg ? seg.name : null,
+										segment_identity : id ? id.identity : null,
+										domain:  dom ? dom.name : null,
+										domain_role : dom ? dom.role : null,
 									});
 								}
 								
 								if(!!params.persistenceLength &amp;&amp; n &gt; params.persistenceLength) {
-									links.push({
+									persistence_links.push({
 										source : j,
 										target : j - params.persistenceLength,
 										value : params.persistenceValue,
@@ -2066,7 +2102,7 @@ var DNA = module.exports.DNA = (function(_) {
 
 			return {
 				nodes : nodes,
-				links : links,
+				links : wc_links.concat(persistence_links).concat(strand_links),
 				strands : strands,
 			};
 		},

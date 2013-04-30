@@ -16,12 +16,12 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js">
-<span id='Workspace-objects-dna-Node'>/**
-</span> * Represents a single node in a {@link App.ui.NodalCanvas nodal system}
+<span id='App-usr-nodal-ws-objects-Node'>/**
+</span> * Represents a single node in a {@link App.usr.nodal.Canvas nodal system}
  */
-Ext.define('Workspace.objects.dna.Node', {
-	extend: 'Workspace.objects.dna.AbstractNode',
-	wtype: 'Workspace.objects.dna.Node',
+Ext.define('App.usr.nodal.ws.objects.Node', {
+	extend: 'App.usr.nodal.ws.objects.AbstractNode',
+	wtype: 'App.usr.nodal.ws.objects.Node',
 	
 	motif: '0',
 	name: false,
@@ -67,11 +67,14 @@ Ext.define('Workspace.objects.dna.Node', {
 			}
 			return null;
 		});
+		this.expose('strands',function () {
+			return this.getRealtime('strands');
+		},false,false,false);
 
 	},
 	isReal: function() {
 		var parent = this.getParent();
-		return !!parent ? parent.isWType('Workspace.objects.dna.Motif') : false;
+		return !!parent ? parent.isWType('App.usr.nodal.ws.objects.Motif') : false;
 	},
 	nextName: function() {
 		return this.workspace.buildManager.getNextNodeName()
@@ -79,6 +82,7 @@ Ext.define('Workspace.objects.dna.Node', {
 	onRebuild: function() {
 		this.change('computedPolarity',this.get('computedPolarity'));
 		this.change('structure',this.get('structure'));
+		this.change('strands',this.get('strands'));
 	},
 	getRealtime: function(prop) {
 		if(this.workspace.buildManager)
@@ -89,7 +93,8 @@ Ext.define('Workspace.objects.dna.Node', {
 		return this.workspace.buildManager.getRealtime('node',this.get('name'),'this');
 	},
 }, function() {
-	Workspace.reg('Workspace.objects.dna.Node',Workspace.objects.dna.Node);
+	Workspace.reg('App.usr.nodal.ws.objects.Node',App.usr.nodal.ws.objects.Node);
+	Workspace.regAlias('Workspace.objects.dna.Node','App.usr.nodal.ws.objects.Node');
 
 });</pre>
 </body>

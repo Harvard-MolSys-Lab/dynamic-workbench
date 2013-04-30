@@ -15,17 +15,17 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='App-ui-Canvas'>/**
+  <pre class="prettyprint lang-js"><span id='App-usr-canvas-Canvas'>/**
 </span> * The application interface. Responsible for constructing a {@link Workspace} object, managing user interface controls which appear
  * outside the Workspace area itself (such as the Object tree and Ribbon UI)
  */
-Ext.define('App.ui.Canvas', {
+Ext.define('App.usr.canvas.Canvas', {
 	extend: 'Ext.panel.Panel',
 	layout: 'border',
 	alias: 'widget.canvas',
 	editorType: 'Whiteboard',
 	iconCls: 'whiteboard',
-	requires: ['App.ui.Ribbon','App.ui.ObjectTree','App.ui.MotifPalette','App.ui.ObjectProperties',],
+	requires: ['App.usr.canvas.Ribbon','App.usr.canvas.ObjectTree','App.usr.nodal.MotifPalette','App.usr.canvas.ObjectProperties',],
 	border: false,
 	mixins: {
 		app: 'App.ui.Application'
@@ -50,15 +50,15 @@ Ext.define('App.ui.Canvas', {
 				xtype: 'ribbon',
 				region: 'north',
 				height: 100,
-<span id='App-ui-Canvas-property-ribbon'>				/**
-</span>				 * @property {App.ui.Ribbon} ribbon
+<span id='App-usr-canvas-Canvas-property-ribbon'>				/**
+</span>				 * @property {App.usr.canvas.Ribbon} ribbon
 				 * Strip containing various tabs related to objects in the workspace. The ribbon should provide actions
 				 * relevant to the selection.
 				 */
 				ref: 'ribbon',
 				collapseMode: 'mini',
 				canvas: this,
-<span id='App-ui-Canvas-cfg-ribbonItems'>				/**
+<span id='App-usr-canvas-Canvas-cfg-ribbonItems'>				/**
 </span>				 * @cfg {Ext.panel.Panel[]/App.ui.BoundObjectPanel[]} ribbonItems
 				 * Array containing components or config objects to be added to this canvas' #ribbon.
 				 */
@@ -69,7 +69,7 @@ Ext.define('App.ui.Canvas', {
 				// Center region: workspace canvas
 				region: 'center',
 				xtype: 'panel',
-<span id='App-ui-Canvas-property-bodyPanel'>				/**
+<span id='App-usr-canvas-Canvas-property-bodyPanel'>				/**
 </span>				 * @property {Ext.panel.Panel} bodyPanel
 				 * Panel into which the #workspace is rendered.
 				 */
@@ -77,15 +77,16 @@ Ext.define('App.ui.Canvas', {
 				autoScroll: true,
 				bbar: {
 					items: this.bbarItems.concat(['-&gt;','Zoom:&amp;nbsp;',{
-<span id='App-ui-Canvas-property-zoomField'>						/**
+<span id='App-usr-canvas-Canvas-property-zoomField'>						/**
 </span>						 * @property {Ext.slider.Single} zoomField
 						 */
 						ref: 'zoomField', //ref: '../../zoomField',
 						xtype: 'slider',
 						value: 1,
-						minValue: 0.25,
+						minValue: 0.2,
 						maxValue: 4,
 						decimalPrecision: 2,
+						increment: 0.1,
 						animate: true,
 						plugins: Ext.create('Ext.slider.Tip',{
 							getText: function(thumb) {
@@ -109,7 +110,7 @@ Ext.define('App.ui.Canvas', {
 				border: false,
 				width: 200,
 				layout: 'border',
-				items: [Ext.create('App.ui.ObjectTree',{
+				items: [Ext.create('App.usr.canvas.ObjectTree',{
 					region: 'center',
 					ref: 'objectTree', //'../objectTree',
 					border: true,
@@ -129,7 +130,7 @@ Ext.define('App.ui.Canvas', {
 					preventHeader: true,
 					plain: true,
 					title: 'Palettes',
-<span id='App-ui-Canvas-property-palettes'>					/**
+<span id='App-usr-canvas-Canvas-property-palettes'>					/**
 </span>					 * @property {Ext.tab.Panel} palettes
 					 * Tabbed panel containing a set of palettes containing objects which can be dragged 
 					 * and dropped onto the workspace canvas. Palettes can be configured with {@link #cfg-palettes}
@@ -142,8 +143,8 @@ Ext.define('App.ui.Canvas', {
 					titleCollapse: true,
 					border: true,
 					frame: false,
-<span id='App-ui-Canvas-cfg-palettes'>					/**
-</span>					 * @cfg {App.ui.Palette[]} palettes
+<span id='App-usr-canvas-Canvas-cfg-palettes'>					/**
+</span>					 * @cfg {App.usr.canvas.Palette[]} palettes
 					 * Array of components or config objects for palettes containing objects which can be 
 					 * dragged and dropped onto the workspace canvas. Palettes will be rendered into 
 					 * {@link #property-palettes}
@@ -151,9 +152,9 @@ Ext.define('App.ui.Canvas', {
 					items: this.palettes,
 					collapsed: (this.palettes.length == 0),
 				}]
-			}, Ext.create('App.ui.ObjectProperties',{
-<span id='App-ui-Canvas-property-objectProperties'>				/**
-</span>				 * @property {App.ui.ObjectProperties} objectProperties
+			}, Ext.create('App.usr.canvas.ObjectProperties',{
+<span id='App-usr-canvas-Canvas-property-objectProperties'>				/**
+</span>				 * @property {App.usr.canvas.ObjectProperties} objectProperties
 				 * Contains the {@link #inspectors}.
 				 */
 				ref: 'objectProperties',
@@ -165,7 +166,7 @@ Ext.define('App.ui.Canvas', {
 				border: true,
 				frame: false,
 				region: 'east',
-<span id='App-ui-Canvas-cfg-inspectors'>				/**
+<span id='App-usr-canvas-Canvas-cfg-inspectors'>				/**
 </span>				 * @cfg {App.ui.BoundObjectPanel[]} inspectors
 				 * Array of components of config objects for inspectors which are used to view and edit
 				 * properties of selected objects.
@@ -189,26 +190,34 @@ Ext.define('App.ui.Canvas', {
 		this);
 
 	},
-<span id='App-ui-Canvas-method-loadWorkspace'>	/**
+<span id='App-usr-canvas-Canvas-method-loadWorkspace'>	/**
 </span>	 * Proxies {@link #loadFile}.
 	 */
 	loadWorkspace: function() {
 		this.loadFile();
 		
 	},
-<span id='App-ui-Canvas-cfg-autoHideLoadingMask'>	/**
+<span id='App-usr-canvas-Canvas-cfg-autoHideLoadingMask'>	/**
 </span>	 * @cfg
 	 * True to automatically hide the loading mask
 	 */
 	autoHideLoadingMask: false,
-<span id='App-ui-Canvas-method-onLoad'>	/**
+
+<span id='App-usr-canvas-Canvas-method-createBlankWorkspace'>	/**
+</span>	 * Override to provide custom logic upon the creation of a new (blank) workspace. 
+	 * This is called by #onLoad if the passed #data from the loaded file is empty.
+	 */
+	createBlankWorkspace: function () {
+		return {}
+	},
+<span id='App-usr-canvas-Canvas-method-onLoad'>	/**
 </span>	 * Builds the {@link Workspace} with the data loaded from the {@link App.Document} body
 	 */
 	onLoad: function() {
-		this.workspaceData = Ext.isEmpty(this.data) ? {} : Ext.decode(this.data);
+		this.workspaceData = Ext.isEmpty(this.data) ? this.createBlankWorkspace() : Ext.decode(this.data);
 		this.workspaceData.path = this.getPath();
 
-<span id='App-ui-Canvas-property-workspace'>		/**
+<span id='App-usr-canvas-Canvas-property-workspace'>		/**
 </span>		 * @property {Workspace} workspace
 		 * Reference to the {@link Workspace} object which manages objects on the canvas.
 		 */
@@ -249,25 +258,25 @@ Ext.define('App.ui.Canvas', {
 		});
 		
 	},
-<span id='App-ui-Canvas-method-setupWorkspace'>	/**
+<span id='App-usr-canvas-Canvas-method-setupWorkspace'>	/**
 </span>	 * Called after the #workspace is created and loaded. Override to provide custom logic on workspace creation.
 	 */
 	setupWorkspace: function() {
 		
 	},
-<span id='App-ui-Canvas-method-saveWorkspace'>	/**
+<span id='App-usr-canvas-Canvas-method-saveWorkspace'>	/**
 </span>	 * Serializes, encodes, and saves the #workspace to the server (proxies {@link #saveFile}).
 	 */
 	saveWorkspace: function() {
 		this.saveFile();
 	},
-<span id='App-ui-Canvas-method-getSaveData'>	/**
+<span id='App-usr-canvas-Canvas-method-getSaveData'>	/**
 </span>	 * Serializes the #workspace to save
 	 */
 	getSaveData: function() {
 		return this.workspace.serialize();
 	},
-<span id='App-ui-Canvas-method-zoomWorkspace'>	/**
+<span id='App-usr-canvas-Canvas-method-zoomWorkspace'>	/**
 </span>	 * Zooms the #workspace to the given zoom value
 	 * @param {Ext.slider.Single} slider Reference to the #zoomSlider
 	 * @param {Number} value Zoom value (1 = 100%, 2 = 100%, etc.)

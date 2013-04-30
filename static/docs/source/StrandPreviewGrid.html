@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define('App.usr.dil.StrandPreviewGrid', {
+	extend: 'Ext.view.View',
+	requires: ['App.usr.dil.SegmentStore','App.usr.dil.ComplexStore'],
+	cellWidth: 200,
+	cellHeight: 200,
+	itemSelector: 'div.complex-wrap',
+	trackOver: true,
+	overItemCls: 'x-view-over',
+	multiSelect: false,
+	singleSelect: true,
+
+	autoScroll: true,
+	paddingWidth: 6,
+	paddingHeight: 14,
+
+	nodeFillMode: 'segment', // 'identity', 'segment', 'domain'
+	nodeStrokeMode: 'segment', // 'identity', 'segment', 'domain'
+	lineStrokeMode: 'default',
+	textFillMode: 'default',
+	showBubbles: true,
+	loopMode: 'linear',
+	showBases : true,
+	showIndexes : true,
+	showSegments : true,
+	zoom: -1,
+
+	initComponent: function() {
+		this.strandPreviews = {};
+		this.tpl = ['&lt;tpl for=&quot;.&quot;&gt;', '&lt;div style=&quot;border:solid 1px white;padding:4px;margin:10px;float:left;width:' + this.cellWidth + 'px;height:' + (this.cellHeight+this.paddingHeight) + 'px;&quot; class=&quot;complex-wrap&quot;&gt;',
+		//'&lt;span&gt;{name}&lt;/span&gt; = &lt;span&gt;{[values.strands.join(&quot; + &quot;)]}&lt;/span&gt; : &lt;span&gt;{structure}&lt;/span&gt;',
+		'&lt;span style=&quot;position:absolute;&quot;&gt;{name}&lt;/span&gt;', '&lt;/div&gt;', '&lt;/tpl&gt;'].join(''),
+
+		this.on('itemadd', this.addComplexes);
+		this.on('itemupdate', this.updateComplex);
+		this.on('itemremove', this.removeComplex);
+
+		this.on('itemmouseenter', function(view, rec, el, e) {
+			this.fireEvent('updateToolbar', el);
+		}, this);
+		
+		this.segmentStore.on('update', function(segmentStore, rec, op, modifiedFieldNames) {
+			if(modifiedFieldNames.indexOf('color') != -1) {
+				this.refresh();
+			}
+		},this,{buffer: 100});
+
+		this.callParent(arguments);
+	},
+<span id='global-method-getChart'>	/**
+</span>	 * Returns a StrandPreview chart object
+	 * @param  {Boolean} update
+	 * True to force the chart to be updated with #cellHeight, #cellWidth, #nodeStrokeMode, etc. properties.
+	 *
+	 * @return {[type]}
+	 */
+	getChart: function(update) {
+		update || (update = false);
+		if(!this.chart || update) {
+			this.chart = StrandPreview().width(this.cellWidth - this.paddingWidth).height(this.cellHeight - this.paddingHeight)
+			.showBubbles(this.showBubbles)
+			.showBases(this.showBases)
+			.showIndexes(this.showIndexes)
+			.showSegments(this.showSegments)
+			.loopMode(this.loopMode)
+			.nodeStrokeMode(this.nodeStrokeMode)
+			.nodeFillMode(this.nodeFillMode)
+			.lineStrokeMode(this.lineStrokeMode)
+			.textFillMode(this.textFillMode);
+			this.chart.segmentColors(this.getSegmentColorScale());
+
+			//if(!!this.segmentColors) this.chart.segmentColors(this.segmentColors)
+		}
+		return this.chart;
+	},
+	updateChartProperties: function() {
+		this.tpl = new Ext.XTemplate(['&lt;tpl for=&quot;.&quot;&gt;', '&lt;div style=&quot;border:solid 1px white;padding:4px;margin:10px;float:left;width:' + this.cellWidth + 'px;height:' + (this.cellHeight+this.paddingHeight) + 'px;&quot; class=&quot;complex-wrap&quot;&gt;',
+		//'&lt;span&gt;{name}&lt;/span&gt; = &lt;span&gt;{[values.strands.join(&quot; + &quot;)]}&lt;/span&gt; : &lt;span&gt;{structure}&lt;/span&gt;',
+		'&lt;span style=&quot;position:absolute;&quot;&gt;{name}&lt;/span&gt;', '&lt;/div&gt;', '&lt;/tpl&gt;'].join(''));
+
+		this.getChart(true);
+		this.refresh();
+	},
+	setCellSize: function(sizeX,sizeY) {
+		if(arguments.length &lt; 2) {
+			sizeY = sizeX;
+		}
+		this.cellWidth = sizeX;
+		this.cellHeight = sizeY;
+
+		this.updateChartProperties();
+	},
+	setZoom: function (zoom) {
+		this.zoom = zoom;
+		this.updateChartProperties();
+	},
+	refresh: function() {
+		this.callParent(arguments);
+
+		var me = this,
+			nodes = [],
+			records = me.store.getRange(),
+			data = [],
+			segmentMap = me.getSegmentMap();
+		for(var i = 0; i &lt; records.length; i++) {
+			var rec = records[i],
+				dom = this.getNode(rec);
+
+			if(dom) {
+				nodes.push(dom);
+
+				data.push({
+					strands: _.map(rec.getStrands(), function(strandName) {
+						return {
+							name: strandName,
+							domains: me.strandStore.findRecord('name', strandName).getParsedSpec()
+						}
+					}),
+					structure: rec.get('structure'),
+					sequences: segmentMap,
+				});
+			}
+		}
+
+		if(nodes.length &gt; 0) {
+			// Configure chart prototype
+			var chart = me.getChart();
+
+			// Build selection and chart
+			var nodeData = d3.selectAll(nodes).data(data).append('svg');
+			this.preview = chart(nodeData);
+
+
+			// this.resizers = [];
+			// for(var i=0; i&lt;nodes.length; i++) {
+			// this.resizers.push(Ext.create('Ext.resizer.Resizer',{target:nodes[i]}));
+			// }
+		}
+	},
+	addComplexes: function(records, index, nodes) {
+
+		var me = this,
+			data = [],
+			segmentMap = me.getSegmentMap();
+
+		for(var i = 0; i &lt; records.length; i++) {
+			var rec = records[i];
+
+			data.push({
+				strands: _.map(rec.getStrands(), function(strandName) {
+					return {
+						name: strandName,
+						domains: me.strandStore.findRecord('name', strandName).getParsedSpec()
+					}
+				}),
+				structure: rec.get('structure'),
+				sequences: segmentMap,
+			});
+		}
+
+		if(nodes.length &gt; 0) {
+			// Configure chart prototype
+			var chart = me.getChart();
+
+			// Build selection and chart
+			var nodeData = d3.selectAll(nodes).data(data).append('svg');
+			this.preview = chart(nodeData);
+
+
+			// this.resizers = [];
+			// for(var i=0; i&lt;nodes.length; i++) {
+			// this.resizers.push(Ext.create('Ext.resizer.Resizer',{target:nodes[i]}));
+			// }
+		}
+	},
+	updateComplex: function(record, index, node) {
+		var me = this,
+			rec = record,
+			segmentMap = this.getSegmentMap(),
+			data = [{
+				strands: _.map(rec.getStrands(), function(strandName) {
+					return {
+						name: strandName,
+						domains: me.strandStore.findRecord('name', strandName).getParsedSpec()
+					}
+				}),
+				structure: rec.get('structure'),
+				sequences: segmentMap,
+			}];
+		var chart = me.getChart();
+
+		var nodeData = d3.select(node).data(data).append('svg');
+		chart(nodeData);
+		this.preview.expandSelection(nodeData);
+
+	},
+	removeComplex: function(record, index) {
+
+	},
+	getSegmentMap: function() {
+		if(this.segmentMap) {
+			return this.segmentMap;
+		} else if(this.segmentStore) {
+			return this.segmentStore.getSegmentMap();
+		}
+	},
+	getSegmentColorScale: function() {
+		return this.segmentStore.getSegmentColorScale()
+	},
+	highlight: function(criteria) {
+		this.preview.highlight(criteria);
+	},
+	unhighlight: function(criteria) {
+		this.preview.unhighlight(criteria);
+	},
+	getMarkup: function(cb) {
+		if(!this.svgStyles) {
+			Ext.Ajax.request({
+			    url: 'styles/strand-preview.css',
+			    success: function(response){
+			        this.svgStyles = response.responseText;
+			        this.doGetMarkup(cb);
+			    },
+			    scope: this,
+			});
+		} else {
+			this.doGetMarkup(cb);
+		}
+	},
+	doGetMarkup: function(cb) {
+		var me = this, 
+			rowLength = 6,
+			x_offset = 10,
+			y_offset = 10,
+			markup = _.map(this.getNodes(),function(node,index) {
+				var x = index % rowLength, y = Math.floor(index / rowLength),
+					markup = node.innerHTML.replace(/&lt;span(\b[^&gt;]*)&gt;([^&lt;]*)&lt;\/span&gt;/g,'&lt;text class=&quot;complex-label&quot;&gt;$2&lt;/text&gt;')
+						.replace(/&lt;svg(\b[^&gt;]*)&gt;/g,'').replace('&lt;/svg&gt;','');
+				return '&lt;g transform=&quot;translate('+[x_offset+x*me.cellWidth,y_offset+y*me.cellHeight]+')&quot;&gt;'+markup+'&lt;/g&gt;';
+			}).join('\n');
+
+		var value = '&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;&lt;!DOCTYPE svg PUBLIC &quot;-//W3C//DTD SVG 1.1//EN&quot; &quot;http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd&quot;&gt;'+
+		'&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot;&gt;'+
+		'&lt;style type=&quot;text/css&quot;&gt;&lt;![CDATA[' + this.svgStyles + ']]&gt;&lt;/style&gt;'+
+		markup+'&lt;/svg&gt;';
+
+		cb(value);
+	},
+})</pre>
+</body>
+</html>

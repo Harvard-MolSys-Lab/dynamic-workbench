@@ -15,12 +15,12 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='App-ui-nodal-LibraryWindow'>/**
+  <pre class="prettyprint lang-js"><span id='App-usr-nodal-LibraryWindow'>/**
 </span> * Displays results of a {@link App.dynamic.Library DyNAMiC library} compilation.
  */
-Ext.define('App.ui.nodal.LibraryWindow', {
+Ext.define('App.usr.nodal.LibraryWindow', {
 	extend : 'Ext.window.Window',
-	requires: ['App.ui.NupackEditor','App.ui.CodeMirror',],
+	requires: ['App.usr.nupack.Editor','App.ui.CodeMirror',],
 	title : 'Compiled library',
 	minimize : function() {
 		this.toggleCollapse();

@@ -15,13 +15,13 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='App-ui-canvas-ChemTab'>/**
-</span> * @class App.ui.canvas.ChemTab
+  <pre class="prettyprint lang-js"><span id='App-usr-canvas-ChemTab'>/**
+</span> * @class App.usr.canvas.ChemTab
  * Allows editing {@link Workspace.objects.ChemStructureObject}s
- * @extends App.ui.ToolsTab
+ * @extends App.usr.canvas.ToolsTab
  */
-Ext.define('App.ui.canvas.ChemTab', {
-	extend:'App.ui.ToolsTab',
+Ext.define('App.usr.canvas.ChemTab', {
+	extend:'App.usr.canvas.ToolsTab',
 	requires: [],
 	showIf: function(wtype) {
 		return wtype == 'Workspace.objects.ChemStructureObject';

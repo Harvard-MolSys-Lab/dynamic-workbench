@@ -15,845 +15,292 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">function StrandPreview() {
-	/* **********************
-	 * Configuration
-	 */
-		
-		var viewSizeX = 400, viewSizeY = 400,
-			fade_in_duration = 100, 
-			panel_wait_duration = 1000, simultaneous_panels = 2,
-			//k = Math.sqrt(nodes.length / (viewSizeX * viewSizeY));
-			maxLinkDistance, strandLinkDistance, wcLinkDistance, persistenceLength = false,
-			
-			baseWidth = 1,
-			
-			nodeFillMode = 'segment', // 'identity', 'segment', 'domain'
-			nodeStrokeMode = 'segment', // 'identity', 'segment', 'domain'
-			lineStrokeMode = 'default', // 'segment', 'domain', 'default'
-			textFillMode = 'default', // 'default', 'segment', 'domain', 'identity'
-			showBubbles = true,
-			showBases = true,
-			showIndexes = true,
-			showSegments = true,
-
-			segmentLabelFontSize = 1,
-			nodeBaseFontSize = baseWidth*.8,
-			nodeIndexFontSize = baseWidth*.8,
-
-			scaleSegmentLabels = true,
-			minFontSize = 0.25,
-			segment_label_height = 2,
-
-			arrowDistance = 60,
-			arrowScale = 20,
-			loopMode = 'circular',
-
-			line_stroke = '#aaa',
-			strokes = {
-				'wc': '#ccc',
-				'strand' : line_stroke,
-				'persistence' : '',
-				'undesired' : '#a00',
-			};
-		var segmentColors = d3.scale.category20(),
-			baseColors = d3.scale.ordinal().domain(['A','T','C','G','N']).range(['blue','red','green','black','orange']);
-	
-	/* **********************
-	 * Utility methods
-	 */	
-	 
-	function range(arr) {
-		return _.range(arr[0], arr[1] + 1)
-	}
-		
-	function buildNodeLayout(structure) {
-		if(_.isString(structure)) {
-			return DNA.generateAdjacency(structure,['A'],true,{
-				persistenceLength: false,
-			});
-		} else if(structure.strands &amp;&amp; structure.structure &amp;&amp; structure.sequences) {
-			return DNA.generateAdjacency3(structure.structure, structure.strands, {
-				sequences: structure.sequences,
-				persistenceLength: false,
-			});
-		} else {
-			return DNA.generateAdjacency2(structure, {
-				linkStrands : true,
-				//persistenceLength: this.persistenceLength,
-				persistenceLength: false,
-			});
-		}
-	}
-	
-	function buildPointLayout(parsed_struct,viewSizeX,viewSizeY) {
-		var pairs = DNA.layoutStructure(parsed_struct,{
-			loopMode:loopMode,
-			arrangeLayout: false,
-		}), layout, scale;
-		
-		if(pairs.length == 0) {
-			return { pairs: [], zoom: 1, translate: [0,0] };
-		}
-
-		layout = DNA.arrangeLayout(pairs,{
-			center: true, 
-			//scale: [viewSizeX*.8,viewSizeY*.8], 
-			offsets:[viewSizeX*.05,viewSizeY*.05], 
-			loopMode: loopMode,
-		});
-		scale = DNA.getScale(layout.bounds,[viewSizeX*.8,viewSizeY*.8],/* maintainAspect */ true);
-		
-		return {
-			pairs: layout.pairs,
-			zoom: scale[0]*0.9,
-			translate: DNA.getOffset(layout.bounds,[viewSizeX*.8,viewSizeY*.8],scale[0]*.9)
-		};
-	}
-	
-	function updateLinkDistances() {
-		maxLinkDistance = viewSizeX / 20;
-		strandLinkDistance = maxLinkDistance;
-		wcLinkDistance = 1.5 * strandLinkDistance;
-	}
-	
-	
-			
-	
-	/* ******************************************
-	 * Constructor
-	 */	
-	function chart(selection) {
-		selection.each(function(data) {
-			
-			/* ******************************
-			 * Parse incoming data
-			 */
-			var parsed_struct,			
-				structure = data;			
-			if(_.isString(data)) {
-				parsed_struct = DNA.parseDotParen(structure);
-			} else {
-				if(structure.strands) {
-					structure.strands = DNA.expandStrands(structure.strands);								
-				}
-				if(structure.dotParen) {								
-					parsed_struct = DNA.parseDotParen(structure.dotParen);	
-				} else if(structure.strands &amp;&amp; structure.sequences) {								
-					structure.dotParen = DNA.expandStructure(structure.structure, structure.strands, structure.sequences,true);
-					parsed_struct = DNA.parseDotParen(structure.dotParen);	
-				} 
-			}
-			
-			
-			/* ******************************
-			 * Build nodeLayout and pointLayout
-			 */
-			var pointLayout, nodeLayout, nodes, links;
-			
-			// Build nodeLayout; this is the arrangement of nodes and links
-			// which is fed to d3.
-			nodeLayout = buildNodeLayout(data);
-			
-			// Build pointLayout; this determines the (starting) 2D positions
-			// of each node. By default uses a planar graph layout
-			pointLayout = buildPointLayout(parsed_struct,viewSizeX,viewSizeY);
-			
-			
-			// Update node positions based on pointLayout
-			nodes = _.map(nodeLayout.nodes, function(n, i) {
-				n.x = pointLayout.pairs[i][0];
-				n.y = pointLayout.pairs[i][1];
-				n.theta = pointLayout.pairs[i][2];
-				return n;
-			});
-			links = nodeLayout.links;
-			
-			// Build node for 3' tail
-			var lastIndex = nodes.length-1, lastNode = nodes[lastIndex-1];
-			if(lastNode) { 
-				var theta = lastNode.theta+Math.PI/2,
-				tailNode = {
-					x: lastNode.x+Math.cos(theta)*arrowDistance,
-					y: lastNode.y+Math.sin(theta)*arrowDistance,
-					theta: theta,
-				},
-				tailLink = {source: lastIndex, target: lastIndex+1, type: 'tail'};
-			}
-
-			/* *****************************
-			 * Build panel
-			 */
-			var panel = d3.select(this)
-			.attr(&quot;pointer-events&quot;, &quot;all&quot;)
-			.append('g')
-				//.attr('width',viewSizeX)
-				//.attr('height',viewSizeY)
-				.call(d3.behavior.zoom().on('zoom',zoomRedraw).scale(pointLayout.zoom).translate(pointLayout.translate))
-			.append('g');
-
-			panel.attr(&quot;transform&quot;,
-			      &quot;translate(&quot; + pointLayout.translate + &quot;)&quot;
-			      + &quot; scale(&quot; + pointLayout.zoom + &quot;)&quot;);
-			
-			/* ******************************
-			 * Build force-directed graph
-			 */
-			var force = d3.layout.force()
-			.size([viewSizeX, viewSizeY]) //
-			.charge(-45) //
-			.linkDistance(function(l,i) { 
-				if(l.type == 'persistence') {
-					return persistenceLength * (1.2*maxLinkDistance)
-				} else if(l.type == 'wc') {
-					return wcLinkDistance;
-				} else if(l.type == 'strand') {
-					return strandLinkDistance;
-				}
-			}).linkStrength(function(l, i) {
-				if(l.type == 'persistence') {
-					return 1/persistenceLength
-				} else if(l.type == 'wc') {
-					return 1;
-				} else if(l.type == 'strand') {
-					return 0.7;
-				}
-			}).gravity(0.02);
-			
-			// Bind nodes to the force layout
-			var forceNodes = nodes;
-			if(tailNode) {
-				forceNodes = _.clone(nodes);
-				forceNodes.push(tailNode);
-				links.push(tailLink);
-			}
-			force.nodes(forceNodes).links(links)
-			
-			/* ******************************
-			 * Build visualization
-			 */
-			
-			panel.append(&quot;rect&quot;)
-			.classed('strand-preview-drag',true)
-			//.attr(&quot;fill&quot;,&quot;transparent&quot;)
-			.attr(&quot;width&quot;,viewSizeX/pointLayout.zoom)
-			.attr(&quot;height&quot;,viewSizeY/pointLayout.zoom);
-			
-			var nodeSel, linkSel;
-			
-			// Links
-			linkSel = panel.selectAll(&quot;line.link&quot;).data(links);
-			linkSel.exit().remove();
-			var link_line = linkSel = linkSel.enter().append(&quot;line&quot;).attr(&quot;class&quot;, function(d) {
-				var cls = [&quot;link&quot;,&quot;link-&quot;+d.type];
-				cls.push(&quot;source-&quot; + d.source.name);
-				cls.push(&quot;target-&quot; + d.target.name);
-				return cls.join(' ');
-			}).style('stroke',function(d) {
-				if(d.type == 'strand') {
-					switch(lineStrokeMode) {
-						case 'identity':
-								return baseColors(d.base)
-						case 'segment':
-								return segmentColors(d.segment_identity)
-						case 'domain':
-								return App.dynamic.Compiler.domainColors[d.domain_role] || null
-						default:
-							return '';
-					}
-				}
-				return '';
-			});
-			
-							
-			// Node Groups
-			nodeSel = panel.selectAll(&quot;g.node&quot;).data(nodes);
-			nodeSel.exit().remove();
-			nodeSel = nodeSel.enter().append('g').attr(&quot;class&quot;, &quot;node&quot;).call(force.drag);
-	
-			// Node circle
-			if(showBubbles) {
-				var node_circle = nodeSel.append(&quot;circle&quot;).attr(&quot;r&quot;, 0.5*baseWidth+'em');
-				redrawNodeCircles(node_circle);
-			}
-							
-			// Node index
-			if(showIndexes) {
-				var node_index = nodeSel.append('text').attr('class', 'node_index');
-				redrawNodeIndex(node_index);
-			}
-
-			// Node base
-			if(showBases) {
-				var node_base = nodeSel.append('text').attr('class', 'node_base');
-				redrawNodeBase(node_base);
-			}
-
-			// Node segment name
-			if(showSegments) {
-				var node_segment = nodeSel.append('text').attr('class', 'node_segment');
-				redrawNodeSegment(node_segment);
-			}
-
-			if(tailNode) {
-				var tailSel = panel.selectAll(&quot;path.tail&quot;)
-					.data([tailNode]).enter().append('path').attr('class','tail');
-				tailSel.attr('d',Ext.String.format('M-{0},-{0} L0,0 L-{0},{0}',arrowScale));
-			}
-
-			redraw(pointLayout.zoom,pointLayout.translate);
-	
-			// gobbles parameters that would be passed to redraw and uses d3.event stuff instead
-			function zoomRedraw() {
-				return redraw(d3.event.scale,d3.event.translate );
-			}
-
-			var nodeBaseHidden = false,
-				nodeIndexHidden = false,
-				segmentLabelHidden = false;
-
-			function redraw(redraw_scale,redraw_translate) {
-				panel.attr(&quot;transform&quot;,
-			      &quot;translate(&quot; + redraw_translate + &quot;)&quot;
-			      + &quot; scale(&quot; + redraw_scale + &quot;)&quot;);
-
-				if(showBases &amp;&amp; nodeBaseFontSize*redraw_scale &lt; minFontSize &amp;&amp; !nodeBaseHidden) {
-					panel.selectAll('text.node_base').style('display','none');
-					nodeBaseHidden = true;
-				} else if (showBases &amp;&amp; nodeBaseFontSize*redraw_scale &gt;= minFontSize &amp;&amp; nodeBaseHidden) {
-					panel.selectAll('text.node_base').style('display','');
-					nodeBaseHidden = false;
-				}
-				if(showIndexes &amp;&amp; nodeIndexFontSize*redraw_scale &lt; minFontSize &amp;&amp; !nodeIndexHidden) {
-					panel.selectAll('text.node_index').style('display','none');
-					nodeIndexHidden = true;
-				} else if(showIndexes &amp;&amp; nodeIndexFontSize*redraw_scale &lt; minFontSize &amp;&amp; nodeIndexHidden) {
-					panel.selectAll('text.node_index').style('display','');
-					nodeIndexHidden = false;
-				}
-
-				if(showSegments &amp;&amp; scaleSegmentLabels &amp;&amp; !segmentLabelHidden) {
-					var sel = panel.selectAll('text.node_segment');
-					sel.style('font-size',1/redraw_scale*segmentLabelFontSize+'em')
-					.attr('dx', function(d) {
-						if(d.segment_length) {
-							var phi = Math.atan2(segment_label_height,d.segment_length*baseWidth/2),
-							c = Math.sqrt(Math.pow(segment_label_height,2),Math.pow(d.segment_length*baseWidth/2,2));
-							return Math.cos(d.theta+Math.PI/2-phi)*c*redraw_scale*2+'em';
-						}
-						return Math.cos(d.theta+Math.PI/4)*2.5*redraw_scale*2+'em';
-					}).attr('dy', function(d) {
-						if(d.segment_length) {
-							var phi = Math.atan2(segment_label_height,d.segment_length*baseWidth/2),
-							c = Math.sqrt(Math.pow(segment_label_height,2),Math.pow(d.segment_length*baseWidth/2,2));
-							return Math.sin(d.theta+Math.PI/2-phi)*c*redraw_scale*2+0.35+'em';
-						}
-						return Math.sin(d.theta+Math.PI/4)*2.5*redraw_scale*2+0.35+'em';
-					});
-				} else {
-					if(showSegments &amp;&amp; segmentLabelFontSize*redraw_scale &lt; minFontSize &amp;&amp; !segmentLabelHidden) {
-						panel.selectAll('text.node_base').style('display','none');
-						segmentLabelHidden = true;
-					} else if(showSegments &amp;&amp; segmentLabelFontSize*redraw_scale &gt;= minFontSize &amp;&amp; segmentLabelHidden) {
-						panel.selectAll('text.node_base').style('display','');
-						segmentLabelHidden = false;
-					} 
-				}
-				
-
-			}
-			
-			function restart() {
-				function doTick() {
-					linkSel.attr(&quot;x1&quot;, function(d) {
-						return d.source.x;
-					}).attr(&quot;y1&quot;, function(d) {
-						return d.source.y;
-					}).attr(&quot;x2&quot;, function(d) {
-						return d.target.x;
-					}).attr(&quot;y2&quot;, function(d) {
-						return d.target.y;
-					});
-		
-					nodeSel.attr(&quot;transform&quot;, function(d) {
-						return &quot;translate(&quot; + d.x + &quot;,&quot; + d.y + &quot;)&quot;;
-					});
-
-					if(tailSel) {
-						tailSel.attr('transform',function(d) {
-							return &quot;translate(&quot; + d.x + &quot;,&quot; + d.y + &quot;) rotate(&quot;+d.theta*180/Math.PI+&quot;)&quot;;
-						});
-					}
-				}
-				
-				function fadeIn() {
-					panel.style(&quot;opacity&quot;, 1e-6)
-						.transition()
-						.duration(fade_in_duration)
-						.style(&quot;opacity&quot;, 1);
-				}
-		
-				// force.start();
-				// force.on(&quot;tick&quot;, doTick);
-
-				force.start();
-				doTick();
-				force.stop();
-				// _.delay(function() { me.force.start(); },2000);	
-				
-				
-				fadeIn();
-			}
-			
-			restart();
-			
-		});
-		
-		var c = {
-			highlight: highlight,
-			unhighlight: unhighlight,
-			fade: fade,
-			unfade: unfade,
-			redrawNodes: redrawNodes,
-			each: each,
-			expandSelection: expandSelection,
-		};
-
-		return c;
-
-		function each(f) {
-			selection.each(f);
-			return c;
-		}
-
-		function expandSelection(newSelection) {
-			for(var i=0; i&lt;newSelection.length; i++) {
-				for(var j=0; j&lt;selection.length; j++) {
-					if(selection[j] == newSelection[i]) {
-						selection[j] = newSelection[i];
-						newSelection[i] = null;
-					}
-				}
-			}
-			for(var i=0; i&lt;newSelection.length; i++) {
-				if(newSelection[i] != null) {
-					selection.push(newSelection[i]);
-				}
-			}
-
-		}
-
-		function redrawNodeCircles(node_circle) {
-			node_circle.style(&quot;fill&quot;, function(d) {
-				switch(nodeFillMode) {
-					case 'identity':
-							return baseColors(d.base)
-					case 'segment':
-							return segmentColors(d.segment_identity)
-					case 'domain':
-							return App.dynamic.Compiler.domainColors[d.domain_role] || null
-				}
-			})
-			.style(&quot;stroke&quot;, function(d) {
-				switch(nodeStrokeMode) {
-					case 'identity':
-							return d3.rgb(baseColors(d.base)).darker().toString();
-					case 'segment':
-							return d3.rgb(segmentColors(d.segment_identity)).darker().toString();
-					case 'domain':
-							return App.dynamic.Compiler.domainColors[d.domain_role] ? 
-								d3.rgb(App.dynamic.Compiler.domainColors[d.domain_role]).darker().toString() : null
-				}
-			});
-		}
-
-		function redrawNodeIndex(node_index) {
-			node_index.style('font-size',nodeIndexFontSize+'em')
-			.attr('text-anchor','middle')
-			.attr('dx', function(d) {
-				return Math.cos(d.theta)+'em';
-			}).attr('dy', function(d) {
-				return Math.sin(d.theta)+0.35+'em';
-			}).text(function(d,i) {
-				return (i % 10 == 0) ? i : '';
-			});
-		}
-
-		function redrawNodeBase(node_base) {
-			node_base.style('font-size',nodeBaseFontSize+'em')
-			.attr('text-anchor','middle')
-			.attr('dy','.35em')
-			.text(function(d) {
-				return d.base || 'N'
-			}).style(&quot;fill&quot;, function(d) {
-				switch(textFillMode) {
-					case 'identity':
-							return baseColors(d.base)
-					case 'segment':
-							return segmentColors(d.segment_identity)
-					case 'domain':
-							return App.dynamic.Compiler.domainColors[d.domain_role] || null
-					default:
-						// Hack. Illustrator appears to ignore these values if they're set in CSS on a class
-						return '#fff';
-				}
-			});
-	}
-
-		function redrawNodeSegment(node_segment) {
-			node_segment
-			.attr('text-anchor','middle')
-			.text(function(d,i) {
-				return d.segment_index == 0 ? d.segment : ''
-			}).attr('fill',function(d) {
-				return segmentColors(d.segment_identity);
-			});
-		}
-
-		function redrawNodes() {
-			each(function(data) {
-				var panel = d3.select(this);
-				var nodeSel = panel.selectAll(&quot;g.node&quot;);
-
-				// Node circle
-				if(showBubbles) {
-					redrawNodeCircles(nodeSel.select(&quot;circle&quot;));
-				}
-
-				// Node index
-				if(showIndexes) {
-					redrawNodeIndex(nodeSel.select(&quot;text.node_index&quot;));	
-				}
-				// Node base
-				if(showBases) {
-					redrawNodeBase(nodeSel.select(&quot;text.node_base&quot;));
-				}
-
-				// Node segment name
-				if(showSegments) {
-					redrawNodeSegment(nodeSel.select(&quot;text.node_segment&quot;));
-				}
-				
-			})
-		}
-
-		function fade() {
-			return each(function(data) {
-				d3.select(this).selectAll('g.node').classed('node-faded',true);
-			});
-		}
-
-		function unfade() {
-			return each(function(data) {
-				d3.select(this).selectAll('g.node').classed('node-faded',false);
-			});
-		}
-
-		function highlight(criteria,className) {
-			className || (className = 'node-highlight');
-			if(!criteria) {
-				return each(function(data) {
-					d3.select(this).selectAll('g.node').classed(className,true);
-				})
-			}
-			return each(function(data) {
-				d3.select(this).selectAll('g.node').classed(className,function(d) {
-					if(!criteria) { return true; }
-					var keep = true;
-					for(var key in criteria) {
-						keep = keep &amp;&amp; (d[key] == criteria[key]);
-					}
-					return keep;
-				});
-			});
-		}
-		function unhighlight(criteria,className) {
-			className || (className = 'node-highlight');
-			if(!criteria) {
-				return each(function(data) {
-					d3.select(this).selectAll('g.node').classed(className,false);
-				});
-			}
-			return each(function(data) {
-				d3.select(this).selectAll('g.node').classed(className,function(d) {
-					var keep = true;
-					for(var key in criteria) {
-						keep = keep &amp;&amp; (d[key] == criteria[key]);
-					}
-					return !keep;
-				});
-			});
-		}
-	}
-	
-	/* **********************
-	 * Chainable accessors
-	 */
-	
-	chart.width = function(_) {
-		if (!arguments.length) return viewSizeX;
-		viewSizeX = _;
-		updateLinkDistances()
-		return chart;
-	};
-
-	chart.height = function(_) {
-		if (!arguments.length) return viewSizeY;
-		viewSizeY = _;
-		updateLinkDistances()
-		return chart;
-	};
-	
-	chart.nodeStrokeMode = function(_) {
-		if (!arguments.length) return nodeStrokeMode;
-		nodeStrokeMode = _;
-		return chart;
-	};
-	
-	chart.nodeFillMode = function(_) {
-		if (!arguments.length) return nodeFillMode;
-		nodeFillMode = _;
-		return chart;
-	};
-	
-	chart.lineStrokeMode = function(_) {
-		if (!arguments.length) return lineStrokeMode;
-		lineStrokeMode = _;
-		return chart;
-	};
-	
-	chart.textFillMode = function(_) {
-		if (!arguments.length) return textFillMode;
-		textFillMode = _;
-		return chart;
-	};
-
-	chart.showBubbles = function(_) {
-		if (!arguments.length) return showBubbles;
-		showBubbles = _;
-		return chart;
-	};
-
-	chart.showBases = function(_) {
-		if (!arguments.length) return showBases;
-		showBases = _;
-		return chart;
-	};
-
-	chart.showIndexes = function(_) {
-		if (!arguments.length) return showIndexes;
-		showIndexes = _;
-		return chart;
-	};
-
-	chart.showSegments = function(_) {
-		if (!arguments.length) return showSegments;
-		showSegments = _;
-		return chart;
-	};
-
-
-	chart.loopMode = function(_) {
-		if (!arguments.length) return loopMode;
-		loopMode = _;
-		return chart;
-	};
-
-	chart.segmentColors = function(_) {
-		if (!arguments.length) return segmentColors;
-		segmentColors = _;
-		return chart;
-	};
-
-	updateLinkDistances();
-	
-	return chart;
-}
-
-<span id='App-ui-StrandPreview'>/**
-</span> * Allows viewing of secondary structures
- */
-Ext.define('App.ui.StrandPreview', {
-	extend : 'App.ui.D3Panel',
-
-	alias : 'widget.strandpreview',
-	requires : ['App.ui.StrandPreviewViewMenu'],
-
-	autoRender : true,
-	data : '',
-	fade_in_duration: 1000,
-	bodyStyle: 'background-color: white',
-	persistenceLength: 1,//2,
+  <pre class="prettyprint lang-js">Ext.define('App.usr.nodal.StrandPreview', {
+	extend : 'App.ui.ProtovisPanel',
+	viewBox : true,
+	built : false,
 	adjacencyMode : 2,
+	labelBases: false,
+	setValue : function(structure,strands) {
+		if(structure) {
 
-	nodeFillMode: 'segment', // 'identity', 'segment', 'domain'
-	nodeStrokeMode: 'segment', // 'identity', 'segment', 'domain'
-	lineStrokeMode: 'default',
-	textFillMode: 'default',
-	showBubbles: true,
-	loopMode: 'linear',
-	showBases : true,
-	showIndexes : true,
-	showSegments : true,
-	segmentColors : null,
-
-	showToolbar: true,
-	setValue : function(structure, strands, sequences) {
-		if(structure &amp;&amp; structure.structure &amp;&amp; structure.strands) {
-			this.data = structure;
-			this.strands = structure.strands;
-			this.structure = structure.structure;
-			if(structure.strands) {
-				this.strands = structure.strands;
+			if(this.adjacencyMode == 2) {
+				this.nodeLayout = DNA.generateAdjacency2(structure, {
+					linkStrands : true
+				});
+			} else {
+				if(!!strands) { strands = ['A']}
+				this.nodeLayout = DNA.generateAdjacency(structure, strands, true);
 			}
+			//this.nodeLayout = DNA.generateAdjacency(structure,strands,true);
+			if(!this.built) {
+				this.buildVis();
+			} else {
+				this.force.reset();
+				this.force.nodes(this.nodeLayout.nodes).links(this.nodeLayout.links);
+			}
+			this.vis.render();
 		} else {
-			this.structure = structure; 
-			this.strands = strands;
-			this.sequences = sequences;
+			this.force.reset();
+			this.vis.render();
 		}
-		// if(structure) {
-			// this.buildVis();
-		// } else {
-			// this.force.nodes([]).links([])
-		// }
-		this.buildVis();
-		// this.restart();
+		//this.buildVis();
+	},
+	updateVis: function() {
+		
 	},
 	buildVis : function() {
-		var panel = this.getCanvas();
-		panel.selectAll('g').remove();
-		this.chart = StrandPreview(panel).width(this.getWidth()).height(this.getHeight())
-			.showBubbles(this.showBubbles)
-			.showBases(this.showBases)
-			.showIndexes(this.showIndexes)
-			.showSegments(this.showSegments)
-			.loopMode(this.loopMode)
-			.nodeStrokeMode(this.nodeStrokeMode)
-			.nodeFillMode(this.nodeFillMode)
-			.lineStrokeMode(this.lineStrokeMode)
-			.textFillMode(this.textFillMode);
-		if(!!this.segmentColors) this.chart.segmentColors(this.segmentColors)
-		this.preview = this.chart(panel.data([this.data]));
-	},
-	updateChartProperties: function() {
-		this.buildVis();
-	},
-	highlight: function(criteria) {
-		this.preview.highlight(criteria);
-	},
-	unhighlight: function(criteria) {
-		this.preview.unhighlight(criteria);
-	},
-	initComponent : function() {
-		if(this.showToolbar) {
-			this.bbar = [{
-				iconCls:'dot-paren-icon',
-				handler: this.toDotParen,
-				scope: this,
-				tooltip: 'Show structure in dot-parenthesis notation'
-			},{
-				iconCls:'du-plus-icon',
-				handler: this.toDUPlus,
-				scope: this,
-				tooltip: 'Show structure in DU-plus (Zadeh) notation'
-			},{
-				iconCls: 'svg',
-				handler: this.toSVG,
-				scope: this,
-				tooltip: 'Show SVG code for structure'
-			},'-&gt;',
-				Ext.create('App.ui.StrandPreviewViewMenu',{view: this})];
+		if(!this.nodeLayout) {
+			if(this.value) {
+				this.setValue(this.value)
+			}
+			
+			this.nodeLayout = {
+				nodes: [],
+				links: [],
+			};
 		}
-		this.callParent(arguments);
-	},
-	showWindow: function(title,data,button) {
-		if(!this.textWindow) {
-			this.textWindowBox = Ext.create('App.ui.CodeMirror',{});
-			this.textWindow = Ext.create('Ext.window.Window',{
-				layout: 'fit',
-				items: [this.textWindowBox],
-				title: title,
-				closeAction: 'hide',
-				width: 300,
-				height:200,
-				bodyBorder: false,
-				border: false,
-				plain: true,
-				headerPosition: 'left', 
+		this.getCanvas();
+		var forceVis = this.vis;
+		forceVis.fillStyle(&quot;white&quot;);
+
+		// Strand colors
+		colors = pv.Colors.category10(),
+		// Pair probability colors
+		probColors = pv.Scale.linear(0, .5, 1).range(&quot;rgba(0,0,180,1)&quot;, &quot;rgba(180,180,0,1)&quot;, &quot;rgba(180,0,0,1)&quot;);
+
+		this.force = forceVis.add(pv.Layout.Force)//
+		.chargeConstant(-250).springConstant(0.95).dragConstant(0.4).bound(false);
+		//.springLength(20)
+
+		this.force.nodes(this.nodeLayout.nodes).links(this.nodeLayout.links);
+
+		if(this.adjacencyMode == 2) {
+
+			this.force.link.add(pv.Line).strokeStyle(function(d, l) {
+				return l.probability ? probColors(l.probability) : 'rgba(0,0,0,0.2)'
 			});
-		}
-		this.textWindow.show();
-		if(button) {
-			this.textWindow.alignTo(button);
-		}
-		this.textWindow.setTitle(title);
-		this.textWindowBox.setValue(data);
-	},
-	toDotParen: function(btn) {
-		var value = this.data;
-		this.showWindow('Dot-Parentheses',value,btn);
-	},
-	toDUPlus: function(btn) {
-		var value = DNA.dotParenToDU(this.data);
-		this.showWindow('DU+',value,btn);
-	},
-	toSVG: function(btn) {
-		if(!this.svgStyles) {
-			Ext.Ajax.request({
-			    url: 'styles/strand-preview.css',
-			    success: function(response){
-			        this.svgStyles = response.responseText;
-			        this.doDisplaySVGWindow()
-			    },
-			    scope: this,
-			});
+			this.force.node.add(pv.Dot).size(function(d) {
+				return 10;
+				//return (d.linkDegree + 4) * Math.pow(this.scale, -1.5)
+			}).fillStyle(function(d) {
+				return App.dynamic.Compiler.domainColors[d.role] || '#000';
+				//colors(d.role)
+			}).strokeStyle(function() {
+				return this.fillStyle().darker()
+			}).lineWidth(1).title(function(d) {
+				return d.nodeName
+			}).event(&quot;mousedown&quot;, pv.Behavior.drag()).event(&quot;drag&quot;, this.force);
+			
+			if(this.labelBases) {
+				this.force.label.add(pv.Label).text(function(d, l) {
+					return d.base;
+				});
+			}
 		} else {
-			this.doDisplaySVGWindow();
+			this.force.link.add(pv.Line)
+			.strokeStyle( function(d,l) {
+				return l.probability ? probColors(l.probability) : 'rgba(0,0,0,0.2)'
+			});
+			
+			this.force.node.add(pv.Dot)
+			.size( function(d) {
+				return 10;
+			})
+			.fillStyle( function(d) {
+				return d.fix ? &quot;brown&quot; : colors(d.strand)
+			})
+			.strokeStyle( function() {
+				return this.fillStyle().darker()
+			})
+			.lineWidth(1)
+			.title( function(d) {
+				return d.nodeName
+			})
 		}
-	},
-	doDisplaySVGWindow: function() {
-		var value = '&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;&lt;!DOCTYPE svg PUBLIC &quot;-//W3C//DTD SVG 1.1//EN&quot; &quot;http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd&quot;&gt;'+this.getCanvasMarkup();
 
-		// Sorry Cthulhu... http://www.codinghorror.com/blog/2009/11/parsing-html-the-cthulhu-way.html
-		value = value.replace(/&lt;svg(\b[^&gt;]*)&gt;/g,'&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot; $1&gt;&lt;style type=&quot;text/css&quot;&gt;&lt;![CDATA[' + this.svgStyles + ']]&gt;&lt;/style&gt;');
-
-		this.svgWindow = Ext.create('App.ui.StrandPreviewTextWindow',{
-			title: 'SVG',
-		});
-		this.svgWindow.show();
-		this.svgWindow.setValue(value);
-		//this.showWindow('SVG',value,btn);
-	},
+		this.built = true;
+	}
 });
+// Ext.define('App.usr.nodal.StrandPreview', {
+// extend : 'Ext.panel.Panel',
+// viewBox : true,
+// render : function() {
+// this.on('afterrender', function() {
+//
+// this.paper = Raphael(this.body.dom, this.getWidth(), this.getHeight());
+// this.on('bodyresize', function(c, w, h) {
+// this.paper.setSize(this.getWidth(), this.getHeight());
+// }, this);
+// }, this);
+// this.callParent(arguments);
+// },
+// setValue : function(motif) {
+//
+// var x = 0, y = 0, H = this.getWidth(), V = this.getHeight();
+// var SEGLEN = 7;
+// var sqrt = Math.sqrt;
+// var polarity = 1;
+//
+// var motifSpec = App.usr.nodal.ws.objects.Motifs[motif];
+// var paths = [];
+// return;
+// if(motifSpec) {
+// var ports = {
+// init : (motifSpec.indexOf('init') != -1),
+// input : (motifSpec.indexOf('input') != -1),
+// pink : (motifSpec.indexOf('pink') != -1),
+// blue : (motifSpec.indexOf('blue') != -1),
+// green : (motifSpec.indexOf('green') != -1),
+// purple : (motifSpec.indexOf('purple') != -1),
+// };
+//
+// if(ports.init) {
+// paths.push({
+// type : 'path',
+// path : Ext.String.format(&quot;M {0} {1} L {2} {3}&quot;, x + H * .15, y + V * .45, x + H * .6, y + V * .45),
+// stroke : App.usr.nodal.ws.objects.Ports.init.stroke,
+// 'stroke-width' : 2,
+// 'arrow-start' : (polarity == -1 ? 'classic-medium-long' : 'none'),
+// 'arrow-end' : (polarity == 1 ? 'classic-medium-long' : 'none'),
+// });
+// } else {
+//
+// // yellow top line; rgb(241,139,17)
+// if(ports.input) {
+// paths.push({
+// type : 'path',
+// path : Ext.String.format(&quot;M {0} {1} L {2} {3}&quot;, x + H * .15, y + V * .45, x + H * .6, y + V * .45),
+// stroke : App.usr.nodal.ws.objects.Ports.input.stroke,
+// 'stroke-width' : 2,
+// 'arrow-start' : (polarity == -1 ? 'classic-medium-long' : 'none'),
+// });
+// }
+//
+// // pink loop; rgb(224,0,109)
+// if(ports.pink) {
+// paths.push({
+// type : 'path',
+// path : ports.blue ? (Ext.String.format(&quot;M {0} {1} a {2} {3} 0 0 1 {4} {5}&quot;, x + H * .6, y + V * .45, H * .1, V * .25, H * .1 * sqrt(.99), V * (.05 / 2 - .25))) : (Ext.String.format(&quot;M {0} {1} a {2} {3} 0 1 1 {4} {5}&quot;, x + H * .6, y + V * .45, H * .05, V * .25, 0, V * .05)),
+// stroke : App.usr.nodal.ws.objects.Ports.pink.stroke,
+// 'stroke-width' : 2,
+// });
+// }
+//
+// // blue loop and bottom line; rgb(69,181,215)
+// if(ports.blue) {
+// paths.push({
+// type : 'path',
+// path : Ext.String.format(&quot;M {0} {1} a {2} {3} 0 1 1 {4} {5} L {6} {7}&quot;, ports.pink ? (x + H * .6 + H * .1 * sqrt(.99)) : (x + H * .6), ports.pink ? (y + V * (.45 + .05 / 2 - .25)) : (y + V * .45), ports.pink ? (H * .1) : (H * .07), ports.pink ? (V * .25) : (V * .25), ports.pink ? (-H * .1 * sqrt(.99)) : 0, ports.pink ? (V * (.25 + .05 / 2)) : (V * .05), x + H * .45, y + V * .5),
+// stroke : App.usr.nodal.ws.objects.Ports.blue.stroke,
+// 'stroke-width' : 2,
+// 'arrow-end' : (polarity == 1 &amp;&amp; !ports.green &amp;&amp; !ports.purple ? 'classic-medium-long' : 'none'),
+// });
+// }
+//
+// if(ports.purple) {
+// paths.push({
+// type : 'path',
+// path : Ext.String.format(&quot;M {0} {1} L {2} {3}&quot;, x + H * .45, y + V * .5, x + H * .3, y + V * .5),
+// stroke : App.usr.nodal.ws.objects.Ports.purple.stroke,
+// 'stroke-width' : 2,
+// 'arrow-end' : (polarity == 1 &amp;&amp; !ports.green ? 'classic-medium-long' : 'none'),
+// });
+// }
+//
+// if(ports.green) {
+// paths.push({
+// type : 'path',
+// path : Ext.String.format(&quot;M {0} {1} L {2} {3} L {4} {5}&quot;, x + H * .45, y + V * .5, x + H * .3, y + V * .5, x + H * .15, y + V * .8),
+// stroke : App.usr.nodal.ws.objects.Ports.green.stroke,
+// 'stroke-width' : 2,
+// 'arrow-end' : (polarity == 1 &amp;&amp; !ports.purple ? 'classic-medium-long' : 'none'),
+// });
+// }
+//
+// if(!ports.blue &amp;&amp; !ports.purple &amp;&amp; !ports.green) {
+// paths.push({
+// type : 'path',
+// path : Ext.String.format(&quot;M {0} {1} L {2} {3}&quot;, x + H * .3, y + V * .5, x + H * .6, y + V * .5),
+// stroke : '#000',
+// 'stroke-width' : 2,
+// 'arrow-end' : (polarity == 1 ? 'classic-medium-long' : 'none'),
+// });
+//
+// }
+//
+// }
+//
+// }
+//
+// // Draw basepair lines
+// // for(var i=0; i&lt;SEGLEN; i++){
+// // paths.push({
+// // type: 'path',
+// // path: Ext.String.format(&quot;M {0} {1} L {2} {3}&quot;,x+H*.45+H*.15*i/SEGLEN,y+V*.45,x+H*.45+H*.15*i/SEGLEN,y+V*.5)
+// // })
+// // }
+//
+// this.paper.clear();
+//
+// // this.surface.add({
+// // type : 'circle',
+// // radius : 10,
+// // fill : '#0f0',
+// // x : 50,
+// // y : 50,
+// // });
+//
+// this.paper.add(paths);
+// },
+// });
 
-Ext.define('App.ui.StrandPreviewTextWindow',{
-	extend: 'Ext.window.Window',
-	layout: 'fit',
-	closeAction: 'hide',
-	width: 300,
-	height:200,
-	bodyBorder: false,
-	border: false,
-	plain: true,
-	headerPosition: 'left', 
-	initComponent: function () {
-		this.editor = Ext.create('App.ui.TextEditor');
-		Ext.apply(this,{
-			items: [this.editor]
-		});
-		this.callParent(arguments);
-
-		if(this.value) { this.setValue(this.value); }
-	},
-	setValue: function() {
-		return this.editor.setValue.apply(this.editor,arguments);
-	},
-	getValue: function() {
-		return this.editor.getValue.apply(this.editor,arguments);
-	},
-});
-
-
-</pre>
+// {
+// // Force-directed secondary structure depication
+// xtype: 'pvpanel',
+// ref: 'force',
+// title: 'Secondary Structure',
+// layout: 'fit',
+// region: 'north',
+// split: true,
+// flex: 1,
+// margins: '5 5 0 5',
+// titleCollapse: true,
+// nodeLayout: nodeLayout2,
+// buildVis: function() {
+// this.getCanvas();
+// var forceVis = this.vis;
+// forceVis.fillStyle(&quot;white&quot;);
+//
+// var force = forceVis.add(pv.Layout.Force)
+// .nodes(this.nodeLayout.nodes)
+// .links(this.nodeLayout.links)
+// .chargeConstant(-220)
+// .springConstant(0.9)
+// //.springLength(20)
+// .bound(false);
+//
+// force.link.add(pv.Line)
+// .strokeStyle( function(d,l) {
+// return l.probability ? probColors(l.probability) : 'rgba(0,0,0,0.2)'
+// });
+// force.node.add(pv.Dot)
+// .size( function(d) {
+// return (d.linkDegree + 4) * Math.pow(this.scale, -1.5)
+// })
+// .fillStyle( function(d) {
+// return d.fix ? &quot;brown&quot; : colors(d.strand)
+// })
+// .strokeStyle( function() {
+// return this.fillStyle().darker()
+// })
+// .lineWidth(1)
+// .title( function(d) {
+// return d.nodeName
+// })
+// .event(&quot;mousedown&quot;, pv.Behavior.drag())
+// .event(&quot;drag&quot;, force);
+// }
+// }</pre>
 </body>
 </html>

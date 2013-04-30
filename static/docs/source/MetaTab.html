@@ -15,12 +15,12 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='App-ui-MetaTab'>/**
-</span> * @class App.ui.MetaTab
+  <pre class="prettyprint lang-js"><span id='App-usr-canvas-MetaTab'>/**
+</span> * @class App.usr.canvas.MetaTab
  * Ribbon panel which displays properties of an object
  * @extends App.ui.BoundObjectPanel
  */
-Ext.define('App.ui.MetaTab', {
+Ext.define('App.usr.canvas.MetaTab', {
 	extend:'App.ui.BoundObjectPanel',
 	initComponent: function() {
 		Ext.apply(this, {
@@ -80,7 +80,7 @@ Ext.define('App.ui.MetaTab', {
 			}]
 		});
 
-		App.ui.MetaTab.superclass.initComponent.apply(this, arguments);
+		App.usr.canvas.MetaTab.superclass.initComponent.apply(this, arguments);
 
 		//this.on('afterrender', this.afterrender, this);
 	},

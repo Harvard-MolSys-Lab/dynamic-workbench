@@ -17,9 +17,9 @@
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js">////////////////////////////////////////////////////////////////////////////////////////////////
 
-Ext.define('Workspace.tools.nodal.ComplementarityTool', {
+Ext.define('App.usr.nodal.ws.tools.ComplementarityTool', {
 	extend:'Workspace.tools.ConnectorTool',
-	requires: ['Workspace.objects.dna.Complementarity',],
+	requires: ['App.usr.nodal.ws.objects.Complement',],
 	parameters: {
 		&quot;arrow-end&quot;: 'classic-wide-long',
 		&quot;stroke-dasharray&quot;: '.',
@@ -27,23 +27,23 @@ Ext.define('Workspace.tools.nodal.ComplementarityTool', {
 		&quot;stroke-width&quot;:1.5,
 	},
 	acceptLeft: function() {
-		return Workspace.objects.dna.Complementarity.prototype.acceptLeft.apply(this,arguments);
+		return App.usr.nodal.ws.objects.Complement.prototype.acceptLeft.apply(this,arguments);
 	},
 	acceptRight: function() {
-		return Workspace.objects.dna.Complementarity.prototype.acceptRight.apply(this,arguments);
+		return App.usr.nodal.ws.objects.Complement.prototype.acceptRight.apply(this,arguments);
 	},
 	canConnect: function() {
-		return Workspace.objects.dna.Complementarity.prototype.canConnect.apply(this,arguments);
+		return App.usr.nodal.ws.objects.Complement.prototype.canConnect.apply(this,arguments);
 	},
 	onConnect: function(conn,left,right) {
-		if(left.isWType('Workspace.objects.dna.BridgePort') &amp;&amp; right.isWType('Workspace.objects.dna.BridgePort')) {
+		if(left.isWType('App.usr.nodal.ws.objects.BridgePort') &amp;&amp; right.isWType('App.usr.nodal.ws.objects.BridgePort')) {
 			conn.setBoth = true;
 			conn.updateProperty();
 		}
 	},
-	targetWType: 'Workspace.objects.dna.Complementarity'
+	targetWType: 'App.usr.nodal.ws.objects.Complement'
 }, function() {
-	Workspace.Tools.register('complementarity',Workspace.tools.nodal.ComplementarityTool);
+	Workspace.Tools.register('complementarity',App.usr.nodal.ws.tools.ComplementarityTool);
 });
 
 </pre>

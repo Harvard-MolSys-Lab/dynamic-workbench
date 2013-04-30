@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='App-usr-nupack-Results'>/**
+</span> * Application to show results of a NUPACK complexes and concentrations calculation.
+ * Note: see the server-side nupackAnalysis section for details on the input format to this application
+ * @consumes *.nupack-results
+ */
+Ext.define('App.usr.nupack.Results', {
+	extend: 'Ext.panel.Panel',
+	requires: ['App.usr.nupack.Panel'],
+	template: '&lt;div class=&quot;app-nupack-complex-wrap&quot;&gt;'+
+	'&lt;div&gt;'+
+	'&lt;span class=&quot;app-nupack-complex&quot;&gt;Complex: {complex}&lt;/span&gt;'+
+	'&amp;nbsp;|&amp;nbsp;'+
+	'&lt;span class=&quot;app-nupack-order&quot;&gt;Order: {order}&lt;/span&gt;'+
+	'&lt;/div&gt;'+
+	'&lt;div class=&quot;app-nupack-force&quot;&gt;&lt;/div&gt;'+
+	'&lt;/div&gt;',
+	mixins: {
+		app: 'App.ui.Application',
+	},
+	html: '&lt;fieldset class=&quot;x-fieldset x-fieldset-default&quot;&gt;&lt;legend class=&quot;x-fieldset-header x-fieldset-header-default nupack-strand-summary-title&quot;&gt;Distinct strands&lt;/legend&gt;&lt;pre class=&quot;nupack-strand-summary cm-s-default&quot;&gt;&lt;/pre&gt;&lt;/fieldset&gt;'+
+	'&lt;fieldset class=&quot;x-fieldset x-fieldset-default&quot;&gt;&lt;legend class=&quot;x-fieldset-header x-fieldset-header-default nupack-strand-summary-title&quot;&gt;Complex Minimum Free Energy&lt;/legend&gt;&lt;div class=&quot;nupack-mfe-summary&quot;&gt;&lt;/div&gt;&lt;/fieldset&gt;'+
+	'&lt;div class=&quot;nupack-concentration-summary&quot;&gt;&lt;/div&gt;',
+	bodyPadding: 5,
+	autoScroll: true,
+	requires: [''],
+	constructor: function(config) {
+		this.callParent(arguments);
+		this.mixins.app.constructor.apply(this,arguments);
+	},
+	initComponent: function() {
+		this.callParent(arguments);
+		this.on('afterrender',this.loadFile,this);
+	},
+	onLoad: function() {
+		if(this.data) {
+			if(!this.xt) {
+				this.xt = new Ext.XTemplate(this.template);
+			}
+
+			this.sourceData = Ext.decode(this.data);
+
+			// determine the highest concentration in the ensemble; scale against that
+			// TODO: replace this with the sum of the starting concentrations
+			var maxConcentration = _.reduce(this.sourceData.ocx_mfe, function(memo,complexData) {
+				var x = Math.abs(parseFloat(complexData.concentration)*1000); //.toFixed());
+				if(x &gt; memo) {
+					memo = x;
+				}
+				return memo;
+			}, 0);
+			// determine the highest-order complex in the ensemble
+			var maxComplexSize = _.max(_.map(this.sourceData.ocx_mfe, function(a) {
+				return a.strands.length;
+			})),
+			// sort the source data blobs by concentration (descending)
+			sorted = _.sortBy(this.sourceData.ocx_mfe, function(a) {
+				return -(parseFloat(a.concentration))*1000;
+			}),
+			// find the highest energy in this ensemble
+			maxMfe = _.max(_.map(this.sourceData.ocx_mfe, function(a) {
+				return Math.abs(parseFloat(a.energy));
+			}));
+			// print a list of the strands and strand indexes
+			var strandSummary = this.getEl().down('.nupack-strand-summary'),
+			// generate whole number indicies
+			strandNames = this.sourceData.strandNames ? this.sourceData.strandNames : _.range(1,this.sourceData.strands.length+1);
+			// syntax highlighting
+			CodeMirror.runMode(_.map(_.zip(strandNames,this.sourceData.strands), function(x) {
+				return x.join(' : ');
+			}).join('\n'),'sequence',strandSummary.dom);
+			this.getEl().down('.nupack-strand-summary-title').update(this.sourceData.strands.length+' distinct strands')
+
+			// MFE bar graph
+			var w = 600,
+			h = 10*sorted.length,
+			xScale = pv.Scale.linear(0, maxMfe).nice().range(0, w),
+			yScale = pv.Scale.ordinal(pv.range(0,sorted.length)).splitBanded(0, h, 4/5),
+			mfe = new pv.Panel()
+			.canvas(this.getEl().down('.nupack-mfe-summary').dom)
+			.width(w)
+			.height(h)
+			.top(10)
+			.bottom(20)
+			.left(50)
+			.right(10);
+
+			var bar = mfe.add(pv.Bar)
+			.data(sorted)
+			.top( function() {
+				return yScale(this.index)
+			})
+			.height(yScale.range().band)
+			.left(0)
+			.width( function(d) {
+				return xScale(Math.abs(parseFloat(d.energy)))
+			});
+			/* The value label. */
+			bar.anchor(&quot;right&quot;).add(pv.Label)
+			.textStyle(&quot;white&quot;)
+			.text( function(d) {
+				return d.energy
+			});
+			/* The variable label. */
+			bar.anchor(&quot;left&quot;).add(pv.Label)
+			.textMargin(5)
+			.textAlign(&quot;right&quot;)
+			.text( function(d) {
+				return d.strandNames.join('+')
+			});
+			/* X-axis ticks. */
+			mfe.add(pv.Rule)
+			.data(xScale.ticks(5))
+			.left(xScale)
+			.strokeStyle( function(d) {
+				return d ? &quot;rgba(255,255,255,.3)&quot; : &quot;#000&quot;
+			} )
+			.add(pv.Rule)
+			.bottom(0)
+			.height(5)
+			.strokeStyle(&quot;#000&quot;)
+			.anchor(&quot;bottom&quot;).add(pv.Label)
+			.text(xScale.tickFormat);
+
+			mfe.render();
+			
+			// this.suspendLayout = true;
+			
+			// render each complex block
+			var items = _.map(sorted, Ext.bind( function(complexData) {
+				//return {
+				return Ext.create('App.usr.nupack.Panel', {
+					xtype: 'resultspanel',
+					complexData: complexData,
+					maxConcentration: maxConcentration, 
+					renderTo: this.body,
+				});
+				//};
+			},this));
+			
+			
+			
+			// var resultsContainer = Ext.create('Ext.panel.Panel',{
+				// items: items,
+				// renderTo: this.body,
+			// });
+// 			
+			// this.suspendLayout = false;
+			// this.doLayout();
+		}
+	},
+},function() {
+	// Ext.Loader sucks
+	
+});</pre>
+</body>
+</html>

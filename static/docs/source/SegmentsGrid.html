@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define('App.usr.dil.SegmentsGrid',{
+	extend: 'Ext.grid.Panel',
+	alias: 'widget.segmentsgrid',
+	requires: ['App.usr.dil.SegmentStore'],
+	mixins: {
+		tip: 'App.ui.TipHelper'
+	},
+	initComponent: function (argument) {
+		this.segmentEditor = Ext.create('Ext.grid.plugin.CellEditing', {
+			clicksToEdit: 1
+		});
+
+		this.segmentStore = this.store;
+
+		Ext.apply(this,{
+			tbar: [Ext.create('App.ui.AddDomainButton', {
+				addDomain: Ext.bind(this.createSegment, this),
+				extraMenuItems: [{
+					text: 'Add many segments...',
+					handler: this.showAddSegmentsWindow,
+					scope: this,
+				}]
+			}),{
+				text: 'Edit',
+				iconCls: 'pencil',
+				handler: this.editSegment,
+				scope: this,
+			},{
+				text: 'Delete',
+				iconCls: 'delete',
+				handler: this.deleteSegment,
+				scope: this,
+			}],
+
+			columns: [{
+				dataIndex: 'color',
+				field: {
+					xtype: 'colorfield',
+					pickerOptions: {
+						colors: [
+							&quot;1F77B4&quot;, &quot;AEC7E8&quot;, &quot;FF7F0E&quot;, &quot;FFBB78&quot;, &quot;2CA02C&quot;, &quot;98DF8A&quot;, &quot;D62728&quot;, &quot;FF9896&quot;, &quot;9467BD&quot;, &quot;C5B0D5&quot;, &quot;8C564B&quot;, &quot;C49C94&quot;, &quot;E377C2&quot;, &quot;F7B6D2&quot;, &quot;7F7F7F&quot;, &quot;C7C7C7&quot;, &quot;BCBD22&quot;, &quot;DBDB8D&quot;, &quot;17BECF&quot;, &quot;9EDAE5&quot;,
+							&quot;3182BD&quot;, &quot;6BAED6&quot;, &quot;9ECAE1&quot;, &quot;C6DBEF&quot;, &quot;E6550D&quot;, &quot;FD8D3C&quot;, &quot;FDAE6B&quot;, &quot;FDD0A2&quot;, &quot;31A354&quot;, &quot;74C476&quot;, &quot;A1D99B&quot;, &quot;C7E9C0&quot;, &quot;756BB1&quot;, &quot;9E9AC8&quot;, &quot;BCBDDC&quot;, &quot;DADAEB&quot;, &quot;636363&quot;, &quot;969696&quot;, &quot;BDBDBD&quot;, &quot;D9D9D9&quot;,
+							&quot;393B79&quot;, &quot;5254A3&quot;, &quot;6B6ECF&quot;, &quot;9C9EDE&quot;, &quot;637939&quot;, &quot;8CA252&quot;, &quot;B5CF6B&quot;, &quot;CEDB9C&quot;, &quot;8C6D31&quot;, &quot;BD9E39&quot;, &quot;E7BA52&quot;, &quot;E7CB94&quot;, &quot;843C39&quot;, &quot;AD494A&quot;, &quot;D6616B&quot;, &quot;E7969C&quot;, &quot;7B4173&quot;, &quot;A55194&quot;, &quot;CE6DBD&quot;, &quot;DE9ED6&quot;,
+						]
+					}
+				},
+				renderer: function(color) {
+					return '&lt;div style=&quot;width:12px;height:12px;background-color:'+color+';&quot;&gt;&amp;nbsp;&lt;/div&gt;'
+				},
+				width: 40,
+			},{
+				text: 'Name',
+				dataIndex: 'identity',
+				flex: 1,
+				editor: {
+					xtype:'textfield',
+					selectOnFocus:  true,
+				}
+			}, {
+				text: 'Sequence',
+				dataIndex: 'sequence',
+				field: 'textfield',
+				renderer: CodeMirror.modeRenderer('sequence'),
+				flex: 5,
+			}, {
+				text: 'Length',
+				dataIndex: 'sequence',
+				renderer: function(seq) {
+					return seq.length;
+				},
+				flex: 1,
+			}],
+			plugins: [this.segmentEditor],
+		});
+
+		this.callParent(arguments);
+		this.mixins.tip.init.call(this,[]);
+	},
+
+	showAddSegmentsWindow: function() {
+		var me = this;
+		if(!this.addSegmentsWindow) {
+			this.addSegmentsWindow = Ext.create('App.ui.SequenceWindow',{
+				handler: function(domains) {
+					me.updateSegments(domains);
+				},
+				title: 'Add segments to system'
+			});
+		}
+		this.addSegmentsWindow.show();
+	},
+	
+	addSegment: function(identity,sequence) {
+		return _.first(this.segmentStore.add({
+			identity: identity,
+			sequence: sequence,
+			color: this.segmentStore.getColor(identity),
+		}));
+	},
+	addSegments: function(map) {
+		var me = this;
+		return this.segmentStore.add(_.map(map,function(sequence,identity) {
+			return {
+				identity: identity,
+				sequence: sequence,
+				color: me.segmentStore.getColor(identity),
+			}
+		}));
+	},
+	updateSegments: function(map) {
+		var me = this;
+		return _.map(map,function(sequence,identity) {
+			var seg = me.segmentStore.findRecord('identity',identity);
+			if(seg) {
+				seg.set('sequence',sequence);
+				return seg;
+			} else {
+				return _.first(me.segmentStore.add({
+					identity: identity,
+					sequence: sequence,
+					color: me.segmentStore.getColor(identity),
+				}));
+			}
+		});
+	},
+	createSegment: function(length) {
+		return _.first(this.segmentStore.addSegment(length));
+	},
+	editSegment: function editSegment (rec) {
+		rec || (rec = this.segmentsGrid.getSelectionModel().getLastSelected());
+		if (rec) {
+			//this.segmentEditor.startEdit(rec, this.segmentsGrid.headerCt.getHeaderAtIndex(2));
+			this.segmentEditor.startEdit(rec, this.headerCt.getHeaderAtIndex(2));
+		}
+	},
+	doEditSegment: function() {
+		return this.editSegment();
+	},
+	deleteSegment: function (rec) {
+		// body...
+	},
+	doDeleteSegment: function() {
+		return this.deleteSegment();
+	},
+
+})</pre>
+</body>
+</html>

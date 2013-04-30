@@ -17,13 +17,13 @@
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js">////////////////////////////////////////////////////////////////////////////////////////////////
 
-Ext.define('Workspace.objects.dna.MotifLayout', {
+Ext.define('App.usr.nodal.ws.objects.MotifLayout', {
 	extend : 'Workspace.idea.BaseLayout',
 	doLayout : function() {
 		if(!this.ignore) {
 			var objects = this.getObjects().getRange();
 			var groups = _.groupBy(objects, function(child) {
-				if(child.hasWType(['Workspace.objects.dna.InputPort', 'Workspace.objects.dna.OutputPort', 'Workspace.objects.dna.BridgePort'])) {
+				if(child.hasWType(['App.usr.nodal.ws.objects.InputPort', 'App.usr.nodal.ws.objects.OutputPort', 'App.usr.nodal.ws.objects.BridgePort'])) {
 					return 'ports'
 				} else {
 					return 'others'
@@ -71,7 +71,8 @@ Ext.define('Workspace.objects.dna.MotifLayout', {
 	paddingTop : 5,
 	paddingLeft : 5,
 }, function() {
-	Workspace.Layouts.register('Workspace.objects.dna.MotifLayout', Workspace.objects.dna.MotifLayout);
+	Workspace.Layouts.register('App.usr.nodal.ws.objects.MotifLayout', App.usr.nodal.ws.objects.MotifLayout);
+	Workspace.Layouts.register('Workspace.objects.dna.MotifLayout', App.usr.nodal.ws.objects.MotifLayout);
 });
 ////////////////////////////////////////////////////////////////////////////////////////////////</pre>
 </body>

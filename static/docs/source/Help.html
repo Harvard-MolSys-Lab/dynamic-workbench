@@ -19,13 +19,18 @@
 </span> * Allows the user to browse help documentation
  */
 Ext.define('App.ui.Help',{
-	extend: 'App.ui.Browser',
+	extend: 'App.usr.browser.Browser',
 	title: 'Help',
 	iconCls: 'help',
 	trigger: 'index',
 	constructor: function(config) {
 		this.url = App.path.join(['help',config.triggers[0] || 'index']);
 		this.callParent(arguments);
+	},
+	statics: {
+		getLink: function(topic) {
+			return &quot;javascript:App.ui.Launcher.launch('help:&quot;+topic+&quot;');&quot;
+		}
 	}
 })
 
@@ -41,7 +46,7 @@ Ext.define('App.ui.HelpButton',{
 	
 	initComponent: function() {
 		Ext.apply(this,{
-			handler: App.ui.Launcher.makeLauncher(this.topic)
+			handler: App.ui.Launcher.makeLauncher('help:'+this.topic)
 		});
 		this.callParent(arguments);
 	}

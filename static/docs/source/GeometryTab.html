@@ -15,12 +15,12 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='App-ui-GeometryTab'>/**
-</span> * @class App.ui.GeometryTab
+  <pre class="prettyprint lang-js"><span id='App-usr-canvas-GeometryTab'>/**
+</span> * @class App.usr.canvas.GeometryTab
  * Ribbon panel which displays the position and dimensions of an object
  * @extends App.ui.BoundObjectPanel
  */
-Ext.define('App.ui.GeometryTab', {
+Ext.define('App.usr.canvas.GeometryTab', {
 	extend:'App.ui.BoundObjectPanel',
 	initComponent: function() {
 		Ext.apply(this, {
@@ -87,7 +87,7 @@ Ext.define('App.ui.GeometryTab', {
 			}]
 		});
 
-		App.ui.GeometryTab.superclass.initComponent.apply(this, arguments);
+		App.usr.canvas.GeometryTab.superclass.initComponent.apply(this, arguments);
 
 		//this.on('afterrender', this.afterrender, this);
 	},

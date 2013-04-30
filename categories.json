@@ -5,41 +5,63 @@
   			{
       			"name": "Text Editors",
       			"classes": [
-      				"App.ui.JavascriptEditor",
-      				"App.ui.NupackEditor",
-      				"App.ui.Pepper",
-      				"App.ui.SequenceEditor",
-      				"App.ui.TextEditor"
+      				"App.usr.js.Editor",
+              "App.usr.sbml.Editor",
+      				"App.usr.nupack.Editor",
+      				"App.usr.pepper.Editor",
+      				"App.usr.seq.Editor",
+      				"App.usr.text.Editor"
       			]
       		},{
-      			"name": "Canvases",
+      			"name": "Canvas",
       			"classes": [
-      				"App.ui.Canvas",
-      				"App.ui.NodalCanvas",
-      				"App.ui.SecondaryCanvas"
+      				"App.usr.canvas.*"
       			]
       		},{
+            "name": "Nodal",
+            "classes": [
+              "App.usr.nodal.*"
+            ]
+          },{
+            "name": "DIL",
+            "classes": [
+              "App.usr.dil.*"
+            ]
+          },{
       			"name":"DD",
       			"classes":[
-      				"App.ui.DD",
-      				"App.ui.dd.*"
+      				"App.usr.dd.*"
       			]
       		},{
+            "name":"Enumerator",
+            "classes":[
+              "App.usr.enum.*"
+            ]
+          },{
+            "name":"Multisubjective",
+            "classes":[
+              "App.usr.ms.*"
+            ]
+          },{
       			"name": "Other",
       			"classes": [
-      				"App.ui.Browser",
-      				"App.ui.Dashboard",
-      				"App.ui.DD",
-      				"App.ui.Help",
-      				"App.ui.NupackResults",
-      				"App.ui.Viewer"
+              "App.ui.Dashboard",
+              "App.ui.Help",
+      				"App.usr.browser.Browser",
+      				"App.usr.nupack.Results",
+      				"App.usr.viewer.Viewer"
       			]
       		}
       	]
       }, {
-      	"name": "Canvas",
+      	"name": "Workspace",
       	"groups": [
-	      	{
+          {
+            "name": "Workspace",
+            "classes":[
+              "Workspace"
+            ]
+          },{
 	      		"name": "Interface",
 	      		"classes":[
 	      			"App.ui.BoundObjectPanel",
@@ -133,12 +155,21 @@
               		"App.ui.CompareMenu",
               		"App.ui.CreateMenu",
               		"App.ui.NupackMenu",
+                  "App.ui.D3Panel",
               		"App.ui.ProtovisPanel",
               		"App.ui.SaveButton",
+                  "App.ui.StrandPreview",
               		"App.ui.SequenceStats",
               		"App.ui.SequenceThreader",
               		"App.ui.StatMenu"
               	]
+              },{
+                "name": "Sequence Analysis",
+                "classes":[
+                  "App.ui.nupack.*",
+                  "App.ui.vienna.*",
+                  "App.ui.mfold.*"
+                ]
               },{
               	"name":"Console",
               	"classes":[

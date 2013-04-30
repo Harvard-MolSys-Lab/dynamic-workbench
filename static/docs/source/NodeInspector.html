@@ -15,13 +15,14 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('App.ui.nodal.NodeInspector', {
-	requires : ['App.ui.nodal.StrandPreview'],
+  <pre class="prettyprint lang-js">Ext.define('App.usr.nodal.NodeInspector', {
+	requires : ['App.usr.nodal.StrandPreview'],
 	extend : 'Ext.form.Panel',
 	title : 'Node',
 	bodyPadding : 5,
 	enableBoundFields : true,
 	initComponent : function() {
+		var me = this;
 
 		Ext.apply(this, {
 			defaults : {
@@ -34,17 +35,51 @@
 				objectBinding : 'name',
 				anchor : &quot;100%&quot;,
 			}, {
-				xtype : 'sliderfield',
-				fieldLabel : 'Rotation',
-				minValue : 0,
-				maxValue : 360,
-				width : 100,
-				increment : 15,
-				anchor : '95%',
-				objectBinding : 'theta',
-				tipText : function(thumb) {
-					return String(thumb.value) + '°';
-				}
+				xtype: 'displayfield',
+				fieldLabel: 'Definition',
+				labelAlign: 'top',
+				objectBinding: 'strands',
+				valueToRaw: function (value) {
+					return value || [];
+				},
+				renderer: function(spec) {
+					spec || (spec = []);
+					return _.map(spec,function(strand) {
+						return '&lt;div class=&quot;strand-glyph-container'+(strand?'':' strand-glyph-unknown')+'&quot;&gt;'+
+						'&lt;span class=&quot;strand-glyph-name&quot;&gt;'+strand.name+'&lt;/span&gt;'+ 
+						_.map(strand.getDomains(),function(dom) {
+							return '&lt;div class=&quot;domain-glyph domain-glyph-'+dom.role+'&quot;&gt;' + (dom.name ? '&lt;span class=&quot;domain-glyph-name&quot;&gt;'+dom.name+'&lt;/span&gt;':'')+
+								_.map(dom.getSegments(),function(seg) { 
+									return '&lt;span class=&quot;segment-glyph segment-glyph-'+seg.role+'&quot;&gt;'+seg.identity+'&lt;/span&gt;'+(seg.polarity==-1?'&lt;sup&gt;*&lt;/sup&gt;':'') 
+								}).join(' ')+
+								'&lt;/div&gt;'
+						}).join(' ')+
+						'&lt;/div&gt;';
+					}).join(' + ');
+				},
+			}, Ext.create('App.ui.StrandPreview', {
+				objectBinding : 'annotatedStructure',
+				loopMode: 'linear',
+				items : [],
+				height: 150,
+				anchor : '100%',
+				resizable: true,
+			}), {
+				xtype : 'combo',
+				store : App.usr.nodal.ws.objects.motifStore,
+				queryMode : 'local',
+				displayField : 'number',
+				valueField : 'number',
+				forceSelection : false, //true,
+				// listConfig : {
+				// 	getInnerTpl : function() {
+				// 		return '&lt;div class=&quot;search-item&quot;&gt;&lt;img src=&quot;images/motifs/{number}.gif&quot; /&gt;&lt;/div&gt;';
+				// 	}
+				// },
+				fieldLabel : 'Motif',
+				objectBinding : 'motif',
+				anchor : '100%',
+				margin: '5 0 5 0',
 			}, {
 				xtype: 'numberfield',
 				fieldLabel: 'Polarity',
@@ -52,29 +87,20 @@
 				minValue: -1,
 				maxValue: 1,
 				step: 1,
-				anchor : '95%',
-			},{
-				xtype : 'combo',
-				store : Workspace.objects.dna.motifStore,
-				queryMode : 'local',
-				displayField : 'number',
-				valueField : 'number',
-				forceSelection : false,//true,
-				listConfig : {
-					getInnerTpl : function() {
-						return '&lt;div class=&quot;search-item&quot;&gt;&lt;img src=&quot;images/motifs/{number}.gif&quot; /&gt;&lt;/div&gt;';
-					}
-				},
-				fieldLabel : 'Motif',
-				objectBinding : 'motif',
-				anchor : '95%',
-			}, Ext.create('App.ui.StrandPreview', {
-				objectBinding : 'annotatedStructure',
-				loopMode: 'linear',
-				items : [],
-				height: 150,
-				anchor : '95%',
-			})
+				anchor : '100%',
+			},  {
+				xtype : 'sliderfield',
+				fieldLabel : 'Rotation',
+				minValue : 0,
+				maxValue : 360,
+				width : 100,
+				increment : 15,
+				anchor : '100%',
+				objectBinding : 'theta',
+				tipText : function(thumb) {
+					return String(thumb.value) + '°';
+				}
+			},
 			// {
 			// xtype : 'panel',
 			// layout : 'fit',
@@ -86,11 +112,14 @@
 			// }
 			],
 			showIf : function(wtype) {
-				return (wtype == 'Workspace.objects.dna.Node');
+				return (wtype == 'App.usr.nodal.ws.objects.Node');
 			},
 		})
 		this.callParent(arguments);
 		this.mixins.boundObjectPanel.initialize.apply(this, arguments);
+	},
+	getBoundObject: function () {
+		return this.boundObjects.getAt(0);
 	},
 	mixins : {
 		boundObjectPanel : 'App.ui.BoundObjectPanel'

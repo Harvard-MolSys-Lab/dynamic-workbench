@@ -15,15 +15,15 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='App-ui-Ribbon'>/**
-</span> * @class App.ui.Ribbon
+  <pre class="prettyprint lang-js"><span id='App-usr-canvas-Ribbon'>/**
+</span> * @class App.usr.canvas.Ribbon
  * Provides tabbed, dynamic toolbar which responds to user selection
  * @extends Ext.tab.Panel
  */
-Ext.define('App.ui.Ribbon', {
+Ext.define('App.usr.canvas.Ribbon', {
 	extend : 'Ext.tab.Panel',
 	alias : 'widget.ribbon',
-	requires : ['App.ui.ToolsTab', 'App.ui.InsertTab', 'App.ui.FillStrokeTab', 'App.ui.GeometryTab', 'App.ui.MetaTab'],
+	requires : ['App.usr.canvas.ToolsTab', 'App.usr.canvas.InsertTab', 'App.usr.canvas.FillStrokeTab', 'App.usr.canvas.GeometryTab', 'App.usr.canvas.MetaTab'],
 
 	cls : 'ui-ribbonbar',
 	activeTab : 0,
@@ -52,19 +52,19 @@ Ext.define('App.ui.Ribbon', {
 			}
 		});
 		if(!this.items) {
-			this.items = [new App.ui.ToolsTab({
+			this.items = [new App.usr.canvas.ToolsTab({
 				title : 'Tools',
 				ref : 'toolsTab',
-			}), new App.ui.InsertTab({
+			}), new App.usr.canvas.InsertTab({
 				title : 'Insert',
 				ref : 'insertTab',
-			}), new App.ui.FillStrokeTab({
+			}), new App.usr.canvas.FillStrokeTab({
 				title : 'Fill and Stroke',
 				ref : 'fillStroke'
-			}), new App.ui.GeometryTab({
+			}), new App.usr.canvas.GeometryTab({
 				title : 'Geometry',
 				ref : 'geometry'
-			}), new App.ui.MetaTab({
+			}), new App.usr.canvas.MetaTab({
 				title : 'Meta',
 				ref : 'metaTab'
 			})];
@@ -78,7 +78,7 @@ Ext.define('App.ui.Ribbon', {
 
 		this.selection = [];
 
-		App.ui.Ribbon.superclass.initComponent.apply(this, arguments);
+		App.usr.canvas.Ribbon.superclass.initComponent.apply(this, arguments);
 
 		_.each(['toolsTab', 'insertTab', 'fillStroke', 'geometry', 'metaTab'], function(item) {
 			this[item] = this.down('*[ref=' + item + ']');
@@ -102,12 +102,12 @@ Ext.define('App.ui.Ribbon', {
 		}, this);
 		// allow workspace to be saved
 	},
-<span id='App-ui-Ribbon-method-attachTo'>	/**
+<span id='App-usr-canvas-Ribbon-method-attachTo'>	/**
 </span>	 * Attaches this ribbon to a particular workspace
 	 * @param {Workspace} workspace
 	 */
 	attachTo : function(workspace) {
-<span id='App-ui-Ribbon-property-workspace'>		/**
+<span id='App-usr-canvas-Ribbon-property-workspace'>		/**
 </span>		 * @property {Workspace}
 		 * The workspace to which this ribbon is attached. The ribbon will monitor for selection events
 		 * in this workspace and notify associated child {@link #items} appropriately.
@@ -126,7 +126,7 @@ Ext.define('App.ui.Ribbon', {
 		})
 
 	},
-<span id='App-ui-Ribbon-method-setActiveTool'>	/**
+<span id='App-usr-canvas-Ribbon-method-setActiveTool'>	/**
 </span>	 * Sets the active tool
 	 * @param {String} tool Name of the {@link Workspace.tools.BaseTool} to switch to.
 	 */
@@ -153,7 +153,7 @@ Ext.define('App.ui.Ribbon', {
 			}
 		}
 	},
-<span id='App-ui-Ribbon-method-doAction'>	/**
+<span id='App-usr-canvas-Ribbon-method-doAction'>	/**
 </span>	 * Invokes the passed {@link Workspace.actions.Action} on the {@link #workspace}
 	 * @param {Workspace.actions.Action} action
 	 */
@@ -161,7 +161,7 @@ Ext.define('App.ui.Ribbon', {
 		var undoAction = action.getUndo();
 		this.workspace.doAction(action);
 	},
-<span id='App-ui-Ribbon-method-onSelectionChange'>	/**
+<span id='App-usr-canvas-Ribbon-method-onSelectionChange'>	/**
 </span>	 * Handler which responds to a changed {@link #workspace workspace} {@link Workspace#selection}.
 	 */
 	onSelectionChange : function() {
@@ -174,7 +174,7 @@ Ext.define('App.ui.Ribbon', {
 		this.selection = this.workspace.getSelection();
 	},
 
-<span id='App-ui-Ribbon-method-bind'>	/**
+<span id='App-usr-canvas-Ribbon-method-bind'>	/**
 </span>	 * Binds the ribbon to the passed items
 	 * @param {Workspace.objects.Object} item
 	 */
@@ -195,7 +195,7 @@ Ext.define('App.ui.Ribbon', {
 		});
 
 	},
-<span id='App-ui-Ribbon-method-unbind'>	/**
+<span id='App-usr-canvas-Ribbon-method-unbind'>	/**
 </span>	 * Unbinds the ribbon from the passed items
 	 * @param {Workspace.objects.Object} item
 	 */

@@ -15,15 +15,15 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='App-ui-ToolsTab'>/**
-</span> * @class App.ui.ToolsTab
+  <pre class="prettyprint lang-js"><span id='App-usr-canvas-ToolsTab'>/**
+</span> * @class App.usr.canvas.ToolsTab
  * Manages the tool palate and provides several object actions
  * @extends App.ui.BoundObjectPanel
  */
-Ext.define('App.ui.ToolsTab', {
+Ext.define('App.usr.canvas.ToolsTab', {
 	requires: ['Workspace.tools.PointerTool','Workspace.tools.PencilTool','Workspace.tools.IdeaTool','Workspace.tools.ConnectorTool','Workspace.tools.IdeaAdderTool'],
 	extend:'App.ui.BoundObjectPanel',
-<span id='App-ui-ToolsTab-cfg-tool'>	/**
+<span id='App-usr-canvas-ToolsTab-cfg-tool'>	/**
 </span>	 * @cfg {String} tool
 	 * The default tool
 	 */
@@ -287,7 +287,7 @@ Ext.define('App.ui.ToolsTab', {
 		};
 	},
 	initComponent: function() {
-<span id='App-ui-ToolsTab-event-toolChange'>		/**
+<span id='App-usr-canvas-ToolsTab-event-toolChange'>		/**
 </span>		 * @event toolChange
 		 */
 		this.addEvents('toolChange');
@@ -302,7 +302,7 @@ Ext.define('App.ui.ToolsTab', {
 		Ext.apply(this, this.generateConfig());
 		
 
-		App.ui.ToolsTab.superclass.initComponent.apply(this, arguments);
+		App.usr.canvas.ToolsTab.superclass.initComponent.apply(this, arguments);
 
 		_.each(this.query('*[ref]'), function(cmp) {
 			this[cmp.ref] = cmp;
@@ -315,7 +315,7 @@ Ext.define('App.ui.ToolsTab', {
 
 		// collect all buttons with tool bindings specified
 		var toolButtons = this.query('component[toolName]'); //[toolname!=&quot;&quot;]');
-<span id='App-ui-ToolsTab-property-toolName'>		/**
+<span id='App-usr-canvas-ToolsTab-property-toolName'>		/**
 </span>		 * @property {String} toolName
 		 * Child buttons should have this property to specify which {@link Workspace.tools.BaseTool} to activate on toggle.
 		 */
@@ -381,7 +381,7 @@ Ext.define('App.ui.ToolsTab', {
 	redo: function() {
 		this.fireEvent('redo', this)
 	},
-<span id='App-ui-ToolsTab-method-deleteObjects'>	/**
+<span id='App-usr-canvas-ToolsTab-method-deleteObjects'>	/**
 </span>	 * deleteObjects
 	 * Generates a WorkspaceAction to delete the bound objects
 	 */
@@ -391,7 +391,7 @@ Ext.define('App.ui.ToolsTab', {
 		});
 		this.fireEvent('action', action);
 	},
-<span id='App-ui-ToolsTab-method-duplicateObjects'>	/**
+<span id='App-usr-canvas-ToolsTab-method-duplicateObjects'>	/**
 </span>	 * duplicateObjects
 	 * Generates a WorkspaceAction to delete the bound objects
 	 */
@@ -401,7 +401,7 @@ Ext.define('App.ui.ToolsTab', {
 		});
 		this.fireEvent('action', action);
 	},
-<span id='App-ui-ToolsTab-method-orphanObjects'>	/**
+<span id='App-usr-canvas-ToolsTab-method-orphanObjects'>	/**
 </span>	 * Generates a WorkspaceAction to decouple the bound objects from their parent(s)
 	 */
 	orphanObjects: function() {
@@ -410,7 +410,7 @@ Ext.define('App.ui.ToolsTab', {
 		});
 		this.fireEvent('action', action);
 	},
-<span id='App-ui-ToolsTab-method-formIdea'>	/**
+<span id='App-usr-canvas-ToolsTab-method-formIdea'>	/**
 </span>	 * formIdea
 	 * Generates a WorkspaceAction to build an idea from the current selection
 	 */
@@ -420,20 +420,20 @@ Ext.define('App.ui.ToolsTab', {
 		});
 		this.fireEvent('action', action);
 	},
-<span id='App-ui-ToolsTab-method-expandWorkspace'>	/**
+<span id='App-usr-canvas-ToolsTab-method-expandWorkspace'>	/**
 </span>	 * Generates a WorkspaceAction to expand the size of the workspace
 	 */
 	expandWorkspace: function() {
 		var action = new Workspace.actions.ExpandAction({});
 		this.fireEvent('action', action);
 	},
-<span id='App-ui-ToolsTab-method-saveWorkspace'>	/**
+<span id='App-usr-canvas-ToolsTab-method-saveWorkspace'>	/**
 </span>	 * Generates an event notifying the parent canvas to save the workspace
 	 */
 	saveWorkspace: function() {
 		this.fireEvent('save', this);
 	},
-<span id='App-ui-ToolsTab-method-onToggle'>	/**
+<span id='App-usr-canvas-ToolsTab-method-onToggle'>	/**
 </span>	 * Event handler automatically applied to buttons with configured {@link #toolName}s
 	 * @param {Ext.Button} btn
 	 * @param {Boolean} pressed
@@ -443,14 +443,14 @@ Ext.define('App.ui.ToolsTab', {
 			this.setActiveTool(btn.toolName);
 		}
 	},
-<span id='App-ui-ToolsTab-method-getActiveTool'>	/**
+<span id='App-usr-canvas-ToolsTab-method-getActiveTool'>	/**
 </span>	 * Gets the name of the currently active tool
 	 * @return {String} toolName
 	 */
 	getActiveTool: function() {
 		return this.tool;
 	},
-<span id='App-ui-ToolsTab-method-setActiveTool'>	/**
+<span id='App-usr-canvas-ToolsTab-method-setActiveTool'>	/**
 </span>	 * Allows Tools tab in ribbon to set the active workspace tool
 	 * @param {String} tool
 	 */
@@ -460,7 +460,7 @@ Ext.define('App.ui.ToolsTab', {
 			this.fireEvent('toolchange', tool);
 		}
 	},
-<span id='App-ui-ToolsTab-method-onToolChange'>	/**
+<span id='App-usr-canvas-ToolsTab-method-onToolChange'>	/**
 </span>	 * Responds to workspace toolChange event and updates UI to reflect
 	 * @param {String} tool
 	 */

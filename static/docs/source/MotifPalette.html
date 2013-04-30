@@ -15,12 +15,12 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='App-ui-MotifPalette'>/**
+  <pre class="prettyprint lang-js"><span id='App-usr-nodal-MotifPalette'>/**
 </span> * Allows motifs to be added to workspace by drag and drop
  */
-Ext.define('App.ui.MotifPalette', {
-	extend : 'App.ui.Palette',
-	requires : ['Workspace.objects.dna.Motifs'],
+Ext.define('App.usr.nodal.MotifPalette', {
+	extend : 'App.usr.canvas.Palette',
+	requires : ['App.usr.nodal.ws.objects.Motifs'],
 	tpl : '&lt;tpl for=&quot;.&quot;&gt;' + '&lt;div class=&quot;motif-template&quot;&gt;' +
 	//'&lt;img src=&quot;images/motifs/{number}.gif&quot; /&gt;'+
 	'&lt;/div&gt;' + '&lt;/tpl&gt;&lt;div class=&quot;x-clear&quot; /&gt;',
@@ -30,8 +30,8 @@ Ext.define('App.ui.MotifPalette', {
 	constructor : function(config) {
 		if(!config.store) {
 			//Ext.apply(this,{
-			Ext.apply(config, {
-				store : Workspace.objects.dna.motifStore,
+			Ext.applyIf(config, {
+				store : App.usr.nodal.ws.objects.motifStore,
 			});
 		}
 		this.callParent(arguments);

@@ -15,38 +15,38 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='App-ui-Palette'>/**
+  <pre class="prettyprint lang-js"><span id='App-usr-canvas-Palette'>/**
 </span> * Allows objects to be added to workspace by drag and drop
  */
-Ext.define('App.ui.Palette', {
+Ext.define('App.usr.canvas.Palette', {
 	extend:'Ext.panel.Panel',
-<span id='App-ui-Palette-cfg-store'>	/**
+<span id='App-usr-canvas-Palette-cfg-store'>	/**
 </span>	 * @cfg {Ext.data.Store}
 	 * Store which will provide records to render in the #view
 	 */
 	store: null,
-<span id='App-ui-Palette-cfg-tpl'>	/**
+<span id='App-usr-canvas-Palette-cfg-tpl'>	/**
 </span>	 * @cfg
 	 * Ext.util.XTemplate or config to use to display records from the #store
 	 */
 	tpl: '',
-<span id='App-ui-Palette-cfg-itemSelector'>	/**
+<span id='App-usr-canvas-Palette-cfg-itemSelector'>	/**
 </span>	 * @cfg
 	 * CSS selector representing which elements in #tpl represent distinct records
 	 */
 	itemSelector: '',
-<span id='App-ui-Palette-cfg-overItemClass'>	/**
+<span id='App-usr-canvas-Palette-cfg-overItemClass'>	/**
 </span>	 * @cfg
 	 * CSS class to apply to items upon hover
 	 */
 	overItemClass: 'x-view-over',
 	trackOver: true,
-<span id='App-ui-Palette-cfg-mimeType'>	/**
+<span id='App-usr-canvas-Palette-cfg-mimeType'>	/**
 </span>	 * @cfg
 	 * Name of a {@link Workspace.DDManager.addHandler MIME type} (can be made up) to 
 	 * identify this type of object to the {@link Workspace.DDManager drag and drop manager}.
 	 * You'll also need to {@link Workspace.DDManager.addHandler add a handler} for this
-	 * MIME type. See {@link App.ui.MotifPalette} for an example.
+	 * MIME type. See {@link App.usr.nodal.MotifPalette} for an example.
 	 */
 	mimeType: '',
 	autoScroll: true,
@@ -65,7 +65,7 @@ Ext.define('App.ui.Palette', {
 		});
 		this.callParent(arguments);
 		
-<span id='App-ui-Palette-property-view'>		/**
+<span id='App-usr-canvas-Palette-property-view'>		/**
 </span>		 * @property {Ext.view.View}
 		 */
 		this.view = this.getComponent('view');
@@ -75,7 +75,7 @@ Ext.define('App.ui.Palette', {
 		},this)
 		
 		this.view.on('render', function(v) {
-<span id='App-ui-Palette-property-dragZone'>			/**
+<span id='App-usr-canvas-Palette-property-dragZone'>			/**
 </span>			 * @property {Ext.dd.DragZone}
 			 */
 			this.dragZone = new Ext.dd.DragZone(v.getEl(), {

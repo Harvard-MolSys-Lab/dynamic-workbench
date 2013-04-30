@@ -17,7 +17,7 @@
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js">////////////////////////////////////////////////////////////////////////////////////////////////
 
-Ext.define('Workspace.objects.dna.Exposure', {
+Ext.define('App.usr.nodal.ws.objects.Exposure', {
 	extend : 'Workspace.objects.Connection',
 	showLabel : false,
 	property : 'exposure',
@@ -37,28 +37,30 @@ Ext.define('Workspace.objects.dna.Exposure', {
 	acceptLeft : function(item) {
 		var lnode = item.getParent()
 		return (item.getId &amp;&amp; 
-			item.isWType(['Workspace.objects.dna.OutputPort', //
-			'Workspace.objects.dna.BridgePort','Workspace.objects.dna.InputPort'])  &amp;&amp;//
+			item.isWType(['App.usr.nodal.ws.objects.OutputPort', //
+			'App.usr.nodal.ws.objects.BridgePort','App.usr.nodal.ws.objects.InputPort'])  &amp;&amp;//
 			lnode &amp;&amp; lnode.hasParent()
 			);
 	},
 	acceptRight : function(item) {
 		var motif = item.getParent()
 		return (item.getId &amp;&amp; (
-			(item.isWType(['Workspace.objects.dna.OutputPort',
-					'Workspace.objects.dna.BridgePort','Workspace.objects.dna.InputPort'])  
+			(item.isWType(['App.usr.nodal.ws.objects.OutputPort',
+					'App.usr.nodal.ws.objects.BridgePort','App.usr.nodal.ws.objects.InputPort'])  
 				&amp;&amp; motif 
-				&amp;&amp; motif.isWType('Workspace.objects.dna.Motif')) 
-			|| item.isWType('Workspace.objects.dna.Motif'))
+				&amp;&amp; motif.isWType('App.usr.nodal.ws.objects.Motif')) 
+			|| item.isWType('App.usr.nodal.ws.objects.Motif'))
 		);
 	},
 	canConnect : function(left, right) {
 		var lnode = left.getParent(), motif = right.getParent();
 		return ((left.hasWType(right.wtype) &amp;&amp; lnode &amp;&amp; motif &amp;&amp; (lnode.getParent() == motif)) 
-			|| right.isWType('Workspace.objects.dna.Motif'))
+			|| right.isWType('App.usr.nodal.ws.objects.Motif'))
 	},
 }, function() {
-	Workspace.reg('Workspace.objects.dna.Exposure', Workspace.objects.dna.Exposure);
+	Workspace.reg('App.usr.nodal.ws.objects.Exposure', App.usr.nodal.ws.objects.Exposure);
+	Workspace.regAlias('Workspace.objects.dna.Exposure', 'App.usr.nodal.ws.objects.Exposure');
+
 });
 </pre>
 </body>

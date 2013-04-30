@@ -196,15 +196,15 @@ Ext.define('Workspace.tools.ConnectorTool', {
 	},
 	createProto : function(e, item) {
 		var p = this.getAdjustedXY(e);
-		this.x1 = p.x;
-		this.y1 = p.y;
+		this.x1 = this.x2 = p.x;
+		this.y1 = this.x2 = p.y;
 		if(item) {
 			this.leftObject = item;
 		} else {
 			this.leftObject = Workspace.objects.Connection.getPoint(p.x, p.y);
 		}
 
-		this.proto = this.workspace.paper.path([['M', this.x1, this.y1]]);
+		this.proto = this.workspace.paper.path([['M', this.x1, this.y1], ['L', this.x2, this.y2]]);
 		this.proto.attr(this.parameters);
 	},
 	// hack

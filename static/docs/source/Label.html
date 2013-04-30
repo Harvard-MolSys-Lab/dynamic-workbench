@@ -79,9 +79,10 @@ Ext.define('Workspace.Label', {
 </span>	 * Transforms the value of #object.#property to the value which is actually
 	 * displayed. Override to provide a custom formatting.
 	 * @param {Mixed} value Result of {@link #object}.{@link Machine.SerializableObject#get get}({@link #property})
+	 * @param {Workspace.objects.Object} object The object to which this label is bound
 	 * @return {String} displayValue Value to be displayed
 	 */
-	format: function(val) {
+	format: function(val,object) {
 		return val;
 	},
 <span id='Workspace-Label-method-onSave'>	/**
@@ -126,15 +127,15 @@ Ext.define('Workspace.Label', {
 	onChange : function(prop, val) {
 		if(prop == this.property &amp;&amp; !this.ignoreNext) {
 			if(this.getEl()) {
-				val = this.format(val);
+				val = this.getFormattedValue(val); //this.format(val,this.object);
 				this.getEl().update(val);
 				this.onMove();
 				//this.updateSize(val);
 			}
 		}
 	},
-	getFormattedValue: function() {
-		return this.format(this.object.get(this.property));
+	getFormattedValue: function(val) {
+		return this.format(val || this.object.get(this.property),this.object);
 	},
 	destroy : function() {
 		this.object.un('change', this.onChange, this);

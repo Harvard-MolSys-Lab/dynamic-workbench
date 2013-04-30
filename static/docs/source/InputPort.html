@@ -17,16 +17,16 @@
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js">////////////////////////////////////////////////////////////////////////////////////////////////
 
-Ext.define('Workspace.objects.dna.InputPort', {
+Ext.define('App.usr.nodal.ws.objects.InputPort', {
 	extend:'Workspace.objects.Path',
 	mixins: {
-		port: 'Workspace.objects.dna.NodePort'
+		port: 'App.usr.nodal.ws.objects.NodePort'
 	},
 	constructor: function() {
 		this.callParent(arguments);
 		this.mixins.port.constructor.apply(this,arguments);
 	},
-	wtype: 'Workspace.objects.dna.InputPort',
+	wtype: 'App.usr.nodal.ws.objects.InputPort',
 	role: 'input',
 	width: 12,
 	height: 12,
@@ -48,9 +48,10 @@ Ext.define('Workspace.objects.dna.InputPort', {
 		this.mixins.port.render.apply(this,arguments);
 	},
 }, function() {
-	Workspace.reg('Workspace.objects.dna.InputPort',Workspace.objects.dna.InputPort);
+	Workspace.reg('App.usr.nodal.ws.objects.InputPort',App.usr.nodal.ws.objects.InputPort);
+	Workspace.regAlias('Workspace.objects.dna.InputPort','App.usr.nodal.ws.objects.InputPort');
 });
-//Ext.copyTo(Workspace.objects.dna.InputPort.prototype,Workspace.VectorPathObject.prototype,['getHighlightProxy','updateHighlightProxy','updatePath','updateDimensions','translate','setPosition',])
+//Ext.copyTo(App.usr.nodal.ws.objects.InputPort.prototype,Workspace.VectorPathObject.prototype,['getHighlightProxy','updateHighlightProxy','updatePath','updateDimensions','translate','setPosition',])
 </pre>
 </body>
 </html>

@@ -213,7 +213,7 @@ Ext.define('App.ui.Launcher', {
 }, function() {
 	App.ui.Launcher.register('help', 'App.ui.Help', {
 	});
-	App.ui.Launcher.register('nodal', 'App.ui.NodalCanvas', {
+	App.ui.Launcher.register('nodal', 'App.usr.nodal.Canvas', {
 		title : 'Nodal System',
 		editorType : 'Nodal',
 		iconCls : 'nodal',
@@ -223,7 +223,7 @@ Ext.define('App.ui.Launcher', {
 		title : 'Secondary Structure',
 	});
 	
-	App.ui.Launcher.register('primary', 'App.ui.Canvas', {
+	App.ui.Launcher.register('primary', 'App.usr.canvas.Canvas', {
 		title : 'Primary Structure',
 		editorType : 'Primary',
 		iconCls : 'line',
@@ -239,105 +239,105 @@ Ext.define('App.ui.Launcher', {
 		}],
 	});
 
-	App.ui.Launcher.register('whiteboard', 'App.ui.Canvas', {
+	App.ui.Launcher.register('whiteboard', 'App.usr.canvas.Canvas', {
 		title : 'Whiteboard',
 	});
 	App.ui.Launcher.register('dashboard', 'App.ui.Dashboard', {});
-	App.ui.Launcher.register('nupack/design', 'App.ui.Browser', {
+	App.ui.Launcher.register('nupack/design', 'App.usr.browser.Browser', {
 		url : 'http://www.nupack.org/design',
 		title : 'NUPACK Design',
 		iconCls : 'nupack-icon'
 	});
-	App.ui.Launcher.register('nupack/analyze', 'App.ui.Browser', {
+	App.ui.Launcher.register('nupack/analyze', 'App.usr.browser.Browser', {
 		url : 'http://www.nupack.org/partition',
 		title : 'NUPACK Analysis',
 		iconCls : 'nupack-icon'
 	});
-	App.ui.Launcher.register('nupack/utilities', 'App.ui.Browser', {
+	App.ui.Launcher.register('nupack/utilities', 'App.usr.browser.Browser', {
 		url : 'http://www.nupack.org/utilities',
 		title : 'NUPACK Util',
 		iconCls : 'nupack-icon'
 	});
-	App.ui.Launcher.register('nupack', 'App.ui.Browser', {
+	App.ui.Launcher.register('nupack', 'App.usr.browser.Browser', {
 		url : 'http://www.nupack.org/',
 		iconCls : 'nupack-icon',
 		title : 'NUPACK'
 	});
-	App.ui.Launcher.register('viewer', 'App.ui.Viewer', {
+	App.ui.Launcher.register('viewer', 'App.usr.viewer.Viewer', {
 
 	});
-	App.ui.Launcher.register('nupackedit', 'App.ui.NupackEditor', {});
-	App.ui.Launcher.register('msedit', 'App.ui.MultisubjectiveEditor');
-	App.ui.Launcher.register('msview', 'App.ui.MultisubjectiveViewer');
+	App.ui.Launcher.register('nupackedit', 'App.usr.nupack.Editor', {});
+	App.ui.Launcher.register('msedit', 'App.usr.ms.Editor');
+	App.ui.Launcher.register('msview', 'App.usr.ms.Viewer');
 	
-	App.ui.Launcher.register('enumedit', 'App.ui.EnumEditor');
+	App.ui.Launcher.register('enumedit', 'App.usr.enum.Editor');
 	
-	App.ui.Launcher.register('enumview', 'App.ui.EnumViewer');
+	App.ui.Launcher.register('enumview', 'App.usr.enum.Viewer');
 	App.ui.Launcher.register('taskmanager', 'App.ui.TaskManager', {
 		iconCls : 'system-monitor',
 		title : 'Task Manager'
 	});
-	App.ui.Launcher.register('js', 'App.ui.JavascriptEditor', {
+	App.ui.Launcher.register('js', 'App.usr.js.Editor', {
 	});
-	App.ui.Launcher.register('json', 'App.ui.JavascriptEditor', {
+	App.ui.Launcher.register('json', 'App.usr.js.Editor', {
 		json:true,
 	});
-	App.ui.Launcher.register('txt', 'App.ui.TextEditor', {
+	App.ui.Launcher.register('txt', 'App.usr.text.Editor', {
 		iconCls : 'txt',
 		editorType : 'Text',
 		mode : '',
 	});
-	App.ui.Launcher.register('dynaml','App.ui.DynamlEditor',{});
-	App.ui.Launcher.register('html', 'App.ui.TextEditor', {
+	App.ui.Launcher.register('dynaml','App.usr.dynaml.Editor',{});
+	App.ui.Launcher.register('html', 'App.usr.text.Editor', {
 		iconCls : 'html',
 		editorType : 'HTML',
 		mode : 'htmlmixed',
 	});
-	App.ui.Launcher.register('xml', 'App.ui.TextEditor', {
+	App.ui.Launcher.register('xml', 'App.usr.text.Editor', {
 		iconCls : 'xml',
 		editorType : 'XML',
 		mode : 'xml',
 	});
-	App.ui.Launcher.register('sbml', 'App.ui.SBMLEditor', {
+	App.ui.Launcher.register('sbml', 'App.usr.sbml.Editor', {
 	});
-	App.ui.Launcher.register('tex', 'App.ui.TextEditor', {
+	App.ui.Launcher.register('tex', 'App.usr.text.Editor', {
 		iconCls : 'tex',
 		editorType : 'TeX',
 		mode : 'stex',
 	});
-	App.ui.Launcher.register('md', 'App.ui.TextEditor', {
+	App.ui.Launcher.register('md', 'App.usr.text.Editor', {
 		iconCls : 'md',
 		editorType : 'Markdown',
 		mode : 'gfm',
 	});
-	App.ui.Launcher.register('rst', 'App.ui.TextEditor', {
+	App.ui.Launcher.register('rst', 'App.usr.text.Editor', {
 		iconCls : 'rst',
 		editorType : 'ReStructuredText',
 		mode : 'rst',
 	});
-	App.ui.Launcher.register('pil', 'App.ui.TextEditor', {
+	App.ui.Launcher.register('pil', 'App.usr.text.Editor', {
 		iconCls : 'pil',
 		editorType : 'PIL',
 		mode : 'pepper',
 	});
-	App.ui.Launcher.register('pepper', 'App.ui.Pepper', {
+	App.ui.Launcher.register('pepper', 'App.usr.pepper.Editor', {
 		iconCls : 'pepper',
 		editorType : 'Pepper',
 		mode : 'pepper',
 	});
-	App.ui.Launcher.register('strandedit','App.ui.StrandEdit',{
+	App.ui.Launcher.register('strandedit','App.usr.dil.DilEditor',{
 	});
-	App.ui.Launcher.register('dil','App.ui.StrandEdit',{
+	App.ui.Launcher.register('dil','App.usr.dil.DilEditor',{
 	});
 
 	
-	App.ui.Launcher.register('sequence', 'App.ui.SequenceEditor', {
+	App.ui.Launcher.register('sequence', 'App.usr.seq.Editor', {
 	});
-	App.ui.Launcher.register('nupackresults', 'App.ui.NupackResults', {
+	App.ui.Launcher.register('nupackresults', 'App.usr.nupack.Results', {
 		iconCls : 'nupack-icon',
 		editorType : 'NUPACK Results',
 	});
-	App.ui.Launcher.register('dd', 'App.ui.DD', {
+	App.ui.Launcher.register('dd', 'App.usr.dd.DD', {
 		iconCls : 'seq',
 	});
 	App.ui.active = function() {

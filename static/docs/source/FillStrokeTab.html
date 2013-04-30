@@ -15,12 +15,12 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='App-ui-FillStrokeTab'>/**
-</span> * @class App.ui.FillStrokeTab
+  <pre class="prettyprint lang-js"><span id='App-usr-canvas-FillStrokeTab'>/**
+</span> * @class App.usr.canvas.FillStrokeTab
  * A ribbon tab to manage setting the fill and stroke of objects
  * @extends App.ui.BoundObjectPanel
  */
-Ext.define('App.ui.FillStrokeTab', {
+Ext.define('App.usr.canvas.FillStrokeTab', {
 	extend:'App.ui.BoundObjectPanel',
 	alias: 'widget.fillstroketab',
 	initComponent: function() {
@@ -149,7 +149,7 @@ Ext.define('App.ui.FillStrokeTab', {
 			}]
 		});
 
-		App.ui.FillStrokeTab.superclass.initComponent.apply(this, arguments);
+		App.usr.canvas.FillStrokeTab.superclass.initComponent.apply(this, arguments);
 
 		//this.on('afterrender', this.afterrender, this);
 	},

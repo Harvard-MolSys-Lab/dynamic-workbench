@@ -15,10 +15,10 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='App-ui-dd-ScoreParametersWindow'>/**
+  <pre class="prettyprint lang-js"><span id='App-usr-dd-ScoreParametersWindow'>/**
 </span> * Window allowing DD users to edit score parameters
  */
-Ext.define('App.ui.dd.ScoreParametersWindow', {
+Ext.define('App.usr.dd.ScoreParametersWindow', {
     extend: 'Ext.window.Window',
     title: 'Score Parameters',
     layout: 'fit',
@@ -171,14 +171,14 @@ Ext.define('App.ui.dd.ScoreParametersWindow', {
         this.callParent(arguments);
         this.form = this.down('form');
     },
-<span id='App-ui-dd-ScoreParametersWindow-method-save'>    /**
-</span>     * Saves values and updates them in the {@link App.ui.DD designer UI}.
+<span id='App-usr-dd-ScoreParametersWindow-method-save'>    /**
+</span>     * Saves values and updates them in the {@link App.usr.dd.DD designer UI}.
      */
     save: function () {
         this.designer.updateParams(this.getValues());
         this.hide();
     },
-<span id='App-ui-dd-ScoreParametersWindow-method-getValues'>    /**
+<span id='App-usr-dd-ScoreParametersWindow-method-getValues'>    /**
 </span>     * Returns parameter values in a hash. Parameter values and defaults:
      * 
      * `MAX_MUTATIONS` -  10, maximum number of simultaneous mutations
@@ -201,7 +201,7 @@ Ext.define('App.ui.dd.ScoreParametersWindow', {
     getValues: function () {
         return this.form.getValues();
     },
-<span id='App-ui-dd-ScoreParametersWindow-method-setValues'>    /**
+<span id='App-usr-dd-ScoreParametersWindow-method-setValues'>    /**
 </span>     * Accepts parameter values as a hash and updates form values.
      */
     setValues: function (v) {

@@ -1,3 +1,5 @@
+% DyNAMiC Workbench User Manual
+% Casey Grun
 
 DyNAMiC Workbench Documentation
 ===============================

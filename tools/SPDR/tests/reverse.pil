@@ -1,0 +1,10 @@
+domain a = NNNNNN
+domain b = NNNNNN
+domain c = NNNNNN
+domain d = NNNNNN
+domain e = NNNNNN
+
+strand s1 = a b 
+strand s2 = c d
+strand s3 = e d*
+strand s4 = c* b*

@@ -1,0 +1,61 @@
+hairpin A1 : -
+hairpin A2 : -
+hairpin A3 : -
+
+hairpin B1 : +
+hairpin B2 : +
+hairpin B3 : +
+
+hairpin C1 : -
+hairpin C2 : -
+hairpin C3 : -
+
+bridge B1 C3 : bridgeB1C3
+bridge B2 C1 : bridgeB2C1
+bridge B3 C2 : bridgeB3C2
+
+length 1 = 8N
+length 2 = 8N
+length 3 = 8N
+length 4 = 8N
+length 5 = 8N
+length 6 = 8N
+length 7 = 8N
+length 8 = 8N
+length 9 = 8N
+
+length x = YY
+length y = YY
+length z = YY
+length s = Y
+#
+length a = 6N
+length b = 6N
+length c = 6N
+length d = 7N2Y
+length e = 7N2Y
+length f = 7N2Y
+length g = 4YN
+length h = 4YN
+length i = 4YN
+length j = 7N
+length k = 7N
+length l = 7N
+
+###################
+
+#hairpin A1 = -53
+#hairpin A2 = -53
+#hairpin A3 = -53
+
+#hairpin B1 = 24
+#hairpin B2 = 24
+#hairpin B3 = 24
+
+#hairpin C1 = -30
+#hairpin C2 = -30
+#hairpin C3 = -30
+
+#bridge B1 C3 = 26 10 20
+#bridge B2 C1 = 26 10 20
+#bridge B3 C2 = 26 10 20

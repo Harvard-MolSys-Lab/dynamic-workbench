@@ -1,0 +1,60 @@
+###################
+structure A1 = U14 H20(U19) U8
+structure A2 = U14 H20(U19) U8
+structure A3 = U14 H20(U19) U8
+
+structure B1 = U8 H16(U15) U22
+structure B2 = U8 H16(U15) U22
+structure B3 = U8 H16(U15) U22
+
+structure C1 = H24(U6) U8
+structure C2 = H24(U6) U8
+structure C3 = H24(U6) U8
+
+structure bridgeB1C3 = U1 H20(U32 + U9) U1
+structure bridgeB2C1 = U1 H20(U32 + U9) U1
+structure bridgeB3C2 = U1 H20(U32 + U9) U1
+
+structure _prevent-B = U53 + U53 + U53 + U32 + U32 + U32 + U30 + U30 + U30
+
+structure _prevent-C = U53 + U53 + U53 + U53 + U53 + U53 + U9 + U9 + U9
+
+`
+
+################# ##
+
+A1: a* 7* x* 4* 2* y* 5* 3* z* s y 2 4 x 1
+A2: b* 8* y* 5* 3* z* 6* 1* x* s z 3 5 y 2
+A3: c* 9* z* 6* 1* x* 4* 2* y* s x 1 6 z 3
+
+B1: 4 x 7 a s g* d* a* 7* x* k* b e
+B2: 5 y 8 b s h* e* b* 8* y* l* c f
+B3: 6 z 9 c s i* f* c* 9* z* j* a d
+
+C1: x* k* b e h s e* b* k x 7
+C2: y* l* c f i s f* c* l y 8
+C3: z* j* a d g s d* a* j z 9
+
+bridgeB1C3: s g* d* a* 7* x* k* b e z* j* a d g s
+bridgeB2C1: s h* e* b* 8* y* l* c f x* k* b e h s
+bridgeB3C2: s i* f* c* 9* z* j* a d y* l* c f i s
+
+_prevent-B: a* 7* x* 4* 2* y* 5* 3* z* s   b* 8* y* 5* 3* z* 6* 1* x* s   c* 9* z* 6* 1* x* 4* 2* y* s   7* x* k* b e   8* y* l* c f   9* z* j* a d   x* k* b e h s   y* l* c f i s   z* j* a d g s
+
+_prevent-C: a* 7* x* 4* 2* y* 5* 3* z* s   b* 8* y* 5* 3* z* 6* 1* x* s   c* 9* z* 6* 1* x* 4* 2* y* s   s g* d* a* 7* x* k* b e   s h* e* b* 8* y* l* c f   s i* f* c* 9* z* j* a d   x* k*   y* l*   z* j*
+
+A1 < .01
+A2 < .01
+A3 < .01
+B1 < .01
+B2 < .01
+B3 < .01
+C1 < .01
+C2 < .01
+C3 < .01
+bridgeB1C3 < .01
+bridgeB2C1 < .01
+bridgeB3C2 < .01
+_prevent-B < .01
+_prevent-C < .01
+

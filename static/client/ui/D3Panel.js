@@ -153,7 +153,8 @@ Ext.define('App.ui.D3Panel', {
 			if (this.pan || this.zoom) {
 				var me = this;
 				function redraw() {
-					me.vis.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")");
+					//me.vis.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")");
+					me.redraw(d3.event.translate,d3.event.scale);
 				}
 				
 				this.vis = this.vis.append('svg:g').call(d3.behavior.zoom().on("zoom", redraw)).append('svg:g');
@@ -173,7 +174,7 @@ Ext.define('App.ui.D3Panel', {
 		var html = this.body.getHTML();
 		return html.replace(/<div\s+id="[\w-]+"\s+class="x-clear"\s+role="presentation"><\/div>/g,'');
 	},
-	redraw : function() {
-		this.vis.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")");
+	redraw : function(translate,scale) {
+		this.vis.attr("transform", "translate(" + translate + ")" + " scale(" + scale + ")");
 	}
 })

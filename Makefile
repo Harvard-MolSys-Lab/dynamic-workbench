@@ -33,7 +33,8 @@ share :
 	
 js :
 	sencha create jsb -a http://192.168.56.10:3000/build.html -p build/app.jsb3 
-	VBoxManage guestcontrol "DyNAMiC Workbench Server" exec '/usr/bin/make' --username "webserver-user" --password " " --verbose --wait-stdout --wait-exit -- --directory='/home/webserver-user' jake 2>&1
+	VBoxManage guestcontrol "DyNAMiC Workbench Server" execute --image "/usr/bin/make" --username "webserver-user" --password " " --verbose --wait-stdout --wait-exit -- --directory=/home/webserver-user jake # 2>&1
+	#VBoxManage guestcontrol "DyNAMiC Workbench Server" exec '/usr/bin/make' --username "webserver-user" --password " " --verbose --wait-stdout --wait-exit -- --directory='/home/webserver-user' jake 2>&1
 	# VBoxManage guestcontrol exec "DyNAMiC Workbench Server" '/home/webserver-user/local/node/bin/jake' --username "webserver-user" --password " " --arguments "-C '/home/webserver-user/app' -f 'Jakefile' --trace" --verbose --wait-for stdout --environment 'HOME=/home/webserver-user PATH=$HOME/local/node/bin:$PATH'
 	# sencha build -p build/app.jsb3 -d .
 

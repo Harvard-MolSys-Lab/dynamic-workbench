@@ -10,4 +10,7 @@ old
 test.js
 test.html
 logs
+src
+src/*
+
 build/vm/*

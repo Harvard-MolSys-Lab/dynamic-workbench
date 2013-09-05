@@ -23,6 +23,14 @@ Ext.define('Workspace.Shim', {
 	animate : false,
 	passThroughEvents : true,
 	/**
+	 * @cfg {Boolean} True to hide the shim when the #object is hidden
+	 */
+	hideOnHide: true,
+	/**
+	 * @cfg {Boolean} True to show the shim when the #object is shown
+	 */
+	showOnShow: true,
+	/**
 	 * Links this shim to a {@link Workspace.objects.Object}
 	 * @param {Workspace.objects.Object} object
 	 */
@@ -30,8 +38,8 @@ Ext.define('Workspace.Shim', {
 		if(obj.getEl) {
 			this.object = obj;
 			obj.on('move', this.onMove, this);
-			obj.on('hide', this.hide, this);
-			obj.on('show', this.show, this);
+			if(this.hideOnHide) obj.on('hide', this.hide, this);
+			if(this.showOnShow) obj.on('show', this.show, this);
 			obj.on('destroy', this.destroy, this);
 			if(obj.is('rendered')) {
 				this.render();

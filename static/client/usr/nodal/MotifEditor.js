@@ -1,8 +1,13 @@
+/**
+ * Provides facilities for designing and editing Motifs
+ */
 Ext.define('App.usr.nodal.MotifEditor',{
 	extend:'Ext.panel.Panel',
 	mixins: {
 		tip: 'App.ui.TipHelper',
 	},
+	requires: ['App.usr.dil.SegmentStore','App.usr.dil.StrandStore','App.usr.dil.ComplexStore',
+	'App.usr.dil.StrandsGrid','App.usr.dil.SegmentsGrid','App.usr.nodal.MotifPreview','App.usr.dil.EditComplexPanel'],
 	layout: 'border',
 	border: false,
 	bodyBorder: false,
@@ -82,8 +87,12 @@ Ext.define('App.usr.nodal.MotifEditor',{
 	},
 
 	refresh: function () {
-		var motif = this.buildMotif();
-		this.motifPreview.setValue(motif);
+		if(!this.suspendRefresh) {
+			var motif = this.buildMotif();
+			this.motifPreview.setValue(motif);
+
+			//this.complexPanel.updateComplex();
+		}
 	},
 
 	/* ------------------------------------------------------------------------------------------- 
@@ -141,6 +150,10 @@ Ext.define('App.usr.nodal.MotifEditor',{
 		}, this);
 	},
 
+	/**
+	 * Loads data from a DyNAML string. The string should be a valid DyNAML depiction of a {@link App.dynamic.Motif}.
+	 * @param  {String} input DyNAML string describing a motif
+	 */
 	loadDynaml: function(input) {
 		input || (input = '{}');
 		var cfg;
@@ -161,6 +174,10 @@ Ext.define('App.usr.nodal.MotifEditor',{
 		this.complex = this.complexStore.getAt(0) || _.first(this.complexStore.addComplex());
 	},
 
+	/**
+	 * Loads data from a {@link App.dynamic.Motif Motif} object.
+	 * @param  {App.dynamic.Motif} motif 
+	 */
 	loadMotif: function(motif) {
 		motif || (motif = {});
 		var complexStore = this.complexStore,
@@ -169,16 +186,39 @@ Ext.define('App.usr.nodal.MotifEditor',{
 			segmentColors = d3.scale.category20();
 
 		segmentStore.colorGenerator = segmentColors;
-		segmentStore.add(_.map(motif.getSegments() || [], function(seg) {
+
+		this.suspendRefresh = true;
+
+		// this.segmentStore.suspendEvents();
+		// this.strandStore.suspendEvents();
+		// this.complexStore.suspendEvents();
+		
+		var segData = _.map(motif.getSegments() || [], function(seg) {
 			return {
 				identity: seg.getIdentity(),
 				sequence: seg.getSequence(),
 				color: !!seg.color ? seg.color : segmentColors(seg.getIdentity()),
 			};
-		}));
+		}), newSegData = [];
+		for(var i=0; i<segData.length; i++) {
+			var data = segData[i],
+				rec = segmentStore.findRecord('identity',data.identity);
+			if(rec) {
+				rec.beginEdit();
+				rec.set('identity',data.identity);
+				rec.set('sequence',data.sequence);
+				rec.set('color',data.color);
+				rec.endEdit();
+			} else {
+				newSegData.push(data);
+			}
+		}
+		segmentStore.add(newSegData);
+
+
 
 		complexStore.add([(function(node) {
-			strandStore.add(_.map(node.getStrands() || [], function(strand) {
+			var strandData = _.map(node.getStrands() || [], function(strand) {
 				return {
 					name: strand.getName(),
 					sequence: strand.getSequence(),
@@ -186,7 +226,23 @@ Ext.define('App.usr.nodal.MotifEditor',{
 					spec: strand.printDomains( /* omitLengths */ true),
 					polarity: strand.getPolarity(),
 				};
-			}));
+			}),newStrandData = [];
+			for(var i=0; i<strandData.length; i++) {
+				var data = strandData[i],
+					rec = strandStore.findRecord('name',data.name);
+				if(rec) {
+					rec.beginEdit();
+					rec.set('name',data.name);
+					rec.set('sequence',data.sequence);
+					rec.set('complex',data.complex);
+					rec.set('spec',data.spec);
+					rec.set('polarity',data.polarity);
+					rec.endEdit();
+				} else {
+					newStrandData.push(data);
+				}
+			}
+			strandStore.add(newStrandData);
 
 			var structure;
 			try {
@@ -204,6 +260,13 @@ Ext.define('App.usr.nodal.MotifEditor',{
 				})
 			};
 		})(motif)]);
+
+		this.suspendRefresh = false;
+
+		// this.segmentStore.resumeEvents();
+		// this.strandStore.resumeEvents();
+		// this.complexStore.resumeEvents();
+
 	},
 	buildMotif: function() {
 		var segmentIds = this.segmentStore.getRange(),
@@ -285,8 +348,8 @@ Ext.define('App.usr.nodal.MotifEditor',{
 	},
 	setValue: function (data) {
 		this.complexStore.remove(this.complexStore.getRange());
-		this.strandStore.remove(this.strandStore.getRange());
-		this.segmentStore.remove(this.segmentStore.getRange());
+		//this.strandStore.remove(this.strandStore.getRange());
+		//this.segmentStore.remove(this.segmentStore.getRange());
 
 		this.data = data;
 		this.loadDynaml(this.data);

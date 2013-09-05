@@ -12,7 +12,12 @@ Ext.define('App.usr.nodal.ws.objects.NodePort', {
 		this.expose('exposure',true,true,true,false);
 		this.expose('computedPolarity', function() {
 			var obj = this.getLibraryObject();
-			return obj ? obj.getAbsolutePolarity() : 0;
+			if(!obj) return 0;
+			if(obj.strand && obj.node) {
+				return obj.getAbsolutePolarity();
+			} else {
+				return obj.getPolarity();
+			}
 		}, false, false, false);
 		this.expose('footprint',function() {
 			var obj = this.getLibraryObject();
@@ -43,7 +48,7 @@ Ext.define('App.usr.nodal.ws.objects.NodePort', {
 			property : 'computedPolarity',
 			editable : false,
 			format : function(polarity) {
-				return polarity == 1 ? '+' : (polarity == -1 ? '–' : '±');
+				return polarity == 1 ? '+' : (polarity == -1 ? '–' : 'ø');
 			}
 		}));
 		this.footprintShim = Ext.create('Workspace.Label', {
@@ -51,6 +56,7 @@ Ext.define('App.usr.nodal.ws.objects.NodePort', {
 			offsets : [0, 4],
 			property : 'segments',
 			editable : false,
+			showOnShow: false,
 			format : function(segments,obj) {
 				// var pol = obj.get('computedPolarity');
 				// return (pol==-1 ? "5'–" : "3'–") + _.map(segments,function footprint (seg) {
@@ -95,7 +101,7 @@ Ext.define('App.usr.nodal.ws.objects.NodePort', {
 		return obj ? obj[prop] : false;
 	},
 	getLibraryObject : function() {
-		if(this.parent && this.getParent().isWType('App.usr.nodal.ws.objects.Node')) {
+		if(this.parent && this.getParent().isWType('App.usr.nodal.ws.objects.Node') || this.getParent().isWType('App.usr.nodal.ws.objects.Motif')) {
 			var node = this.parent.getLibraryObject(), name = this.get('name');
 			if(node) {
 				var me = _.find(node.getDomains(), function(dom) {

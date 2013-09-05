@@ -9,6 +9,7 @@ Ext.define('App.usr.nodal.ws.objects.Motif', {
 	proxifyOnMove : true,
 	polarity: 0,
 	stroke: '#888',
+	strokeDasharray: '5,5',
 	requires: ['App.usr.nodal.ws.objects.MotifLayout',],
 	constructor: function() {
 		this.callParent(arguments);

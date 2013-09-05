@@ -4057,7 +4057,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			'init' : '#553300',
 			'input' : 'orange', // '#ffa500',
 			'output' : '#33ccff',
-			'output.init' : '#553300', // init (brown)
+			'output.init' : '#8C6239', //'#553300', // init (brown)
 			'output.loop' : '#33ccff', // blue
 			'output.tail' : '#66ff33', // green
 			'bridge' : '#ff1177',

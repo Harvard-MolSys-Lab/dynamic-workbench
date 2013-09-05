@@ -202,9 +202,9 @@ Ext.define('App.ui.Launcher', {
 		iconCls : 'nodal',
 	});
 	
-	App.ui.Launcher.register('secondary', 'App.ui.SecondaryCanvas', {
-		title : 'Secondary Structure',
-	});
+	// App.ui.Launcher.register('secondary', 'App.ui.SecondaryCanvas', {
+	// 	title : 'Secondary Structure',
+	// });
 	
 	App.ui.Launcher.register('primary', 'App.usr.canvas.Canvas', {
 		title : 'Primary Structure',

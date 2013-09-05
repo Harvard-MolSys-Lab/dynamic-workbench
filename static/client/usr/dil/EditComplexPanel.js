@@ -34,7 +34,7 @@ Ext.define('App.usr.dil.EditComplexPanel', {
 					xtype: 'textarea',
 					name: 'strandsField',
 					validator: Ext.bind(this.validateStrands, this),
-					minHeight: 12,
+					minHeight: 20,
 					tooltip: "Enter the name(s) of your strand(s) order in which they should appear in the complex. Separate strand names with + signs." + 
 					"If you do not enter a strand\'s name here, it will not appear in the complex. Strand names can be used multiple times—this will "+
 					"create a complex with multiple copies of that strand. ",
@@ -46,6 +46,7 @@ Ext.define('App.usr.dil.EditComplexPanel', {
 					xtype: 'displayfield',
 					name: 'segmentsField',
 					cls: 'strand-glyph-well',
+					minHeight: 20,
 					tooltip: "Click to edit the order in which strands will appear in the complex. If you do not enter a strand\'s name here, it will not appear in the complex."
 				}, {
 					fieldLabel: 'Structure',

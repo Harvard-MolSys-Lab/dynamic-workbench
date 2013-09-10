@@ -12,11 +12,22 @@ var _ = require('underscore'),
 // Validate abbreviations
 var check = validate.check, sanitize = validate.sanitize;
 
-
+/**
+ * @class JoinStore
+ * Stores bidirectional mappings between keys (sources) and values (targets). 
+ * One source can have several targets, and vice-versa
+ *  
+ */
 function JoinStore () {
 	var sources = {};
 	var targets = {};
 	_.extend(this,{
+
+		/**
+		 * Registers a (source,target) pair
+		 * @param  {String} source One key of the pair
+		 * @param  {String} target The other key
+		 */
 		register: function(source,target) {
 			if(!sources[target]) {
 				sources[target] = [];
@@ -27,6 +38,11 @@ function JoinStore () {
 			sources[target].push(source);
 			targets[source].push(target);
 		},
+		/**
+		 * Unregisters a (source,target) pair
+		 * @param  {String} source One key of the pair
+		 * @param  {String} target The other key
+		 */
 		unregister: function unregister (source,target) {
 			var i;
 			if(sources[target]) {
@@ -38,9 +54,19 @@ function JoinStore () {
 				targets[source].splice(i,1);
 			}
 		},
+		/**
+		 * Gets the targets associated with a particular `source`
+		 * @param  {String} source The `source` key
+		 * @return {String[]} Array of values (`target`s) associated with the source
+		 */
 		getTargets: function getTargets (source) {
 			return _.clone(targets[source]) || [];
 		},
+		/**
+		 * Gets the sources associated with a particular `target`
+		 * @param  {String} target The `target` value
+		 * @return {String[]} Array of keys (`source`s) associated with the source
+		 */
 		getSources: function getSources (target) {
 			return _.clone(sources[target]) || [];
 		},
@@ -73,7 +99,9 @@ function TaskService(rt, options) {
 	// Generate list of tools
 	var toolsList = require('./live-tools-list').list;
 	me.tools = _.reduce(toolsList, function(memo, name) {
-		memo[name] = require(path.join(toolPath, name));
+		modulePath = path.join(toolPath, name)
+		utils.log({ level: 'info', message: 'Loading Tool: '+modulePath })
+		memo[name] = require(modulePath);
 		return memo;
 	}, {});
 
@@ -89,13 +117,13 @@ function TaskService(rt, options) {
 		res.send('App.TaskRunner.loadTools(' + JSON.stringify(clientTools) + ')')
 	});
 
-
+	// Expose a list of running tasks to be automatically loaded when the client connects
 	app.get(path.join(baseRoute,'/tasklist'), auth.restrict('json'), function(req, res) {
 		var runningTasks = me.userTaskStore.getTargets(userId);
 		res.send('App.TaskRunner.loadTasks(' + JSON.stringify(runningTasks) + ')')
 	});
 
-	// Handle incoming users
+	// Handle incoming connections from new users
 	io.of('/tasks').on('connection',function onConnect (socket) {
 		
 		// Get Express session data

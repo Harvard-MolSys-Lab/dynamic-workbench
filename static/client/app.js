@@ -875,7 +875,7 @@ Ext.define('App.LiveTaskRunner.StreamingBus',{
  * Shortcut for {@link App.LiveTaskRunner#run}
  */
 App.runTask = function() {
-	App.LiveTaskRunner.run.apply(App.LiveTaskRunner, arguments);
+	return App.LiveTaskRunner.run.apply(App.LiveTaskRunner, arguments);
 }
 
 /**

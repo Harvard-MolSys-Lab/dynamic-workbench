@@ -1,0 +1,62 @@
+!!! 5
+html(lang="en")
+  head
+    title DyNAMiC Workbench (Builder)
+    - // true to only retrieve static resources
+    - var resources = manifest.getResources(true,'build');
+    - var dynamic = manifest.getDynamicResources();
+    - var bootstrap = manifest.bootstrap;
+
+    // CSS
+    - each sheet in resources.links
+      link(rel="stylesheet",href=sheet)
+
+
+    // Javascript 
+    script(type="text/javascript", src="/socket.io/socket.io.js")
+
+    each script in resources.scripts
+      script(type="text/javascript", src=script)
+        
+    each script in dynamic
+      script(type="text/javascript", src=script)
+    
+    script(type="text/javascript", src=bootstrap)
+
+
+    // Test Harness
+    - resources.links = ['http://code.jquery.com/qunit/qunit-git.css'];
+    - resources.scripts = ['http://code.jquery.com/qunit/qunit-git.js','lib/underscore.js','common/dna-utils.js','common/dynamic.js'];
+    - resources.tests = ['tests/client/tasks.js'];
+    - each sheet in resources.links
+      link(rel="stylesheet",href=sheet)
+
+    - each script in resources.scripts
+      script(type="text/javascript", src=script)
+    - each script in resources.tests
+      script(type="text/javascript", src=script)
+    
+    style.
+      #qunit { 
+        position: absolute;
+        top: 0px; right: 0px;
+        z-index: 10000;
+        background-color: white;
+      }
+      #qunit-fixture {
+        position: absolute;
+        z-index:10000;
+        background-color: white;
+      }
+
+
+  body
+    div#qunit
+    div#qunit-fixture    
+
+
+    div#loading_mask
+      div#loading
+        img(src="images/icons/loading.gif", alt="loading")
+        span= "Loading Test Harness."
+        

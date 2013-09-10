@@ -81,7 +81,7 @@ app.configure(function() {
 
 	// TODO: Add to local configuration environment
 	app.get('/tests.html', function(req, res) {
-		res.render('tests.jade', {
+		res.render('tests-interface.jade', {
 			manifest: require('./server/manifest'),
 			env: app.set('env'),
 			layout : false

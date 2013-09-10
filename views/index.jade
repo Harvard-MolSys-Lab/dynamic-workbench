@@ -5,9 +5,15 @@ html(lang="en")
     - var resources = manifest.getResources(true,env);
     - var dynamic = manifest.getDynamicResources();
     - var bootstrap = manifest.bootstrap;
+    
+    // Stylesheets
     - each sheet in resources.links
       link(rel="stylesheet",href=sheet)
     
+
+    // Javascript 
+    script(type="text/javascript", src="/socket.io/socket.io.js")
+
     // - env = 'production';
     if env == 'production'
       script(type="text/javascript", src="all.js")

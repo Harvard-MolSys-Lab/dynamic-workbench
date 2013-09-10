@@ -1,0 +1,7 @@
+{
+	"--":["server"], 
+	"--external":"Ext", 
+	"--title": "InfoMachine2 Server Documentation", 
+	"--output": "static/docs/server",	
+	"--categories":"categories.json"
+}

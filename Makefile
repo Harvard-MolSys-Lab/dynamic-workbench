@@ -17,8 +17,13 @@ vmShare = "/Users/caseygrun/vmshare/"
 all : vm js docs
 
 docs :
+	mkdir -p static/docs
 	jsduck --config ./docs.json
-	
+
+server-docs :
+	mkdir -p static/docs/server
+	jsduck --config ./server-docs.json
+
 vm : #unshare
 #	VBoxManage guestcontrol "DyNAMiC Workbench Server" exec '/usr/bin/make' --username "webserver-user" --password " " --verbose --wait-stdout --wait-exit -- --directory='/home/webserver-user' deploy 2>&1
 	mkdir -p build/vm

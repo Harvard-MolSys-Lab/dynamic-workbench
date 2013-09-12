@@ -9,6 +9,11 @@ Ext.define('App.usr.enum.Viewer', {
 	},
 	editorType : 'Enumerator',
 	autoRender : false,
+
+	fontSize: 1,
+	linkWidth: 2,
+	arrowThreshold: 0.25,
+
 	constructor : function() {
 		this.callParent(arguments);
 		this.mixins.app.constructor.apply(this, arguments);
@@ -20,17 +25,20 @@ Ext.define('App.usr.enum.Viewer', {
 		this.afterrender();
 	},
 	redraw: function (translate,scale) {
+		
+
 		this.callParent(arguments);
-		this.node.selectAll('text.node_label').style('font-size',1/scale+'em');
-		this.link.style('stroke-width',1/scale);
-		this.legendg.attr("transform","translate("+ [(-translate[0]),(-translate[1])] +") scale("+ Math.min(1/scale,10) +")");
+		this.node.selectAll('text.node_label').style('font-size',this.fontSize/scale+'em');
+		this.link.style('stroke-width',this.linkWidth/scale);
+		this.link.classed("link-reaction-noarrow", scale < this.arrowThreshold)
+		// this.legendg.attr("transform","translate("+ [(-translate[0]),(-translate[1])] +") scale("+ Math.min(1/scale,10) +")");
 	},
 	buildVis : function() {
 		/* ****
 		 * Visualization utilities
 		 */
 
-		var curve = d3.svg.line().interpolate("cardinal-closed").tension(.85);
+		// var curve = d3.svg.line().interpolate("cardinal-closed").tension(.85);
 
 		var fill = d3.scale.category20();
 
@@ -46,7 +54,7 @@ Ext.define('App.usr.enum.Viewer', {
 		var splinePathGenerator = d3.svg.line()
 				.x(function(d) { return d.x; })
 				.y(function(d) { return d.y; })
-				.interpolate("basis");
+				.interpolate("bundle").tension(.6);
 
 		function spline(e) {
 			var points = e.dagre.points.slice(0);
@@ -54,6 +62,8 @@ Ext.define('App.usr.enum.Viewer', {
 			var target = dagre.util.intersectRect(e.target.dagre, points[points.length - 1]);
 			points.unshift(source);
 			points.push(target);
+
+			// points = [source,target]
 			return splinePathGenerator(points);
 		}
 
@@ -102,7 +112,6 @@ Ext.define('App.usr.enum.Viewer', {
 				}
 			}
 		}
-		//console.log(restingStateMap);
 
 		// Build data for the complex nodes
 		var complexData = _.map(complexes, function(x, i) {
@@ -217,10 +226,11 @@ Ext.define('App.usr.enum.Viewer', {
   		var nodeg = this.nodeg = panel.append("g");
 		var legendg = this.legendg = panel.append("g");
 
-		var dr = 4,      // default point radius
+		var dr = 50,      // default point radius
+    		cr = 100, 	 // default complex point radius
     		off = 15;    // cluster hull offset
 		var dist = 50,
-			nodePadding = 5;
+			nodePadding = 0; //5;
 		
 		
 		var me = this;
@@ -244,25 +254,34 @@ Ext.define('App.usr.enum.Viewer', {
 			'resting' : 'white',
 		};
 		
-		var radius = function(d) {
-			return d._type == 'complex' ? d.strands.length * 5 : 5
+		function radius(d) {
+			return d._type == 'complex' ? d.strands.length * 50 : dr
 		};
 		
 		
 		function highlightLinks(d) {
-			panel.selectAll("path.link-reaction").attr("opacity", 0.3);
+			var color = d3.scale.category20();
 
+			panel.selectAll("path.link-reaction").classed("link-reaction-blurred",true);
+
+			// Select all paths that point out of this node
 			panel.selectAll("path.link-reaction.source-" + d.name).each(function(r, i) {
-				panel.selectAll("path.link-reaction.target-" + r.target.name).attr("opacity", 0.8);
-			}).attr("opacity", 1.0)
+				panel.selectAll("path.link-reaction.target-" + r.target.name).classed("link-reaction-blurred",false);
+			}).classed("link-reaction-blurred",false).classed("link-reaction-reactant",true).style("stroke",function(d) { 
+				return color(d.target.name); 
+			});
 
+			// Select all paths that point into this node
 			panel.selectAll("path.link-reaction.target-" + d.name).each(function(r, i) {
-				panel.selectAll("path.link-reaction.source-" + r.source.name).attr("opacity", 0.8);
-			}).attr("opacity", 1.0)
+				panel.selectAll("path.link-reaction.source-" + r.source.name).classed("link-reaction-blurred",false);
+			}).classed("link-reaction-blurred",false).classed("link-reaction-product",true).style("stroke",function(d) { 
+				return color(d.source.name); 
+			});
 		}
 
 		function unhighlightLinks() {
-			panel.selectAll("path.link-reaction").attr("opacity", 1.0)
+			panel.selectAll("path.link-reaction").classed("link-reaction-blurred",false)
+				.classed("link-reaction-reactant",false).classed("link-reaction-product",false).style("stroke",null);
 		}
 
 		// function zoomRedraw() {
@@ -300,11 +319,7 @@ Ext.define('App.usr.enum.Viewer', {
 			}).style("stroke-width", function(d) {
 				return d.size || 1;
 			}).style("fill","none")
-			.attr("marker-end", function(d) {
-				return "url(#reaction-arrow)";
-			});;
-
-
+			.classed("link-reaction-noarrow",false);
 
 			me.node = nodeg.selectAll("g.node").data(net.nodes, nodeid);
 			me.node.exit().remove();
@@ -313,16 +328,19 @@ Ext.define('App.usr.enum.Viewer', {
 				.attr("transform", function(d) {
 				return "translate(" + d.x + "," + d.y + ")";
 			})
-				.on('mouseover', highlightLinks)
-				.on('mouseout', unhighlightLinks)
-				.on('dblclick', function(d) {
-				if (d._type == 'complex') me.showWindow(d, this);
+			.on('mouseover', highlightLinks)
+			.on('mouseout', unhighlightLinks)
+			.on('dblclick', function(d) {
+				if (d._type == 'complex') {
+					me.renderPreview(d, this);
+					d3.event.stopPropagation();
+				}
 			})
 
 			me.node.append('text').attr('class', 'node_label')
 				.style('fill', '#111')
 				.style('text-shadow', '1px 1px 2px white')
-				.attr("dx", function(d) {
+			.attr("dx", function(d) {
 				return radius(d) + 5
 			}).attr("dy", ".35em").text(function(d) {
 				if (d._type == 'complex') {
@@ -332,7 +350,7 @@ Ext.define('App.usr.enum.Viewer', {
 				}
 			});
 
-			me.node.append('circle')
+			me.node.append('rect')
 			// if (d.size) -- d.size > 0 when d is a group node.
 			.attr("class", function(d) {
 				switch (d._type) {
@@ -347,25 +365,33 @@ Ext.define('App.usr.enum.Viewer', {
 						return '';
 				}
 			})
-				.attr("r", function(d) {
-				return d.size ? d.size + dr : dr + 1;
-			})
-			// .attr("cx", function(d) { return d.x; })
-			// .attr("cy", function(d) { return d.y; })
-			//.style("fill", function(d) { return fill(d.group); })
-			.on("click", function(d) {
-				if (d.group) {
-					console.log("node click", d, arguments, this, expand[d.group]);
-					//expand[d.group] = !expand[d.group];
-					//init();
+			.attr("width", radius)
+			.attr("height", radius)
+			.attr("rx", function(d) {
+				switch (d._type) {
+					case 'complex': return 10;
+					default: return d.size ? d.size + dr : dr + 1;
 				}
-			});
+			})
+			.attr("ry", function(d) {
+				switch (d._type) {
+					case 'complex': return 10;
+					default: return d.size ? d.size + dr : dr + 1;
+				}
+			})
+
+			// .attr("r", function(d) {
+			// 	switch (d._type) {
+			// 		case 'complex': return cr;
+			// 		default: return d.size ? d.size + dr : dr + 1;
+			// 	}
+			// })
 
 			me.node.each(function(d) {
 			    var bbox = this.getBBox();
 			    d.bbox = bbox;
-			    d.width = bbox.width + 2 * nodePadding;
-			    d.height = bbox.height + 2 * nodePadding;
+			    d.width = bbox.width + (2 * nodePadding);
+			    d.height = bbox.height + (2 * nodePadding);
 			  });
 
 			dagre.layout()
@@ -397,39 +423,44 @@ Ext.define('App.usr.enum.Viewer', {
 				}
 			});
 
-			me.node.attr("transform", function(d) { return 'translate('+ d.dagre.x +','+ d.dagre.y +')'; });
+			me.node.attr("transform", function(d) { 
+				// return 'translate('+ (d.dagre.x) +','+ (d.dagre.y) +')'; 
+
+				// return 'translate('+ (d.dagre.x + nodePadding) +','+ (d.dagre.y + nodePadding) +')'; 
+				return 'translate('+ (d.dagre.x - d.dagre.width/2) +','+ (d.dagre.y - d.dagre.height/2) +')'; 
+			});
 
 			me.link
 			// Set the id. of the SVG element to have access to it later
 			    .attr('id', function(e) { return e.dagre.id; })
 			    .attr("d", function(e) { return spline(e); });
 
-			function drag() {
-				// if (!hull.empty()) {
-				//   hull.data(convexHulls(net.nodes, getGroup, off))
-				//       .attr("d", drawCluster);
-				// }
+			// function drag() {
+			// 	// if (!hull.empty()) {
+			// 	//   hull.data(convexHulls(net.nodes, getGroup, off))
+			// 	//       .attr("d", drawCluster);
+			// 	// }
 
-				me.link.attr("x1", function(d) {
-					return d.source.x;
-				})
-					.attr("y1", function(d) {
-					return d.source.y;
-				})
-					.attr("x2", function(d) {
-					return d.target.x;
-				})
-					.attr("y2", function(d) {
-					return d.target.y;
-				});
+			// 	me.link.attr("x1", function(d) {
+			// 		return d.source.x;
+			// 	})
+			// 		.attr("y1", function(d) {
+			// 		return d.source.y;
+			// 	})
+			// 		.attr("x2", function(d) {
+			// 		return d.target.x;
+			// 	})
+			// 		.attr("y2", function(d) {
+			// 		return d.target.y;
+			// 	});
 
 
-				me.node.attr("transform", function(d) {
-					return "translate(" + d.x + "," + d.y + ")";
-				});
-				// me.node.attr("cx", function(d) { return d.x; })
-				//     .attr("cy", function(d) { return d.y; });
-			}
+			// 	me.node.attr("transform", function(d) {
+			// 		return "translate(" + d.x + "," + d.y + ")";
+			// 	});
+			// 	// me.node.attr("cx", function(d) { return d.x; })
+			// 	//     .attr("cy", function(d) { return d.y; });
+			// }
 
 			var svgBBox = panel.node().getBBox();
 			panel.attr("width", svgBBox.width + 10);
@@ -473,6 +504,13 @@ Ext.define('App.usr.enum.Viewer', {
 
 		init();
 
+	},
+	renderPreview: function(d,node) {
+		var data = !!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'],
+			panel = d3.select(node);
+
+		this.previewPanels[d.name] = StrandPreview(panel).width(d.width).height(d.height)
+		this.complexWindows[d.name] = this.previewPanels[d.name] (panel.data([data]));
 	},
 	showWindow : function(d, node) {
 		if (!this.complexWindows[d.name]) {

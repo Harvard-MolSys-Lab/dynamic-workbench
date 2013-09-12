@@ -613,7 +613,22 @@ ul.dashboard-actions li a:hover {
 
 .link-reaction {
 	stroke: #aaa;
+	marker-mid: url(#reaction-arrow);
 }
+.link-reaction-noarrow {
+	marker-mid: none;
+}
+
+.link-reaction-blurred {
+	opacity: 0.3;
+}
+.link-reaction-reactant {
+	stroke-dasharray:5,2;
+}
+.link-reaction-product {
+	stroke-dasharray:2,2;
+}
+
 
 .reaction-fast {
 	fill: #01c;

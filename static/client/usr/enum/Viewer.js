@@ -28,7 +28,7 @@ Ext.define('App.usr.enum.Viewer', {
 		
 
 		this.callParent(arguments);
-		this.node.selectAll('text.node_label').style('font-size',this.fontSize/scale+'em');
+		this.node.selectAll('text.node-label').style('font-size',this.fontSize/scale+'em');
 		this.link.style('stroke-width',this.linkWidth/scale);
 		this.link.classed("link-reaction-noarrow", scale < this.arrowThreshold)
 		// this.legendg.attr("transform","translate("+ [(-translate[0]),(-translate[1])] +") scale("+ Math.min(1/scale,10) +")");
@@ -203,7 +203,6 @@ Ext.define('App.usr.enum.Viewer', {
 		var panel = this.getCanvas();
 		var line_stroke = '#aaa'
 
-		// panel.call(d3.behavior.zoom());
 		panel.append("svg:defs").selectAll("marker")
 			.data(["reaction-arrow"])
 			.enter()
@@ -219,9 +218,7 @@ Ext.define('App.usr.enum.Viewer', {
 					.attr("d", "M0,-5L10,0L0,5")
 					.style('stroke', line_stroke)
 					.style('fill', line_stroke);
-		
-		//panel.call(d3.behavior.zoom().on('zoom',zoomRedraw));
-		
+			
 		var linkg = this.linkg = panel.append("g");
   		var nodeg = this.nodeg = panel.append("g");
 		var legendg = this.legendg = panel.append("g");
@@ -284,25 +281,10 @@ Ext.define('App.usr.enum.Viewer', {
 				.classed("link-reaction-reactant",false).classed("link-reaction-product",false).style("stroke",null);
 		}
 
-		// function zoomRedraw() {
-		// 	var scale = d3.event.scale, translate = d3.event.translate;
-		// 	// panel.attr("transform",
-		// 	//       "translate(" + translate + ")"
-		// 	//       + " scale(" + scale + ")");
-		// 	me.node.selectAll('text.node_label').style('font-size',1/scale+'em');
-		// 	return true;
-		// }
-
-		function init() {
-
-			var net = {
-				links: links,
-				nodes: nodes,
-			};
-
-			me.link = linkg.selectAll("path.link-reaction").data(net.links, linkid);
-			me.link.exit().remove();
-			me.link.enter().append("path")
+		function buildLinks(linkg,net,me) {
+			var linkSel = linkg.selectAll("path.link-reaction").data(net.links, linkid);
+			linkSel.exit().remove();
+			linkSel.enter().append("path")
 				.attr("class", function(d) {
 				var cls = ["link-reaction"]
 				cls.push("source-" + d.source.name);
@@ -321,9 +303,13 @@ Ext.define('App.usr.enum.Viewer', {
 			}).style("fill","none")
 			.classed("link-reaction-noarrow",false);
 
-			me.node = nodeg.selectAll("g.node").data(net.nodes, nodeid);
-			me.node.exit().remove();
-			me.node.enter().append("g")
+			return linkSel;
+		}
+
+		function buildNodes (nodeg,net,me) {
+			var nodeSel = nodeg.selectAll("g.node").data(net.nodes, nodeid);
+			nodeSel.exit().remove();
+			nodeSel.enter().append("g")
 				.attr('class', 'node')
 				.attr("transform", function(d) {
 				return "translate(" + d.x + "," + d.y + ")";
@@ -337,9 +323,7 @@ Ext.define('App.usr.enum.Viewer', {
 				}
 			})
 
-			me.node.append('text').attr('class', 'node_label')
-				.style('fill', '#111')
-				.style('text-shadow', '1px 1px 2px white')
+			nodeSel.append('text').attr('class', 'node-label')
 			.attr("dx", function(d) {
 				return radius(d) + 5
 			}).attr("dy", ".35em").text(function(d) {
@@ -350,8 +334,7 @@ Ext.define('App.usr.enum.Viewer', {
 				}
 			});
 
-			me.node.append('rect')
-			// if (d.size) -- d.size > 0 when d is a group node.
+			nodeSel.append('rect')
 			.attr("class", function(d) {
 				switch (d._type) {
 					case 'complex':
@@ -380,19 +363,61 @@ Ext.define('App.usr.enum.Viewer', {
 				}
 			})
 
-			// .attr("r", function(d) {
-			// 	switch (d._type) {
-			// 		case 'complex': return cr;
-			// 		default: return d.size ? d.size + dr : dr + 1;
-			// 	}
-			// })
-
-			me.node.each(function(d) {
+			nodeSel.each(function(d) {
 			    var bbox = this.getBBox();
 			    d.bbox = bbox;
 			    d.width = bbox.width + (2 * nodePadding);
 			    d.height = bbox.height + (2 * nodePadding);
 			  });
+
+			return nodeSel;
+		}
+
+		function buildLegend(legendg,me) {
+			var legend = legendg.selectAll('g.legend').data([{
+				name : 'Resting Complex',
+				type : 'resting'
+			}, {
+				name : 'Transient Complex',
+				type : 'transient'
+			}, {
+				name : 'Fast (unimolecular) Reaction',
+				type : 'reaction-fast'
+			}, {
+				name : 'Slow (bimolecular) Reaction',
+				type : 'reaction-slow'
+			}, {
+				name : 'Initial Complex',
+				type : 'initial'
+			}]).enter().append('g').attr('class', 'legend').attr('transform', function(d, i) {
+				return "translate(15," + (20 * i + 15) + ")"
+			});
+
+			legend.append('circle').attr('fill', function(d) {
+				return fills[d.type]
+			}).attr('stroke', function(d) {
+				return strokes[d.type]
+			}).attr('r', 8).attr('stroke-width', 2)
+			
+			legend.append('text').style('fill', '#111').text(function(d) {
+				return d.name
+			}).attr("dx", function(d) {
+				return radius(d) + 5
+			}).attr("dy", ".35em")
+
+			return legend;
+		}
+
+		function init() {
+
+			var net = {
+				links: links,
+				nodes: nodes,
+			};
+
+			// Build selections for links and nodes
+			me.link = buildLinks(linkg,net,me)
+			me.node = buildNodes(nodeg,net,me)
 
 			dagre.layout()
 				.nodeSep(50)
@@ -424,9 +449,6 @@ Ext.define('App.usr.enum.Viewer', {
 			});
 
 			me.node.attr("transform", function(d) { 
-				// return 'translate('+ (d.dagre.x) +','+ (d.dagre.y) +')'; 
-
-				// return 'translate('+ (d.dagre.x + nodePadding) +','+ (d.dagre.y + nodePadding) +')'; 
 				return 'translate('+ (d.dagre.x - d.dagre.width/2) +','+ (d.dagre.y - d.dagre.height/2) +')'; 
 			});
 
@@ -435,32 +457,6 @@ Ext.define('App.usr.enum.Viewer', {
 			    .attr('id', function(e) { return e.dagre.id; })
 			    .attr("d", function(e) { return spline(e); });
 
-			// function drag() {
-			// 	// if (!hull.empty()) {
-			// 	//   hull.data(convexHulls(net.nodes, getGroup, off))
-			// 	//       .attr("d", drawCluster);
-			// 	// }
-
-			// 	me.link.attr("x1", function(d) {
-			// 		return d.source.x;
-			// 	})
-			// 		.attr("y1", function(d) {
-			// 		return d.source.y;
-			// 	})
-			// 		.attr("x2", function(d) {
-			// 		return d.target.x;
-			// 	})
-			// 		.attr("y2", function(d) {
-			// 		return d.target.y;
-			// 	});
-
-
-			// 	me.node.attr("transform", function(d) {
-			// 		return "translate(" + d.x + "," + d.y + ")";
-			// 	});
-			// 	// me.node.attr("cx", function(d) { return d.x; })
-			// 	//     .attr("cy", function(d) { return d.y; });
-			// }
 
 			var svgBBox = panel.node().getBBox();
 			panel.attr("width", svgBBox.width + 10);
@@ -470,37 +466,8 @@ Ext.define('App.usr.enum.Viewer', {
 			
 		}	
 		
-		// Legend
-		this.legend = legendg.selectAll('g.legend').data([{
-			name : 'Resting Complex',
-			type : 'resting'
-		}, {
-			name : 'Transient Complex',
-			type : 'transient'
-		}, {
-			name : 'Fast (unimolecular) Reaction',
-			type : 'reaction-fast'
-		}, {
-			name : 'Slow (bimolecular) Reaction',
-			type : 'reaction-slow'
-		}, {
-			name : 'Initial Complex',
-			type : 'initial'
-		}]).enter().append('g').attr('class', 'legend').attr('transform', function(d, i) {
-			return "translate(15," + (20 * i + 15) + ")"
-		});
-
-		this.legend.append('circle').attr('fill', function(d) {
-			return fills[d.type]
-		}).attr('stroke', function(d) {
-			return strokes[d.type]
-		}).attr('r', 8).attr('stroke-width', 2)
-		this.legend.append('text').style('fill', '#111').text(function(d) {
-			return d.name
-		}).attr("dx", function(d) {
-			return radius(d) + 5
-		}).attr("dy", ".35em")
-
+		// Construct Legend
+		me.legend = buildLegend(legendg,me);
 
 		init();
 

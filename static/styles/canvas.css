@@ -658,6 +658,10 @@ ul.dashboard-actions li a:hover {
 	fill: yellow;
 	stroke: #fff;
 }
+.node-label {
+	fill: #111;
+	text-shadow:1px 1px 2px white;
+}
 path.hull {
   fill: lightsteelblue;
   fill-opacity: 0.3;

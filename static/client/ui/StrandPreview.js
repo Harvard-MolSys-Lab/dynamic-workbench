@@ -288,6 +288,7 @@ function StrandPreview() {
 	
 			// gobbles parameters that would be passed to redraw and uses d3.event stuff instead
 			function zoomRedraw() {
+				d3.event.sourceEvent.stopPropagation();
 				return redraw(d3.event.scale,d3.event.translate );
 			}
 
@@ -708,6 +709,12 @@ Ext.define('App.ui.StrandPreview', {
 		} else if(arguments.length==1) {
 			this.data = structure;
 		} else {
+			this.data = structure; 
+			if(this.data) { 
+				if(strands) this.data.strands = strands;
+				if(sequences) this.data.sequences = sequences
+			} 
+
 			this.structure = structure; 
 			this.strands = strands;
 			this.sequences = sequences;

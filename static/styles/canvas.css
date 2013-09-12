@@ -629,6 +629,9 @@ ul.dashboard-actions li a:hover {
 	stroke-dasharray:2,2;
 }
 
+.node-blurred {
+	opacity: 0.3;
+}
 
 .reaction-fast {
 	fill: #01c;

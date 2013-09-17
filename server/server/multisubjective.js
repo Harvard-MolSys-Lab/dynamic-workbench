@@ -9,16 +9,23 @@ winston = require('winston'), //
 glob = require('glob');
 
 // Utils abbreviations
-var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = utils.allowedPath, getCommand = utils.getCommand, prefix = utils.prefix, quote = utils.quote, postfix = utils.postfix; 
+var sendError = utils.sendError, 
+	forbidden = utils.forbidden, 
+	allowedPath = utils.allowedPath, 
+	getCommand = utils.getCommand, 
+	prefix = utils.prefix, 
+	quote = utils.quote, 
+	postfix = utils.postfix,
 
-var commands = {
-	ms : {
-		command : 'tools/multisubjective/multisubjective',
-		arguments : [''],
+	commands = {
+		ms : {
+			command : 'tools/multisubjective/multisubjective',
+			arguments : [''],
+		},
 	},
-}
 
-var maxBuffer = 1000 * 1024;
+	maxBuffer = 1000 * 1024;
+
 
 exports.name = 'Multisubjective';
 exports.iconCls = 'ms-icon';
@@ -30,10 +37,7 @@ exports.start = function(req, res, params) {
 		forbidden(res);
 		console.log("Can't enter path: '" + fullPath + "'");
 	}
-	// console.log('fullPath:'+fullPath);
-	// console.log('node:'+node);
-	// console.log('basename:'+path.basename(fullPath));
-	// console.log('dirname:'+path.dirname(fullPath));
+	
 
 	// modes:
 	/*
@@ -55,11 +59,10 @@ exports.start = function(req, res, params) {
 	 * x - no designer
 	 */
 
-	var mode = params['mode'] || 'fw';
-	var action = params['action'] || 'default';
-
-	var pre = path.basename(fullPath, '.ms');
-	var working_dir = path.dirname(fullPath);
+	var mode = params['mode'] || 'fw',
+		action = params['action'] || 'default',
+		pre = path.basename(fullPath, '.np'), //path.basename(fullPath, '.ms'),
+		working_dir = path.dirname(fullPath);
 
 	switch(action) {
 		case 'clean':
@@ -97,18 +100,18 @@ exports.start = function(req, res, params) {
 				})
 			});
 			return;
-		default:
+
 		case 'default':
+		default:
 			cmd = getCommand(commands['ms'], ['-m', mode, '-d', working_dir, '-i', pre, '-o', pre, '-w']);
 
 			var env = {
 				"NUPACKHOME" : utils.toolPath("nupack3"),
-				"HOME" : '/home/webserver-user'
+				"HOME" : '/home/webserver-user',
+				"CLDDPATH": utils.toolPath("multisubjective/bin/cldd.js")
 			};
-			winston.log("info", cmd);
-			winston.log("info", env);
+			utils.log({level: "info", message: cmd, env: env});
 
-			// cmd = 'valgrind --leak-check=full -v '+cmd
 			proc.exec(cmd, {
 				env : env,
 				maxBuffer : maxBuffer

@@ -2637,40 +2637,76 @@ var DNA = module.exports.DNA = (function(_) {
 		 * @return {Object} spec.strands Hash mapping strand names to {@link }
 		 */
 		structureSpec : function(lines) {
-			var sequences = {}, strands = {};
+			var sequences = {}, strands = {}, structures = {};
 			_.each(lines, function(line) {
 				if (line.length > 0) {
+					
+					/* Handle structures
+					 * e.g.:
+					 * 		structure A1 = U16 D18(U19) U8
+					 * 		structure A2 = ...(((..+..)))
+					 */
 					if (line[0][1] == 'structure') {
+						var name = line[0][1], spec = _.select(line.slice(2), function(x) {
+							return x[0] == 'nupack-huplus';
+						});
+						spec = _.pluck(spec, 1);
+						spec = spec.join('');
 
-					} else if (line[0][1] == 'sequence') {
+						structures[name] = spec;
+					} 
+
+					/* Handle segment/sequences 
+					 * e.g.:
+					 *     0        1 2 3...
+					 *     sequence a = 7N
+					 *     sequence a = ATCGNA
+					 *     domain   a = GYRBA
+					 */
+					else if (line[0][1] == 'sequence' || line[0][1] == 'domain') {
 						/*
-						 * e.g.:
-						 *     sequence a = 7N
-						 *     sequence a = ATCGNA
+						 *	e.g:
+						 *	
+						 *	line = [
+						 *		["keyword", "sequence"],
+						 *		["string", "1"],
+						 *		["operator", ":"],
+						 *		["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], 
+						 *		["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"]
+						 *	]
 						 */
 						var name = line[1][1], spec = _.select(line.slice(3), function(x) {
 							return (x[0] == 'number' || (x[0].indexOf('sequence') != -1));
 						});
+
+						// e.g. `6N`
 						if (spec[0][0] == 'number') {
 							var base = spec[1][1], times = spec[0][1], spec = '';
-							_.times(times, function() {
-								spec += base;
-							});
-						} else {
+							spec = Array(times+1).join(base);
+						} 
+						// e.g. `GATCANY` ... 
+						else {
 							spec = _.pluck(spec, 1).join('');
 						}
 						sequences[name] = spec;
 
-						/*
-						 * e.g.:
-						 *     M1 : 1 2* 3 4
-						 */
-					} else if (line[0][0] == 'variable' && line[1] && line[1][1] == ':') {
+						
+					} 
+					/* Handle threading assignments
+					 * e.g.:
+					 *     0      1 2...
+					 *     M1     : 1 2* 3 4
+					 *     M2.seq = 1 2* 3 4
+					 */
+					else if (line[0][0] == 'variable' && line[1] && line[1][1] == ':') {
 						var name = line[0][1], spec = _.select(line.slice(2), function(x) {
 							return x[0] == 'string';
 						});
 						spec = _.pluck(spec, 1);
 						spec = spec.join(' ');
+
+						// e.g. `M2.seq` shoud -> `M2` 
+						if(name.indexOf('.seq') != -1) { name = name.replace('.seq','') }
 						strands[name] = spec;
 					}
 				}

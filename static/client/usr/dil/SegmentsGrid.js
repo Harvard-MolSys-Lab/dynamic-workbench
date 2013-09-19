@@ -13,6 +13,10 @@ Ext.define('App.usr.dil.SegmentsGrid',{
 			clicksToEdit: 1
 		});
 
+		/**
+		 * @cfg {App.usr.dil.SegmentStore} store
+		 * The store to contain this panel's strands
+		 */
 		this.segmentStore = this.store;
 
 		Ext.apply(this,{
@@ -79,10 +83,16 @@ Ext.define('App.usr.dil.SegmentsGrid',{
 		this.callParent(arguments);
 		this.mixins.tip.init.call(this,[]);
 	},
-
+	/**
+	 * Shows a window for adding segments; populates #addSegmentsWindow.
+	 */
 	showAddSegmentsWindow: function() {
 		var me = this;
 		if(!this.addSegmentsWindow) {
+			/**
+			 * @property {App.ui.SequenceWindow} addSegmentsWindow 
+			 * A window for adding many segments. Calls #updateSegments upon confirmation.
+			 */
 			this.addSegmentsWindow = Ext.create('App.ui.SequenceWindow',{
 				handler: function(domains) {
 					me.updateSegments(domains);
@@ -93,6 +103,11 @@ Ext.define('App.usr.dil.SegmentsGrid',{
 		this.addSegmentsWindow.show();
 	},
 	
+	/**
+	 * Adds a segment with the passed {@link DNA#parseIdentity identity} and sequence to the component
+	 * @param {String} identity Identity of the new segment
+	 * @param {String} sequence Sequence of bases
+	 */
 	addSegment: function(identity,sequence) {
 		return _.first(this.segmentStore.add({
 			identity: identity,
@@ -100,6 +115,14 @@ Ext.define('App.usr.dil.SegmentsGrid',{
 			color: this.segmentStore.getColor(identity),
 		}));
 	},
+	/**
+	 * Adds several segments to the store.
+	 * @param {Object} map 
+	 * A hash mapping segment {@link DNA#parseIdentity identities} to their sequences. Example:
+	 *
+	 * 		{ '1':'AAATAGCG', 'd': 'TAATCG', '17': 'GATACA' }
+	 * @return {App.usr.dil.Segment[]} Array of segment records
+	 */
 	addSegments: function(map) {
 		var me = this;
 		return this.segmentStore.add(_.map(map,function(sequence,identity) {
@@ -110,6 +133,15 @@ Ext.define('App.usr.dil.SegmentsGrid',{
 			}
 		}));
 	},
+	/**
+	 * Updates several segments to the store.
+	 * @param {Object} map 
+	 * A hash mapping segment {@link DNA#parseIdentity identities} to their sequences new. Example:
+	 *
+	 * 		{ '1':'AAATAGCG', 'd': 'TAATCG', '17': 'GATACA' }
+	 * 		
+	 * @return {App.usr.dil.Segment[]} Array of modified segment records
+	 */
 	updateSegments: function(map) {
 		var me = this;
 		return _.map(map,function(sequence,identity) {
@@ -126,9 +158,18 @@ Ext.define('App.usr.dil.SegmentsGrid',{
 			}
 		});
 	},
+	/**
+	 * Creates a segment of the given length, entirely of `N`'s
+	 * @param  {Number} length Length of the new segment
+	 * @return {App.usr.dil.Segment} Record for the new segment
+	 */
 	createSegment: function(length) {
 		return _.first(this.segmentStore.addSegment(length));
 	},
+	/**
+	 * Begins editing of the passed segment
+	 * @param  {App.usr.dil.Segment} [rec] Record representing the record to begin editing; defaults to the last-selected record 
+	 */
 	editSegment: function editSegment (rec) {
 		rec || (rec = this.segmentsGrid.getSelectionModel().getLastSelected());
 		if (rec) {
@@ -136,12 +177,18 @@ Ext.define('App.usr.dil.SegmentsGrid',{
 			this.segmentEditor.startEdit(rec, this.headerCt.getHeaderAtIndex(2));
 		}
 	},
+	/**
+	 * @private
+	 */
 	doEditSegment: function() {
 		return this.editSegment();
 	},
 	deleteSegment: function (rec) {
 		// body...
 	},
+	/**
+	 * @private
+	 */
 	doDeleteSegment: function() {
 		return this.deleteSegment();
 	},

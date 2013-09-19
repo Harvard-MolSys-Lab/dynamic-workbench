@@ -25,11 +25,11 @@ Ext.define('App.usr.dil.EditComplexPanel', {
 	mixins: {
 		tip: 'App.ui.TipHelper'
 	},
-	layout: 'border',
-	border: false,
-	bodyBorder: false,
-	initComponent: function() {
-		Ext.apply(this, {
+<span id='App-usr-dil-EditComplexPanel-property-layout'>	layout: 'border',
+</span><span id='App-usr-dil-EditComplexPanel-property-border'>	border: false,
+</span><span id='App-usr-dil-EditComplexPanel-property-bodyBorder'>	bodyBorder: false,
+</span><span id='App-usr-dil-EditComplexPanel-method-initComponent'>	initComponent: function() {
+</span>		Ext.apply(this, {
 			items: [{
 				xtype: 'strandpreview',
 				name: 'strandPreview',
@@ -51,7 +51,7 @@ Ext.define('App.usr.dil.EditComplexPanel', {
 					xtype: 'textarea',
 					name: 'strandsField',
 					validator: Ext.bind(this.validateStrands, this),
-					minHeight: 12,
+					minHeight: 20,
 					tooltip: &quot;Enter the name(s) of your strand(s) order in which they should appear in the complex. Separate strand names with + signs.&quot; + 
 					&quot;If you do not enter a strand\'s name here, it will not appear in the complex. Strand names can be used multiple times—this will &quot;+
 					&quot;create a complex with multiple copies of that strand. &quot;,
@@ -63,6 +63,7 @@ Ext.define('App.usr.dil.EditComplexPanel', {
 					xtype: 'displayfield',
 					name: 'segmentsField',
 					cls: 'strand-glyph-well',
+					minHeight: 20,
 					tooltip: &quot;Click to edit the order in which strands will appear in the complex. If you do not enter a strand\'s name here, it will not appear in the complex.&quot;
 				}, {
 					fieldLabel: 'Structure',
@@ -139,16 +140,16 @@ Ext.define('App.usr.dil.EditComplexPanel', {
 		this.updateView();
 	},
 
-	updateView: function() {
-		var me = this;
+<span id='App-usr-dil-EditComplexPanel-method-updateView'>	updateView: function() {
+</span>		var me = this;
 		if(!!this.segmentColors) this.strandPreview.segmentColors = this.segmentColors;
 		this.strandPreview.setValue(this.complexData);
 		this.segmentsField.setValue(_.map(this.complexData.strands, function(strand) {
 			return me.buildStrandGlyph(strand);
 		}).join(' + ') || '(click to edit)');	
 	},
-	updateSegmentsView: function() {
-		var me = this,
+<span id='App-usr-dil-EditComplexPanel-method-updateSegmentsView'>	updateSegmentsView: function() {
+</span>		var me = this,
 			strands = this.getStrands();
 
 		if(strands.length &gt; 0) {
@@ -160,8 +161,8 @@ Ext.define('App.usr.dil.EditComplexPanel', {
 			this.segmentsField.setValue('(click to edit)');
 		}
 	},
-	buildStrandGlyph: function(strand,name) {
-		var out = '&lt;div class=&quot;strand-glyph'+(strand?'':' strand-glyph-unknown')+'&quot;&gt;';
+<span id='App-usr-dil-EditComplexPanel-method-buildStrandGlyph'>	buildStrandGlyph: function(strand,name) {
+</span>		var out = '&lt;div class=&quot;strand-glyph'+(strand?'':' strand-glyph-unknown')+'&quot;&gt;';
 
 		if(strand) { 
 			out += '&lt;span class=&quot;strand-glyph-name&quot;&gt;'+strand.name+'&lt;/span&gt;'+ _.map(strand.segments, function(seg) {
@@ -175,23 +176,23 @@ Ext.define('App.usr.dil.EditComplexPanel', {
 		return out;
 	},
 	
-	getStrands: function() {
-		var strands = this.strandsField.getValue() || '';
+<span id='App-usr-dil-EditComplexPanel-method-getStrands'>	getStrands: function() {
+</span>		var strands = this.strandsField.getValue() || '';
 		return  _.map(strands.split('+'), function(s) {
 			return s.trim();
 		});
 	},
-	getStructure: function() {
-		return this.structureField.getValue() || '';
+<span id='App-usr-dil-EditComplexPanel-method-getStructure'>	getStructure: function() {
+</span>		return this.structureField.getValue() || '';
 	},
-	getStrandData: function() {
-		return this.strandManager.getStrandData.apply(this.strandManager, arguments);
+<span id='App-usr-dil-EditComplexPanel-method-getStrandData'>	getStrandData: function() {
+</span>		return this.strandManager.getStrandData.apply(this.strandManager, arguments);
 	},
-	getComplexData: function() {
-		return this.strandManager.getComplexData.apply(this.strandManager, arguments);
+<span id='App-usr-dil-EditComplexPanel-method-getComplexData'>	getComplexData: function() {
+</span>		return this.strandManager.getComplexData.apply(this.strandManager, arguments);
 	},
-	validateStrands: function() {
-		var strands = this.getStrands();
+<span id='App-usr-dil-EditComplexPanel-method-validateStrands'>	validateStrands: function() {
+</span>		var strands = this.getStrands();
 
 		for(var i = 0; i &lt; strands.length; i++) {
 			var strand = this.getStrandData(strands[i]);
@@ -202,8 +203,8 @@ Ext.define('App.usr.dil.EditComplexPanel', {
 		this.structureField.validate();
 		return true;
 	},
-	validateStructure: function() {
-		var strands = this.getStrands(),
+<span id='App-usr-dil-EditComplexPanel-method-validateStructure'>	validateStructure: function() {
+</span>		var strands = this.getStrands(),
 			structure = this.getStructure();
 		
 		// ensure input structure is valid dot-paren

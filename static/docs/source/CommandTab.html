@@ -15,12 +15,15 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('App.usr.canvas.CommandTab', {
+  <pre class="prettyprint lang-js"><span id='App-usr-canvas-CommandTab'>/**
+</span> * Allows custom Javascript commands to be entered to run in the context of the workspace
+ */
+Ext.define('App.usr.canvas.CommandTab', {
 	extend: 'App.usr.canvas.ToolsTab',
 	alias: 'widget.commandtab',
 	requires: ['App.ui.CodeMirror'],
-	generateConfig: function() {
-		this.codemirror = Ext.create('App.ui.CodeMirror',{
+<span id='App-usr-canvas-CommandTab-method-generateConfig'>	generateConfig: function() {
+</span>		this.codemirror = Ext.create('App.ui.CodeMirror',{
 			style:'border-width:0;',
 			mode: 'javascript',
 			bodyStyle: 'background: #fff !important;',
@@ -43,8 +46,8 @@
 			items: [this.codemirror]
 		}
 	},
-	runCommand: function() {
-		var selection = this.ribbon.workspace.getSelection();
+<span id='App-usr-canvas-CommandTab-method-runCommand'>	runCommand: function() {
+</span>		var selection = this.ribbon.workspace.getSelection();
 		App.ui.Launcher.console.executeInContext(this.codemirror.getValue(),this.ribbon.workspace,true,{
 			selection:selection,
 		});

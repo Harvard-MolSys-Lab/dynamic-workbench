@@ -40,8 +40,8 @@ Ext.define('App.usr.canvas.Palette', {
 	 * CSS class to apply to items upon hover
 	 */
 	overItemClass: 'x-view-over',
-	trackOver: true,
-<span id='App-usr-canvas-Palette-cfg-mimeType'>	/**
+<span id='App-usr-canvas-Palette-property-trackOver'>	trackOver: true,
+</span><span id='App-usr-canvas-Palette-cfg-mimeType'>	/**
 </span>	 * @cfg
 	 * Name of a {@link Workspace.DDManager.addHandler MIME type} (can be made up) to 
 	 * identify this type of object to the {@link Workspace.DDManager drag and drop manager}.
@@ -49,10 +49,10 @@ Ext.define('App.usr.canvas.Palette', {
 	 * MIME type. See {@link App.usr.nodal.MotifPalette} for an example.
 	 */
 	mimeType: '',
-	autoScroll: true,
-	
-	initComponent: function() {
-		Ext.apply(this, {
+<span id='App-usr-canvas-Palette-property-autoScroll'>	autoScroll: true,
+</span>	
+<span id='App-usr-canvas-Palette-method-initComponent'>	initComponent: function() {
+</span>		Ext.apply(this, {
 			items: [{
 				xtype:'dataview',
 				store: this.store,

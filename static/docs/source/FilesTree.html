@@ -25,12 +25,12 @@ Ext.define('App.ui.FilesTree', {
 </span>	 * @cfg
 	 */
 	title: 'Files',
-	newFileNumber: 0,
-	loaders: 0,
-	useArrows: true,
-	
-	/*
-	 * Add stateful collapse/expand
+<span id='App-ui-FilesTree-property-newFileNumber'>	newFileNumber: 0,
+</span><span id='App-ui-FilesTree-property-loaders'>	loaders: 0,
+</span><span id='App-ui-FilesTree-property-useArrows'>	useArrows: true,
+</span>	
+<span id='App-ui-FilesTree-method-getState'>	/*
+</span>	 * Add stateful collapse/expand
 	 * Credit: http://www.sencha.com/forum/showthread.php?40852-Stateful-TreePanel&amp;highlight=refresh+tree
 	 */
 	getState: function() { 
@@ -67,8 +67,8 @@ Ext.define('App.ui.FilesTree', {
 
     }, 
 
-    applyState: function(state) { 
-        var nodes = state.expandedNodes || [], 
+<span id='App-ui-FilesTree-method-applyState'>    applyState: function(state) { 
+</span>        var nodes = state.expandedNodes || [], 
             len = nodes.length; 
 
         this.collapseAll(); 
@@ -93,9 +93,9 @@ Ext.define('App.ui.FilesTree', {
 	 * set to false to allow custom behavior (e.g. for embedding the {@link App.ui.FilesTree} in a menu)
 	 */
 	createContextMenu: true,
-	allowDrop : true,
-	initComponent: function() {
-		Ext.apply(this, { 
+<span id='App-ui-FilesTree-property-allowDrop'>	allowDrop : true,
+</span><span id='App-ui-FilesTree-method-initComponent'>	initComponent: function() {
+</span>		Ext.apply(this, { 
 
             stateful: true, 
             stateId: this.id + '-state', 
@@ -418,8 +418,8 @@ Ext.define('App.ui.FilesTree', {
 
 		}
 	},
-	renewAll: function() {
-		// App.ui.Launcher.renewAll();
+<span id='App-ui-FilesTree-method-renewAll'>	renewAll: function() {
+</span>		// App.ui.Launcher.renewAll();
 	},
 <span id='App-ui-FilesTree-method-download'>	/**
 </span>	 * Downloads the requested file
@@ -521,8 +521,8 @@ Ext.define('App.ui.FilesTree', {
 		rec.expand();
 		return newRec;
 	},
-	newFileName: function() {
-		this.newFileNumber++;
+<span id='App-ui-FilesTree-method-newFileName'>	newFileName: function() {
+</span>		this.newFileNumber++;
 		return 'Untitled-'+this.newFileNumber;
 	},
 });</pre>

@@ -20,14 +20,14 @@
  */
 Ext.define('App.usr.seq.Editor', {
 	extend: 'App.usr.text.Editor',
-	mode: 'sequence',
-	mixins : {
+<span id='App-usr-seq-Editor-cfg-mode'>	mode: 'sequence',
+</span>	mixins : {
 		tips : 'App.ui.TipHelper',
 	},
-	iconCls : 'sequence',
-	editorType : 'Sequence',
-	title: 'Sequences',
-<span id='App-usr-seq-Editor-cfg-saveButtonText'>	/**
+<span id='App-usr-seq-Editor-property-iconCls'>	iconCls : 'sequence',
+</span><span id='App-usr-seq-Editor-property-editorType'>	editorType : 'Sequence',
+</span><span id='App-usr-seq-Editor-property-title'>	title: 'Sequences',
+</span><span id='App-usr-seq-Editor-cfg-saveButtonText'>	/**
 </span>	 * @cfg
 	 * Text to display in the #saveButton
 	 */
@@ -35,8 +35,8 @@ Ext.define('App.usr.seq.Editor', {
 	requires: ['App.usr.seq.Stats','App.ui.CompareMenu','App.ui.StatMenu','App.ui.SaveButton',
 	'App.ui.vienna.RNAfoldWindow','App.ui.mfold.QuikFoldWindow','App.ui.nupack.PartitionWindow'],
 	uses:['App.ui.SequenceThreader'],
-	initComponent: function() {
-		Ext.applyIf(this, {
+<span id='App-usr-seq-Editor-method-initComponent'>	initComponent: function() {
+</span>		Ext.applyIf(this, {
 			tbar: [{
 				text: 'Metrics',
 				iconCls: 'ruler',
@@ -547,8 +547,8 @@ Ext.define('App.usr.seq.Editor', {
 		this.stats.on('activate',this.populateStats,this);
 		this.editor.on('cursorchange',this.updateStatusBar,this);
 	},
-	updateStatusBar: function() {
-		var sel = this.getSelectionOrValue();
+<span id='App-usr-seq-Editor-method-updateStatusBar'>	updateStatusBar: function() {
+</span>		var sel = this.getSelectionOrValue();
 		var strands = _.filter(sel.split('\n'),function(line) {
 			return !line || !(/$&gt;./).test(line);
 		});
@@ -561,8 +561,8 @@ Ext.define('App.usr.seq.Editor', {
 		this.strandCount.setText(this.strandCount.baseText + strandCount);
 		this.baseCount.setText(this.baseCount.baseText + baseCount);
 	},
-	bruteForce: function() {
-		var strands = this.smartSelect(), count = this.brutePermCount.getValue(), concat = this.concatCount.getValue();
+<span id='App-usr-seq-Editor-method-bruteForce'>	bruteForce: function() {
+</span>		var strands = this.smartSelect(), count = this.brutePermCount.getValue(), concat = this.concatCount.getValue();
 		function permute(prev,alphabet) {
 			var o = [];
 			_.each(prev, function(item) {
@@ -746,8 +746,8 @@ Ext.define('App.usr.seq.Editor', {
 		win.show();
 		win.setSequences(this.getSelection());
 	},
-	showPartitionWindow: function() {
-		if(!this.partitionWindow) {
+<span id='App-usr-seq-Editor-method-showPartitionWindow'>	showPartitionWindow: function() {
+</span>		if(!this.partitionWindow) {
 			this.partitionWindow = Ext.create('App.ui.nupack.PartitionWindow',{
 				renderTo: Ext.getBody(),
 			});
@@ -755,8 +755,8 @@ Ext.define('App.usr.seq.Editor', {
 		this.partitionWindow.updateStrands(this.getSelectionOrValue());
 		this.partitionWindow.show();
 	},
-	showViennaPartitionWindow: function() {
-		if(!this.rnaFoldWindow) {
+<span id='App-usr-seq-Editor-method-showViennaPartitionWindow'>	showViennaPartitionWindow: function() {
+</span>		if(!this.rnaFoldWindow) {
 			this.rnaFoldWindow = Ext.create('App.ui.vienna.RNAfoldWindow',{
 				renderTo: Ext.getBody(),
 			});
@@ -764,8 +764,8 @@ Ext.define('App.usr.seq.Editor', {
 		this.rnaFoldWindow.updateStrands(this.getSelectionOrValue());
 		this.rnaFoldWindow.show();
 	},
-	showQuikfoldWindow: function() {
-		if(!this.quikFoldWindow) {
+<span id='App-usr-seq-Editor-method-showQuikfoldWindow'>	showQuikfoldWindow: function() {
+</span>		if(!this.quikFoldWindow) {
 			this.quikFoldWindow = Ext.create('App.ui.mfold.QuikFoldWindow',{
 				renderTo: Ext.getBody(),
 			});
@@ -774,8 +774,8 @@ Ext.define('App.usr.seq.Editor', {
 		this.quikFoldWindow.show();
 	},
 	
-	subsetsMfe: function(fullName) {
-		var strands = this.smartSelect(),
+<span id='App-usr-seq-Editor-method-subsetsMfe'>	subsetsMfe: function(fullName) {
+</span>		var strands = this.smartSelect(),
 		maxComplexes = strands.length;
 		maxComplexes = this.subsetsMaxComplexSize.getValue();
 		maxComplexes = Ext.isNumber(maxComplexes) ? maxComplexes : 2;
@@ -787,16 +787,16 @@ Ext.define('App.usr.seq.Editor', {
 			wc: wc,
 		});
 	},
-	pairwiseMfeComplexes: function(fullName) {
-		var strands = this.smartSelect(),
+<span id='App-usr-seq-Editor-method-pairwiseMfeComplexes'>	pairwiseMfeComplexes: function(fullName) {
+</span>		var strands = this.smartSelect(),
 		maxComplexes = strands.length;
 		App.runTask('nupack.Pairwise', {
 			node: App.Path.sameDirectory(this.getPath(),fullName),
 			strands: strands,
 		});
 	},
-	mfeComplexes: function(fullName) {
-		var strands = this.smartSelect(),
+<span id='App-usr-seq-Editor-method-mfeComplexes'>	mfeComplexes: function(fullName) {
+</span>		var strands = this.smartSelect(),
 		maxComplexes = this.mfeMaxComplexSize.getValue();
 		maxComplexes = Ext.isNumber(maxComplexes) ? maxComplexes : strands.length;
 		App.runTask('nupack.Analysis', {
@@ -805,12 +805,12 @@ Ext.define('App.usr.seq.Editor', {
 			max: maxComplexes,
 		});
 	},
-	populateStats: function() {
-		this.statsPanel.loadSequence(this.getSelectionOrValue().replace(/[^atcgu]/gi,''));
+<span id='App-usr-seq-Editor-method-populateStats'>	populateStats: function() {
+</span>		this.statsPanel.loadSequence(this.getSelectionOrValue().replace(/[^atcgu]/gi,''));
 		//this.statsPanel.show();
 	},
-	toggleComment: function() {
-		var strands = this.smartSelect();
+<span id='App-usr-seq-Editor-method-toggleComment'>	toggleComment: function() {
+</span>		var strands = this.smartSelect();
 		strands = _.map(strands, function(strand) {
 			if(strand.trim()[0]=='#' || strand.trim()[0]=='%') {
 				strand = strand.trim().substr(1);
@@ -822,8 +822,8 @@ Ext.define('App.usr.seq.Editor', {
 		strands = strands.join('\n');
 		this.editor.codemirror.replaceSelection(strands);
 	},
-	truncate: function() {
-		var strands = this.smartSelect(), len = this.truncationCount.getValue();
+<span id='App-usr-seq-Editor-method-truncate'>	truncate: function() {
+</span>		var strands = this.smartSelect(), len = this.truncationCount.getValue();
 		strands = _.map(strands, function(strand) {
 			var parts = strand.split(':'), str = parts.pop().trim();
 			
@@ -840,8 +840,8 @@ Ext.define('App.usr.seq.Editor', {
 		strands = strands.join('\n');
 		this.editor.codemirror.replaceSelection(strands);
 	},
-	nameStrands: function() {
-		var strands = this.smartSelect(), prefix = this.strandNamePrefix.getValue(), i=0;
+<span id='App-usr-seq-Editor-method-nameStrands'>	nameStrands: function() {
+</span>		var strands = this.smartSelect(), prefix = this.strandNamePrefix.getValue(), i=0;
 		!!prefix || (prefix = '');
 
 		strands = _.map(strands, function(strand) {
@@ -851,8 +851,8 @@ Ext.define('App.usr.seq.Editor', {
 		strands = strands.join('\n');
 		this.editor.codemirror.replaceSelection(strands);
 	},
-	prepend: function() {
-		var strands = this.smartSelect(), prefix = this.strandPrefix.getValue(), i=0;
+<span id='App-usr-seq-Editor-method-prepend'>	prepend: function() {
+</span>		var strands = this.smartSelect(), prefix = this.strandPrefix.getValue(), i=0;
 		!!prefix || (prefix = '');
 
 		strands = _.map(strands, function(strand) {
@@ -862,12 +862,12 @@ Ext.define('App.usr.seq.Editor', {
 		this.editor.codemirror.replaceSelection(strands);
 
 	},
-	nupackToFasta: function() {
-		this.replace(new RegExp(&quot;\\t\\n&quot;,'gm'),'\n&gt;');
+<span id='App-usr-seq-Editor-method-nupackToFasta'>	nupackToFasta: function() {
+</span>		this.replace(new RegExp(&quot;\\t\\n&quot;,'gm'),'\n&gt;');
 		this.replace(new RegExp(&quot;\\t&quot;,'g'),'\n');
 	},
-	insertDD: function() {
-		// var sel = this.editor.codemirror.getSelection(), v;
+<span id='App-usr-seq-Editor-method-insertDD'>	insertDD: function() {
+</span>		// var sel = this.editor.codemirror.getSelection(), v;
 		// if(sel=='') {
 		// sel = this.editor.getValue();
 		// v = this.makeDD(sel);
@@ -878,8 +878,8 @@ Ext.define('App.usr.seq.Editor', {
 		// }
 		this.replace(Ext.bind(this.makeDD,this));
 	},
-	makeDD: function(val) {
-		val = val.replace(/[^atcgu\s]/gi,'');
+<span id='App-usr-seq-Editor-method-makeDD'>	makeDD: function(val) {
+</span>		val = val.replace(/[^atcgu\s]/gi,'');
 		var list = _.map(val.split('\n'), function(v) {
 			return v.trim()
 		}),
@@ -889,8 +889,8 @@ Ext.define('App.usr.seq.Editor', {
 		});
 		return '# Save the following as an input file for DD:\n'+out;
 	},
-	replace: function(regex,value) {
-		var sel = this.editor.codemirror.getSelection(), v;
+<span id='App-usr-seq-Editor-method-replace'>	replace: function(regex,value) {
+</span>		var sel = this.editor.codemirror.getSelection(), v;
 		if(sel=='') {
 			sel = this.editor.getValue();
 			if(regex.test) {
@@ -908,46 +908,46 @@ Ext.define('App.usr.seq.Editor', {
 			this.editor.codemirror.replaceSelection(v);
 		}
 	},
-	uppercase: function() {
-		this.replace( function(sel) {
+<span id='App-usr-seq-Editor-method-uppercase'>	uppercase: function() {
+</span>		this.replace( function(sel) {
 			return sel.toUpperCase();
 		});
 	},
-	lowercase: function() {
-		this.replace( function(sel) {
+<span id='App-usr-seq-Editor-method-lowercase'>	lowercase: function() {
+</span>		this.replace( function(sel) {
 			return sel.toLowerCase();
 		});
 	},
-	convertToDNA: function() {
-		this.replace(/u/g,'t');
+<span id='App-usr-seq-Editor-method-convertToDNA'>	convertToDNA: function() {
+</span>		this.replace(/u/g,'t');
 		this.replace(/U/g,'T');
 	},
-	convertToRNA: function() {
-		this.replace(/t/g,'u');
+<span id='App-usr-seq-Editor-method-convertToRNA'>	convertToRNA: function() {
+</span>		this.replace(/t/g,'u');
 		this.replace(/T/g,'U');
 	},
-	autoLineBreaks: function() {
-		this.replace(/s/gm,'\n');
+<span id='App-usr-seq-Editor-method-autoLineBreaks'>	autoLineBreaks: function() {
+</span>		this.replace(/s/gm,'\n');
 	},
-	stripExtra: function() {
-		this.strip(/[^atcgu\s]/gi);
+<span id='App-usr-seq-Editor-method-stripExtra'>	stripExtra: function() {
+</span>		this.strip(/[^atcgu\s]/gi);
 	},
-	stripWhitespace: function() {
-		this.strip(/\s/gm);
+<span id='App-usr-seq-Editor-method-stripWhitespace'>	stripWhitespace: function() {
+</span>		this.strip(/\s/gm);
 	},
-	stripNewlines: function() {
-		this.strip(new RegExp(&quot;\\n&quot;,'gm'));
+<span id='App-usr-seq-Editor-method-stripNewlines'>	stripNewlines: function() {
+</span>		this.strip(new RegExp(&quot;\\n&quot;,'gm'));
 	},
-	strip: function(regex) {
-		this.replace(regex,'');
+<span id='App-usr-seq-Editor-method-strip'>	strip: function(regex) {
+</span>		this.replace(regex,'');
 	},
-	pairwiseAlign: function() {
-		var seqs = this.smartSelect(),
+<span id='App-usr-seq-Editor-method-pairwiseAlign'>	pairwiseAlign: function() {
+</span>		var seqs = this.smartSelect(),
 		align = DNA.pairwiseAlign(seqs[0],seqs[1],2, -1, 2, 0, 0);
 		this.editor.codemirror.replaceSelection(align.sequences.join('\n'));
 	},
-	transformByLine: function(map) {
-		var sel = this.editor.codemirror.getSelection(), replaceSel = this.replaceSelection.checked,newVal;
+<span id='App-usr-seq-Editor-method-transformByLine'>	transformByLine: function(map) {
+</span>		var sel = this.editor.codemirror.getSelection(), replaceSel = this.replaceSelection.checked,newVal;
 		sel = sel.split('\n');
 		newVal = _.map(sel,function(el) {
 			return map(el.trim());
@@ -958,11 +958,11 @@ Ext.define('App.usr.seq.Editor', {
 		}
 		this.editor.codemirror.replaceSelection(newVal.join('\n'));
 	},
-	duplicate: function() {
-		this.transformByLine(function(s) { return s+s; });
+<span id='App-usr-seq-Editor-method-duplicate'>	duplicate: function() {
+</span>		this.transformByLine(function(s) { return s+s; });
 	},
-	reverse: function() {
-		this.transformByLine(DNA.reverse);
+<span id='App-usr-seq-Editor-method-reverse'>	reverse: function() {
+</span>		this.transformByLine(DNA.reverse);
 		// var sel = this.editor.codemirror.getSelection(), replaceSel = !this.replaceSelection.checked,
 		// newVal = DNA.reverse(sel);
 		// if(replaceSel) {
@@ -970,8 +970,8 @@ Ext.define('App.usr.seq.Editor', {
 		// }
 		// this.editor.codemirror.replaceSelection(newVal);
 	},
-	complement: function() {
-		this.transformByLine(DNA.complement);
+<span id='App-usr-seq-Editor-method-complement'>	complement: function() {
+</span>		this.transformByLine(DNA.complement);
 		// var sel = this.editor.codemirror.getSelection(), replaceSel = !this.replaceSelection.checked,
 		// newVal = DNA.complement(sel);
 // 
@@ -980,8 +980,8 @@ Ext.define('App.usr.seq.Editor', {
 		// }
 		// this.editor.codemirror.replaceSelection(newVal);
 	},
-	reverseComplement: function() {
-		this.transformByLine(DNA.reverseComplement);
+<span id='App-usr-seq-Editor-method-reverseComplement'>	reverseComplement: function() {
+</span>		this.transformByLine(DNA.reverseComplement);
 		// var sel = this.editor.codemirror.getSelection(), replaceSel = !this.replaceSelection.checked,newVal;
 		// sel = sel.split('\n');
 		// newVal = _.map(sel,DNA.reverseComplement).join('\n');
@@ -990,39 +990,39 @@ Ext.define('App.usr.seq.Editor', {
 		// }
 		// this.editor.codemirror.replaceSelection(newVal);
 	},
-	insertNMer:function () {
-		var seq = this.insertionBase.getValue(),
+<span id='App-usr-seq-Editor-method-insertNMer'>	insertNMer:function () {
+</span>		var seq = this.insertionBase.getValue(),
 			repeats = this.insertionCount.getValue(),
 			newVal = Array(repeats+1).join(seq);
 		this.editor.codemirror.replaceSelection(newVal);
 	},
-	generateNMer: function (spec,repeats) {
-		var seq = this.generateBase.getValue(),
+<span id='App-usr-seq-Editor-method-generateNMer'>	generateNMer: function (spec,repeats) {
+</span>		var seq = this.generateBase.getValue(),
 			repeats = this.generateCount.getValue(),
 			newVal = DNA.populateDegenerate(Array(repeats+1).join(seq));
 		this.editor.codemirror.replaceSelection(newVal);
 	},
-	populateShannon: function() {
-		var menu = this.shannon.menu;
+<span id='App-usr-seq-Editor-method-populateShannon'>	populateShannon: function() {
+</span>		var menu = this.shannon.menu;
 		sel = this.editor.codemirror.getSelection();
 		if(sel!='') {
 			menu.populate(sel);
 		}
 	},
-	populateHamming: function() {
-		this.populateComparison(this.hamming);
+<span id='App-usr-seq-Editor-method-populateHamming'>	populateHamming: function() {
+</span>		this.populateComparison(this.hamming);
 	},
-	populateLev: function() {
-		this.populateComparison(this.lev);
+<span id='App-usr-seq-Editor-method-populateLev'>	populateLev: function() {
+</span>		this.populateComparison(this.lev);
 	},
-	getSelection: function() {
-		return this.editor.codemirror.getSelection();
+<span id='App-usr-seq-Editor-method-getSelection'>	getSelection: function() {
+</span>		return this.editor.codemirror.getSelection();
 	},
-	smartSelect: function() {
-		return this.smartSplit(this.editor.codemirror.getSelection());
+<span id='App-usr-seq-Editor-method-smartSelect'>	smartSelect: function() {
+</span>		return this.smartSplit(this.editor.codemirror.getSelection());
 	},
-	smartSplit: function(sel) {
-		if(sel.indexOf('\n')!=-1) {
+<span id='App-usr-seq-Editor-method-smartSplit'>	smartSplit: function(sel) {
+</span>		if(sel.indexOf('\n')!=-1) {
 			sel.replace(/(\r\n)/g,'\n');
 			sel = sel.split('\n');
 
@@ -1037,8 +1037,8 @@ Ext.define('App.usr.seq.Editor', {
 			return x.trim()
 		});
 	},
-	populateComparison: function(item) {
-		var menu = item.menu,
+<span id='App-usr-seq-Editor-method-populateComparison'>	populateComparison: function(item) {
+</span>		var menu = item.menu,
 		sel = this.editor.codemirror.getSelection();
 		if(sel!='') {
 			sel = this.smartSplit(sel);

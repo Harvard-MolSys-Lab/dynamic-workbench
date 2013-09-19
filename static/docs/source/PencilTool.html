@@ -25,8 +25,8 @@
  * @param {Object} config
  */
 Ext.define('Workspace.tools.PencilTool', {
-	constructor: function(workspace, config) {
-		this.workspace = workspace;
+<span id='Workspace-tools-PencilTool-method-constructor'>	constructor: function(workspace, config) {
+</span>		this.workspace = workspace;
 		Ext.apply(this, config, {
 
 		});
@@ -39,14 +39,14 @@ Ext.define('Workspace.tools.PencilTool', {
 	},
 	extend:'Workspace.tools.BaseTool',
 	requires: ['Workspace.objects.Path'],
-	click: function(e, item) {
-
+<span id='Workspace-tools-PencilTool-method-click'>	click: function(e, item) {
+</span>
 	},
-	dblclick: function(e, item) {
-
+<span id='Workspace-tools-PencilTool-method-dblclick'>	dblclick: function(e, item) {
+</span>
 	},
-	mousedown: function(e, item) {
-		this.dragging = true;
+<span id='Workspace-tools-PencilTool-method-mousedown'>	mousedown: function(e, item) {
+</span>		this.dragging = true;
 		pos = this.getAdjustedXY(e);
 		this.currentPoints = [[pos.x,pos.y]];
 		this.currentPath = [['M', pos.x, pos.y]];
@@ -54,8 +54,8 @@ Ext.define('Workspace.tools.PencilTool', {
 		this.currentShape.attr(App.Stylesheet.Draw);
 		e.stopEvent();
 	},
-	mouseup: function(e, item) {
-		this.dragging = false;
+<span id='Workspace-tools-PencilTool-method-mouseup'>	mouseup: function(e, item) {
+</span>		this.dragging = false;
 		var obj = this.workspace.createObject(Workspace.objects.Path, {
 			//path: this.currentPath,
 			points: this.currentPoints,
@@ -68,8 +68,8 @@ Ext.define('Workspace.tools.PencilTool', {
 		this.workspace.setSelection([obj]);
 		e.stopEvent();
 	},
-	mousemove: function(e, item) {
-		if (this.dragging) {
+<span id='Workspace-tools-PencilTool-method-mousemove'>	mousemove: function(e, item) {
+</span>		if (this.dragging) {
 			pos = this.getAdjustedXY(e);
 			this.currentPath.push(['L', pos.x, pos.y]);
 			this.currentPoints.push([pos.x,pos.y]);

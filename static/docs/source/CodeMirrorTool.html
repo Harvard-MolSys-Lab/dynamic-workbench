@@ -28,24 +28,24 @@
  * @param {Object} config
  */
 Ext.define('Workspace.tools.CodeMirrorTool', {
-	constructor: function(workspace, config) {
-		Workspace.tools.CodeMirrorTool.superclass.constructor.call(this, workspace, config);
+<span id='Workspace-tools-CodeMirrorTool-method-constructor'>	constructor: function(workspace, config) {
+</span>		Workspace.tools.CodeMirrorTool.superclass.constructor.call(this, workspace, config);
 	},
 	extend: 'Workspace.tools.BaseTool',
-	click: function(e, item) {
-
+<span id='Workspace-tools-CodeMirrorTool-method-click'>	click: function(e, item) {
+</span>
 	},
-	dblclick: function(e, item) {
-
+<span id='Workspace-tools-CodeMirrorTool-method-dblclick'>	dblclick: function(e, item) {
+</span>
 	},
-	mousedown: function(e, item) {
-
+<span id='Workspace-tools-CodeMirrorTool-method-mousedown'>	mousedown: function(e, item) {
+</span>
 	},
-	mouseup: function(e, item) {
-
+<span id='Workspace-tools-CodeMirrorTool-method-mouseup'>	mouseup: function(e, item) {
+</span>
 	},
-	mousemove: function(e, item) {
-
+<span id='Workspace-tools-CodeMirrorTool-method-mousemove'>	mousemove: function(e, item) {
+</span>
 	},
 <span id='Workspace-tools-CodeMirrorTool-method-attach'>	/**
 </span>	 * attach
@@ -82,11 +82,11 @@ Ext.define('Workspace.tools.CodeMirrorTool', {
 			this.item = false;
 		}
 	},
-	activate: function() {
-		this.callParent(arguments);
+<span id='Workspace-tools-CodeMirrorTool-method-activate'>	activate: function() {
+</span>		this.callParent(arguments);
 	},
-	deactivate: function() {
-		this.callParent(arguments);
+<span id='Workspace-tools-CodeMirrorTool-method-deactivate'>	deactivate: function() {
+</span>		this.callParent(arguments);
 		this.detach();
 	}
 }, function() {

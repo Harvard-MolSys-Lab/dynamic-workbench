@@ -22,8 +22,8 @@
  * @abstract
  */
 Ext.define('Workspace.objects.Object', {
-	constructor : function(config) {
-		Workspace.objects.Object.superclass.constructor.apply(this, arguments);
+<span id='Workspace-objects-Object-method-constructor'>	constructor : function(config) {
+</span>		Workspace.objects.Object.superclass.constructor.apply(this, arguments);
 
 		Ext.apply(this, config);
 		Ext.applyIf(this, {
@@ -107,8 +107,8 @@ Ext.define('Workspace.objects.Object', {
 			return m;
 		}, false, false, false);
 	},
-	editable : true,
-	extend : 'Machine.core.Serializable',
+<span id='Workspace-objects-Object-property-editable'>	editable : true,
+</span>	extend : 'Machine.core.Serializable',
 <span id='Workspace-objects-Object-cfg-wtype'>	/**
 </span>	 * @cfg {String} wtype
 	 * The configured wtype with which to instantiate this object
@@ -236,8 +236,8 @@ Ext.define('Workspace.objects.Object', {
 		this.children.remove(child);
 		//.getId());
 	},
-	childCanMove : function(child) {
-		return true;
+<span id='Workspace-objects-Object-method-childCanMove'>	childCanMove : function(child) {
+</span>		return true;
 	},
 <span id='Workspace-objects-Object-method-select'>	/**
 </span>	 * select

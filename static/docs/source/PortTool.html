@@ -22,13 +22,13 @@
  */
 Ext.define('App.usr.nodal.ws.tools.PortTool', {
 	extend:'Workspace.tools.BaseTool',
-	require: ['App.usr.nodal.ws.objects.OutputPort','App.usr.nodal.ws.objects.InputPort',],
-	mixins: {
+<span id='App-usr-nodal-ws-tools-PortTool-property-require'>	require: ['App.usr.nodal.ws.objects.OutputPort','App.usr.nodal.ws.objects.InputPort',],
+</span>	mixins: {
 		highlightable: 'Workspace.tools.Highlightable'
 	},
 	
-	click: function(e,item) {
-		var pos = this.getAdjustedXY(e), port;
+<span id='App-usr-nodal-ws-tools-PortTool-method-click'>	click: function(e,item) {
+</span>		var pos = this.getAdjustedXY(e), port;
 		if(item &amp;&amp; this.accept(item)) {
 			var name = item.nextPortName();
 			if(e.altKey) {
@@ -56,14 +56,14 @@ Ext.define('App.usr.nodal.ws.tools.PortTool', {
 			item.adopt(port);
 		}
 	},
-	accept: function(item) {
-		return (item.isWType(['App.usr.nodal.ws.objects.Node','App.usr.nodal.ws.objects.Motif']));
+<span id='App-usr-nodal-ws-tools-PortTool-method-accept'>	accept: function(item) {
+</span>		return (item.isWType(['App.usr.nodal.ws.objects.Node','App.usr.nodal.ws.objects.Motif']));
 	},
-	mouseover: function(e,item) {
-		this.mixins.highlightable.mouseover.apply(this,arguments);
+<span id='App-usr-nodal-ws-tools-PortTool-method-mouseover'>	mouseover: function(e,item) {
+</span>		this.mixins.highlightable.mouseover.apply(this,arguments);
 	},
-	mouseout: function(e,item) {
-		this.mixins.highlightable.mouseout.apply(this,arguments);
+<span id='App-usr-nodal-ws-tools-PortTool-method-mouseout'>	mouseout: function(e,item) {
+</span>		this.mixins.highlightable.mouseout.apply(this,arguments);
 	},
 <span id='App-usr-nodal-ws-tools-PortTool-method-buildPort'>	/**
 </span>	 * @inheritdoc App.usr.nodal.ws.objects.BuildManager#buildPort

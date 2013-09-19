@@ -22,8 +22,8 @@
  */
 Ext.define('App.usr.canvas.GeometryTab', {
 	extend:'App.ui.BoundObjectPanel',
-	initComponent: function() {
-		Ext.apply(this, {
+<span id='App-usr-canvas-GeometryTab-method-initComponent'>	initComponent: function() {
+</span>		Ext.apply(this, {
 			tbar: [{
 
 				// Position group
@@ -91,8 +91,8 @@ Ext.define('App.usr.canvas.GeometryTab', {
 
 		//this.on('afterrender', this.afterrender, this);
 	},
-	afterrender: function() {
-		var tips = [this.xField, this.tField, this.widthField, this.heightField];
+<span id='App-usr-canvas-GeometryTab-method-afterrender'>	afterrender: function() {
+</span>		var tips = [this.xField, this.tField, this.widthField, this.heightField];
 		this.tips = [];
 		Ext.each(tips, function(field) {
 			if (field.tooltip) {

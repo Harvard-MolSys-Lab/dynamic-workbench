@@ -20,21 +20,21 @@
  */
 Ext.define('App.usr.nodal.Canvas', {
 	extend : 'App.usr.canvas.Canvas',
-	editorType : 'Nodal',
-	title: 'Nodal',
-	iconCls : 'nodal',
-	requires : ['App.usr.nodal.HomeTab', 'App.usr.nodal.BuildTab', 'App.usr.nodal.CommandTab', 'App.usr.canvas.FillStrokeTab', //
+<span id='App-usr-nodal-Canvas-property-editorType'>	editorType : 'Nodal',
+</span><span id='App-usr-nodal-Canvas-property-title'>	title: 'Nodal',
+</span><span id='App-usr-nodal-Canvas-property-iconCls'>	iconCls : 'nodal',
+</span>	requires : ['App.usr.nodal.HomeTab', 'App.usr.nodal.BuildTab', 'App.usr.nodal.CommandTab', 'App.usr.canvas.FillStrokeTab', //
 	'App.usr.nodal.ws.objects.BuildManager', 'App.usr.nodal.ws.objects.Node', 'App.usr.nodal.ws.objects.Complement', //
 	'App.usr.nodal.ws.tools.NodeTool', 'App.usr.nodal.ws.tools.PortTool', 'App.usr.nodal.ws.tools.ComplementarityTool', //
 	'App.usr.nodal.ws.tools.MotifTool', 'App.usr.nodal.ws.tools.ExposureTool', //
 	'App.usr.nodal.NodeInspector', 'App.usr.nodal.PortInspector', 'App.usr.nodal.MotifInspector', 'App.usr.nodal.MotifPalette',
 	'App.usr.nodal.LibraryWindow'],
-	border : false,
-	mixins : {
+<span id='App-usr-nodal-Canvas-property-border'>	border : false,
+</span>	mixins : {
 		refHelper : 'App.ui.RefHelper',
 	},
-	constructor : function() {
-		Ext.applyIf(this, {
+<span id='App-usr-nodal-Canvas-method-constructor'>	constructor : function() {
+</span>		Ext.applyIf(this, {
 			ribbonItems : [{
 				xtype : 'nodal-hometab',
 				title : 'Home',
@@ -127,8 +127,8 @@ Ext.define('App.usr.nodal.Canvas', {
 	createBlankWorkspace: function () {
 		return {version: App.dynamic.Compiler.standardMotifsCurrentVersion};
 	},
-	setupWorkspace : function() {
-		if(!this.workspace.buildManager) {
+<span id='App-usr-nodal-Canvas-method-setupWorkspace'>	setupWorkspace : function() {
+</span>		if(!this.workspace.buildManager) {
 			this.workspace.buildManager = this.workspace.createObject({
 				wtype : 'App.usr.nodal.ws.objects.BuildManager'
 			});
@@ -160,11 +160,11 @@ Ext.define('App.usr.nodal.Canvas', {
 		this.workspace.buildManager.on('rebuild', this.onRebuild, this);
 		this.workspace.buildManager.on('error', this.showError, this);
 	},
-	forceRebuild : function() {
-		this.workspace.buildManager.needsRebuild();
+<span id='App-usr-nodal-Canvas-method-forceRebuild'>	forceRebuild : function() {
+</span>		this.workspace.buildManager.needsRebuild();
 	},
-	showLibraryTreeWindow : function() {
-		if(this.workspace.buildManager.lastLibrary) {
+<span id='App-usr-nodal-Canvas-method-showLibraryTreeWindow'>	showLibraryTreeWindow : function() {
+</span>		if(this.workspace.buildManager.lastLibrary) {
 			if(!this.libraryTreeWindow) {
 				this.libraryTreeWindow = Ext.create('App.usr.nodal.LibraryWindow', {
 					lastLibrary : this.workspace.buildManager.lastLibrary,
@@ -174,8 +174,8 @@ Ext.define('App.usr.nodal.Canvas', {
 			this.libraryTreeWindow.show();
 		}
 	},
-	makeBuildStatusTip : function() {
-		if(!this.buildStatusTip) {
+<span id='App-usr-nodal-Canvas-method-makeBuildStatusTip'>	makeBuildStatusTip : function() {
+</span>		if(!this.buildStatusTip) {
 			this.buildStatusTip = Ext.create('Ext.tip.ToolTip', {
 				target : this.buildStatusButton.getEl(),
 				renderTo : Ext.getBody(),
@@ -185,12 +185,12 @@ Ext.define('App.usr.nodal.Canvas', {
 			});
 		}
 	},
-	showBuildStatus : function() {
-		this.makeBuildStatusTip();
+<span id='App-usr-nodal-Canvas-method-showBuildStatus'>	showBuildStatus : function() {
+</span>		this.makeBuildStatusTip();
 		this.buildStatusTip.show();
 	},
-	updateBuildStatus : function(state, buttonMsg, msg) {
-		this.makeBuildStatusTip();
+<span id='App-usr-nodal-Canvas-method-updateBuildStatus'>	updateBuildStatus : function(state, buttonMsg, msg) {
+</span>		this.makeBuildStatusTip();
 
 		this.buildStatusButton.state = state;
 		var icon, cls;
@@ -213,17 +213,17 @@ Ext.define('App.usr.nodal.Canvas', {
 		this.buildStatusTip.removeCls('build-done-tip').removeCls('build-building-tip').removeCls('build-error-tip').addCls(cls);
 		this.buildStatusTip.update(msg);
 	},
-	beforeRebuild : function() {
-		this.updateBuildStatus('building', 'Building system', 'Building system to check for errors...');
+<span id='App-usr-nodal-Canvas-method-beforeRebuild'>	beforeRebuild : function() {
+</span>		this.updateBuildStatus('building', 'Building system', 'Building system to check for errors...');
 	},
-	onRebuild : function() {
-		this.updateBuildStatus('done', 'Build completed', 'Build completed successfully.');
+<span id='App-usr-nodal-Canvas-method-onRebuild'>	onRebuild : function() {
+</span>		this.updateBuildStatus('done', 'Build completed', 'Build completed successfully.');
 		if(this.libraryTreeWindow) {
 			this.libraryTreeWindow.setLibrary(this.workspace.buildManager.lastLibrary, this.workspace.buildManager.lastDynaml);
 		}
 	},
-	showError : function(msg, e) {
-		this.updateBuildStatus('error', 'Errors', msg);
+<span id='App-usr-nodal-Canvas-method-showError'>	showError : function(msg, e) {
+</span>		this.updateBuildStatus('error', 'Errors', msg);
 	},
 }, function() {
 	Workspace.DDManager.addHandler('ext/motif', function(data, e) {

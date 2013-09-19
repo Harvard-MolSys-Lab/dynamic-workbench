@@ -24,8 +24,8 @@
  * @param {Object} config
  */
 Ext.define('Workspace.tools.EllipseTool', {
-	constructor: function(workspace, config) {
-		this.workspace = workspace;
+<span id='Workspace-tools-EllipseTool-method-constructor'>	constructor: function(workspace, config) {
+</span>		this.workspace = workspace;
 		Ext.apply(this, config, {
 			parameters: {}
 		});
@@ -38,18 +38,18 @@ Ext.define('Workspace.tools.EllipseTool', {
 		this.x1 = 0;
 		this.y1 = 0;
 	},
-	require: ['Workspace.objects.Ellipse'],
-	extend:'Workspace.tools.BaseTool',
-	click: function(e, item) {
-
+<span id='Workspace-tools-EllipseTool-property-require'>	require: ['Workspace.objects.Ellipse'],
+</span>	extend:'Workspace.tools.BaseTool',
+<span id='Workspace-tools-EllipseTool-method-click'>	click: function(e, item) {
+</span>
 		e.stopEvent();
 	},
-	dblclick: function(e, item) {
-
+<span id='Workspace-tools-EllipseTool-method-dblclick'>	dblclick: function(e, item) {
+</span>
 		e.stopEvent();
 	},
-	mousedown: function(e, item) {
-		this.dragging = true;
+<span id='Workspace-tools-EllipseTool-method-mousedown'>	mousedown: function(e, item) {
+</span>		this.dragging = true;
 		if (this.proto) {
 			this.proto.remove();
 			delete this.proto;
@@ -57,8 +57,8 @@ Ext.define('Workspace.tools.EllipseTool', {
 
 		this.createProto(e);
 	},
-	mouseup: function(e, item) {
-		this.dragging = false;
+<span id='Workspace-tools-EllipseTool-method-mouseup'>	mouseup: function(e, item) {
+</span>		this.dragging = false;
 
 		if (this.proto) {
 
@@ -82,8 +82,8 @@ Ext.define('Workspace.tools.EllipseTool', {
 			return false;
 		}
 	},
-	mousemove: function(e, item) {
-		if (this.dragging) {
+<span id='Workspace-tools-EllipseTool-method-mousemove'>	mousemove: function(e, item) {
+</span>		if (this.dragging) {
 			if (!this.proto) {
 				this.createProto(e);
 			}
@@ -109,8 +109,8 @@ Ext.define('Workspace.tools.EllipseTool', {
 			this.proto.attr(ellipseAttr);
 		}
 	},
-	createProto: function(e) {
-		var pos = this.getAdjustedXY(e);
+<span id='Workspace-tools-EllipseTool-method-createProto'>	createProto: function(e) {
+</span>		var pos = this.getAdjustedXY(e);
 		this.x1 = pos.x;
 		this.y1 = pos.y;
 

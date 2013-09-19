@@ -1,3 +1,6 @@
+/**
+ * Allows sequences to be added to DD
+ */
 Ext.define('App.usr.dd.SequenceWindow',{
 	extend: 'App.ui.SequenceWindow',
 	title: 'Add specific sequences to DD',

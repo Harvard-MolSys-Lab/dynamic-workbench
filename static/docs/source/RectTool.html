@@ -24,8 +24,8 @@
  * @param {Object} config
  */
 Ext.define('Workspace.tools.RectTool', {
-	constructor: function(workspace, config) {
-		this.workspace = workspace;
+<span id='Workspace-tools-RectTool-method-constructor'>	constructor: function(workspace, config) {
+</span>		this.workspace = workspace;
 		Ext.apply(this, config, {
 			parameters: {}
 		});
@@ -41,28 +41,28 @@ Ext.define('Workspace.tools.RectTool', {
 	},
 	extend:'Workspace.tools.BaseTool',
 	requires: ['Workspace.objects.Rectangle'],
-	minWidth: 10,
-	maxWidth: false,
-	minHeight: 10,
-	maxHeight: false,
-	click: function(e, item) {
-
+<span id='Workspace-tools-RectTool-property-minWidth'>	minWidth: 10,
+</span><span id='Workspace-tools-RectTool-property-maxWidth'>	maxWidth: false,
+</span><span id='Workspace-tools-RectTool-property-minHeight'>	minHeight: 10,
+</span><span id='Workspace-tools-RectTool-property-maxHeight'>	maxHeight: false,
+</span><span id='Workspace-tools-RectTool-method-click'>	click: function(e, item) {
+</span>
 		e.stopEvent();
 	},
-	dblclick: function(e, item) {
-
+<span id='Workspace-tools-RectTool-method-dblclick'>	dblclick: function(e, item) {
+</span>
 		e.stopEvent();
 	},
-	mousedown: function(e, item) {
-		this.dragging = true;
+<span id='Workspace-tools-RectTool-method-mousedown'>	mousedown: function(e, item) {
+</span>		this.dragging = true;
 		if (this.proto) {
 			this.proto.remove();
 		}
 
 		this.createProto(e);
 	},
-	mouseup: function(e, item) {
-		this.dragging = false;
+<span id='Workspace-tools-RectTool-method-mouseup'>	mouseup: function(e, item) {
+</span>		this.dragging = false;
 
 		if (this.proto) {
 
@@ -83,8 +83,8 @@ Ext.define('Workspace.tools.RectTool', {
 			this.proto.remove();
 		}
 	},
-	mousemove: function(e, item) {
-		if (this.dragging) {
+<span id='Workspace-tools-RectTool-method-mousemove'>	mousemove: function(e, item) {
+</span>		if (this.dragging) {
 			if (!this.proto) {
 				this.createProto(e);
 			}
@@ -104,16 +104,16 @@ Ext.define('Workspace.tools.RectTool', {
 			this.proto.attr(attr);
 		}
 	},
-	createProto: function(e) {
-		var pos = this.getAdjustedXY(e);
+<span id='Workspace-tools-RectTool-method-createProto'>	createProto: function(e) {
+</span>		var pos = this.getAdjustedXY(e);
 		this.x1 = pos.x;
 		this.y1 = pos.y;
 
 		this.proto = this.workspace.paper.rect(this.x1, this.y1, 0, 0);
 		this.proto.attr(this.parameters);
 	},
-	deactivate: function() {
-
+<span id='Workspace-tools-RectTool-method-deactivate'>	deactivate: function() {
+</span>
 	}
 }, function() {
 	Workspace.Tools.register('rect', Workspace.tools.RectTool);

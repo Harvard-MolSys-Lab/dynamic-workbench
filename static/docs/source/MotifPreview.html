@@ -137,29 +137,32 @@
 	return chart;
 }
 
+<span id='App-usr-nodal-MotifPreview'>/**
+</span> * Displays a graphical preview of a single motif as a node
+ */
 Ext.define('App.usr.nodal.MotifPreview',{
 	extend : 'App.ui.D3Panel',
 	alias: 'widget.motifpreview',
-	initComponent: function () {
-		this.bbar = [{
+<span id='App-usr-nodal-MotifPreview-method-initComponent'>	initComponent: function () {
+</span>		this.bbar = [{
 			iconCls: 'svg',
 			handler: this.toSVG,
 			scope: this,
 		}];
 		this.callParent(arguments);
 	},
-	setValue : function(node) {
-		this.data = node;
+<span id='App-usr-nodal-MotifPreview-method-setValue'>	setValue : function(node) {
+</span>		this.data = node;
 		this.buildVis();
 	},
-	buildVis : function() {
-		var panel = this.getCanvas();
+<span id='App-usr-nodal-MotifPreview-method-buildVis'>	buildVis : function() {
+</span>		var panel = this.getCanvas();
 		panel.selectAll().remove();
 		this.chart = MotifPreview(panel).width(this.getWidth()).height(this.getHeight());
 		this.preview = this.chart(panel.data([this.data]));
 	},
-	toSVG: function(btn) {
-		// if(!this.svgStyles) {
+<span id='App-usr-nodal-MotifPreview-method-toSVG'>	toSVG: function(btn) {
+</span>		// if(!this.svgStyles) {
 		// 	Ext.Ajax.request({
 		// 	    url: 'styles/strand-preview.css',
 		// 	    success: function(response){
@@ -173,8 +176,8 @@ Ext.define('App.usr.nodal.MotifPreview',{
 		// }
 		this.doDisplaySVGWindow();
 	},
-	doDisplaySVGWindow: function() {
-		var value = '&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;&lt;!DOCTYPE svg PUBLIC &quot;-//W3C//DTD SVG 1.1//EN&quot; &quot;http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd&quot;&gt;'+this.getCanvasMarkup();
+<span id='App-usr-nodal-MotifPreview-method-doDisplaySVGWindow'>	doDisplaySVGWindow: function() {
+</span>		var value = '&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;&lt;!DOCTYPE svg PUBLIC &quot;-//W3C//DTD SVG 1.1//EN&quot; &quot;http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd&quot;&gt;'+this.getCanvasMarkup();
 
 		// Sorry Cthulhu... http://www.codinghorror.com/blog/2009/11/parsing-html-the-cthulhu-way.html
 		value = value.replace(/&lt;svg(\b[^&gt;]*)&gt;/g,'&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot; $1&gt;'); //'&lt;style type=&quot;text/css&quot;&gt;&lt;![CDATA[' + this.svgStyles + ']]&gt;&lt;/style&gt;');

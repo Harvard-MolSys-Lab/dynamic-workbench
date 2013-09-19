@@ -22,8 +22,8 @@
  * @extends Ext.util.Observable
  */
 Ext.define('Workspace.tools.SelectorBand', {
-	constructor: function(workspace, config) {
-		this.superclass.constructor.call(this);
+<span id='Workspace-tools-SelectorBand-method-constructor'>	constructor: function(workspace, config) {
+</span>		this.superclass.constructor.call(this);
 		Ext.applyIf(config || {}, {
 			shape: 'rect',
 			x1: 0,
@@ -47,8 +47,8 @@ Ext.define('Workspace.tools.SelectorBand', {
 	},
 	extend:'Ext.util.Observable',
 
-	adjustBand: function(x2, y2) {
-		this.x2 = x2;
+<span id='Workspace-tools-SelectorBand-method-adjustBand'>	adjustBand: function(x2, y2) {
+</span>		this.x2 = x2;
 		this.y2 = y2;
 
 		var attr = Workspace.tools.SelectorBand.calculateBandBox(this.x1, this.y1, x2, y2);
@@ -71,8 +71,8 @@ Ext.define('Workspace.tools.SelectorBand', {
 		var x = this.x, y = this.y, b = y + this.height, r = x + this.width;
 		return new Ext.util.Region(y,r,b,x);
 	},
-	cacheRegions: function() {
-		this.regions = {};
+<span id='Workspace-tools-SelectorBand-method-cacheRegions'>	cacheRegions: function() {
+</span>		this.regions = {};
 		this.workspace.objects.eachKey( function(id, item) {
 			if (Ext.isFunction(item.getRegion) &amp; !item.preventDragSelect) {
 				var region = item.getRegion();
@@ -87,19 +87,19 @@ Ext.define('Workspace.tools.SelectorBand', {
 		},
 		this);
 	},
-	getItemsWithin: function() {
-		var within = [], regions = this.regions, region = this.getRegion();
+<span id='Workspace-tools-SelectorBand-method-getItemsWithin'>	getItemsWithin: function() {
+</span>		var within = [], regions = this.regions, region = this.getRegion();
 		for(id in regions) {
 			if(region.intersect(regions[id]))
 				within.push(this.workspace.objects.get(id));
 		}
 		return within;
 	},
-	destroy: function() {
-		this.rect.remove();
+<span id='Workspace-tools-SelectorBand-method-destroy'>	destroy: function() {
+</span>		this.rect.remove();
 	},
 	statics: {
-<span id='Workspace-tools-SelectorBand-method-calculateBandBox'>		/**
+<span id='Workspace-tools-SelectorBand-static-method-calculateBandBox'>		/**
 </span>		 * calculateBandBox
 		 * Given two points, generates a bounding box, along with an anchor string describing the position of x1,y1
 		 * @param {Number} x1

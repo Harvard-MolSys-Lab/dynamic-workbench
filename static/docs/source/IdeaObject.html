@@ -21,8 +21,8 @@
  * Represents an idea which groups various child objects together
  */
 Ext.define('Workspace.objects.IdeaObject', {
-	constructor: function(workspace, config) {
-		Workspace.objects.IdeaObject.superclass.constructor.apply(this, arguments);
+<span id='Workspace-objects-IdeaObject-method-constructor'>	constructor: function(workspace, config) {
+</span>		Workspace.objects.IdeaObject.superclass.constructor.apply(this, arguments);
 
 		if(this.autoFill) {
 			// automatically set the fill to a nice random pastel color
@@ -40,24 +40,24 @@ Ext.define('Workspace.objects.IdeaObject', {
 	},
 	requires: ['Workspace.Label','Ext.util.MixedCollection'],
 	extend: 'Workspace.objects.Rectangle',
-	wtype: 'Workspace.objects.IdeaObject',
-<span id='Workspace-objects-IdeaObject-cfg-layout'>	/**
+<span id='Workspace-objects-IdeaObject-property-wtype'>	wtype: 'Workspace.objects.IdeaObject',
+</span><span id='Workspace-objects-IdeaObject-cfg-layout'>	/**
 </span>	 * @cfg {String} layout
 	 * An ltype which can be instantiated to a subclass of Workspace.idea.BaseLayout
 	 */
 	layout: 'Workspace.idea.FreeLayout',
-	showTitle: true,
-	name: 'New Idea',
-	iconCls: 'idea',
-	r: 5,
-	stroke: '#CCC',
-	padding: 50,
-	autoFill: true,
-	destroyChildren: false,
-	suspendLayout: false,
-
-	render: function() {
-		this.callParent(arguments);
+<span id='Workspace-objects-IdeaObject-property-showTitle'>	showTitle: true,
+</span><span id='Workspace-objects-IdeaObject-cfg-name'>	name: 'New Idea',
+</span><span id='Workspace-objects-IdeaObject-property-iconCls'>	iconCls: 'idea',
+</span><span id='Workspace-objects-IdeaObject-property-r'>	r: 5,
+</span><span id='Workspace-objects-IdeaObject-cfg-stroke'>	stroke: '#CCC',
+</span><span id='Workspace-objects-IdeaObject-property-padding'>	padding: 50,
+</span><span id='Workspace-objects-IdeaObject-property-autoFill'>	autoFill: true,
+</span><span id='Workspace-objects-IdeaObject-property-destroyChildren'>	destroyChildren: false,
+</span><span id='Workspace-objects-IdeaObject-property-suspendLayout'>	suspendLayout: false,
+</span>
+<span id='Workspace-objects-IdeaObject-method-render'>	render: function() {
+</span>		this.callParent(arguments);
 		//Workspace.objects.IdeaObject.superclass.render.apply(this, arguments);
 		//this.updateSize(false, false);
 		this.layout.doFirstLayout();
@@ -77,13 +77,13 @@ Ext.define('Workspace.objects.IdeaObject', {
 			this.layout.doFirstLayout();
 		}
 	},
-	doLayout: function() {
-		if(this.layout &amp;&amp; this.layout.doLayout) {
+<span id='Workspace-objects-IdeaObject-method-doLayout'>	doLayout: function() {
+</span>		if(this.layout &amp;&amp; this.layout.doLayout) {
 			this.layout.doLayout();
 		}
 	},
-	buildChildren: function() {
-		this.suspendLayout = true;
+<span id='Workspace-objects-IdeaObject-method-buildChildren'>	buildChildren: function() {
+</span>		this.suspendLayout = true;
 		this.callParent(arguments);
 		this.suspendLayout = false;
 		this.adjustSize();
@@ -143,11 +143,11 @@ Ext.define('Workspace.objects.IdeaObject', {
 		// this.setBox(box, applyToChildren);
 		// //!union);
 	},
-	childCanMove: function(child) {
-		return this.layout.childrenMovable;
+<span id='Workspace-objects-IdeaObject-method-childCanMove'>	childCanMove: function(child) {
+</span>		return this.layout.childrenMovable;
 	},
-	destroy: function() {
-		if(this.destroyChildren) {
+<span id='Workspace-objects-IdeaObject-method-destroy'>	destroy: function() {
+</span>		if(this.destroyChildren) {
 			this.workspace.deleteObjects(this.children.getRange());
 		}
 		this.layout.destroy();

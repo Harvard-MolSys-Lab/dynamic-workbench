@@ -20,15 +20,15 @@
  */
 Ext.define('App.ui.Help',{
 	extend: 'App.usr.browser.Browser',
-	title: 'Help',
-	iconCls: 'help',
-	trigger: 'index',
-	constructor: function(config) {
-		this.url = App.path.join(['help',config.triggers[0] || 'index']);
+<span id='App-ui-Help-property-title'>	title: 'Help',
+</span><span id='App-ui-Help-property-iconCls'>	iconCls: 'help',
+</span><span id='App-ui-Help-property-trigger'>	trigger: 'index',
+</span><span id='App-ui-Help-method-constructor'>	constructor: function(config) {
+</span>		this.url = App.path.join(['help',config.triggers[0] || 'index']);
 		this.callParent(arguments);
 	},
 	statics: {
-<span id='App-ui-Help-method-getLink'>		/**
+<span id='App-ui-Help-static-method-getLink'>		/**
 </span>		 * Generates a javascript: URL pointing to a particular help topic
 		 * @param  {String} topic Name of the help topic
 		 * @return {String} URL
@@ -39,7 +39,7 @@ Ext.define('App.ui.Help',{
 	}
 })
 
-<span id='App-ui-HelpButton'>/**
+<span id='App-ui-Help-property-'>/**
 </span> * Creates a button linking to a particular help documentation topic
  */
 Ext.define('App.ui.HelpButton',{
@@ -47,7 +47,7 @@ Ext.define('App.ui.HelpButton',{
 	iconCls: 'help',
 	text: 'Help',
 	xtype: 'helpbutton',
-<span id='App-ui-HelpButton-cfg-topic'>	/**
+<span id='App-ui-Help-cfg-topic'>	/**
 </span>	 * @cfg {String} topic
 	 * Name of the help topic to open upon click
 	 */

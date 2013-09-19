@@ -22,17 +22,17 @@
 Ext.define('App.usr.canvas.RibbonTab', {
     extend: 'Ext.panel.Panel',
     alias: 'widget.appuxribbontab',
-    layout: 'hbox',
-    title: 'Untitled',
-
-    defaults: {
-        xtype: 'buttongroup',
+<span id='App-usr-canvas-RibbonTab-property-layout'>    layout: 'hbox',
+</span><span id='App-usr-canvas-RibbonTab-property-title'>    title: 'Untitled',
+</span>
+<span id='App-usr-canvas-RibbonTab-property-defaults'>    defaults: {
+</span>        xtype: 'buttongroup',
         headerPosition: 'bottom',
         margins: '3 0 3 3'
     },
 
-    initComponent: function () {
-        this.callParent(arguments);
+<span id='App-usr-canvas-RibbonTab-method-initComponent'>    initComponent: function () {
+</span>        this.callParent(arguments);
 
         this.on('added', function (o, c, i) {
             Ext.each(this.items.items, function (btnGroups) {

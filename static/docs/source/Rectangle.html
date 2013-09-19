@@ -22,8 +22,8 @@
  * @extends Workspace.objects.VectorObject
  */
 Ext.define('Workspace.objects.Rectangle', {
-	constructor: function(workspace, config) {
-		Workspace.objects.Rectangle.superclass.constructor.call(this, workspace, config);
+<span id='Workspace-objects-Rectangle-method-constructor'>	constructor: function(workspace, config) {
+</span>		Workspace.objects.Rectangle.superclass.constructor.call(this, workspace, config);
 
 		Ext.applyIf(this, {
 
@@ -34,15 +34,15 @@ Ext.define('Workspace.objects.Rectangle', {
 	},
 	alias: 'Workspace.VectorRectObject',
 	extend: 'Workspace.objects.VectorObject',
-	wtype: 'Workspace.objects.Rectangle',
-	name: 'New Rectangle',
-	iconCls: 'rect',
-	shape: 'rect',
-	r: 0,
-
-	isResizable: true,
-	render: function() {
-		if(!this.arguments) this.arguments = [this.x, this.y, this.width, this.height, this.r];
+<span id='Workspace-objects-Rectangle-property-wtype'>	wtype: 'Workspace.objects.Rectangle',
+</span><span id='Workspace-objects-Rectangle-cfg-name'>	name: 'New Rectangle',
+</span><span id='Workspace-objects-Rectangle-property-iconCls'>	iconCls: 'rect',
+</span><span id='Workspace-objects-Rectangle-cfg-shape'>	shape: 'rect',
+</span><span id='Workspace-objects-Rectangle-property-r'>	r: 0,
+</span>
+<span id='Workspace-objects-Rectangle-property-isResizable'>	isResizable: true,
+</span><span id='Workspace-objects-Rectangle-method-render'>	render: function() {
+</span>		if(!this.arguments) this.arguments = [this.x, this.y, this.width, this.height, this.r];
 		Workspace.objects.Rectangle.superclass.render.call(this);
 	}
 }, function() {

@@ -27,9 +27,9 @@
 Ext.define('Workspace.DDManager',{
 	extend: 'App.ui.DragDropManager',
 	alias: 'WorkspaceDDManager',
-	allowExtDD: true,
-	fileHandler: function(files,e) {
-		var pos = this.getAdjustedXYcoords(e.pageX,e.pageY), 
+<span id='Workspace-DDManager-property-allowExtDD'>	allowExtDD: true,
+</span><span id='Workspace-DDManager-method-fileHandler'>	fileHandler: function(files,e) {
+</span>		var pos = this.getAdjustedXYcoords(e.pageX,e.pageY), 
 		uh = this.getUploadHandler();
 		Ext.each(files, function(file) {
 			var id = uh.add(file),
@@ -46,8 +46,8 @@ Ext.define('Workspace.DDManager',{
 			uploader.showThrobber();
 		},this);
 	},
-	getEl: function() {
-		return this.workspace.getEl();
+<span id='Workspace-DDManager-method-getEl'>	getEl: function() {
+</span>		return this.workspace.getEl();
 	},
 },function() {
 	Workspace.DDManager.addHandler('text/plain', function(data,e) {

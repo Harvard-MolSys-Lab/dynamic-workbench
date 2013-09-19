@@ -25,19 +25,19 @@ Ext.define('App.usr.canvas.Ribbon', {
 	alias : 'widget.ribbon',
 	requires : ['App.usr.canvas.ToolsTab', 'App.usr.canvas.InsertTab', 'App.usr.canvas.FillStrokeTab', 'App.usr.canvas.GeometryTab', 'App.usr.canvas.MetaTab'],
 
-	cls : 'ui-ribbonbar',
-	activeTab : 0,
-	plain : true,
-	//    unstyled: true,
-	margin : '5 0 0 0',
-	autoHeight : true,
-	// plain : true,
-	border : false,
-	bodyBorder : '0 1 1 1',
-	bodyCls : 'noborder-top',
-	autoHeight : true,
-	//tabPosition : 'bottom',
-	initComponent : function() {
+<span id='App-usr-canvas-Ribbon-property-cls'>	cls : 'ui-ribbonbar',
+</span><span id='App-usr-canvas-Ribbon-property-activeTab'>	activeTab : 0,
+</span><span id='App-usr-canvas-Ribbon-property-plain'>	plain : true,
+</span><span id='App-usr-canvas-Ribbon-property-margin'>	//    unstyled: true,
+</span>	margin : '5 0 0 0',
+<span id='App-usr-canvas-Ribbon-property-autoHeight'>	autoHeight : true,
+</span><span id='App-usr-canvas-Ribbon-property-border'>	// plain : true,
+</span>	border : false,
+<span id='App-usr-canvas-Ribbon-property-bodyBorder'>	bodyBorder : '0 1 1 1',
+</span><span id='App-usr-canvas-Ribbon-property-bodyCls'>	bodyCls : 'noborder-top',
+</span><span id='App-usr-canvas-Ribbon-property-autoHeight'>	autoHeight : true,
+</span><span id='App-usr-canvas-Ribbon-method-initComponent'>	//tabPosition : 'bottom',
+</span>	initComponent : function() {
 
 		Ext.applyIf(this, {
 			activeTab : 0,
@@ -135,8 +135,8 @@ Ext.define('App.usr.canvas.Ribbon', {
 		this.workspace.setActiveTool(tool);
 		this.ignoreToolChange = false;
 	},
-	onToolChange : function(tool, oldTool) {
-		if(!this.ignoreToolChange) {
+<span id='App-usr-canvas-Ribbon-method-onToolChange'>	onToolChange : function(tool, oldTool) {
+</span>		if(!this.ignoreToolChange) {
 			var activate = [];
 			this.items.each(function(item) {
 				if(item.onToolChange) {
@@ -213,8 +213,8 @@ Ext.define('App.usr.canvas.Ribbon', {
 			}
 		});
 	},
-	saveWorkspace : function() {
-		this.canvas.saveWorkspace();
+<span id='App-usr-canvas-Ribbon-method-saveWorkspace'>	saveWorkspace : function() {
+</span>		this.canvas.saveWorkspace();
 	}
 });
 

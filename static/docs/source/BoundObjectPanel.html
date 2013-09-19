@@ -28,13 +28,13 @@ Ext.define('App.ui.BoundObjectPanel', {
 	 * within this component to be categorically disabled.  
 	 */
 	enableBoundFields : true,
-	initComponent : function() {
-		//App.ui.BoundObjectPanel.superclass.initComponent.apply(this, arguments);
+<span id='App-ui-BoundObjectPanel-method-initComponent'>	initComponent : function() {
+</span>		//App.ui.BoundObjectPanel.superclass.initComponent.apply(this, arguments);
 		this.callParent(arguments);
 		this.initialize();
 	},
-	initialize : function() {
-		this.addEvents('action');
+<span id='App-ui-BoundObjectPanel-method-initialize'>	initialize : function() {
+</span>		this.addEvents('action');
 
 <span id='App-ui-BoundObjectPanel-property-boundObjects'>		/**
 </span>		 * @property {Workspace.objects.ObjectCollection}
@@ -88,8 +88,8 @@ Ext.define('App.ui.BoundObjectPanel', {
 		this.on('afterrender', this.buildTips, this);
 		this.on('afterrender', this.updateDynamicFields, this);
 	},
-	buildTips : function() {
-
+<span id='App-ui-BoundObjectPanel-method-buildTips'>	buildTips : function() {
+</span>
 	},
 <span id='App-ui-BoundObjectPanel-method-updateObjects'>	/**
 </span>	 * listener invoked by bound field on change (or other {@link #objectBinding} event); generates a {@link Workspace.actions.Action} to update

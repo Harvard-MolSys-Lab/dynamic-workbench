@@ -15,14 +15,17 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('App.usr.nodal.BuildTab', {
+  <pre class="prettyprint lang-js"><span id='App-usr-nodal-BuildTab'>/**
+</span> * Tab allowing the user to build the nodal system to various targets
+ */
+Ext.define('App.usr.nodal.BuildTab', {
 	extend: 'App.usr.canvas.ToolsTab',
 	alias: 'widget.nodal-buildtab',
 	mixins: {
 		tips: 'App.ui.TipHelper',
 	},
-	generateConfig: function() {
-		return {
+<span id='App-usr-nodal-BuildTab-method-generateConfig'>	generateConfig: function() {
+</span>		return {
 			// dockedItems: [{
 				// xtype: 'toolbar',
 				defaults: {
@@ -183,11 +186,11 @@
 //			}]
 		}
 	},
-	getDoc: function() {
-		return this.ribbon.canvas.doc ? this.ribbon.canvas.doc : this.ribbon.canvas.document; 
+<span id='App-usr-nodal-BuildTab-method-getDoc'>	getDoc: function() {
+</span>		return this.ribbon.canvas.doc ? this.ribbon.canvas.doc : this.ribbon.canvas.document; 
 	},
-	initComponent: function() {
-		this.callParent(arguments);
+<span id='App-usr-nodal-BuildTab-method-initComponent'>	initComponent: function() {
+</span>		this.callParent(arguments);
 		_.each(this.query('*[ref]'), function(cmp) {
 			this[cmp.ref] = cmp;
 		}, this);
@@ -195,14 +198,14 @@
 		this.sequenceMenu.on('click',this.doUpdateMenus,this);
 		this.serializeMenu.on('click',this.doUpdateMenus,this);
 	},
-	init: function() {
-		this.updateMenus(true);
+<span id='App-usr-nodal-BuildTab-method-init'>	init: function() {
+</span>		this.updateMenus(true);
 	},
-	doUpdateMenus: function() {
-		this.updateMenus(false);
+<span id='App-usr-nodal-BuildTab-method-doUpdateMenus'>	doUpdateMenus: function() {
+</span>		this.updateMenus(false);
 	},
-	updateMenus: function(firstTime) {
-		// firstTime = firstTime || false;
+<span id='App-usr-nodal-BuildTab-method-updateMenus'>	updateMenus: function(firstTime) {
+</span>		// firstTime = firstTime || false;
 		// if(!firstTime) {
 		// 	this.ribbon.canvas.renew();
 		// }
@@ -219,19 +222,19 @@
 		// 	},this);
 		// }
 	},
-	enableMenus: function() {
-		this.sequenceMenu.enable();
+<span id='App-usr-nodal-BuildTab-method-enableMenus'>	enableMenus: function() {
+</span>		this.sequenceMenu.enable();
 		this.serializeMenu.enable();			
 	},
-	openFile: function(ext) {
-		var doc = this.getDoc(), basename = doc.getBasename();
+<span id='App-usr-nodal-BuildTab-method-openFile'>	openFile: function(ext) {
+</span>		var doc = this.getDoc(), basename = doc.getBasename();
 		var sibling = doc.getSiblingByName(App.Path.repostfix(basename,ext));
 		if(sibling) {
 			App.ui.Launcher.launchDocument(sibling);
 		}
 	},
-	clean: function() {
-		var node = this.ribbon.canvas.doc.getDocumentPath(); 
+<span id='App-usr-nodal-BuildTab-method-clean'>	clean: function() {
+</span>		var node = this.ribbon.canvas.doc.getDocumentPath(); 
 		App.runTask('Nodal',{
 			node:node,
 			action:'clean',
@@ -240,13 +243,13 @@
 			Ext.msg('Nodal Build','Build of system &lt;strong&gt;{0}&lt;/strong&gt; completed.',this.getDoc().getBasename());
 		},this));
 	},
-	serialize: function() {
-		this.serializeDynaml();
+<span id='App-usr-nodal-BuildTab-method-serialize'>	serialize: function() {
+</span>		this.serializeDynaml();
 		var data = Workspace.tools.nodal.serializeTerse(this.ribbon.canvas.workspace);
 		console.log(data);
 	},
-	compile: function() {
-		// try {			
+<span id='App-usr-nodal-BuildTab-method-compile'>	compile: function() {
+</span>		// try {			
 			// var lib = this.compileDynamic();
 			// console.log(lib); console.log(App.dynamic.Compiler.printStrands(lib)); console.log(lib.toNupackOutput());
 		// } catch(e) {
@@ -255,8 +258,8 @@
 		this.compileDynamicServer();
 		//this.compileTerse();
 	},
-	compileAll: function() {
-		// try {			
+<span id='App-usr-nodal-BuildTab-method-compileAll'>	compileAll: function() {
+</span>		// try {			
 			// var lib = this.compileDynamic();
 			// console.log(lib); console.log(App.dynamic.Compiler.printStrands(lib)); console.log(lib.toNupackOutput());
 		// } catch(e) {
@@ -265,16 +268,16 @@
 		this.compileDynamicServerAllTargets();
 		//this.compileTerse();
 	},
-	compileLocal: function() {
-		var lib = this.compileDynamic();
+<span id='App-usr-nodal-BuildTab-method-compileLocal'>	compileLocal: function() {
+</span>		var lib = this.compileDynamic();
 	},
-	compileDynamic: function() {
-		var dynaml = this.serializeDynaml();
+<span id='App-usr-nodal-BuildTab-method-compileDynamic'>	compileDynamic: function() {
+</span>		var dynaml = this.serializeDynaml();
 		var lib = App.dynamic.Compiler.compileLibrary(dynaml);
 		return lib;
 	},
-	compileDynamicServer: function() {
-		var data = Ext.encode(this.serializeDynaml()),
+<span id='App-usr-nodal-BuildTab-method-compileDynamicServer'>	compileDynamicServer: function() {
+</span>		var data = Ext.encode(this.serializeDynaml()),
 			node = this.ribbon.canvas.doc.getDocumentPath(),
 			dilNode = App.path.repostfix(node,'dil');
 		App.runTask('Nodal',{
@@ -289,8 +292,8 @@
 			openOnEnd: [dilNode],
 		});
 	},
-	compileDynamicServerAllTargets: function() {
-		var data = Ext.encode(this.serializeDynaml()),
+<span id='App-usr-nodal-BuildTab-method-compileDynamicServerAllTargets'>	compileDynamicServerAllTargets: function() {
+</span>		var data = Ext.encode(this.serializeDynaml()),
 			node = this.ribbon.canvas.doc.getDocumentPath(); //App.path.repostfix([this.ribbon.canvas.doc.getDocumentPath(),'txt']);
 		App.runTask('Nodal',{
 			node:node,
@@ -302,8 +305,8 @@
 			this.highlightOutput();
 		},this));
 	},
-	compileTerse: function() {
-		var data = this.serializeTerse(),
+<span id='App-usr-nodal-BuildTab-method-compileTerse'>	compileTerse: function() {
+</span>		var data = this.serializeTerse(),
 			node = this.ribbon.canvas.doc.getDocumentPath(); //App.path.repostfix([this.ribbon.canvas.doc.getDocumentPath(),'txt']);
 		App.runTask('Nodal',{
 			node:node,
@@ -315,14 +318,14 @@
 			this.highlightOutput();
 		},this));
 	},
-	serializeDynaml: function() {
-		return Workspace.tools.nodal.serializeDynaml(this.ribbon.canvas.workspace);	
+<span id='App-usr-nodal-BuildTab-method-serializeDynaml'>	serializeDynaml: function() {
+</span>		return Workspace.tools.nodal.serializeDynaml(this.ribbon.canvas.workspace);	
 	},
-	serializeTerse: function() {
-		return Workspace.tools.nodal.serializeTerse(this.ribbon.canvas.workspace)
+<span id='App-usr-nodal-BuildTab-method-serializeTerse'>	serializeTerse: function() {
+</span>		return Workspace.tools.nodal.serializeTerse(this.ribbon.canvas.workspace)
 	},
-	highlightOutput: function() {
-		if(!this.outputTip) {
+<span id='App-usr-nodal-BuildTab-method-highlightOutput'>	highlightOutput: function() {
+</span>		if(!this.outputTip) {
 			this.outputTip = Ext.create('Ext.tip.ToolTip',{
 				target: this.implementationGroup.getEl(),
 				anchor: 'left',
@@ -342,8 +345,8 @@
 		}
 		this.outputTip.show();
 	},
-	spuriousDesign: function() {
-		var doc = this.ribbon.canvas.doc.getSiblingByName('spurious-out');
+<span id='App-usr-nodal-BuildTab-method-spuriousDesign'>	spuriousDesign: function() {
+</span>		var doc = this.ribbon.canvas.doc.getSiblingByName('spurious-out');
 		if(doc) {
 			App.runTask('Spurious', {
 				node: doc.getPath()

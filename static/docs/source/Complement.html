@@ -21,12 +21,12 @@
  */
 Ext.define('App.usr.nodal.ws.objects.Complement', {
 	extend : 'Workspace.objects.Connection',
-	showLabel : false,
-	property : 'complementarity',
-	thetaProperty: 'rotation',
-	dthetaProperty: 'dtheta',
-	render : function() {
-		this.callParent();
+<span id='App-usr-nodal-ws-objects-Complement-property-showLabel'>	showLabel : false,
+</span><span id='App-usr-nodal-ws-objects-Complement-cfg-property'>	property : 'complementarity',
+</span><span id='App-usr-nodal-ws-objects-Complement-property-thetaProperty'>	thetaProperty: 'rotation',
+</span><span id='App-usr-nodal-ws-objects-Complement-property-dthetaProperty'>	dthetaProperty: 'dtheta',
+</span><span id='App-usr-nodal-ws-objects-Complement-method-render'>	render : function() {
+</span>		this.callParent();
 		// this.vectorElement.attr({
 			// &quot;arrow-end&quot; : &quot;classic-wide-long&quot;,
 		// });
@@ -34,20 +34,20 @@ Ext.define('App.usr.nodal.ws.objects.Complement', {
 		this.set('stroke',&quot;#aaa&quot;);
 		this.set('arrowEnd',&quot;classic-wide-long&quot;);
 	},
-	strokeWidth : 1.5,
-	arrowEnd:&quot;classic-wide-long&quot;,
-	stroke:&quot;#999&quot;,
-	acceptLeft : function(item) {
-		return (item.getId &amp;&amp; 
+<span id='App-usr-nodal-ws-objects-Complement-property-strokeWidth'>	strokeWidth : 1.5,
+</span><span id='App-usr-nodal-ws-objects-Complement-property-arrowEnd'>	arrowEnd:&quot;classic-wide-long&quot;,
+</span><span id='App-usr-nodal-ws-objects-Complement-property-stroke'>	stroke:&quot;#999&quot;,
+</span><span id='App-usr-nodal-ws-objects-Complement-method-acceptLeft'>	acceptLeft : function(item) {
+</span>		return (item.getId &amp;&amp; 
 			item.isWType(['App.usr.nodal.ws.objects.OutputPort','App.usr.nodal.ws.objects.BridgePort'])
 			);
 	},
-	acceptRight : function(item) {
-		return (item.getId &amp;&amp; 
+<span id='App-usr-nodal-ws-objects-Complement-method-acceptRight'>	acceptRight : function(item) {
+</span>		return (item.getId &amp;&amp; 
 			item.isWType(['App.usr.nodal.ws.objects.InputPort','App.usr.nodal.ws.objects.BridgePort']));
 	},
-	canConnect : function(left, right) {
-		var lnode = left.getParent(), rnode = right.getParent();
+<span id='App-usr-nodal-ws-objects-Complement-method-canConnect'>	canConnect : function(left, right) {
+</span>		var lnode = left.getParent(), rnode = right.getParent();
 
 		// make sure we're:
 		// connecting output -&gt; input

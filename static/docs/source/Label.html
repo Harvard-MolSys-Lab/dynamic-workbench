@@ -21,8 +21,8 @@
  * @extends Workspace.Shim
  */
 Ext.define('Workspace.Label', {
-	constructor : function(config) {
-		Ext.applyIf(config, {
+<span id='Workspace-Label-method-constructor'>	constructor : function(config) {
+</span>		Ext.applyIf(config, {
 			elementSpec : {
 
 			},
@@ -45,14 +45,14 @@ Ext.define('Workspace.Label', {
 		Workspace.Label.superclass.constructor.apply(this, arguments);
 	},
 	extend : 'Workspace.Shim',
-	property : 'name',
-	padding : 5,
-	editable : true,
-	textWidth: false,
-	textHeight: 13,
-	buildMetrics : false,
-	render : function() {
-		Workspace.Label.superclass.render.apply(this, arguments);
+<span id='Workspace-Label-property-property'>	property : 'name',
+</span><span id='Workspace-Label-property-padding'>	padding : 5,
+</span><span id='Workspace-Label-property-editable'>	editable : true,
+</span><span id='Workspace-Label-property-textWidth'>	textWidth: false,
+</span><span id='Workspace-Label-property-textHeight'>	textHeight: 13,
+</span><span id='Workspace-Label-property-buildMetrics'>	buildMetrics : false,
+</span><span id='Workspace-Label-method-render'>	render : function() {
+</span>		Workspace.Label.superclass.render.apply(this, arguments);
 
 		if(this.editable) {
 			// attach editor to DOM node
@@ -96,8 +96,8 @@ Ext.define('Workspace.Label', {
 			this.object.set(this.property, value);
 		}
 	},
-	applyTo : function() {
-		Workspace.Label.superclass.applyTo.apply(this, arguments);
+<span id='Workspace-Label-method-applyTo'>	applyTo : function() {
+</span>		Workspace.Label.superclass.applyTo.apply(this, arguments);
 		if(this.object) {
 			this.object.on('change', this.onChange, this);
 			this.object.on('resize', this.onMove, this);
@@ -115,8 +115,8 @@ Ext.define('Workspace.Label', {
 				this.getEl().setHeight(this.metrics.getHeight(val) + this.padding);
 		}
 	},
-	onMove : function() {
-		this.updateSize(this.getFormattedValue());
+<span id='Workspace-Label-method-onMove'>	onMove : function() {
+</span>		this.updateSize(this.getFormattedValue());
 		Workspace.Label.superclass.onMove.apply(this, arguments);
 	},
 <span id='Workspace-Label-method-onChange'>	/**
@@ -134,11 +134,11 @@ Ext.define('Workspace.Label', {
 			}
 		}
 	},
-	getFormattedValue: function(val) {
-		return this.format(val || this.object.get(this.property),this.object);
+<span id='Workspace-Label-method-getFormattedValue'>	getFormattedValue: function(val) {
+</span>		return this.format(val || this.object.get(this.property),this.object);
 	},
-	destroy : function() {
-		this.object.un('change', this.onChange, this);
+<span id='Workspace-Label-method-destroy'>	destroy : function() {
+</span>		this.object.un('change', this.onChange, this);
 		this.object.un('resize', this.onMove, this);
 		if(this.editor) {
 			this.editor.destroy();

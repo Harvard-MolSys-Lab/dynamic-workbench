@@ -1,3 +1,6 @@
+/**
+ * Allows content to be viewed with an iframe
+ */
 Ext.define('App.usr.viewer.Viewer', {
 	extend: 'App.usr.browser.Browser',
 	editorType: 'Viewer',

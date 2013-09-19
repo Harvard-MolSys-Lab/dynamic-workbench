@@ -25,10 +25,24 @@ Ext.define('App.usr.dil.DilEditor', {
 	iconCls: 'domains',
 	editorType: 'System',
 	initComponent: function() {
+		/**
+		 * Stores segments in the system
+		 * @type {App.usr.dil.SegmentStore}
+		 */
 		this.segmentStore = Ext.create('App.usr.dil.SegmentStore', {});
+		
+		/**
+		 * Stores strands in the system
+		 * @type {App.usr.dil.StrandStore}
+		 */
 		this.strandStore = Ext.create('App.usr.dil.StrandStore', {
 			segmentStore: this.segmentStore
 		});
+
+		/**
+		 * Stores complexes in the system
+		 * @type {App.usr.dil.ComplexStore}
+		 */
 		this.complexStore = Ext.create('App.usr.dil.ComplexStore', {
 			strandStore: this.strandStore
 		});
@@ -231,28 +245,43 @@ Ext.define('App.usr.dil.DilEditor', {
 		});
 		this.on('afterrender', this.loadFile, this);
 		this.callParent(arguments);
-		this.strandsGrid = this.down('[name=strandsGrid]');
-		this.segmentsGrid = this.down('[name=segmentsGrid]');
-		this.complexView = this.down('[name=complexView]');
 
+		/**
+		 * Grid that displays a preview of the assembled strands in the system
+		 * @type {App.usr.dil.StrandsGrid}
+		 */
+		this.strandsGrid = this.down('[name=strandsGrid]');
+
+		/**
+		 * Grid that displays a preview of each segment in the system
+		 * @type {App.usr.dil.SegmentsGrid}
+		 */
+		this.segmentsGrid = this.down('[name=segmentsGrid]');
+
+		/**
+		 * Grid that displays a preview of each assembled complex in the system
+		 * @type {App.usr.dil.StrandPreviewGrid}
+		 */
+		this.complexView = this.down('[name=complexView]');
 		this.down('[name=complexViewMenu]').view = this.complexView;
+
 
 		this.segmentStore.on('update', function(store, rec, operation, modifiedFieldNames) {
 			this.updateStrandSequences();
 		}, this);
 
+		// Highlight items in the #strandsGrid and #complexView when they're moused over in the segments grid
 		this.segmentsGrid.on('itemmouseenter', function(grid, rec, el, e) {
 			this.fireEvent('updateSegmentHighlight', rec.get('identity'), 1);
 		}, this);
 		this.segmentsGrid.on('itemmouseleave', function(grid, rec, el, e) {
 			this.fireEvent('updateSegmentHighlight', null);
 		}, this);
-
-
 		this.on('updateSegmentHighlight', this.updateSegmentHighlight, this, {
 			buffer: 10,
 		});
 
+		// Highlight items in #segmentsGrid and #complexView when they're moused over in the strands grid
 		this.on('afterrender', function() {
 			this.strandsGrid.getEl().on('mouseover', function(e, el) {
 				var identity = el.getAttribute('data-segment-identity'),
@@ -261,46 +290,9 @@ Ext.define('App.usr.dil.DilEditor', {
 			}, this, {
 				delegate: 'span.sequence-segment'
 			});
-
-			// this.strandsGrid.getEl().on('mouseover', function(e, el) {
-			// 	el.addCls('sequence-base-hover');
-			// }, this, {
-			// 	delegate: 'span.sequence-base'
-			// });
-			// this.strandsGrid.getEl().on('mouseout', function(e, el) {
-			// 	el.removeCls('sequence-base-hover');
-			// }, this, {
-			// 	delegate: 'span.sequence-base'
-			// });
-
-			this.tip = Ext.create('Ext.tip.ToolTip', {
-				target: this.strandsGrid.getEl(),
-				delegate: 'span.sequence-base',
-				trackMouse: true,
-				showDelay: false,
-				renderTo: Ext.getBody(),
-				listeners: {
-					// Change content dynamically depending on which element triggered the show.
-					beforeshow: {
-						fn: function updateTipBody(tip) {
-							var segmentElement = Ext.get(tip.triggerElement).up('span.sequence-segment'),
-								identity = segmentElement.getAttribute('data-segment-identity'),
-								polarity = segmentElement.getAttribute('data-segment-polarity'),
-								index = parseInt(tip.triggerElement.getAttribute('data-base-index'))+1;
-							//tip.setTitle(DNA.makeIdentifier(identity, polarity));
-							//tip.update(index + ' nt');
-							tip.update('Segment: <b>'+DNA.makeIdentifier(identity, polarity) + '</b> / Base: ' + index);
-							//this.fireEvent('updateSegmentHighlight',identity);
-						},
-						scope: this
-					}
-				}
-			});
 		}, this);
 
-		// this.segmentsGrid.on('containermouseout',function(grid,rec,el,e) {
-		// 	this.unhighlightSegment();
-		// },this);
+
 	},
 	onLoad: function() {
 		if(!_.isObject(this.data) && _.isString(this.data) && !! this.data) {
@@ -384,18 +376,32 @@ Ext.define('App.usr.dil.DilEditor', {
 		}
 	},
 
+	/**
+	 * Gets a hash mapping the {@link DNA.parseIdentifier identifier} of each segment in the #segmentStore
+	 * to its sequence. Calls {@link App.usr.dil.SegmentStore#getSegmentMap}.
+	 * @return {[type]} [description]
+	 */
 	getSegmentMap: function() {
 		return this.segmentStore.getSegmentMap()
 	},
+	/**
+	 * Gets a D3 qualitative color scale for the segments displayed by the #complexView
+	 * @return {[type]} [description]
+	 */
+	getSegmentColorScale: function() {
+		return this.complexView.getSegmentColorScale();
+	},
+
+	/**
+	 * Instructs the #strandStore to update all of its calculated sequences based on the sequence data
+	 * in #segmentStore. Calls #getSegmentMap to procure this data.
+	 */
 	updateStrandSequences: function() {
 		var segmentMap = this.getSegmentMap();
 		this.strandStore.each(function(strand) {
 			var strandSpec = strand.getFlatSpec();
 			strand.set('sequence', DNA.threadSegments(segmentMap, strandSpec));
 		}, this);
-	},
-	getSegmentColorScale: function() {
-		return this.complexView.getSegmentColorScale();
 	},
 	showEditComplexWindow: function(complex, node) {
 		var name = complex.get('name');
@@ -425,6 +431,11 @@ Ext.define('App.usr.dil.DilEditor', {
 			this.unhighlightSegment();
 		}
 	},
+	/**
+	 * Highlights the passed segment with the given polarity in the #complexView and #strandsGrid
+	 * @param  {String} segment Segment identity
+	 * @param  {Number} polarity Segment polarity (-1 or 1)
+	 */
 	highlightSegment: function(segment, polarity) {
 		this.complexView.preview.fade();
 		this.complexView.preview.highlight({
@@ -439,6 +450,11 @@ Ext.define('App.usr.dil.DilEditor', {
 		this.strandsGrid.unhighlightSegment();
 		this.strandsGrid.highlightSegment(segment, polarity);
 	},
+	/**
+	 * Unhighlights the passed segment with the given polarity in the #complexView and #strandsGrid
+	 * @param  {String} segment Segment identity
+	 * @param  {Number} polarity Segment polarity (-1 or 1)
+	 */
 	unhighlightSegment: function(segment, polarity) {
 		this.complexView.preview.unfade();
 		this.complexView.preview.unhighlight(null, 'node-highlight');
@@ -450,6 +466,18 @@ Ext.define('App.usr.dil.DilEditor', {
 	/* ------------------------------------------------------------------------------------------- 
 	   Builds                                                                                    */
 
+	/**
+	 * Executes a task on the server to build the library currently displayed by the component
+	 * into the appropriate type of file
+	 * @param  {String} target 
+	 * A valid DyNAMiC build target (type of file to build from this library); one of:
+	 * 	- `dd`
+	 * 	- `nupack`
+	 * 	- `ms`
+	 * 	- `pil`
+	 * 	- `enum`
+	 * 	- `svg`
+	 */
 	buildTarget: function(target) {
 
 		this.requestDocument(function(doc) {
@@ -525,7 +553,10 @@ Ext.define('App.usr.dil.DilEditor', {
 		this.svgWindow.setValue(value);
 	},
 	
-
+	/**
+	 * Populates the component's stores (in #segmentStore, #strandStore, and #complexStore) with data from a DyNAML library
+	 * @param  {App.dynamic.Library} library Library from which to load data
+	 */
 	loadLibrary: function(library) {
 		library || (library = {});
 		var complexStore = this.complexStore,
@@ -564,6 +595,10 @@ Ext.define('App.usr.dil.DilEditor', {
 			};
 		}));
 	},
+	/**
+	 * Generates a new DyNAML library from the current data in the component (in #segmentStore, #strandStore, and #complexStore)
+	 * @return {App.dynamic.Library} Generated library
+	 */
 	buildLibrary: function() {
 		var segmentIds = this.segmentStore.getRange(),
 			strandRecs = this.strandStore.getRange(),

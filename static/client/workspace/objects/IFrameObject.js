@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-/*
+/**
  * @class Workspace.objects.IFrameObject
  * Represents a workspace object containing an iframe
  * @extends Workspace.objects.ElementObject

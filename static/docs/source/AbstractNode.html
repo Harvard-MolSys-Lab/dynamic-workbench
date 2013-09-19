@@ -21,12 +21,12 @@
  */
 Ext.define('App.usr.nodal.ws.objects.AbstractNode', {
 	extend: 'Workspace.objects.IdeaObject',
-	wtype: 'App.usr.nodal.ws.objects.AbstractNode',
-	layout: 'App.usr.nodal.ws.objects.NodeLayout',
-	requires: ['Workspace.objects.Ellipse','App.usr.nodal.ws.objects.NodeLayout','App.usr.nodal.ws.objects.InputPort','App.usr.nodal.ws.objects.OutputPort','App.usr.nodal.ws.objects.BridgePort','App.usr.nodal.ws.objects.Motifs','Workspace.ConnectionLabel'],
+<span id='App-usr-nodal-ws-objects-AbstractNode-property-wtype'>	wtype: 'App.usr.nodal.ws.objects.AbstractNode',
+</span><span id='App-usr-nodal-ws-objects-AbstractNode-property-layout'>	layout: 'App.usr.nodal.ws.objects.NodeLayout',
+</span>	requires: ['Workspace.objects.Ellipse','App.usr.nodal.ws.objects.NodeLayout','App.usr.nodal.ws.objects.InputPort','App.usr.nodal.ws.objects.OutputPort','App.usr.nodal.ws.objects.BridgePort','App.usr.nodal.ws.objects.Motifs','Workspace.ConnectionLabel'],
 	statics: {
-		nextName: function() {
-			var i = -1, s='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+<span id='App-usr-nodal-ws-objects-AbstractNode-static-property-nextName'>		nextName: function() {
+</span>			var i = -1, s='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 			return function() {
 				i++;
 				var r = '', n = i;
@@ -38,22 +38,22 @@ Ext.define('App.usr.nodal.ws.objects.AbstractNode', {
 			};
 		}()
 	},
-	motif: '0',
-	name: false,
-	shape: 'ellipse',
-	width: 30,
-	height: 30,
-	strokeWidth: 2.5,
-	autoFill: false,
-	fill: '#ffffff',
-	stroke: '#000000',
-	theta: 180,
-	destroyChildren: true,
-	isResizable: false,
-	polarity: 0,
-	portCounter: -1,
-	constructor: function() {
-		this.shimConfig = {
+<span id='App-usr-nodal-ws-objects-AbstractNode-property-motif'>	motif: '0',
+</span><span id='App-usr-nodal-ws-objects-AbstractNode-cfg-name'>	name: false,
+</span><span id='App-usr-nodal-ws-objects-AbstractNode-cfg-shape'>	shape: 'ellipse',
+</span><span id='App-usr-nodal-ws-objects-AbstractNode-cfg-width'>	width: 30,
+</span><span id='App-usr-nodal-ws-objects-AbstractNode-cfg-height'>	height: 30,
+</span><span id='App-usr-nodal-ws-objects-AbstractNode-cfg-strokeWidth'>	strokeWidth: 2.5,
+</span><span id='App-usr-nodal-ws-objects-AbstractNode-property-autoFill'>	autoFill: false,
+</span><span id='App-usr-nodal-ws-objects-AbstractNode-cfg-fill'>	fill: '#ffffff',
+</span><span id='App-usr-nodal-ws-objects-AbstractNode-cfg-stroke'>	stroke: '#000000',
+</span><span id='App-usr-nodal-ws-objects-AbstractNode-property-theta'>	theta: 180,
+</span><span id='App-usr-nodal-ws-objects-AbstractNode-property-destroyChildren'>	destroyChildren: true,
+</span><span id='App-usr-nodal-ws-objects-AbstractNode-property-isResizable'>	isResizable: false,
+</span><span id='App-usr-nodal-ws-objects-AbstractNode-property-polarity'>	polarity: 0,
+</span><span id='App-usr-nodal-ws-objects-AbstractNode-property-portCounter'>	portCounter: -1,
+</span><span id='App-usr-nodal-ws-objects-AbstractNode-method-constructor'>	constructor: function() {
+</span>		this.shimConfig = {
 			cls: 'workspace-label-callout',
 			offsets: [0,-5]
 		};
@@ -73,8 +73,8 @@ Ext.define('App.usr.nodal.ws.objects.AbstractNode', {
 			this.layout.doLayout();
 		},this);
 	},
-	render: function() {
-		this.arguments = [this.get('x') + this.getRadiusX(), this.get('y') + this.getRadiusY(), this.getRadiusX(), this.getRadiusY()];
+<span id='App-usr-nodal-ws-objects-AbstractNode-method-render'>	render: function() {
+</span>		this.arguments = [this.get('x') + this.getRadiusX(), this.get('y') + this.getRadiusY(), this.getRadiusX(), this.getRadiusY()];
 		//Workspace.objects.Ellipse.superclass.render.call(this);
 		//debugger;
 		this.callParent(arguments);
@@ -114,8 +114,8 @@ Ext.define('App.usr.nodal.ws.objects.AbstractNode', {
 		if(this.errorProxy)
 			this.errorProxy.hide();
 	},
-	// addChild: function() {
-		// this.callParent(arguments);
+<span id='App-usr-nodal-ws-objects-AbstractNode-method-nextPortName'>	// addChild: function() {
+</span>		// this.callParent(arguments);
 		// this.layout.doLayout();
 	// },
 	nextPortName: function() {
@@ -173,8 +173,8 @@ Ext.define('App.usr.nodal.ws.objects.AbstractNode', {
 	getLibraryObject: function() { 
 
 	},
-	destroy: function() {
-		if(this.errorProxy) {
+<span id='App-usr-nodal-ws-objects-AbstractNode-method-destroy'>	destroy: function() {
+</span>		if(this.errorProxy) {
 			this.errorProxy.destroy();
 			delete this.errorProxy;
 		}

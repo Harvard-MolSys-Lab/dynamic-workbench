@@ -52,8 +52,8 @@ Ext.define('App.ui.CreateMenu', {
 	 * This option does not apply if 
 	 */
 	smartCreate: false,
-	defaultType: 'txt',
-
+<span id='App-ui-CreateMenu-property-defaultType'>	defaultType: 'txt',
+</span>
 <span id='App-ui-CreateMenu-cfg-autoCreateMenu'>	/**
 </span>	 * @cfg
 	 * True to automatically build the file type menu by calling #getCreateMenu
@@ -68,8 +68,8 @@ Ext.define('App.ui.CreateMenu', {
 	
 	mixins: {tip: 'App.ui.TipHelper'},
 	
-	initComponent: function() {
-		this.extraMenuItems || (this.extraMenuItems = []);
+<span id='App-ui-CreateMenu-method-initComponent'>	initComponent: function() {
+</span>		this.extraMenuItems || (this.extraMenuItems = []);
 		Ext.apply(this, {
 			items: [{
 				text: this.labelText,
@@ -133,8 +133,8 @@ Ext.define('App.ui.CreateMenu', {
 			},this);
 		}
 	},
-	afterRender : function() {
-		this.callParent(arguments);
+<span id='App-ui-CreateMenu-method-afterRender'>	afterRender : function() {
+</span>		this.callParent(arguments);
 		// var me = this;
 		// me.el.un(me.mouseMonitor)
 		// me.mouseMonitor = me.el.monitorMouseLeave(this.afterLeaveDelay, me.onMouseLeave, me);

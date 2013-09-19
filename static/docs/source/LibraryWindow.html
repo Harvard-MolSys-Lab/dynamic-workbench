@@ -21,20 +21,20 @@
 Ext.define('App.usr.nodal.LibraryWindow', {
 	extend : 'Ext.window.Window',
 	requires: ['App.usr.nupack.Editor','App.ui.CodeMirror',],
-	title : 'Compiled library',
-	minimize : function() {
-		this.toggleCollapse();
+<span id='App-usr-nodal-LibraryWindow-property-title'>	title : 'Compiled library',
+</span><span id='App-usr-nodal-LibraryWindow-method-minimize'>	minimize : function() {
+</span>		this.toggleCollapse();
 	},
-	minimizable : true,
-	maximizable : true,
-	bodyBorder : false,
-	border : false,
-	plain : true,
-	showTree: false,
-	layout : 'fit',
-	closeAction: 'hide',
-	initComponent : function() {
-		if(this.lastLibrary) {
+<span id='App-usr-nodal-LibraryWindow-property-minimizable'>	minimizable : true,
+</span><span id='App-usr-nodal-LibraryWindow-property-maximizable'>	maximizable : true,
+</span><span id='App-usr-nodal-LibraryWindow-property-bodyBorder'>	bodyBorder : false,
+</span><span id='App-usr-nodal-LibraryWindow-property-border'>	border : false,
+</span><span id='App-usr-nodal-LibraryWindow-property-plain'>	plain : true,
+</span><span id='App-usr-nodal-LibraryWindow-property-showTree'>	showTree: false,
+</span><span id='App-usr-nodal-LibraryWindow-property-layout'>	layout : 'fit',
+</span><span id='App-usr-nodal-LibraryWindow-property-closeAction'>	closeAction: 'hide',
+</span><span id='App-usr-nodal-LibraryWindow-method-initComponent'>	initComponent : function() {
+</span>		if(this.lastLibrary) {
 
 			Ext.apply(this, {
 				items : [{
@@ -121,8 +121,8 @@ Ext.define('App.usr.nodal.LibraryWindow', {
 		}
 		this.callParent(arguments);
 	},
-	setLibrary : function(lib,source) {
-		this.lastLibrary = lib;
+<span id='App-usr-nodal-LibraryWindow-method-setLibrary'>	setLibrary : function(lib,source) {
+</span>		this.lastLibrary = lib;
 		this.sourceDynaml = source ? source : null;
 		var tabs = this.down('tabpanel');
 		var oldBrowser = this.down('objectbrowser');
@@ -189,15 +189,15 @@ Ext.define('App.usr.nodal.LibraryWindow', {
 		}
 
 	},
-	dynamlToString: function() {
-		return _.isString(this.sourceDynaml) ? this.sourceDynaml : JSON.stringify(this.sourceDynaml,null,'\t');
+<span id='App-usr-nodal-LibraryWindow-method-dynamlToString'>	dynamlToString: function() {
+</span>		return _.isString(this.sourceDynaml) ? this.sourceDynaml : JSON.stringify(this.sourceDynaml,null,'\t');
 	},
-	printStrands : function(lib, options) {
-		return App.dynamic.Compiler.printStrands(lib, options);
+<span id='App-usr-nodal-LibraryWindow-method-printStrands'>	printStrands : function(lib, options) {
+</span>		return App.dynamic.Compiler.printStrands(lib, options);
 	},
-	width : 400,
-	height : 400,
-});
+<span id='App-usr-nodal-LibraryWindow-property-width'>	width : 400,
+</span><span id='App-usr-nodal-LibraryWindow-property-height'>	height : 400,
+</span>});
 </pre>
 </body>
 </html>

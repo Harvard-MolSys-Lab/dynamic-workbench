@@ -20,15 +20,15 @@
  */
 Ext.define('App.usr.js.Editor', {
 	extend : 'App.usr.text.Editor',
-	iconCls : 'js',
-	editorType : 'JS',
-	title: 'Javascript',
-	mode : 'javascript',
-	mixins : {
+<span id='App-usr-js-Editor-property-iconCls'>	iconCls : 'js',
+</span><span id='App-usr-js-Editor-property-editorType'>	editorType : 'JS',
+</span><span id='App-usr-js-Editor-property-title'>	title: 'Javascript',
+</span><span id='App-usr-js-Editor-cfg-mode'>	mode : 'javascript',
+</span>	mixins : {
 		'refHelper' : 'App.ui.RefHelper',
 	},
-	initComponent : function() {
-		var mode = this.mode;
+<span id='App-usr-js-Editor-method-initComponent'>	initComponent : function() {
+</span>		var mode = this.mode;
 		if(!!this.json) {
 			mode = {
 				name: 'javascript',

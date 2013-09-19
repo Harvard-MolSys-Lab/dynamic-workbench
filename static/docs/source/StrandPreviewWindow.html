@@ -21,16 +21,16 @@
 Ext.define('App.ui.StrandPreviewWindow',{
 	requires: ['App.ui.StrandPreview'],
 	extend:'Ext.window.Window',
-	width: 400,
-	height: 400,
-	layout: 'fit',
-	title: &quot;Secondary Structure Preview&quot;,
-	plain: true,
-	bodyBorder: false,
-	border: false,
-	closeAction: 'hide',
-	initComponent: function() {
-		Ext.apply(this,{
+<span id='App-ui-StrandPreviewWindow-property-width'>	width: 400,
+</span><span id='App-ui-StrandPreviewWindow-property-height'>	height: 400,
+</span><span id='App-ui-StrandPreviewWindow-property-layout'>	layout: 'fit',
+</span><span id='App-ui-StrandPreviewWindow-property-title'>	title: &quot;Secondary Structure Preview&quot;,
+</span><span id='App-ui-StrandPreviewWindow-property-plain'>	plain: true,
+</span><span id='App-ui-StrandPreviewWindow-property-bodyBorder'>	bodyBorder: false,
+</span><span id='App-ui-StrandPreviewWindow-property-border'>	border: false,
+</span><span id='App-ui-StrandPreviewWindow-property-closeAction'>	closeAction: 'hide',
+</span><span id='App-ui-StrandPreviewWindow-method-initComponent'>	initComponent: function() {
+</span>		Ext.apply(this,{
 			layout: 'border',
 			items: [{
 				xtype: 'codemirror',
@@ -62,16 +62,16 @@ Ext.define('App.ui.StrandPreviewWindow',{
 		this.callParent(arguments);
 	},
 
-	doSubmit: function() {
-		var codemirror = this.down('codemirror');
+<span id='App-ui-StrandPreviewWindow-method-doSubmit'>	doSubmit: function() {
+</span>		var codemirror = this.down('codemirror');
 		var targetStructure = codemirror.getValue();
 		
 		var strandPreview = this.down('strandpreview');
 		
 		strandPreview.setValue(targetStructure)
 	},
-	updateDesign: function(design) {
-		var designField = this.down('codemirror');
+<span id='App-ui-StrandPreviewWindow-method-updateDesign'>	updateDesign: function(design) {
+</span>		var designField = this.down('codemirror');
 		designField.setValue(design);
 	}
 })

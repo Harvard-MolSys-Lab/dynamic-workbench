@@ -1,3 +1,6 @@
+/**
+ * Allows custom Javascript commands to be entered to run in the context of the workspace
+ */
 Ext.define('App.usr.canvas.CommandTab', {
 	extend: 'App.usr.canvas.ToolsTab',
 	alias: 'widget.commandtab',

@@ -22,6 +22,11 @@ Ext.define('App.usr.dil.StrandsGrid',{
 		this.strandEditor = Ext.create('Ext.grid.plugin.CellEditing', {
 			clicksToEdit: 1
 		});
+
+		/**
+		 * @cfg {App.usr.dil.StrandStore} store
+		 * The store to contain this panel's strands
+		 */
 		this.strandStore = this.store;
 
 		this.segmentsField = Ext.create('Ext.form.field.Text',{
@@ -132,6 +137,34 @@ Ext.define('App.usr.dil.StrandsGrid',{
 		
 		this.callParent(arguments);
 		this.mixins.tip.init.call(this,[this.segmentsField]);
+
+
+		this.on('afterrender', function() {
+			this.tip = Ext.create('Ext.tip.ToolTip', {
+				target: this.getEl(),
+				delegate: 'span.sequence-base',
+				trackMouse: true,
+				showDelay: false,
+				renderTo: Ext.getBody(),
+				listeners: {
+					// Change content dynamically depending on which element triggered the show.
+					beforeshow: {
+						fn: function updateTipBody(tip) {
+							var segmentElement = Ext.get(tip.triggerElement).up('span.sequence-segment'),
+								identity = segmentElement.getAttribute('data-segment-identity'),
+								polarity = segmentElement.getAttribute('data-segment-polarity'),
+								index = parseInt(tip.triggerElement.getAttribute('data-base-index'))+1;
+							//tip.setTitle(DNA.makeIdentifier(identity, polarity));
+							//tip.update(index + ' nt');
+							tip.update('Segment: <b>'+DNA.makeIdentifier(identity, polarity) + '</b> / Base: ' + index);
+							//this.fireEvent('updateSegmentHighlight',identity);
+						},
+						scope: this
+					}
+				}
+			});
+		}, this);
+
 	},
 	getSegmentMap: function () {
 		return this.segmentStore.getSegmentMapWithComplements()
@@ -150,6 +183,9 @@ Ext.define('App.usr.dil.StrandsGrid',{
 	addStrand: function() {
 		return _.first(this.strandStore.addStrand());
 	},
+	/**
+	 * @private
+	 */
 	doAddStrand: function() {
 		var rec = this.addStrand();
 		this.editStrand(rec);
@@ -160,12 +196,18 @@ Ext.define('App.usr.dil.StrandsGrid',{
 			this.strandEditor.startEdit(rec, this.headerCt.getHeaderAtIndex(2));
 		}
 	},
+	/**
+	 * @private
+	 */
 	doEditStrand: function() {
 		return this.editStrand();
 	},
 	deleteStrand: function deleteStrand (rec) {
 		// body...
 	},
+	/**
+	 * @private
+	 */
 	doDeleteStrand: function() {
 		return this.deleteStrand();
 	},

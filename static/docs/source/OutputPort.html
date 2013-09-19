@@ -23,48 +23,48 @@ Ext.define('App.usr.nodal.ws.objects.OutputPort', {
 	mixins: {
 		port: 'App.usr.nodal.ws.objects.NodePort'
 	},
-	wtype: 'App.usr.nodal.ws.objects.OutputPort',
-	shape: 'ellipse',
-	stroke: '#33ccff',
-	strokeWidth: 2,
-	name: 'Output Port',
-	role: 'output',
-	width: 8,
-	height: 8,
-	polarity: 1,
-	rotation: 0,
-	isResizable: false,
-	preventRotate: true,
-	constructor: function() {
-		this.callParent(arguments);
+<span id='App-usr-nodal-ws-objects-OutputPort-property-wtype'>	wtype: 'App.usr.nodal.ws.objects.OutputPort',
+</span><span id='App-usr-nodal-ws-objects-OutputPort-cfg-shape'>	shape: 'ellipse',
+</span><span id='App-usr-nodal-ws-objects-OutputPort-cfg-stroke'>	stroke: '#33ccff',
+</span><span id='App-usr-nodal-ws-objects-OutputPort-property-strokeWidth'>	strokeWidth: 2,
+</span><span id='App-usr-nodal-ws-objects-OutputPort-cfg-name'>	name: 'Output Port',
+</span><span id='App-usr-nodal-ws-objects-OutputPort-property-role'>	role: 'output',
+</span><span id='App-usr-nodal-ws-objects-OutputPort-cfg-width'>	width: 8,
+</span><span id='App-usr-nodal-ws-objects-OutputPort-cfg-height'>	height: 8,
+</span><span id='App-usr-nodal-ws-objects-OutputPort-property-polarity'>	polarity: 1,
+</span><span id='App-usr-nodal-ws-objects-OutputPort-cfg-rotation'>	rotation: 0,
+</span><span id='App-usr-nodal-ws-objects-OutputPort-property-isResizable'>	isResizable: false,
+</span><span id='App-usr-nodal-ws-objects-OutputPort-property-preventRotate'>	preventRotate: true,
+</span><span id='App-usr-nodal-ws-objects-OutputPort-method-constructor'>	constructor: function() {
+</span>		this.callParent(arguments);
 		this.mixins.port.constructor.apply(this,arguments);
 		//App.usr.nodal.ws.objects.OutputPort.superclass.constructor.apply(this,arguments);
 		this.expose('complementarity',true,true,true,false);
 	},
-	initialize: function() {
-		if(this.complementarity) {
+<span id='App-usr-nodal-ws-objects-OutputPort-method-initialize'>	initialize: function() {
+</span>		if(this.complementarity) {
 			this.set('complementarity', Workspace.Components.realize(this.complementarity));
 		}
 		//this.set('rotation',0)
 		this.callParent(arguments);
 	},
-	getTransform: function() {
-		return '';
+<span id='App-usr-nodal-ws-objects-OutputPort-method-getTransform'>	getTransform: function() {
+</span>		return '';
 	},
-	render: function() {
-		this.callParent(arguments);
+<span id='App-usr-nodal-ws-objects-OutputPort-method-render'>	render: function() {
+</span>		this.callParent(arguments);
 		this.mixins.port.render.apply(this,arguments);
 		Workspace.objects.VectorObject.prototype.updateAttr.call(this,'rotation',0);
 	},
-	updateAttr: function(attrName, value) {
-		if(attrName!='rotation') {
+<span id='App-usr-nodal-ws-objects-OutputPort-method-updateAttr'>	updateAttr: function(attrName, value) {
+</span>		if(attrName!='rotation') {
 			return this.callParent(arguments);
 		} else {
 			return this.callParent([attrName,0]);
 		}
 	},
-	attributes: function(attrArray) {
-		if(!attrArray) {
+<span id='App-usr-nodal-ws-objects-OutputPort-method-attributes'>	attributes: function(attrArray) {
+</span>		if(!attrArray) {
 			attrArray = _.clone(App.usr.nodal.ws.objects.OutputPort.attrArray);
 		} else {
 			attrArray = _.filter(attrArray,function(attr) { return attr != 'rotation'});

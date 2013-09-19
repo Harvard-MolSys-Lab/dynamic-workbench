@@ -305,6 +305,7 @@
 	
 			// gobbles parameters that would be passed to redraw and uses d3.event stuff instead
 			function zoomRedraw() {
+				d3.event.sourceEvent.stopPropagation();
 				return redraw(d3.event.scale,d3.event.translate );
 			}
 
@@ -695,27 +696,27 @@ Ext.define('App.ui.StrandPreview', {
 	alias : 'widget.strandpreview',
 	requires : ['App.ui.StrandPreviewViewMenu'],
 
-	autoRender : true,
-	data : '',
-	fade_in_duration: 1000,
-	bodyStyle: 'background-color: white',
-	persistenceLength: 1,//2,
-	adjacencyMode : 2,
+<span id='App-ui-StrandPreview-cfg-autoRender'>	autoRender : true,
+</span><span id='App-ui-StrandPreview-property-data'>	data : '',
+</span><span id='App-ui-StrandPreview-property-fade_in_duration'>	fade_in_duration: 1000,
+</span><span id='App-ui-StrandPreview-property-bodyStyle'>	bodyStyle: 'background-color: white',
+</span><span id='App-ui-StrandPreview-property-adjacencyMode'><span id='App-ui-StrandPreview-property-persistenceLength'>	persistenceLength: 1,//2,
+</span></span>	adjacencyMode : 2,
 
-	nodeFillMode: 'segment', // 'identity', 'segment', 'domain'
-	nodeStrokeMode: 'segment', // 'identity', 'segment', 'domain'
-	lineStrokeMode: 'default',
-	textFillMode: 'default',
-	showBubbles: true,
-	loopMode: 'linear',
-	showBases : true,
-	showIndexes : true,
-	showSegments : true,
-	segmentColors : null,
-
-	showToolbar: true,
-	setValue : function(structure, strands, sequences) {
-		if(structure &amp;&amp; structure.structure &amp;&amp; structure.strands) {
+<span id='App-ui-StrandPreview-property-nodeStrokeMode'><span id='App-ui-StrandPreview-property-nodeFillMode'>	nodeFillMode: 'segment', // 'identity', 'segment', 'domain'
+</span></span><span id='App-ui-StrandPreview-property-lineStrokeMode'>	nodeStrokeMode: 'segment', // 'identity', 'segment', 'domain'
+</span>	lineStrokeMode: 'default',
+<span id='App-ui-StrandPreview-property-textFillMode'>	textFillMode: 'default',
+</span><span id='App-ui-StrandPreview-property-showBubbles'>	showBubbles: true,
+</span><span id='App-ui-StrandPreview-property-loopMode'>	loopMode: 'linear',
+</span><span id='App-ui-StrandPreview-property-showBases'>	showBases : true,
+</span><span id='App-ui-StrandPreview-property-showIndexes'>	showIndexes : true,
+</span><span id='App-ui-StrandPreview-property-showSegments'>	showSegments : true,
+</span><span id='App-ui-StrandPreview-property-segmentColors'>	segmentColors : null,
+</span>
+<span id='App-ui-StrandPreview-property-showToolbar'>	showToolbar: true,
+</span><span id='App-ui-StrandPreview-method-setValue'>	setValue : function(structure, strands, sequences) {
+</span>		if(structure &amp;&amp; structure.structure &amp;&amp; structure.strands) {
 			this.data = structure;
 			this.strands = structure.strands;
 			this.structure = structure.structure;
@@ -725,6 +726,12 @@ Ext.define('App.ui.StrandPreview', {
 		} else if(arguments.length==1) {
 			this.data = structure;
 		} else {
+			this.data = structure; 
+			if(this.data) { 
+				if(strands) this.data.strands = strands;
+				if(sequences) this.data.sequences = sequences
+			} 
+
 			this.structure = structure; 
 			this.strands = strands;
 			this.sequences = sequences;
@@ -737,8 +744,8 @@ Ext.define('App.ui.StrandPreview', {
 		this.buildVis();
 		// this.restart();
 	},
-	buildVis : function() {
-		var panel = this.getCanvas();
+<span id='App-ui-StrandPreview-method-buildVis'>	buildVis : function() {
+</span>		var panel = this.getCanvas();
 		panel.selectAll('g').remove();
 		this.chart = StrandPreview(panel).width(this.getWidth()).height(this.getHeight())
 			.showBubbles(this.showBubbles)
@@ -753,17 +760,17 @@ Ext.define('App.ui.StrandPreview', {
 		if(!!this.segmentColors) this.chart.segmentColors(this.segmentColors)
 		this.preview = this.chart(panel.data([this.data]));
 	},
-	updateChartProperties: function() {
-		this.buildVis();
+<span id='App-ui-StrandPreview-method-updateChartProperties'>	updateChartProperties: function() {
+</span>		this.buildVis();
 	},
-	highlight: function(criteria) {
-		this.preview.highlight(criteria);
+<span id='App-ui-StrandPreview-method-highlight'>	highlight: function(criteria) {
+</span>		this.preview.highlight(criteria);
 	},
-	unhighlight: function(criteria) {
-		this.preview.unhighlight(criteria);
+<span id='App-ui-StrandPreview-method-unhighlight'>	unhighlight: function(criteria) {
+</span>		this.preview.unhighlight(criteria);
 	},
-	initComponent : function() {
-		if(this.showToolbar) {
+<span id='App-ui-StrandPreview-method-initComponent'>	initComponent : function() {
+</span>		if(this.showToolbar) {
 			this.bbar = [{
 				iconCls:'dot-paren-icon',
 				handler: this.toDotParen,
@@ -790,8 +797,8 @@ Ext.define('App.ui.StrandPreview', {
 		}
 		this.callParent(arguments);
 	},
-	toggleForce: function() {
-		if(!this.forceEnabled) {
+<span id='App-ui-StrandPreview-method-toggleForce'>	toggleForce: function() {
+</span>		if(!this.forceEnabled) {
 			this.forceEnabled = true;
 			this.preview.start();
 		} else {
@@ -799,8 +806,8 @@ Ext.define('App.ui.StrandPreview', {
 			this.preview.stop();
 		}
 	},
-	showWindow: function(title,data,button) {
-		if(!this.textWindow) {
+<span id='App-ui-StrandPreview-method-showWindow'>	showWindow: function(title,data,button) {
+</span>		if(!this.textWindow) {
 			this.textWindowBox = Ext.create('App.ui.CodeMirror',{});
 			this.textWindow = Ext.create('Ext.window.Window',{
 				layout: 'fit',
@@ -828,16 +835,16 @@ Ext.define('App.ui.StrandPreview', {
 	getStructure: function () {
 		return _.isString(this.data) ? this.data : this.data.dotParen || this.data.structure || null;
 	},
-	toDotParen: function(btn) {
-		var value = this.getStructure();
+<span id='App-ui-StrandPreview-method-toDotParen'>	toDotParen: function(btn) {
+</span>		var value = this.getStructure();
 		this.showWindow('Dot-Parentheses',value,btn);
 	},
-	toDUPlus: function(btn) {
-		var value = DNA.dotParenToDU(this.getStructure());
+<span id='App-ui-StrandPreview-method-toDUPlus'>	toDUPlus: function(btn) {
+</span>		var value = DNA.dotParenToDU(this.getStructure());
 		this.showWindow('DU+',value,btn);
 	},
-	toSVG: function(btn) {
-		if(!this.svgStyles) {
+<span id='App-ui-StrandPreview-method-toSVG'>	toSVG: function(btn) {
+</span>		if(!this.svgStyles) {
 			Ext.Ajax.request({
 			    url: 'styles/strand-preview.css',
 			    success: function(response){
@@ -850,8 +857,8 @@ Ext.define('App.ui.StrandPreview', {
 			this.doDisplaySVGWindow();
 		}
 	},
-	doDisplaySVGWindow: function() {
-		var value = '&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;&lt;!DOCTYPE svg PUBLIC &quot;-//W3C//DTD SVG 1.1//EN&quot; &quot;http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd&quot;&gt;'+this.getCanvasMarkup();
+<span id='App-ui-StrandPreview-method-doDisplaySVGWindow'>	doDisplaySVGWindow: function() {
+</span>		var value = '&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;&lt;!DOCTYPE svg PUBLIC &quot;-//W3C//DTD SVG 1.1//EN&quot; &quot;http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd&quot;&gt;'+this.getCanvasMarkup();
 
 		// Sorry Cthulhu... http://www.codinghorror.com/blog/2009/11/parsing-html-the-cthulhu-way.html
 		value = value.replace(/&lt;svg(\b[^&gt;]*)&gt;/g,'&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot; $1&gt;&lt;style type=&quot;text/css&quot;&gt;&lt;![CDATA[' + this.svgStyles + ']]&gt;&lt;/style&gt;');

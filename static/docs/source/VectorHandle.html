@@ -23,10 +23,10 @@
  * @param {Object} config
  */
 Ext.define('Workspace.tools.VectorHandle', {
-	forceFront : true,
-	r : 2,
-	constructor: function(workspace, config) {
-		//Workspace.tools.VectorHandle.superclass.constructor.call(this, workspace, config);
+<span id='Workspace-tools-VectorHandle-property-forceFront'>	forceFront : true,
+</span><span id='Workspace-tools-VectorHandle-property-r'>	r : 2,
+</span><span id='Workspace-tools-VectorHandle-method-constructor'>	constructor: function(workspace, config) {
+</span>		//Workspace.tools.VectorHandle.superclass.constructor.call(this, workspace, config);
 		this.callParent(arguments);
 
 		Ext.applyIf(this, {
@@ -48,39 +48,39 @@ Ext.define('Workspace.tools.VectorHandle', {
 		this.onItemMove();
 	},
 	extend:'Workspace.tools.Handle',
-	drag: function() {
-		//this.callParent(arguments);
+<span id='Workspace-tools-VectorHandle-method-drag'>	drag: function() {
+</span>		//this.callParent(arguments);
 	},
-	dragStartHandler: function() {
-		this.callParent(arguments);
+<span id='Workspace-tools-VectorHandle-method-dragStartHandler'>	dragStartHandler: function() {
+</span>		this.callParent(arguments);
 	},
-	dragEndHandler: function() {
-		if (this.dragging) {
+<span id='Workspace-tools-VectorHandle-method-dragEndHandler'>	dragEndHandler: function() {
+</span>		if (this.dragging) {
 			var points = this.item.get('points'), pos = this.snap(this.getPosition());
 			points[this.index] = [pos.x,pos.y];
 			this.item.set('points',points);
 		}
 		this.callParent(arguments);
 	},
-	getPoint: function() {
-		if(this.item)
+<span id='Workspace-tools-VectorHandle-method-getPoint'>	getPoint: function() {
+</span>		if(this.item)
 			return this.item.get('points')[this.index];
 		return [0,0];
 	},
-	onItemMove: function() {
-		this.move(this.getPoint());
+<span id='Workspace-tools-VectorHandle-method-onItemMove'>	onItemMove: function() {
+</span>		this.move(this.getPoint());
 	},
-	move: function(point) {
-		this.setPosition(point[0],point[1]);
+<span id='Workspace-tools-VectorHandle-method-move'>	move: function(point) {
+</span>		this.setPosition(point[0],point[1]);
 	},
-	snap : function(pos) {
-		if(this.constrain) {
+<span id='Workspace-tools-VectorHandle-method-snap'>	snap : function(pos) {
+</span>		if(this.constrain) {
 			pos = this.constrain(pos,this);
 		}
 		return pos;
 	},
-	destroy: function() {
-		this.callParent(arguments);
+<span id='Workspace-tools-VectorHandle-method-destroy'>	destroy: function() {
+</span>		this.callParent(arguments);
 		this.item.un('move', this.onItemMove, this);
 		this.item.un('resize', this.onItemMove, this);
 		this.item.un('change:points',this.onItemMove,this);

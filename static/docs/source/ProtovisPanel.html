@@ -32,9 +32,9 @@ Ext.define('App.ui.ProtovisPanel', {
 	 * zoom with this speed; false to disable zooming (defaults to 1)
 	 */
 	zoom: 1,
-	bpadding: 20,
-	visPadding: 10,
-<span id='App-ui-ProtovisPanel-cfg-autoRender'>	/**
+<span id='App-ui-ProtovisPanel-property-bpadding'>	bpadding: 20,
+</span><span id='App-ui-ProtovisPanel-property-visPadding'>	visPadding: 10,
+</span><span id='App-ui-ProtovisPanel-cfg-autoRender'>	/**
 </span>	 * @cfg autoRender {Boolean} 
 	 * true to automatically render the visualization after the component 
 	 * renders; false to render manually using {@link #afterrender} (defaults 
@@ -46,8 +46,8 @@ Ext.define('App.ui.ProtovisPanel', {
 	 * the size of the panel's body element (defaults to true)
 	 */
 	autoSize: true,
-	initComponent: function() {
-		//this.on('afterrender',this.afterrender,this);
+<span id='App-ui-ProtovisPanel-method-initComponent'>	initComponent: function() {
+</span>		//this.on('afterrender',this.afterrender,this);
 		this.callParent(arguments);
 		if(this.autoRender) {
 			this.on('afterrender',this.afterrender,this, {
@@ -94,8 +94,8 @@ Ext.define('App.ui.ProtovisPanel', {
 		this.updateVis();
 		this.vis.render();
 	},
-	doAutoSize: function() {
-		this.vis.width(this.getBodyWidth()-this.visPadding).height(this.getBodyHeight()-this.visPadding).top(this.visPadding).left(this.visPadding);
+<span id='App-ui-ProtovisPanel-method-doAutoSize'>	doAutoSize: function() {
+</span>		this.vis.width(this.getBodyWidth()-this.visPadding).height(this.getBodyHeight()-this.visPadding).top(this.visPadding).left(this.visPadding);
 	},
 <span id='App-ui-ProtovisPanel-method-renderVis'>	/**
 </span>	 * Renders the visualization. Do not override this method; override 

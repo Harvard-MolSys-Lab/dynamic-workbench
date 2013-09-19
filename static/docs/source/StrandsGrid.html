@@ -39,6 +39,11 @@ Ext.define('App.usr.dil.StrandsGrid',{
 		this.strandEditor = Ext.create('Ext.grid.plugin.CellEditing', {
 			clicksToEdit: 1
 		});
+
+<span id='App-usr-dil-StrandsGrid-cfg-store'>		/**
+</span>		 * @cfg {App.usr.dil.StrandStore} store
+		 * The store to contain this panel's strands
+		 */
 		this.strandStore = this.store;
 
 		this.segmentsField = Ext.create('Ext.form.field.Text',{
@@ -149,40 +154,77 @@ Ext.define('App.usr.dil.StrandsGrid',{
 		
 		this.callParent(arguments);
 		this.mixins.tip.init.call(this,[this.segmentsField]);
+
+
+		this.on('afterrender', function() {
+			this.tip = Ext.create('Ext.tip.ToolTip', {
+				target: this.getEl(),
+				delegate: 'span.sequence-base',
+				trackMouse: true,
+				showDelay: false,
+				renderTo: Ext.getBody(),
+				listeners: {
+					// Change content dynamically depending on which element triggered the show.
+					beforeshow: {
+						fn: function updateTipBody(tip) {
+							var segmentElement = Ext.get(tip.triggerElement).up('span.sequence-segment'),
+								identity = segmentElement.getAttribute('data-segment-identity'),
+								polarity = segmentElement.getAttribute('data-segment-polarity'),
+								index = parseInt(tip.triggerElement.getAttribute('data-base-index'))+1;
+							//tip.setTitle(DNA.makeIdentifier(identity, polarity));
+							//tip.update(index + ' nt');
+							tip.update('Segment: &lt;b&gt;'+DNA.makeIdentifier(identity, polarity) + '&lt;/b&gt; / Base: ' + index);
+							//this.fireEvent('updateSegmentHighlight',identity);
+						},
+						scope: this
+					}
+				}
+			});
+		}, this);
+
 	},
-	getSegmentMap: function () {
-		return this.segmentStore.getSegmentMapWithComplements()
+<span id='App-usr-dil-StrandsGrid-method-getSegmentMap'>	getSegmentMap: function () {
+</span>		return this.segmentStore.getSegmentMapWithComplements()
 	},
-	highlightSegment: function(identity, polarity) {
-		if(polarity === undefined) polarity = 1;
+<span id='App-usr-dil-StrandsGrid-method-highlightSegment'>	highlightSegment: function(identity, polarity) {
+</span>		if(polarity === undefined) polarity = 1;
 		var el = this.getEl();
 		el.select('[data-segment-identity=&quot;' + identity + '&quot;][data-segment-polarity=&quot;' + polarity + '&quot;]').addCls('sequence-highlight');
 		el.select('[data-segment-identity=&quot;' + identity + '&quot;][data-segment-polarity=&quot;' + (-1 * polarity) + '&quot;]').addCls('sequence-highlight-complement');
 	},
-	unhighlightSegment: function() {
-		var el = this.getEl();
+<span id='App-usr-dil-StrandsGrid-method-unhighlightSegment'>	unhighlightSegment: function() {
+</span>		var el = this.getEl();
 		el.select('.sequence-highlight').removeCls('sequence-highlight');
 		el.select('.sequence-highlight-complement').removeCls('sequence-highlight-complement');
 	},
-	addStrand: function() {
-		return _.first(this.strandStore.addStrand());
+<span id='App-usr-dil-StrandsGrid-method-addStrand'>	addStrand: function() {
+</span>		return _.first(this.strandStore.addStrand());
 	},
+<span id='App-usr-dil-StrandsGrid-method-doAddStrand'>	/**
+</span>	 * @private
+	 */
 	doAddStrand: function() {
 		var rec = this.addStrand();
 		this.editStrand(rec);
 	},
-	editStrand: function editStrand (rec) {
-		rec || (rec = this.getSelectionModel().getLastSelected());
+<span id='App-usr-dil-StrandsGrid-method-editStrand'>	editStrand: function editStrand (rec) {
+</span>		rec || (rec = this.getSelectionModel().getLastSelected());
 		if (rec) {
 			this.strandEditor.startEdit(rec, this.headerCt.getHeaderAtIndex(2));
 		}
 	},
+<span id='App-usr-dil-StrandsGrid-method-doEditStrand'>	/**
+</span>	 * @private
+	 */
 	doEditStrand: function() {
 		return this.editStrand();
 	},
-	deleteStrand: function deleteStrand (rec) {
-		// body...
+<span id='App-usr-dil-StrandsGrid-method-deleteStrand'>	deleteStrand: function deleteStrand (rec) {
+</span>		// body...
 	},
+<span id='App-usr-dil-StrandsGrid-method-doDeleteStrand'>	/**
+</span>	 * @private
+	 */
 	doDeleteStrand: function() {
 		return this.deleteStrand();
 	},

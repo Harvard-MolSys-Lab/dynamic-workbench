@@ -20,20 +20,20 @@
  */
 Ext.define('App.usr.sbml.Editor', {
 	extend: 'App.usr.text.Editor',
-	iconCls:'document-sbml',
-	editorType: 'SBML',
-	title: 'SBML',
-	mode: 'xml',
-	alias: 'widget.sbmledit',
+<span id='App-usr-sbml-Editor-property-iconCls'>	iconCls:'document-sbml',
+</span><span id='App-usr-sbml-Editor-property-editorType'>	editorType: 'SBML',
+</span><span id='App-usr-sbml-Editor-property-title'>	title: 'SBML',
+</span><span id='App-usr-sbml-Editor-cfg-mode'>	mode: 'xml',
+</span>	alias: 'widget.sbmledit',
 	
 	
-	dockedItems: [{
-		xtype: 'cite',
+<span id='App-usr-sbml-Editor-property-dockedItems'>	dockedItems: [{
+</span>		xtype: 'cite',
 		cite: 'sbml_2003'
 	}],
-	url: 'http://sbml.org/validator/',
-	initComponent: function() {
-		
+<span id='App-usr-sbml-Editor-property-url'>	url: 'http://sbml.org/validator/',
+</span><span id='App-usr-sbml-Editor-method-initComponent'>	initComponent: function() {
+</span>		
 		this.extraTbarItems = (this.extraTbarItems || []); 
 		var tbar = [{
 			text: 'Validate SBML',
@@ -56,8 +56,8 @@ Ext.define('App.usr.sbml.Editor', {
 		
 		this.callParent(arguments);
 	},
-	validateSBML: function() {
-		this.form.doAction('standardsubmit',{
+<span id='App-usr-sbml-Editor-method-validateSBML'>	validateSBML: function() {
+</span>		this.form.doAction('standardsubmit',{
 			params: this.getParams(),
 			target: '_blank',
 			url: this.url,
@@ -66,8 +66,8 @@ Ext.define('App.usr.sbml.Editor', {
 			enctype:'multipart/form-data',
 		})
 	},
-	getParams: function() {
-		return {
+<span id='App-usr-sbml-Editor-method-getParams'>	getParams: function() {
+</span>		return {
 			'file':this.getValue(),
 			'output':'XHTML',
 		}

@@ -21,16 +21,16 @@
  */
 Ext.define(&quot;App.usr.nodal.ws.objects.BuildManager&quot;, {
 	extend : 'Workspace.objects.Object',
-	errorClsName: 'dynaml-error-message',
-	statics: {
-		dynaml: {
-			domainProperties: ['name', 'identity','role',],
+<span id='App-usr-nodal-ws-objects-BuildManager-property-errorClsName'>	errorClsName: 'dynaml-error-message',
+</span>	statics: {
+<span id='App-usr-nodal-ws-objects-BuildManager-static-property-dynaml'>		dynaml: {
+</span>			domainProperties: ['name', 'identity','role',],
 			nodeProperties: ['name','motif','polarity'],
 			motifProperties: ['name','dynaml'],
 		},
 	},
-	constructor : function() {
-		this.callParent(arguments);
+<span id='App-usr-nodal-ws-objects-BuildManager-method-constructor'>	constructor : function() {
+</span>		this.callParent(arguments);
 		this.workspace.buildManager = this;
 		this.nodes = [];
 		this.workspace.on('create',this.onCreate,this);
@@ -42,8 +42,8 @@ Ext.define(&quot;App.usr.nodal.ws.objects.BuildManager&quot;, {
 		});
 		
 	},
-	// render: function() {
-		// this.errorEl = Ext.get(Ext.core.DomHelper.append(this.workspace.getContainerEl(),{
+<span id='App-usr-nodal-ws-objects-BuildManager-method-onCreate'>	// render: function() {
+</span>		// this.errorEl = Ext.get(Ext.core.DomHelper.append(this.workspace.getContainerEl(),{
 	        // cls: this.errorClsName,
 	    // }));
 	    // this.errorEl.hide();
@@ -73,8 +73,8 @@ Ext.define(&quot;App.usr.nodal.ws.objects.BuildManager&quot;, {
 			},this);
 		}
 	},
-	onDestroy: function(obj) {
-		if(!obj) return;
+<span id='App-usr-nodal-ws-objects-BuildManager-method-onDestroy'>	onDestroy: function(obj) {
+</span>		if(!obj) return;
 		if(obj.isWType('App.usr.nodal.ws.objects.Node')) {
 			this.nodes = _.without(this.nodes,obj);
 
@@ -92,11 +92,11 @@ Ext.define(&quot;App.usr.nodal.ws.objects.BuildManager&quot;, {
 			},this);
 		}
 	},
-	needsRebuild: function() {
-		this.fireEvent('needsrebuild');
+<span id='App-usr-nodal-ws-objects-BuildManager-method-needsRebuild'>	needsRebuild: function() {
+</span>		this.fireEvent('needsrebuild');
 	},
-	buildRealtime: function() {
-		try {			
+<span id='App-usr-nodal-ws-objects-BuildManager-method-buildRealtime'>	buildRealtime: function() {
+</span>		try {			
 			
 		var dynaml = this.serializeDynaml();
 		this.lastDynaml = JSON.parse(JSON.stringify(dynaml));
@@ -224,8 +224,8 @@ Ext.define(&quot;App.usr.nodal.ws.objects.BuildManager&quot;, {
 			return null; 
 		}
 	},
-	getRealtime: function(type,name,property) {
-		if(this.lastLibrary) {
+<span id='App-usr-nodal-ws-objects-BuildManager-method-getRealtime'>	getRealtime: function(type,name,property) {
+</span>		if(this.lastLibrary) {
 			
 		switch (type) {
 			case 'strand':
@@ -283,8 +283,8 @@ Ext.define(&quot;App.usr.nodal.ws.objects.BuildManager&quot;, {
 		}
 		} else { return null; }
 	},
-	nodeIndex: 0,
-<span id='App-usr-nodal-ws-objects-BuildManager-method-getNextNodeName'>	/**
+<span id='App-usr-nodal-ws-objects-BuildManager-property-nodeIndex'>	nodeIndex: 0,
+</span><span id='App-usr-nodal-ws-objects-BuildManager-method-getNextNodeName'>	/**
 </span>	 * Returns the next unique node name
 	 */
 	getNextNodeName: function() {
@@ -295,8 +295,8 @@ Ext.define(&quot;App.usr.nodal.ws.objects.BuildManager&quot;, {
 		} while(!!this.workspace.findObjectBy(function(obj) { return obj.get('name') == nextName; }));
 		return nextName;
 	},
-	motifIndex: 0,
-<span id='App-usr-nodal-ws-objects-BuildManager-method-getNextMotifName'>	/**
+<span id='App-usr-nodal-ws-objects-BuildManager-property-motifIndex'>	motifIndex: 0,
+</span><span id='App-usr-nodal-ws-objects-BuildManager-method-getNextMotifName'>	/**
 </span>	 * Returns the next unique motif name
 	 */
 	getNextMotifName: function() {
@@ -477,11 +477,11 @@ Ext.define(&quot;App.usr.nodal.ws.objects.BuildManager&quot;, {
 			version: workspace.version,
 		}
 	},
-	serializeDynaml : function() {
-		return this.buildDynaml(this.workspace.getRootObjects());
+<span id='App-usr-nodal-ws-objects-BuildManager-method-serializeDynaml'>	serializeDynaml : function() {
+</span>		return this.buildDynaml(this.workspace.getRootObjects());
 	},
-	serializeTerse : function() {
-		var workspace = this.workspace;
+<span id='App-usr-nodal-ws-objects-BuildManager-method-serializeTerse'>	serializeTerse : function() {
+</span>		var workspace = this.workspace;
 		var nodes = [], complementarities = [], indexMap = {}, i = 1, out = [];
 		workspace.objects.each(function(obj) {
 			if(obj.isWType('App.usr.nodal.ws.objects.Node')) {

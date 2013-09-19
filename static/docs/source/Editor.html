@@ -21,12 +21,12 @@
 Ext.define('App.usr.dynaml.Editor', {
 	extend : 'App.usr.text.Editor',
 	
-	iconCls : 'dynaml',
-	editorType : 'DyNAML',
-	requires: ['App.usr.nodal.LibraryWindow','App.usr.nupack.Editor','App.ui.CodeMirror',],
-	trap: true,
-	initComponent : function() {
-		Ext.apply(this, {
+<span id='App-usr-dynaml-Editor-property-iconCls'>	iconCls : 'dynaml',
+</span><span id='App-usr-dynaml-Editor-property-editorType'>	editorType : 'DyNAML',
+</span>	requires: ['App.usr.nodal.LibraryWindow','App.usr.nupack.Editor','App.ui.CodeMirror',],
+<span id='App-usr-dynaml-Editor-property-trap'>	trap: true,
+</span><span id='App-usr-dynaml-Editor-method-initComponent'>	initComponent : function() {
+</span>		Ext.apply(this, {
 			mode : {name:'javascript', json:true},
 			tbar : [{
 				xtype: 'splitbutton',
@@ -52,8 +52,8 @@ Ext.define('App.usr.dynaml.Editor', {
 		});
 		this.callParent(arguments);
 	},
-	compileDynamicServer : function() {
-		var data = this.getValue(), node = this.doc.getDocumentPath();
+<span id='App-usr-dynaml-Editor-method-compileDynamicServer'>	compileDynamicServer : function() {
+</span>		var data = this.getValue(), node = this.doc.getDocumentPath();
 		//App.path.repostfix([this.ribbon.canvas.doc.getDocumentPath(),'txt']);
 		App.runTask('Nodal', {
 			node : node,
@@ -64,8 +64,8 @@ Ext.define('App.usr.dynaml.Editor', {
 			Ext.msg('Nodal Build', 'Build of system &lt;strong&gt;{0}&lt;/strong&gt; completed.', this.doc.getBasename());
 		}, this));
 	},
-	compileDynamicLocal : function() {
-		var res;
+<span id='App-usr-dynaml-Editor-method-compileDynamicLocal'>	compileDynamicLocal : function() {
+</span>		var res;
 		if(this.trap) {
 
 			try {
@@ -92,8 +92,8 @@ Ext.define('App.usr.dynaml.Editor', {
 		// console.log(this.printStrands2(res));
 		// }
 	},
-	showLibraryTreeWindow : function() {
-		if(!this.libraryTreeWindow &amp;&amp; this.lastLibrary) {
+<span id='App-usr-dynaml-Editor-method-showLibraryTreeWindow'>	showLibraryTreeWindow : function() {
+</span>		if(!this.libraryTreeWindow &amp;&amp; this.lastLibrary) {
 			this.libraryTreeWindow = Ext.create('App.usr.nodal.LibraryWindow',{
 				lastLibrary: this.lastLibrary
 			})
@@ -102,13 +102,13 @@ Ext.define('App.usr.dynaml.Editor', {
 		}
 		this.libraryTreeWindow.show();
 	},
-	compile : function() {
-		var val = this.getValue();
+<span id='App-usr-dynaml-Editor-method-compile'>	compile : function() {
+</span>		var val = this.getValue();
 		var json = jsonlint.parse(val);  
 		return App.dynamic.Compiler.compile(this.getValue());
 	},
-	printStrands : function(lib, options) {
-		return App.dynamic.Compiler.printStrands(lib, options);
+<span id='App-usr-dynaml-Editor-method-printStrands'>	printStrands : function(lib, options) {
+</span>		return App.dynamic.Compiler.printStrands(lib, options);
 	}
 })</pre>
 </body>

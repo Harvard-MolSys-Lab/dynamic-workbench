@@ -30,14 +30,14 @@ Ext.define('App.usr.text.Editor', {
 	 * The name of the CodeMirror mode to use for syntax highlighting
 	 */
 	mode:'',
-	layout: 'fit',
-	editorType: '',
-	constructor: function(config) {
-		this.callParent(arguments);
+<span id='App-usr-text-Editor-property-layout'>	layout: 'fit',
+</span><span id='App-usr-text-Editor-property-editorType'>	editorType: '',
+</span><span id='App-usr-text-Editor-method-constructor'>	constructor: function(config) {
+</span>		this.callParent(arguments);
 		this.mixins.app.constructor.apply(this,arguments);
 	},
-	initComponent: function() {
-		Ext.applyIf(this, {
+<span id='App-usr-text-Editor-method-initComponent'>	initComponent: function() {
+</span>		Ext.applyIf(this, {
 			tbar: ['-&gt;',Ext.create('App.ui.SaveButton',{
 				app: this,
 				// handler: function() {
@@ -56,11 +56,11 @@ Ext.define('App.usr.text.Editor', {
 		this.editor = this.down('.codemirror');
 		this.on('afterrender',this.loadFile,this);
 	},
-	onLoad: function() {
-		this.editor.setValue(this.data);
+<span id='App-usr-text-Editor-method-onLoad'>	onLoad: function() {
+</span>		this.editor.setValue(this.data);
 	},
-	getSaveData: function() {
-		return this.editor.getValue();
+<span id='App-usr-text-Editor-method-getSaveData'>	getSaveData: function() {
+</span>		return this.editor.getValue();
 	},
 <span id='App-usr-text-Editor-method-search'>	/**
 </span>	 * @inheritdoc App.ui.CodeMirror#search
@@ -92,18 +92,18 @@ Ext.define('App.usr.text.Editor', {
 	getSelection: function() {
 		return this.editor.codemirror.getSelection();
 	},
-	getSelectionOrValue: function() {
-		var sel = this.editor.codemirror.getSelection();
+<span id='App-usr-text-Editor-method-getSelectionOrValue'>	getSelectionOrValue: function() {
+</span>		var sel = this.editor.codemirror.getSelection();
 		if(sel=='') {
 			sel = this.editor.getValue();
 		}
 		return sel;
 	},
-	getCursor: function(start) {
-		return this.editor.codemirror.getCursor(start);
+<span id='App-usr-text-Editor-method-getCursor'>	getCursor: function(start) {
+</span>		return this.editor.codemirror.getCursor(start);
 	},
-	getCursorRange: function() {
-		return [this.editor.codemirror.getCursor(true),this.editor.codemirror.getCursor(false)];
+<span id='App-usr-text-Editor-method-getCursorRange'>	getCursorRange: function() {
+</span>		return [this.editor.codemirror.getCursor(true),this.editor.codemirror.getCursor(false)];
 	}
 });</pre>
 </body>

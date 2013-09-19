@@ -6,7 +6,7 @@ html(lang="en")
     - //var resources = manifest.getResources(true,'build');
     - var resources = {};
     - resources.links = ['http://code.jquery.com/qunit/qunit-git.css'];
-    - resources.scripts = ['http://code.jquery.com/qunit/qunit-git.js','lib/underscore.js','common/dna-utils.js','common/dynamic.js'];
+    - resources.scripts = ['http://code.jquery.com/qunit/qunit-git.js','lib/underscore.js','common/dna-utils.js','common/dynamic.js', 'lib/CodeMirror-2.25/lib/codemirror.js','client/codemirror-modes.js'];
     - resources.tests = ['tests/common/dna-utils.js','tests/common/dynamic.js'];
     - each sheet in resources.links
       link(rel="stylesheet",href=sheet)

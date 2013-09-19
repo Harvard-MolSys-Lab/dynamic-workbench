@@ -21,10 +21,10 @@
  */
 Ext.define('App.usr.nodal.ws.objects.Exposure', {
 	extend : 'Workspace.objects.Connection',
-	showLabel : false,
-	property : 'exposure',
-	render : function() {
-		this.callParent();
+<span id='App-usr-nodal-ws-objects-Exposure-property-showLabel'>	showLabel : false,
+</span><span id='App-usr-nodal-ws-objects-Exposure-cfg-property'>	property : 'exposure',
+</span><span id='App-usr-nodal-ws-objects-Exposure-method-render'>	render : function() {
+</span>		this.callParent();
 		// this.vectorElement.attr({
 			// &quot;arrow-end&quot; : &quot;classic-wide-long&quot;,
 		// });
@@ -33,19 +33,19 @@ Ext.define('App.usr.nodal.ws.objects.Exposure', {
 		this.set('strokeDashArray','- ');
 		this.set('arrowEnd',&quot;classic-wide-long&quot;);
 	},
-	strokeWidth : 1.5,
-	arrowEnd:&quot;classic-wide-long&quot;,
-	stroke:&quot;#999&quot;,
-	acceptLeft : function(item) {
-		var lnode = item.getParent()
+<span id='App-usr-nodal-ws-objects-Exposure-property-strokeWidth'>	strokeWidth : 1.5,
+</span><span id='App-usr-nodal-ws-objects-Exposure-property-arrowEnd'>	arrowEnd:&quot;classic-wide-long&quot;,
+</span><span id='App-usr-nodal-ws-objects-Exposure-property-stroke'>	stroke:&quot;#999&quot;,
+</span><span id='App-usr-nodal-ws-objects-Exposure-method-acceptLeft'>	acceptLeft : function(item) {
+</span>		var lnode = item.getParent()
 		return (item.getId &amp;&amp; 
 			item.isWType(['App.usr.nodal.ws.objects.OutputPort', //
 			'App.usr.nodal.ws.objects.BridgePort','App.usr.nodal.ws.objects.InputPort'])  &amp;&amp;//
 			lnode &amp;&amp; lnode.hasParent()
 			);
 	},
-	acceptRight : function(item) {
-		var motif = item.getParent()
+<span id='App-usr-nodal-ws-objects-Exposure-method-acceptRight'>	acceptRight : function(item) {
+</span>		var motif = item.getParent()
 		return (item.getId &amp;&amp; (
 			(item.isWType(['App.usr.nodal.ws.objects.OutputPort',
 					'App.usr.nodal.ws.objects.BridgePort','App.usr.nodal.ws.objects.InputPort'])  
@@ -54,8 +54,8 @@ Ext.define('App.usr.nodal.ws.objects.Exposure', {
 			|| item.isWType('App.usr.nodal.ws.objects.Motif'))
 		);
 	},
-	canConnect : function(left, right) {
-		var lnode = left.getParent(), motif = right.getParent();
+<span id='App-usr-nodal-ws-objects-Exposure-method-canConnect'>	canConnect : function(left, right) {
+</span>		var lnode = left.getParent(), motif = right.getParent();
 		return ((left.hasWType(right.wtype) &amp;&amp; lnode &amp;&amp; motif &amp;&amp; (lnode.getParent() == motif)) 
 			|| right.isWType('App.usr.nodal.ws.objects.Motif'))
 	},

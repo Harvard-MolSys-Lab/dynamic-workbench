@@ -141,12 +141,12 @@ App.Endpoints = App.endpoints = function() {
 	}
 }();
 <span id='App-property-getEndpoint'>/**
-</span> * @inheritdocs App.endpoints#getEndpoint
+</span> * @inheritdoc App.endpoints#getEndpoint
  * @member App
  */
 App.getEndpoint = App.endpoints.getEndpoint;
 <span id='App-property-setEndpoint'>/**
-</span> * @inheritdocs App.endpoints#setEndpoint
+</span> * @inheritdoc App.endpoints#setEndpoint
  * @member App
  */
  App.setEndpoint = App.endpoints.setEndpoint;
@@ -321,31 +321,31 @@ App.User = {
  */
 Ext.define('App.Files',{
 	singleton: true,
-	getType:function(ext) {
-		return App.fileTypes[ext]
+<span id='App-Files-method-getType'>	getType:function(ext) {
+</span>		return App.fileTypes[ext]
 	},
-	getDescription: function(ext) {
-		if(ext == '') { return ''; }
+<span id='App-Files-method-getDescription'>	getDescription: function(ext) {
+</span>		if(ext == '') { return ''; }
 		return this.getTypeProperty(ext,'description');
 	},
-	getDesc: function(ext) {
-		return this.getDescription(ext);
+<span id='App-Files-method-getDesc'>	getDesc: function(ext) {
+</span>		return this.getDescription(ext);
 	},
-	getTypeDescription: function(ext) {
-		return this.getDescription(ext);
+<span id='App-Files-method-getTypeDescription'>	getTypeDescription: function(ext) {
+</span>		return this.getDescription(ext);
 	},
-	getTypeDesc: function(ext) {
-		return this.getDescription(ext);
+<span id='App-Files-method-getTypeDesc'>	getTypeDesc: function(ext) {
+</span>		return this.getDescription(ext);
 	},
-	getName: function(ext) {
-		if(ext == '') { return 'Folder'; }
+<span id='App-Files-method-getName'>	getName: function(ext) {
+</span>		if(ext == '') { return 'Folder'; }
 		return this.getTypeProperty(ext,'name');
 	},
-	getTypeName: function(ext) {
-		return this.getName(ext);
+<span id='App-Files-method-getTypeName'>	getTypeName: function(ext) {
+</span>		return this.getName(ext);
 	},
-	getTypeProperty: function(ext,prop) {
-		var t = this.getType(ext);
+<span id='App-Files-method-getTypeProperty'>	getTypeProperty: function(ext,prop) {
+</span>		var t = this.getType(ext);
 		if(t) { return t[prop]; }
 	}
 });
@@ -357,7 +357,7 @@ Ext.define('App.Files',{
  */
 Ext.define('App.TaskRunner', {
 	statics : {
-<span id='App-TaskRunner-method-loadTools'>		/**
+<span id='App-TaskRunner-static-method-loadTools'>		/**
 </span>		 * Defines subclasses of {@link App.TaskRunner.Task} as members of {@link App.TaskRunner}. Called by server code
 		 * in order to make configured server tools available on the client.
 		 * @param {Object[]} tasks 
@@ -385,7 +385,7 @@ Ext.define('App.TaskRunner', {
 			});
 		},
 		
-<span id='App-TaskRunner-method-run'>		/**
+<span id='App-TaskRunner-static-method-run'>		/**
 </span>		 * Runs a task using the given `serverTool`
 		 * @param {String} serverTool 
 		 * Name of a member of App.TaskRunner; must be configred by server code calling {@link #loadTools}
@@ -429,7 +429,7 @@ Ext.define('App.TaskRunner', {
 			return false;
 		},
 		
-<span id='App-TaskRunner-method-get'>		/**
+<span id='App-TaskRunner-static-method-get'>		/**
 </span>		 * Gets the App.TaskRunner.Task subclass associated with the passed server tool name.
 		 * @param {String} serverTool 
 		 * @return {App.TaskRunner.Task}
@@ -438,15 +438,15 @@ Ext.define('App.TaskRunner', {
 			return Ext.ClassManager.get(['App.TaskRunner',Ext.String.capitalize(serverTool)].join('.'));
 		},
 		
-		getToolProperty: function(serverTool,name) {
-			var tool = App.TaskRunner.get(serverTool);
+<span id='App-TaskRunner-static-method-getToolProperty'>		getToolProperty: function(serverTool,name) {
+</span>			var tool = App.TaskRunner.get(serverTool);
 			if(tool) {
 				return tool.prototype[name];
 			}
 		},
 		
-		register : function(serverTool, config) {
-			this.serverTools[serverTool] = config;
+<span id='App-TaskRunner-static-method-register'>		register : function(serverTool, config) {
+</span>			this.serverTools[serverTool] = config;
 		},
 	},
 });

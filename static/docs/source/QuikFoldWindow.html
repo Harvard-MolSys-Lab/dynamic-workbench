@@ -21,12 +21,12 @@
  */
 Ext.define('App.ui.mfold.QuikFoldWindow',{
 	extend:'App.ui.sequence.AnalysisWindow',
-	title: &quot;QuikFold Secondary Structure Calculator&quot;,
-	url: 'http://mfold.rna.albany.edu/cgi-bin/DINAMelt/quikfold.cgi',
-	cite: 'markham_zuker_2005',
-	iconCls: 'mfold',
-	getForm: function() {
-		return {
+<span id='App-ui-mfold-QuikFoldWindow-property-title'>	title: &quot;QuikFold Secondary Structure Calculator&quot;,
+</span><span id='App-ui-mfold-QuikFoldWindow-property-url'>	url: 'http://mfold.rna.albany.edu/cgi-bin/DINAMelt/quikfold.cgi',
+</span><span id='App-ui-mfold-QuikFoldWindow-property-cite'>	cite: 'markham_zuker_2005',
+</span><span id='App-ui-mfold-QuikFoldWindow-property-iconCls'>	iconCls: 'mfold',
+</span><span id='App-ui-mfold-QuikFoldWindow-method-getForm'>	getForm: function() {
+</span>		return {
 			items: [{
 				fieldLabel: 'Name',
 				name	  : 'name',
@@ -126,13 +126,13 @@ Ext.define('App.ui.mfold.QuikFoldWindow',{
 	        }]
 		};
 	},
-	getParams: function() { 
-		return {
+<span id='App-ui-mfold-QuikFoldWindow-method-getParams'>	getParams: function() { 
+</span>		return {
 			seq: this.getValue(),
 		}
 	},
-	updateStrands: function(strands) {
-		var strandsField = this.down('codemirror');
+<span id='App-ui-mfold-QuikFoldWindow-method-updateStrands'>	updateStrands: function(strands) {
+</span>		var strandsField = this.down('codemirror');
 		strandsField.setValue(strands);
 	}
 });

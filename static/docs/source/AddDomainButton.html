@@ -20,11 +20,11 @@
  */
 Ext.define('App.ui.AddDomainButton', {
 	extend: 'Ext.button.Split',
-	text: 'Add',
-	iconCls: 'plus',
-	tooltip: 'Click the button to add a new domain of the default length. Click the arrow to choose the default length, ' + 'or add domains with specific sequences to the design. ',
-	initComponent: function() {
-		Ext.applyIf(this,{
+<span id='App-ui-AddDomainButton-property-text'>	text: 'Add',
+</span><span id='App-ui-AddDomainButton-property-iconCls'>	iconCls: 'plus',
+</span><span id='App-ui-AddDomainButton-property-tooltip'>	tooltip: 'Click the button to add a new domain of the default length. Click the arrow to choose the default length, ' + 'or add domains with specific sequences to the design. ',
+</span><span id='App-ui-AddDomainButton-method-initComponent'>	initComponent: function() {
+</span>		Ext.applyIf(this,{
 			addDomain: function(len) {}
 		});
 		this.addDomLen = Ext.widget({
@@ -62,8 +62,8 @@ Ext.define('App.ui.AddDomainButton', {
 		//this.addDomLen = this.down('[name=addDomLen]');
 		//this.addDomainItem = this.down('[name=addDomainItem]');
 	},
-	onClickHandler : function() {
-		var len = this.addDomLen.getValue();
+<span id='App-ui-AddDomainButton-method-onClickHandler'>	onClickHandler : function() {
+</span>		var len = this.addDomLen.getValue();
 		this.addDomain(len);
 	},
 	

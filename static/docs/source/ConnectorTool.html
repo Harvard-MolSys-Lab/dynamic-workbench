@@ -125,15 +125,15 @@ Ext.define('Workspace.tools.ConnectorTool', {
 			//path: [['M',this.x1,this.y1],['L',this.x2,this.y2]]
 		});
 	},
-	click : function(e, item) {
+<span id='Workspace-tools-ConnectorTool-method-click'>	click : function(e, item) {
+</span>		e.stopEvent();
+	},
+<span id='Workspace-tools-ConnectorTool-method-dblclick'>	dblclick : function(e, item) {
+</span>
 		e.stopEvent();
 	},
-	dblclick : function(e, item) {
-
-		e.stopEvent();
-	},
-	mousedown : function(e, item) {
-		if(this.acceptLeft(item)) {
+<span id='Workspace-tools-ConnectorTool-method-mousedown'>	mousedown : function(e, item) {
+</span>		if(this.acceptLeft(item)) {
 			this.dragging = true;
 			if(this.proto) {
 				this.proto.remove();
@@ -149,8 +149,8 @@ Ext.define('Workspace.tools.ConnectorTool', {
 			// }
 		}
 	},
-	mouseup : function(e, item) {
-		if(this.dragging) {
+<span id='Workspace-tools-ConnectorTool-method-mouseup'>	mouseup : function(e, item) {
+</span>		if(this.dragging) {
 			this.dragging = false;
 
 			if(this.proto) {
@@ -178,8 +178,8 @@ Ext.define('Workspace.tools.ConnectorTool', {
 			e.stopEvent();
 		}
 	},
-	mousemove : function(e, item) {
-		if(this.dragging) {
+<span id='Workspace-tools-ConnectorTool-method-mousemove'>	mousemove : function(e, item) {
+</span>		if(this.dragging) {
 			if(!this.proto) {
 				this.createProto(e);
 			}
@@ -194,8 +194,8 @@ Ext.define('Workspace.tools.ConnectorTool', {
 		}
 		e.stopEvent();
 	},
-	createProto : function(e, item) {
-		var p = this.getAdjustedXY(e);
+<span id='Workspace-tools-ConnectorTool-method-createProto'>	createProto : function(e, item) {
+</span>		var p = this.getAdjustedXY(e);
 		this.x1 = this.x2 = p.x;
 		this.y1 = this.x2 = p.y;
 		if(item) {
@@ -207,12 +207,12 @@ Ext.define('Workspace.tools.ConnectorTool', {
 		this.proto = this.workspace.paper.path([['M', this.x1, this.y1], ['L', this.x2, this.y2]]);
 		this.proto.attr(this.parameters);
 	},
-	// hack
-	mouseover : function(e, item) {
+<span id='Workspace-tools-ConnectorTool-method-mouseover'>	// hack
+</span>	mouseover : function(e, item) {
 		this.mixins.highlightable.mouseover.apply(this, arguments);
 	},
-	mouseout : function(e, item) {
-		this.mixins.highlightable.mouseout.apply(this, arguments);
+<span id='Workspace-tools-ConnectorTool-method-mouseout'>	mouseout : function(e, item) {
+</span>		this.mixins.highlightable.mouseout.apply(this, arguments);
 	}
 }, function() {
 	Workspace.Tools.register('connector', Workspace.tools.ConnectorTool);

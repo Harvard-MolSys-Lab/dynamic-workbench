@@ -21,11 +21,11 @@
 Ext.define('App.ui.CodeMirror', {
 	alias : 'widget.codemirror',
 	extend : 'Ext.panel.Panel',
-	value : '',
-	autoScroll : true,
-	lineNumbers : true,
-	initComponent : function() {
-		Ext.applyIf(this, {
+<span id='App-ui-CodeMirror-property-value'>	value : '',
+</span><span id='App-ui-CodeMirror-property-autoScroll'>	autoScroll : true,
+</span><span id='App-ui-CodeMirror-property-lineNumbers'>	lineNumbers : true,
+</span><span id='App-ui-CodeMirror-method-initComponent'>	initComponent : function() {
+</span>		Ext.applyIf(this, {
 			html : '&lt;textarea style=&quot;width: 100%;border:none;&quot;&gt;' + this.value + '&lt;/textarea&gt;',
 			lastPos : null,
 			lastQuery : null,
@@ -181,11 +181,11 @@ Ext.define('App.ui.CodeMirror', {
 			}
 		}
 	},
-	onBlur: function() {
-		this.fireEvent('blur', this, this.editor);
+<span id='App-ui-CodeMirror-method-onBlur'>	onBlur: function() {
+</span>		this.fireEvent('blur', this, this.editor);
 	},
-	onFocus: function() {
-		this.fireEvent('focus', this, this.editor);
+<span id='App-ui-CodeMirror-method-onFocus'>	onFocus: function() {
+</span>		this.fireEvent('focus', this, this.editor);
 	},
 <span id='App-ui-CodeMirror-method-onCursorActivity'>	/**
 </span>	 * Fires the {@link #cursorchange} event
@@ -224,8 +224,8 @@ Ext.define('App.ui.CodeMirror', {
 			to : this.getCursor(false)
 		}
 	},
-	autoFormatSelection : function() {
-		var range = this.getSelectedRange();
+<span id='App-ui-CodeMirror-method-autoFormatSelection'>	autoFormatSelection : function() {
+</span>		var range = this.getSelectedRange();
 		this.codemirror.autoFormatRange(range.from, range.to);
 	},
 <span id='App-ui-CodeMirror-method-unmark'>	/**

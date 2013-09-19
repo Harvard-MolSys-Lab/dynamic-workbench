@@ -22,12 +22,12 @@
  * @extends Workspace.idea.BaseLayout
  */
 Ext.define('Workspace.idea.FreeLayout', {
-	constructor: function(config) {
-		Workspace.idea.FreeLayout.superclass.constructor.apply(this,arguments);
+<span id='Workspace-idea-FreeLayout-method-constructor'>	constructor: function(config) {
+</span>		Workspace.idea.FreeLayout.superclass.constructor.apply(this,arguments);
 	},
 	extend: 'Workspace.idea.BaseLayout',
-	doLayout: function(applyToChildren) {
-		var union = false; //(union !== false);
+<span id='Workspace-idea-FreeLayout-method-doLayout'>	doLayout: function(applyToChildren) {
+</span>		var union = false; //(union !== false);
 		applyToChildren = (applyToChildren !== false);
 		box = Workspace.Utils.getBox(this.getObjects().getRange());
 		box = Workspace.Utils.padBox(box, this.idea.padding);
@@ -35,8 +35,8 @@ Ext.define('Workspace.idea.FreeLayout', {
 			box = Workspace.Utils.boxUnion(box, this.idea.getBox())
 		this.idea.setBox(box, applyToChildren);
 	},
-	doFirstLayout: function() {
-		var union = false, applyToChildren = false;
+<span id='Workspace-idea-FreeLayout-method-doFirstLayout'>	doFirstLayout: function() {
+</span>		var union = false, applyToChildren = false;
 		this.doLayout(false);
 	},
 	/*

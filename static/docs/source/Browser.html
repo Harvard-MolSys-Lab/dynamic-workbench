@@ -20,16 +20,16 @@
  */
 Ext.define('App.usr.browser.Browser', {
 	extend: 'Ext.panel.Panel',
-	title: 'Browser',
-	mixins: {
+<span id='App-usr-browser-Browser-property-title'>	title: 'Browser',
+</span>	mixins: {
 		app: 'App.ui.Application',
 	},
-	constructor: function() {
-		this.mixins.app.constructor.apply(this,arguments);
+<span id='App-usr-browser-Browser-method-constructor'>	constructor: function() {
+</span>		this.mixins.app.constructor.apply(this,arguments);
 		this.callParent(arguments);
 	},
-	initComponent: function() {
-<span id='App-usr-browser-Browser-property-url'>		/**
+<span id='App-usr-browser-Browser-method-initComponent'>	initComponent: function() {
+</span><span id='App-usr-browser-Browser-property-url'>		/**
 </span>		 * @property url
 		 * URL to open in this tab
 		 */

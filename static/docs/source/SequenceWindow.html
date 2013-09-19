@@ -20,22 +20,22 @@
  */
 Ext.define('App.ui.SequenceWindow',{
 	extend: 'Ext.window.Window',
-	width: 600,
-	height: 500,
-	layout: 'border',
-	bodyBorder: false,
-	border: false,
-	title: 'Add sequences',
-	closeAction: 'hide',
-	buttonText: 'Add Sequences',
-	buttonIconCls: 'tick',
-	value: '',
-	helpIcon: 'help',
-	helpText: 'Type sequences in any format (NUPACK, FASTA, Multisubjective), with or without names',
-	handler: function(domains,value) {
-	},
-	initComponent: function() {
-		this.sequenceEditor = Ext.create('App.ui.CodeMirror',{mode: 'sequence',border: false,region:'center'});
+<span id='App-ui-SequenceWindow-property-width'>	width: 600,
+</span><span id='App-ui-SequenceWindow-property-height'>	height: 500,
+</span><span id='App-ui-SequenceWindow-property-layout'>	layout: 'border',
+</span><span id='App-ui-SequenceWindow-property-bodyBorder'>	bodyBorder: false,
+</span><span id='App-ui-SequenceWindow-property-border'>	border: false,
+</span><span id='App-ui-SequenceWindow-property-title'>	title: 'Add sequences',
+</span><span id='App-ui-SequenceWindow-property-closeAction'>	closeAction: 'hide',
+</span><span id='App-ui-SequenceWindow-property-buttonText'>	buttonText: 'Add Sequences',
+</span><span id='App-ui-SequenceWindow-property-buttonIconCls'>	buttonIconCls: 'tick',
+</span><span id='App-ui-SequenceWindow-property-value'>	value: '',
+</span><span id='App-ui-SequenceWindow-property-helpIcon'>	helpIcon: 'help',
+</span><span id='App-ui-SequenceWindow-property-helpText'>	helpText: 'Type sequences in any format (NUPACK, FASTA, Multisubjective), with or without names',
+</span><span id='App-ui-SequenceWindow-method-handler'>	handler: function(domains,value) {
+</span>	},
+<span id='App-ui-SequenceWindow-method-initComponent'>	initComponent: function() {
+</span>		this.sequenceEditor = Ext.create('App.ui.CodeMirror',{mode: 'sequence',border: false,region:'center'});
 		Ext.apply(this,{
 			items: [{
 				html: this.helpText,
@@ -52,18 +52,18 @@ Ext.define('App.ui.SequenceWindow',{
 		this.callParent(arguments);
 		this.sequenceEditor.setValue(this.value);
 	},
-	addDomains: function() {
-		var data = this.getValue(),
+<span id='App-ui-SequenceWindow-method-addDomains'>	addDomains: function() {
+</span>		var data = this.getValue(),
 			domains = DNA.parseNamedSequences(data);
 		if(this.scope) { this.handler.call(this.scope,data); }
 		else { this.handler(domains,data); }
 		this.close();
 	},
-	setValue: function(value) {
-		this.sequenceEditor.setValue(value);
+<span id='App-ui-SequenceWindow-method-setValue'>	setValue: function(value) {
+</span>		this.sequenceEditor.setValue(value);
 	},
-	getValue: function() {
-		return this.sequenceEditor.getValue();
+<span id='App-ui-SequenceWindow-method-getValue'>	getValue: function() {
+</span>		return this.sequenceEditor.getValue();
 	}
 })</pre>
 </body>

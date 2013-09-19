@@ -21,19 +21,19 @@
 Ext.define('App.usr.dil.EditComplexWindow', {
 	extend: 'Ext.window.Window',
 	requires: ['App.usr.dil.EditComplexPanel'],
-	closable: true,
-	closeAction: 'hide',
-	maximizable: true,
-	width: 500,
-	height: 300,
-	renderTo: Ext.getBody(),
-	autoRender: false,
-	layout: 'fit',
-	border: false,
-	bodyBorder: false,
-
-	initComponent: function() {
-		Ext.apply(this,{
+<span id='App-usr-dil-EditComplexWindow-property-closable'>	closable: true,
+</span><span id='App-usr-dil-EditComplexWindow-property-closeAction'>	closeAction: 'hide',
+</span><span id='App-usr-dil-EditComplexWindow-property-maximizable'>	maximizable: true,
+</span><span id='App-usr-dil-EditComplexWindow-property-width'>	width: 500,
+</span><span id='App-usr-dil-EditComplexWindow-property-height'>	height: 300,
+</span><span id='App-usr-dil-EditComplexWindow-property-renderTo'>	renderTo: Ext.getBody(),
+</span><span id='App-usr-dil-EditComplexWindow-property-autoRender'>	autoRender: false,
+</span><span id='App-usr-dil-EditComplexWindow-property-layout'>	layout: 'fit',
+</span><span id='App-usr-dil-EditComplexWindow-property-border'>	border: false,
+</span><span id='App-usr-dil-EditComplexWindow-property-bodyBorder'>	bodyBorder: false,
+</span>
+<span id='App-usr-dil-EditComplexWindow-method-initComponent'>	initComponent: function() {
+</span>		Ext.apply(this,{
 			items: [Ext.create('App.usr.dil.EditComplexPanel',{
 				complex: this.complex,
 				strandManager: this.strandManager,

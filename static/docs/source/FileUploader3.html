@@ -24,15 +24,15 @@
 Ext.define('Workspace.FileUploader', {
 	alias: 'WorkspaceFileUploader',
 	extend: 'App.ui.FileUploader',
-	showThrobber: function() {
-		this.throbber = this.workspace.addElement({
+<span id='Workspace-FileUploader-method-showThrobber'>	showThrobber: function() {
+</span>		this.throbber = this.workspace.addElement({
 			tag: 'div',
 			cls: 'file-upload-throbber'
 		});
 		this.throbber.setLeftTop(this.position.x,this.position.y);
 	},
-	hideThrobber: function() {
-		if(this.throbber) {
+<span id='Workspace-FileUploader-method-hideThrobber'>	hideThrobber: function() {
+</span>		if(this.throbber) {
 			this.throbber.hide();
 		}
 	},

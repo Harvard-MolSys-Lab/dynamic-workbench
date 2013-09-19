@@ -21,8 +21,8 @@
 Ext.define('App.ui.NupackMenu', {
 	requires: ['App.ui.nupack.DesignWindow','App.ui.nupack.PartitionWindow',],
 	extend: 'Ext.menu.Menu',
-	initComponent: function() {
-		Ext.apply(this, {
+<span id='App-ui-NupackMenu-method-initComponent'>	initComponent: function() {
+</span>		Ext.apply(this, {
 			items: [{
 				text: 'Analyze...',
 				handler: this.openPartitionWindow,//App.ui.Launcher.makeLauncher('nupack/analyze'),
@@ -40,15 +40,15 @@ Ext.define('App.ui.NupackMenu', {
 		});
 		this.callParent(arguments);
 	},
-	openDesignWindow: function() {
-		if(!this.designWindow) {		
+<span id='App-ui-NupackMenu-method-openDesignWindow'>	openDesignWindow: function() {
+</span>		if(!this.designWindow) {		
 			this.designWindow = Ext.create('App.ui.nupack.DesignWindow');
 		}
 		this.designWindow.show();
 		this.fireEvent('designwindow',this,this.designWindow);
 	},
-	openPartitionWindow: function() {
-		if(!this.partitionWindow) {		
+<span id='App-ui-NupackMenu-method-openPartitionWindow'>	openPartitionWindow: function() {
+</span>		if(!this.partitionWindow) {		
 			this.partitionWindow = Ext.create('App.ui.nupack.PartitionWindow');
 		}
 		this.partitionWindow.show();

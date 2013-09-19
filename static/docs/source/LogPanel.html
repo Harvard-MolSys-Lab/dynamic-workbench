@@ -21,19 +21,19 @@
  */
 Ext.define('App.ui.console.LogPanel', {
 	extend: 'Ext.panel.Panel',
-	autoScroll: true,
-	region: 'center',
-	border: '0 1 0 0',
-	bodyBorder: false,
-	padding: '0 0 5 0',
-	cls: 'noborder-top',
-	bodyCls: 'noborder-top',
-	html: '&lt;div class=&quot;logBody&quot;&gt;&lt;/div&gt;',
-	getLogBody: function() {
-		return this.body.down('.logBody');
+<span id='App-ui-console-LogPanel-property-autoScroll'>	autoScroll: true,
+</span><span id='App-ui-console-LogPanel-property-region'>	region: 'center',
+</span><span id='App-ui-console-LogPanel-property-border'>	border: '0 1 0 0',
+</span><span id='App-ui-console-LogPanel-property-bodyBorder'>	bodyBorder: false,
+</span><span id='App-ui-console-LogPanel-property-padding'>	padding: '0 0 5 0',
+</span><span id='App-ui-console-LogPanel-property-cls'>	cls: 'noborder-top',
+</span><span id='App-ui-console-LogPanel-property-bodyCls'>	bodyCls: 'noborder-top',
+</span><span id='App-ui-console-LogPanel-property-html'>	html: '&lt;div class=&quot;logBody&quot;&gt;&lt;/div&gt;',
+</span><span id='App-ui-console-LogPanel-method-getLogBody'>	getLogBody: function() {
+</span>		return this.body.down('.logBody');
 	},
-	initComponent: function() {
-		this.groups = {};
+<span id='App-ui-console-LogPanel-method-initComponent'>	initComponent: function() {
+</span>		this.groups = {};
 		this.logLevels = {
 			info: 'console-info',
 			warn: 'console-warn',
@@ -41,8 +41,8 @@ Ext.define('App.ui.console.LogPanel', {
 		};
 		this.callParent(arguments);
 	},
-	dump : function(o) {
-		if( typeof o == 'string' || typeof o == 'number' || typeof o == 'undefined' || Ext.isDate(o)) {
+<span id='App-ui-console-LogPanel-method-dump'>	dump : function(o) {
+</span>		if( typeof o == 'string' || typeof o == 'number' || typeof o == 'undefined' || Ext.isDate(o)) {
 			return o;
 		} else if(!o) {
 			return &quot;null&quot;;

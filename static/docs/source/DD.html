@@ -26,29 +26,29 @@ Ext.define('App.usr.dd.DD', {
 		tip : 'App.ui.TipHelper',
 	},
 	requires : ['App.usr.seq.Editor', 'App.usr.dd.RulesWindow', 'App.usr.dd.ScoreParametersWindow', 'App.usr.dd.SequenceWindow', 'App.ui.SequenceThreader',],
-	constructor : function() {
-		this.mixins.app.constructor.apply(this, arguments);
+<span id='App-usr-dd-DD-method-constructor'>	constructor : function() {
+</span>		this.mixins.app.constructor.apply(this, arguments);
 		this.callParent(arguments);
 	},
-	title : 'Domain Design',
-	iconCls: 'dd',
-	editorType : 'WebDD',
-	border : false,
-	bodyBorder : false,
-<span id='App-usr-dd-DD-property-mutating'>	/**
+<span id='App-usr-dd-DD-property-title'>	title : 'Domain Design',
+</span><span id='App-usr-dd-DD-property-iconCls'>	iconCls: 'dd',
+</span><span id='App-usr-dd-DD-property-editorType'>	editorType : 'WebDD',
+</span><span id='App-usr-dd-DD-property-border'>	border : false,
+</span><span id='App-usr-dd-DD-property-bodyBorder'>	bodyBorder : false,
+</span><span id='App-usr-dd-DD-property-mutating'>	/**
 </span>	 * @property
 	 * Reports whether the designer is currently mutating
 	 */
 	mutating : false,
-	scoreFormat : '0.00',
-
-	dockedItems : [{
-		xtype : 'cite',
+<span id='App-usr-dd-DD-property-scoreFormat'>	scoreFormat : '0.00',
+</span>
+<span id='App-usr-dd-DD-property-dockedItems'>	dockedItems : [{
+</span>		xtype : 'cite',
 		cite : 'zhang_2011',
 	}],
 
-	initComponent : function() {
-<span id='App-usr-dd-DD-property-designer'>		/**
+<span id='App-usr-dd-DD-method-initComponent'>	initComponent : function() {
+</span><span id='App-usr-dd-DD-property-designer'>		/**
 </span>		 * @property {DD} designer
 		 * The domain-based sequence designer
 		 */
@@ -541,8 +541,8 @@ Ext.define('App.usr.dd.DD', {
 			this[cmp.ref] = cmp;
 		}, this);
 	},
-	updateDomainsFromSpec : function() {
-		var structPaneValue = this.structPane.getValue();
+<span id='App-usr-dd-DD-method-updateDomainsFromSpec'>	updateDomainsFromSpec : function() {
+</span>		var structPaneValue = this.structPane.getValue();
 		var spec = DNA.structureSpec(CodeMirror.tokenize(structPaneValue, 'nupack'));
 		this.syncDomains(spec.domains, this.clobberOnUpdate.checked);
 		this.setStrands(spec.strands);
@@ -559,11 +559,11 @@ Ext.define('App.usr.dd.DD', {
 
 		})
 	},
-	setStrands : function(strands) {
-		this.strands = strands;
+<span id='App-usr-dd-DD-method-setStrands'>	setStrands : function(strands) {
+</span>		this.strands = strands;
 	},
-	getSaveData : function(ext) {
-		ext || ( ext = this.document.getExt());
+<span id='App-usr-dd-DD-method-getSaveData'>	getSaveData : function(ext) {
+</span>		ext || ( ext = this.document.getExt());
 		if (ext == 'ddjs') {
 			return {
 				structure : this.structPane.getValue() || '',
@@ -901,8 +901,8 @@ Ext.define('App.usr.dd.DD', {
 		this.designer.evaluateIntrinsicScores();
 		this.mutateButton.enable();
 	},
-	addDomainsToStore : function(seqs, names, imp, comp) {
-		this.store.add(_.map(seqs, function(seq, i) {
+<span id='App-usr-dd-DD-method-addDomainsToStore'>	addDomainsToStore : function(seqs, names, imp, comp) {
+</span>		this.store.add(_.map(seqs, function(seq, i) {
 			return {
 				sequence : seq,
 				importance : _.isArray(imp) ? imp[i] : imp,
@@ -976,8 +976,8 @@ Ext.define('App.usr.dd.DD', {
 		this.mutationCount++;
 		this.doMutation();
 	},
-	doMutation : function() {
-		this.designer.mutate();
+<span id='App-usr-dd-DD-method-doMutation'>	doMutation : function() {
+</span>		this.designer.mutate();
 	},
 <span id='App-usr-dd-DD-method-updateInterface'>	/**
 </span>	 * Updates the UI after {@link #mutationStep} mutations

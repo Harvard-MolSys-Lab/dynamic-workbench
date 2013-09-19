@@ -23,8 +23,8 @@
  * @extends Ext.util.Observable
  */
 Ext.define('Workspace.idea.BaseLayout', {
-	constructor: function(config) {
-		Workspace.idea.BaseLayout.superclass.constructor.apply(this,arguments);
+<span id='Workspace-idea-BaseLayout-method-constructor'>	constructor: function(config) {
+</span>		Workspace.idea.BaseLayout.superclass.constructor.apply(this,arguments);
 		Ext.apply(this,config);
 		this.defaultChildConfig = {
 			wtype: this.defaultChildType,
@@ -33,11 +33,11 @@ Ext.define('Workspace.idea.BaseLayout', {
 		};
 	},
 	extend: 'Ext.util.Observable',
-	resizable: true,
-	childrenResizable: true,
-	childrenMovable: true,
-	defaultChildType: 'Workspace.RichTextObject',
-<span id='Workspace-idea-BaseLayout-method-doLayout'>	/**
+<span id='Workspace-idea-BaseLayout-property-resizable'>	resizable: true,
+</span><span id='Workspace-idea-BaseLayout-property-childrenResizable'>	childrenResizable: true,
+</span><span id='Workspace-idea-BaseLayout-property-childrenMovable'>	childrenMovable: true,
+</span><span id='Workspace-idea-BaseLayout-property-defaultChildType'>	defaultChildType: 'Workspace.RichTextObject',
+</span><span id='Workspace-idea-BaseLayout-method-doLayout'>	/**
 </span>	 * Override to provide custom layout logic
 	 */
 	doLayout: function() {
@@ -49,15 +49,15 @@ Ext.define('Workspace.idea.BaseLayout', {
 	doFirstLayout: function() {
 		this.doLayout();
 	},
-	addNextChild: function() {
-		this.idea.addChild(this.idea.workspace.createChild(this.defaultChildConfig))
+<span id='Workspace-idea-BaseLayout-method-addNextChild'>	addNextChild: function() {
+</span>		this.idea.addChild(this.idea.workspace.createChild(this.defaultChildConfig))
 	},
-	destroy: function() {
-		this.fireEvent('destroy',this);
+<span id='Workspace-idea-BaseLayout-method-destroy'>	destroy: function() {
+</span>		this.fireEvent('destroy',this);
 		delete this.idea;
 	},
-	getObjects: function() {
-		if(this.idea) {
+<span id='Workspace-idea-BaseLayout-method-getObjects'>	getObjects: function() {
+</span>		if(this.idea) {
 			return this.idea.children;
 		} else if(this.objects) {
 			return this.objects;

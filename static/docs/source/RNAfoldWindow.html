@@ -21,13 +21,13 @@
  */
 Ext.define('App.ui.vienna.RNAfoldWindow',{
 	extend:'App.ui.sequence.AnalysisWindow',
-	title: &quot;RNAfold Secondary Structure Calculator&quot;,
-	url: 'http://rna.tbi.univie.ac.at/cgi-bin/RNAfold.cgi',
-	cite: 'gruber_etal_2008',
-	iconCls: 'tbi',
-	height: 480,
-	getForm: function() {
-		return {
+<span id='App-ui-vienna-RNAfoldWindow-property-title'>	title: &quot;RNAfold Secondary Structure Calculator&quot;,
+</span><span id='App-ui-vienna-RNAfoldWindow-property-url'>	url: 'http://rna.tbi.univie.ac.at/cgi-bin/RNAfold.cgi',
+</span><span id='App-ui-vienna-RNAfoldWindow-property-cite'>	cite: 'gruber_etal_2008',
+</span><span id='App-ui-vienna-RNAfoldWindow-property-iconCls'>	iconCls: 'tbi',
+</span><span id='App-ui-vienna-RNAfoldWindow-property-height'>	height: 480,
+</span><span id='App-ui-vienna-RNAfoldWindow-method-getForm'>	getForm: function() {
+</span>		return {
 			height: 300,
 			items: [{
 				name: 'p',
@@ -116,8 +116,8 @@ Ext.define('App.ui.vienna.RNAfoldWindow',{
 	        },]
 		};
 	},
-	getParams: function() { 
-		return {
+<span id='App-ui-vienna-RNAfoldWindow-method-getParams'>	getParams: function() { 
+</span>		return {
 			SCREEN: this.getValue(),
 			PAGE: 2,
 			proceed: 'proceed',

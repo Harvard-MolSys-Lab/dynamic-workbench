@@ -24,8 +24,8 @@
  * @param {Object} config
  */
 Ext.define('Workspace.tools.PointerTool', {
-	constructor: function(workspace, config) {
-		Ext.applyIf(config, {
+<span id='Workspace-tools-PointerTool-method-constructor'>	constructor: function(workspace, config) {
+</span>		Ext.applyIf(config, {
 			keyMap: [{
 				key: [Ext.EventManager.BACKSPACE, Ext.EventManager.DELETE, Ext.EventManager.D],
 				fn: this.deleteSelection,
@@ -49,13 +49,13 @@ Ext.define('Workspace.tools.PointerTool', {
 	mixins: {
 		highlightable:'Workspace.tools.Highlightable'
 	},
-	proxified: false,
-	dragged: false,
-	threshold: 10,
-	dragCount: 0,
-	proxifyAllThreshold: 5,
-	click: function(e, item) {
-		if(!item) {
+<span id='Workspace-tools-PointerTool-property-proxified'>	proxified: false,
+</span><span id='Workspace-tools-PointerTool-property-dragged'>	dragged: false,
+</span><span id='Workspace-tools-PointerTool-property-threshold'>	threshold: 10,
+</span><span id='Workspace-tools-PointerTool-property-dragCount'>	dragCount: 0,
+</span><span id='Workspace-tools-PointerTool-property-proxifyAllThreshold'>	proxifyAllThreshold: 5,
+</span><span id='Workspace-tools-PointerTool-method-click'>	click: function(e, item) {
+</span>		if(!item) {
 			this.workspace.deselect();
 			e.stopEvent();
 		} else {
@@ -75,8 +75,8 @@ Ext.define('Workspace.tools.PointerTool', {
 
 		//e.stopEvent();
 	},
-	dblclick: function(e, item) {
-		console.log('Workspace.tools.PointerTool.click');
+<span id='Workspace-tools-PointerTool-method-dblclick'>	dblclick: function(e, item) {
+</span>		console.log('Workspace.tools.PointerTool.click');
 
 		// Relevant item
 		if (item.editor &amp;&amp; this.workspace.hasTool(item.editor)) {
@@ -95,8 +95,8 @@ Ext.define('Workspace.tools.PointerTool', {
 
 		//e.stopEvent();
 	},
-	mousedown: function(e, item) {
-		this.dragging = true;
+<span id='Workspace-tools-PointerTool-method-mousedown'>	mousedown: function(e, item) {
+</span>		this.dragging = true;
 		pos = this.getAdjustedXY(e);
 		this.x1 = pos.x,
 		this.y1 = pos.y;
@@ -128,8 +128,8 @@ Ext.define('Workspace.tools.PointerTool', {
 
 		//e.stopEvent();
 	},
-	mouseup: function(e, item) {
-		this.dragging = false;
+<span id='Workspace-tools-PointerTool-method-mouseup'>	mouseup: function(e, item) {
+</span>		this.dragging = false;
 		if (this.selectorBand) {
 			this.selectorBand.destroy();
 			this.selectorBand = false;
@@ -152,8 +152,8 @@ Ext.define('Workspace.tools.PointerTool', {
 		//e.stopEvent();
 		//return false;
 	},
-	mousemove: function(e, item) {
-		if (this.dragging) {
+<span id='Workspace-tools-PointerTool-method-mousemove'>	mousemove: function(e, item) {
+</span>		if (this.dragging) {
 			this.dragCount++;
 
 			// this.objectInspector.hide();
@@ -224,12 +224,12 @@ Ext.define('Workspace.tools.PointerTool', {
 			}
 		}
 	},
-	// hack
-	mouseover: function(e,item) {
+<span id='Workspace-tools-PointerTool-method-mouseover'>	// hack
+</span>	mouseover: function(e,item) {
 		this.mixins.highlightable.mouseover.apply(this,arguments);
 	},
-	mouseout: function(e,item) {
-		this.mixins.highlightable.mouseout.apply(this,arguments);
+<span id='Workspace-tools-PointerTool-method-mouseout'>	mouseout: function(e,item) {
+</span>		this.mixins.highlightable.mouseout.apply(this,arguments);
 	},
 	/*
 	mouseover: function(e, item){
@@ -295,16 +295,16 @@ Ext.define('Workspace.tools.PointerTool', {
 		// this.objectInspector.unbind(item);
 		// this.destroyInspectors(item.getId());
 	},
-	addSelectionBand: function(item) {
-		if (!this.selectionBands.containsKey(item.getId())) {
+<span id='Workspace-tools-PointerTool-method-addSelectionBand'>	addSelectionBand: function(item) {
+</span>		if (!this.selectionBands.containsKey(item.getId())) {
 			this.selectionBands.add(item.getId(), new Workspace.tools.SelectionBand({
 				item:item,
 				workspace:this.workspace
 			}));
 		}
 	},
-	removeSelectionBand: function(itemId) {
-		// if an itemId is given, remove its selectionBand
+<span id='Workspace-tools-PointerTool-method-removeSelectionBand'>	removeSelectionBand: function(itemId) {
+</span>		// if an itemId is given, remove its selectionBand
 		if (itemId) {
 			if (!Ext.isString(itemId) &amp;&amp; Ext.isFunction(itemId.getId)) {
 				itemId = itemId.getId();
@@ -375,8 +375,8 @@ Ext.define('Workspace.tools.PointerTool', {
 			yMax: false
 		});
 	},
-	addHandles: function(item) {
-		if (!this.handles.containsKey(item.getId())) {
+<span id='Workspace-tools-PointerTool-method-addHandles'>	addHandles: function(item) {
+</span>		if (!this.handles.containsKey(item.getId())) {
 			var handles;
 			if ((Ext.isFunction(item.getBox)) &amp;&amp; (item.isResizable)) {
 				var box = item.getBox();
@@ -426,8 +426,8 @@ Ext.define('Workspace.tools.PointerTool', {
 			this.handles.add(item.getId(), handles);
 		}
 	},
-	removeHandles: function(itemId) {
-		// if an itemId is given, remove all its handles
+<span id='Workspace-tools-PointerTool-method-removeHandles'>	removeHandles: function(itemId) {
+</span>		// if an itemId is given, remove all its handles
 		if (itemId) {
 			if (!Ext.isString(itemId) &amp;&amp; Ext.isFunction(itemId.getId)) {
 				itemId = itemId.getId();
@@ -452,15 +452,15 @@ Ext.define('Workspace.tools.PointerTool', {
 			this.handles.clear();
 		}
 	},
-	destroyInspectors: function(id) {
-
+<span id='Workspace-tools-PointerTool-method-destroyInspectors'>	destroyInspectors: function(id) {
+</span>
 	},
-	deleteSelection: function(e) {
-		this.workspace.deleteObjects(this.workspace.getSelection());
+<span id='Workspace-tools-PointerTool-method-deleteSelection'>	deleteSelection: function(e) {
+</span>		this.workspace.deleteObjects(this.workspace.getSelection());
 		e.stop();
 	},
-	activate: function() {
-		Workspace.tools.PointerTool.superclass.activate.call(this);
+<span id='Workspace-tools-PointerTool-method-activate'>	activate: function() {
+</span>		Workspace.tools.PointerTool.superclass.activate.call(this);
 		this.workspace.on('select', this.selectHandler, this);
 		this.workspace.on('unselect', this.unselectHandler, this);
 
@@ -469,8 +469,8 @@ Ext.define('Workspace.tools.PointerTool', {
 		},
 		this);
 	},
-	deactivate: function() {
-		// hack to remove phantom highlights
+<span id='Workspace-tools-PointerTool-method-deactivate'>	deactivate: function() {
+</span>		// hack to remove phantom highlights
 		this.mixins.highlightable.mouseout.apply(this,arguments);
 		
 		Workspace.tools.PointerTool.superclass.deactivate.call(this);

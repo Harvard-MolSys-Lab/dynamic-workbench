@@ -20,25 +20,25 @@
  */
 Ext.define('App.ui.sequence.AnalysisWindow',{
 	extend:'Ext.window.Window',
-	width: 400,
-	height: 480,
-	//layout: 'fit',
-	layout: 'border',
-	title: &quot;Sequence Analysis&quot;,
-	plain: true,
-	bodyBorder: false,
-	border: false,
-	closeAction: 'hide',
-	minimize : function() {
-		this.toggleCollapse();
+<span id='App-ui-sequence-AnalysisWindow-property-width'>	width: 400,
+</span><span id='App-ui-sequence-AnalysisWindow-property-height'>	height: 480,
+</span><span id='App-ui-sequence-AnalysisWindow-property-layout'>	//layout: 'fit',
+</span>	layout: 'border',
+<span id='App-ui-sequence-AnalysisWindow-property-title'>	title: &quot;Sequence Analysis&quot;,
+</span><span id='App-ui-sequence-AnalysisWindow-property-plain'>	plain: true,
+</span><span id='App-ui-sequence-AnalysisWindow-property-bodyBorder'>	bodyBorder: false,
+</span><span id='App-ui-sequence-AnalysisWindow-property-border'>	border: false,
+</span><span id='App-ui-sequence-AnalysisWindow-property-closeAction'>	closeAction: 'hide',
+</span><span id='App-ui-sequence-AnalysisWindow-method-minimize'>	minimize : function() {
+</span>		this.toggleCollapse();
 	},
-	minimizable : true,
-	maximizable : true,
-	submitButtonText: 'Analyze',
-	cite: '',
-	maxStrandCount: 20,
-	initComponent: function() {
-		Ext.apply(this,{
+<span id='App-ui-sequence-AnalysisWindow-property-minimizable'>	minimizable : true,
+</span><span id='App-ui-sequence-AnalysisWindow-property-maximizable'>	maximizable : true,
+</span><span id='App-ui-sequence-AnalysisWindow-property-submitButtonText'>	submitButtonText: 'Analyze',
+</span><span id='App-ui-sequence-AnalysisWindow-property-cite'>	cite: '',
+</span><span id='App-ui-sequence-AnalysisWindow-property-maxStrandCount'>	maxStrandCount: 20,
+</span><span id='App-ui-sequence-AnalysisWindow-method-initComponent'>	initComponent: function() {
+</span>		Ext.apply(this,{
 			items: [{
 					xtype: 'codemirror',
 					height: 100,
@@ -73,8 +73,8 @@ Ext.define('App.ui.sequence.AnalysisWindow',{
 		//this.on('afterrender',this.afterrender,this);
 		this.callParent(arguments);
 	},
-	doSubmit: function() {	
-		var form = this.down('form').getForm();
+<span id='App-ui-sequence-AnalysisWindow-method-doSubmit'>	doSubmit: function() {	
+</span>		var form = this.down('form').getForm();
 		
 		var strands = this.getStrands(), strandCount = strands.length, start_index = 0, end_index;
 		
@@ -92,24 +92,24 @@ Ext.define('App.ui.sequence.AnalysisWindow',{
 		} while(strandCount &gt; 0)		
 		
 	},
-	getForm: function() {
-		return {};
+<span id='App-ui-sequence-AnalysisWindow-method-getForm'>	getForm: function() {
+</span>		return {};
 	},
-	getParams: function() {
-		return {};
+<span id='App-ui-sequence-AnalysisWindow-method-getParams'>	getParams: function() {
+</span>		return {};
 	},
-	getValue: function() {
-		var codemirror = this.down('codemirror');
+<span id='App-ui-sequence-AnalysisWindow-method-getValue'>	getValue: function() {
+</span>		var codemirror = this.down('codemirror');
 		var val = codemirror.getValue();
 		return val;
 	},
-	getStrands: function() {
-		var val = this.getValue()
+<span id='App-ui-sequence-AnalysisWindow-method-getStrands'>	getStrands: function() {
+</span>		var val = this.getValue()
 		var strands = _.compact(val.split('\n'));
 		return strands;
 	},
-	updateStrands: function(strands) {
-		var strandsField = this.down('codemirror');
+<span id='App-ui-sequence-AnalysisWindow-method-updateStrands'>	updateStrands: function(strands) {
+</span>		var strandsField = this.down('codemirror');
 		strandsField.setValue(strands);
 	}
 })

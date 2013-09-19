@@ -56,8 +56,8 @@ Ext.define('App.ui.Application', {
 	constructor : function(config) {
 		this.bindDocument( config ? (config.document ? config.document : null) : null, true);
 	},
-	requestDocument: function(callback,scope) {
-		if(this.document) {
+<span id='App-ui-Application-method-requestDocument'>	requestDocument: function(callback,scope) {
+</span>		if(this.document) {
 			Ext.callback(callback,scope,[this.document]);
 		} else {
 			Ext.window.MessageBox.prompt('Save document','This action requires you to save your work to a file; please enter a file name.',function(buttonId, filename) {
@@ -113,8 +113,8 @@ Ext.define('App.ui.Application', {
 			}
 		}
 	},
-	unbindDocument : function() {
-		this.doc.un('edit', this.updateTitle, this);
+<span id='App-ui-Application-method-unbindDocument'>	unbindDocument : function() {
+</span>		this.doc.un('edit', this.updateTitle, this);
 
 		this.doc = this.document = null;
 <span id='App-ui-Application-event-unbinddocument'>		/**

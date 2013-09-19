@@ -35,20 +35,20 @@ Ext.define('Workspace.actions.ExpandAction', {
 			scope: this
 		})
 	},
-	wtype: 'ExpandAction',
-	handler: function() {
-		this.workspace.expand(this.size[0], this.size[1]);
+<span id='Workspace-actions-ExpandAction-property-wtype'>	wtype: 'ExpandAction',
+</span><span id='Workspace-actions-ExpandAction-method-handler'>	handler: function() {
+</span>		this.workspace.expand(this.size[0], this.size[1]);
 	},
-	getUndo: function() {
-
+<span id='Workspace-actions-ExpandAction-method-getUndo'>	getUndo: function() {
+</span>
 		return new Workspace.actions.ExpandAction({
 			size: [ - this.size[0], -this.size[1]],
 			text: 'Undo &quot;' + this.text + '&quot;',
 			iconCls: this.iconCls
 		});
 	},
-	serialize: function() {
-		return {
+<span id='Workspace-actions-ExpandAction-method-serialize'>	serialize: function() {
+</span>		return {
 			wtype: this.wtype,
 			size: this.size
 		}

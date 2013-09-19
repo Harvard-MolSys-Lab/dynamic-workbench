@@ -15,10 +15,13 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('Segment', {
+  <pre class="prettyprint lang-js"><span id='App-usr-dil-Segment'>/**
+</span> * Model representing a Segment. To be used with App.usr.dil.SegmentStore
+ */
+Ext.define('App.usr.dil.Segment', {
 	extend: 'Ext.data.Model',
-	fields: [{
-		name: 'identity'
+<span id='App-usr-dil-Segment-property-fields'>	fields: [{
+</span>		name: 'identity'
 	}, {
 		name: 'sequence'
 	}, {
@@ -31,9 +34,9 @@
  */
 Ext.define('App.usr.dil.SegmentStore', {
 	extend: 'Ext.data.Store',
-	model: 'Segment',
-	constructor: function() {
-		this.callParent(arguments);
+<span id='App-usr-dil-SegmentStore-property-model'>	model: 'App.usr.dil.Segment',
+</span><span id='App-usr-dil-SegmentStore-method-constructor'>	constructor: function() {
+</span>		this.callParent(arguments);
 		this.on('update', function(segmentStore, rec, op, modifiedFieldNames) {
 			
 			// If the sequence of one segment has changed, we can just update that
@@ -57,8 +60,8 @@ Ext.define('App.usr.dil.SegmentStore', {
 			this.updateSegmentColorMap(recs);
 		}, this);
 	},
-	buildSegmentMap: function() {
-		var segmentIds = this.getRange(),
+<span id='App-usr-dil-SegmentStore-method-buildSegmentMap'>	buildSegmentMap: function() {
+</span>		var segmentIds = this.getRange(),
 			allSegments = [],
 			segmentMap = {};
 
@@ -74,6 +77,17 @@ Ext.define('App.usr.dil.SegmentStore', {
 		}
 		return segmentMap;
 	},
+<span id='App-usr-dil-SegmentStore-method-getSegmentMap'>	/**
+</span>	 * Gets a hash mapping segments to their sequences. Does not include complements
+	 * as a separate sequences; if you need a hash containing each segment and its 
+	 * complement (e.g. a and a* instead of just a), use #getSegmentMapWithComplements.
+	 * 
+	 * @return {Object} 
+	 * Hash mapping segments to their sequences. Example:
+	 * 
+	 * 		{ 'a':'AATNNNN', '5':'CAAG' }
+	 * 		
+	 */
 	getSegmentMap: function() {
 		if(this.segmentMap) {
 			return this.segmentMap;
@@ -81,10 +95,26 @@ Ext.define('App.usr.dil.SegmentStore', {
 			this.segmentMap = this.buildSegmentMap();
 		}
 	},
+<span id='App-usr-dil-SegmentStore-method-getSegmentMapWithComplements'>	/**
+</span>	 * Gets a hash mapping segments to their sequences. Includes complement pairs 
+	 * (e.g. 1/1*, a/a*, etc.) as separate sequences. Use #getSegmentMap is you don't 
+	 * want the complements.
+	 * 
+	 * @return {Object} 
+	 * Hash mapping segments to their sequences. Example:
+	 * 
+	 * 		{ 'a':'AATNNNN', 'a*':'NNNNATT', '5':'CAAG', '5*':'GTTC' }
+	 * 		
+	 */
 	getSegmentMapWithComplements: function() {
 		var segmentMap = this.getSegmentMap();
 		return DNA.hashComplements(segmentMap);
 	},
+<span id='App-usr-dil-SegmentStore-method-updateSegmentMap'>	/**
+</span>	 * Updates the cached #segmentMap with data from the given record, so it does not
+	 * need to be re-generated.
+	 * @param  {App.usr.dil.Segment} rec Record representing the segment to be updated
+	 */
 	updateSegmentMap: function(rec) {
 		if(rec &amp;&amp; this.segmentMap) {
 			if(_.isArray(rec)) {
@@ -99,8 +129,8 @@ Ext.define('App.usr.dil.SegmentStore', {
 		}
 		return this.segmentMap;
 	},
-	buildSegmentColorMap: function() {
-		var segmentIds = this.getRange(),
+<span id='App-usr-dil-SegmentStore-method-buildSegmentColorMap'>	buildSegmentColorMap: function() {
+</span>		var segmentIds = this.getRange(),
 			segmentMap = {};
 
 		// Build map of segment identities to sequences
@@ -110,6 +140,12 @@ Ext.define('App.usr.dil.SegmentStore', {
 		}
 		return segmentMap;
 	},
+<span id='App-usr-dil-SegmentStore-method-getSegmentColorMap'>	/**
+</span>	 * Gets a hash mapping each segment to its color.
+	 * @return {Object} 
+	 * Hash mapping each segment to its color. Example:
+	 * 		{ 'a': '#ADADAD', 'b':'#CDCDCD' }
+	 */
 	getSegmentColorMap: function() {
 		if(this.segmentColorMap) {
 			return this.segmentColorMap;
@@ -117,6 +153,11 @@ Ext.define('App.usr.dil.SegmentStore', {
 			this.segmentColorMap = this.buildSegmentColorMap();
 		}
 	},
+<span id='App-usr-dil-SegmentStore-method-updateSegmentColorMap'>	/**
+</span>	 * Updates the cached #segmentColorMap with data from the given record, so it does not
+	 * need to be re-generated.
+	 * @param  {App.usr.dil.Segment} rec Record representing the segment to be updated
+	 */
 	updateSegmentColorMap: function(rec) {
 		if(rec &amp;&amp; this.segmentColorMap) {
 			if(_.isArray(rec)) {
@@ -131,22 +172,37 @@ Ext.define('App.usr.dil.SegmentStore', {
 		}
 		return this.segmentColorMap;
 	},
+<span id='App-usr-dil-SegmentStore-method-getSegmentColorScale'>	/**
+</span>	 * Returns a D3 color scale describing the segments in this store
+	 * @return {[type]} [description]
+	 */
 	getSegmentColorScale: function() {
 		var me = this;
 		return function segmentColorScale(_) {
 			return me.segmentColorMap[_];
 		};
 	},
-	getColorGenerator: function() {
-		if(!this.segmentColors) {
+<span id='App-usr-dil-SegmentStore-method-getColorGenerator'>	getColorGenerator: function() {
+</span>		if(!this.segmentColors) {
 			this.segmentColors = d3.scale.category20();
 		}
 		return this.segmentColors;
 	},
+<span id='App-usr-dil-SegmentStore-method-getColor'>	/**
+</span>	 * Gets the color associated with a particular segment identity
+	 * @param  {String} identity Identity of the segment
+	 * @return {String} Color of the segment
+	 */
 	getColor: function(identity) {
 		var gen = this.getColorGenerator();
 		return gen(identity);
 	},
+
+<span id='App-usr-dil-SegmentStore-method-addSegment'>	/**
+</span>	 * Adds a new segment consisting of `N`s of the prescribed length 
+	 * @param {Number} length Length of the segment
+	 * @return {App.usr.dil.Segment} Record representing the new segment
+	 */
 	addSegment: function(length) {
 		var segmentMap = this.getSegmentMap(),
 			identity = _.max(_.map(_.keys(segmentMap), function(key) {

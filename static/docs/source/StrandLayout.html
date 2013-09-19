@@ -21,8 +21,8 @@
  */
 Ext.define('App.usr.nodal.ws.objects.StrandLayout', {
 	extend : 'Workspace.idea.BaseLayout',
-	doLayout : function() {
-		if(!this.ignore) {
+<span id='App-usr-nodal-ws-objects-StrandLayout-method-doLayout'>	doLayout : function() {
+</span>		if(!this.ignore) {
 			this.ignore = true;
 			this.idea.children.each(function(child) {
 				// bit of a hack;
@@ -36,10 +36,10 @@ Ext.define('App.usr.nodal.ws.objects.StrandLayout', {
 			this.ignore = false;
 		}
 	},
-	childrenMovable : false,
-	paddingTop : 5,
-	paddingLeft : 5,
-}, function() {
+<span id='App-usr-nodal-ws-objects-StrandLayout-property-childrenMovable'>	childrenMovable : false,
+</span><span id='App-usr-nodal-ws-objects-StrandLayout-property-paddingTop'>	paddingTop : 5,
+</span><span id='App-usr-nodal-ws-objects-StrandLayout-property-paddingLeft'>	paddingLeft : 5,
+</span>}, function() {
 	Workspace.Layouts.register('App.usr.nodal.ws.objects.StrandLayout', App.usr.nodal.ws.objects.StrandLayout);
 	Workspace.Layouts.register('Workspace.objects.dna.StrandLayout', App.usr.nodal.ws.objects.StrandLayout);
 });</pre>

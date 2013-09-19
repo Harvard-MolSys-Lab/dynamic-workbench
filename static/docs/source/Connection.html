@@ -51,8 +51,8 @@ Ext.define('Workspace.objects.Connection', {
 			}
 		},
 	},
-	constructor : function() {
-		Workspace.objects.Connection.superclass.constructor.apply(this, arguments);
+<span id='Workspace-objects-Connection-method-constructor'>	constructor : function() {
+</span>		Workspace.objects.Connection.superclass.constructor.apply(this, arguments);
 <span id='Workspace-objects-Connection-cfg-leftObject'>		/**
 </span>		 * @cfg {Workspace.Object} leftObject
 		 * The first object to connect
@@ -83,14 +83,14 @@ Ext.define('Workspace.objects.Connection', {
 	},
 	extend : 'Workspace.objects.VectorObject',
 	requires : ['Workspace.objects.Path'],
-	shape : 'path',
-	isMovable : false,
-	name : 'New Connection',
-	iconCls : 'connector',
-	wtype : 'Workspace.objects.Connection',
-	fillOpacity : 0.1,
-	initialize : function() {
-		if(this.leftObject.id) {
+<span id='Workspace-objects-Connection-property-shape'>	shape : 'path',
+</span><span id='Workspace-objects-Connection-property-isMovable'>	isMovable : false,
+</span><span id='Workspace-objects-Connection-property-name'>	name : 'New Connection',
+</span><span id='Workspace-objects-Connection-property-iconCls'>	iconCls : 'connector',
+</span><span id='Workspace-objects-Connection-property-wtype'>	wtype : 'Workspace.objects.Connection',
+</span><span id='Workspace-objects-Connection-property-fillOpacity'>	fillOpacity : 0.1,
+</span><span id='Workspace-objects-Connection-method-initialize'>	initialize : function() {
+</span>		if(this.leftObject.id) {
 			this.set('leftObject', Workspace.Components.realize(this.leftObject));
 		} else {
 			this.leftObject = Workspace.objects.Connection.getPoint(this.leftObject.x, this.leftObject.y);
@@ -104,25 +104,25 @@ Ext.define('Workspace.objects.Connection', {
 			this.updateProperty();
 		}
 	},
-	unBindObject : function(old) {
-		old.un('move', this.onObjectMove, this);
+<span id='Workspace-objects-Connection-method-unBindObject'>	unBindObject : function(old) {
+</span>		old.un('move', this.onObjectMove, this);
 		old.un('hide', this.hide, this);
 		old.un('show', this.show, this);
 		old.un('destroy', this.destruct, this);
 	},
-	reBindObject : function(o, old) {
-		this.unBindObject(old);
+<span id='Workspace-objects-Connection-method-reBindObject'>	reBindObject : function(o, old) {
+</span>		this.unBindObject(old);
 		this.bindObject(o);
 		this.updateProperty();
 	},
-	bindObject : function(o) {
-		o.on('move', this.onObjectMove, this);
+<span id='Workspace-objects-Connection-method-bindObject'>	bindObject : function(o) {
+</span>		o.on('move', this.onObjectMove, this);
 		o.on('hide', this.hide, this);
 		o.on('show', this.show, this);
 		o.on('destroy', this.destruct, this);
 	},
-	updateProperty : function() {
-		var left = this.get('leftObject'), right = this.get('rightObject');
+<span id='Workspace-objects-Connection-method-updateProperty'>	updateProperty : function() {
+</span>		var left = this.get('leftObject'), right = this.get('rightObject');
 		if(left &amp;&amp; left.set) {
 			left.set(this.property, right);
 		}
@@ -132,17 +132,17 @@ Ext.define('Workspace.objects.Connection', {
 			}
 		}
 	},
-	canConnect : function(left, right) {
-		return true;
+<span id='Workspace-objects-Connection-method-canConnect'>	canConnect : function(left, right) {
+</span>		return true;
 	},
-	acceptLeft : function(left) {
-		return true;
+<span id='Workspace-objects-Connection-method-acceptLeft'>	acceptLeft : function(left) {
+</span>		return true;
 	},
-	acceptRight : function(right) {
-		return true;
+<span id='Workspace-objects-Connection-method-acceptRight'>	acceptRight : function(right) {
+</span>		return true;
 	},
-	render : function() {
-		var o1 = this.get('leftObject');
+<span id='Workspace-objects-Connection-method-render'>	render : function() {
+</span>		var o1 = this.get('leftObject');
 		var o2 = this.get('rightObject');
 
 		// watch for object movement, showing/hiding, and destroying
@@ -159,16 +159,16 @@ Ext.define('Workspace.objects.Connection', {
 		this.updateDimensions();
 		//this.vectorElement.attr({&quot;arrow-end&quot;:&quot;classic-wide-long&quot;,});
 	},
-	getHighlightProxy : function() {
-		return new Workspace.Proxy(Ext.applyIf({
+<span id='Workspace-objects-Connection-method-getHighlightProxy'>	getHighlightProxy : function() {
+</span>		return new Workspace.Proxy(Ext.applyIf({
 			path : this.path,
 			shape : this.shape,
 			strokeWidth : this.strokeWidth + App.Stylesheet.Highlight.strokeWidth,
 			workspace : this.workspace,
 		}, App.Stylesheet.Highlight));
 	},
-	updateHighlightProxy : function() {
-		if(this.highlightProxy)
+<span id='Workspace-objects-Connection-method-updateHighlightProxy'>	updateHighlightProxy : function() {
+</span>		if(this.highlightProxy)
 			this.highlightProxy.path = this.path;
 	},
 <span id='Workspace-objects-Connection-method-onObjectMove'>	/**
@@ -179,8 +179,8 @@ Ext.define('Workspace.objects.Connection', {
 	onObjectMove : function() {
 		this.rebuildPath();
 	},
-	applyPath : function(path) {
-		this.path = path;
+<span id='Workspace-objects-Connection-method-applyPath'>	applyPath : function(path) {
+</span>		this.path = path;
 		this.vectorElement.attr({
 			path : path
 		});
@@ -286,19 +286,19 @@ Ext.define('Workspace.objects.Connection', {
 		}
 		return path;
 	},
-	getLeftPoint : function() {
-		var path = this.path, point = [path[1], path[2]];
+<span id='Workspace-objects-Connection-method-getLeftPoint'>	getLeftPoint : function() {
+</span>		var path = this.path, point = [path[1], path[2]];
 		return point;
 	},
-	getRightPoint : function() {
-		var path = this.path, point = [path[path.length - 2], path[path.length - 1]];
+<span id='Workspace-objects-Connection-method-getRightPoint'>	getRightPoint : function() {
+</span>		var path = this.path, point = [path[path.length - 2], path[path.length - 1]];
 		return point;
 	},
-	destruct : function() {
-		this.workspace.deleteObjects([this]);
+<span id='Workspace-objects-Connection-method-destruct'>	destruct : function() {
+</span>		this.workspace.deleteObjects([this]);
 	},
-	destroy : function() {
-		if(!this.is('destroyed')) {
+<span id='Workspace-objects-Connection-method-destroy'>	destroy : function() {
+</span>		if(!this.is('destroyed')) {
 
 			if(this.property) {
 				this.get('leftObject').set(this.property, false);

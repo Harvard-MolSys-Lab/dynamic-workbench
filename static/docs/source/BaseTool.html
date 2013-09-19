@@ -126,7 +126,7 @@ Ext.define('Workspace.tools.BaseTool', {
 		return this.getAdjustedXYcoords(e.getPageX(), e.getPageY());
 	},
 <span id='Workspace-tools-BaseTool-method-getAdjustedXYcoords'>	/**
-</span>	 * @inheritdocs Workspace.Lens.getAdjustedXYcoords
+</span>	 * @inheritdoc Workspace.Lens.getAdjustedXYcoords
 	 */
 	getAdjustedXYcoords : function(x, y) {
 		var pos = this.workspace.lens.getAdjustedXYcoords((x - this.workspace.element.getX()), (y - this.workspace.element.getY()));

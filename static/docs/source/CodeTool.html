@@ -25,8 +25,8 @@
  */
 Ext.define('Workspace.tools.CodeTool', {
 	requires: ['Workspace.tools.SelectorBand','Workspace.objects.CodeObject','Workspace.tools.CodeMirrorTool'],
-	constructor: function(workspace, config) {
-		this.workspace = workspace;
+<span id='Workspace-tools-CodeTool-method-constructor'>	constructor: function(workspace, config) {
+</span>		this.workspace = workspace;
 		Ext.apply(this, config, {
 			parameters: {}
 		});
@@ -45,12 +45,12 @@ Ext.define('Workspace.tools.CodeTool', {
 		this.y1 = 0;
 	},
 	extend: 'Workspace.tools.BaseTool',
-	minWidth: 75,
-	maxWidth: false,
-	minHeight: 30,
-	maxHeight: false,
-	// click: function(e, item) {
-		// if (item &amp;&amp; item.wtype == 'CodeTool') {
+<span id='Workspace-tools-CodeTool-property-minWidth'>	minWidth: 75,
+</span><span id='Workspace-tools-CodeTool-property-maxWidth'>	maxWidth: false,
+</span><span id='Workspace-tools-CodeTool-property-minHeight'>	minHeight: 30,
+</span><span id='Workspace-tools-CodeTool-property-maxHeight'>	maxHeight: false,
+</span><span id='Workspace-tools-CodeTool-method-dblclick'>	// click: function(e, item) {
+</span>		// if (item &amp;&amp; item.wtype == 'CodeTool') {
 			// this.workspace.edit(item);
 		// }
 		// e.stopEvent();
@@ -59,8 +59,8 @@ Ext.define('Workspace.tools.CodeTool', {
 
 		e.stopEvent();
 	},
-	mousedown: function(e, item) {
-		this.dragging = true;
+<span id='Workspace-tools-CodeTool-method-mousedown'>	mousedown: function(e, item) {
+</span>		this.dragging = true;
 		if (this.proto) {
 			this.proto.remove();
 			this.proto = false;
@@ -68,8 +68,8 @@ Ext.define('Workspace.tools.CodeTool', {
 
 		e.stopEvent();
 	},
-	mouseup: function(e, item) {
-		this.dragging = false;
+<span id='Workspace-tools-CodeTool-method-mouseup'>	mouseup: function(e, item) {
+</span>		this.dragging = false;
 
 		if (this.proto) {
 
@@ -93,8 +93,8 @@ Ext.define('Workspace.tools.CodeTool', {
 		}
 		e.stopEvent();
 	},
-	mousemove: function(e, item) {
-		if (this.dragging) {
+<span id='Workspace-tools-CodeTool-method-mousemove'>	mousemove: function(e, item) {
+</span>		if (this.dragging) {
 			if (!this.proto) {
 				this.createProto(e);
 			}
@@ -115,16 +115,16 @@ Ext.define('Workspace.tools.CodeTool', {
 			e.stopEvent();
 		}
 	},
-	createProto: function(e) {
-		var pos = this.getAdjustedXY(e);
+<span id='Workspace-tools-CodeTool-method-createProto'>	createProto: function(e) {
+</span>		var pos = this.getAdjustedXY(e);
 		this.x1 = pos.x;
 		this.y1 = pos.y;
 
 		this.proto = this.workspace.paper.rect(this.x1, this.y1, 0, 0);
 		this.proto.attr(this.parameters);
 	},
-	deactivate: function() {
-		if (this.proto) {
+<span id='Workspace-tools-CodeTool-method-deactivate'>	deactivate: function() {
+</span>		if (this.proto) {
 			this.proto.remove();
 			this.proto = false;
 		}

@@ -20,8 +20,8 @@
  */
 Ext.define('App.usr.nodal.ws.objects.NodePort', {
 	requires : ['Workspace.objects.Ellipse', 'Workspace.ConnectionLabel'],
-	constructor : function() {
-		this.expose('dynaml', true, true, true, false);
+<span id='App-usr-nodal-ws-objects-NodePort-method-constructor'>	constructor : function() {
+</span>		this.expose('dynaml', true, true, true, false);
 		this.expose('role', true, true, true, false);
 		this.expose('identity', true, true, true, false);
 		this.expose('type', true, true, true, false);
@@ -29,7 +29,12 @@ Ext.define('App.usr.nodal.ws.objects.NodePort', {
 		this.expose('exposure',true,true,true,false);
 		this.expose('computedPolarity', function() {
 			var obj = this.getLibraryObject();
-			return obj ? obj.getAbsolutePolarity() : 0;
+			if(!obj) return 0;
+			if(obj.strand &amp;&amp; obj.node) {
+				return obj.getAbsolutePolarity();
+			} else {
+				return obj.getPolarity();
+			}
 		}, false, false, false);
 		this.expose('footprint',function() {
 			var obj = this.getLibraryObject();
@@ -46,21 +51,21 @@ Ext.define('App.usr.nodal.ws.objects.NodePort', {
 			this.workspace.buildManager.on('rebuild', this.onRebuild, this);
 
 	},
-	//	wtype: 'App.usr.nodal.ws.objects.NodePort',
-	role : '',
-	fill : '#fff',
-	iconCls: 'node-ports',
-	strokeWidth : 2,
-	isResizable : false,
-	preventDragSelect : true,
-	render : function() {
-		this.addShim(Ext.create('Workspace.ConnectionLabel', {
+<span id='App-usr-nodal-ws-objects-NodePort-property-role'>	//	wtype: 'App.usr.nodal.ws.objects.NodePort',
+</span>	role : '',
+<span id='App-usr-nodal-ws-objects-NodePort-property-fill'>	fill : '#fff',
+</span><span id='App-usr-nodal-ws-objects-NodePort-property-iconCls'>	iconCls: 'node-ports',
+</span><span id='App-usr-nodal-ws-objects-NodePort-property-strokeWidth'>	strokeWidth : 2,
+</span><span id='App-usr-nodal-ws-objects-NodePort-property-isResizable'>	isResizable : false,
+</span><span id='App-usr-nodal-ws-objects-NodePort-property-preventDragSelect'>	preventDragSelect : true,
+</span><span id='App-usr-nodal-ws-objects-NodePort-method-render'>	render : function() {
+</span>		this.addShim(Ext.create('Workspace.ConnectionLabel', {
 			cls : 'workspace-label-plain-small workspace-label-port',
 			offsets : [0, 4],
 			property : 'computedPolarity',
 			editable : false,
 			format : function(polarity) {
-				return polarity == 1 ? '+' : (polarity == -1 ? '–' : '±');
+				return polarity == 1 ? '+' : (polarity == -1 ? '–' : 'ø');
 			}
 		}));
 		this.footprintShim = Ext.create('Workspace.Label', {
@@ -68,6 +73,7 @@ Ext.define('App.usr.nodal.ws.objects.NodePort', {
 			offsets : [0, 4],
 			property : 'segments',
 			editable : false,
+			showOnShow: false,
 			format : function(segments,obj) {
 				// var pol = obj.get('computedPolarity');
 				// return (pol==-1 ? &quot;5'–&quot; : &quot;3'–&quot;) + _.map(segments,function footprint (seg) {
@@ -83,14 +89,14 @@ Ext.define('App.usr.nodal.ws.objects.NodePort', {
 		this.on('mouseover',this.showFootprint,this);
 		this.on('mouseout',this.hideFootprint,this);
 	},
-	hideFootprint: function() {
-		this.footprintShim.hide();
+<span id='App-usr-nodal-ws-objects-NodePort-method-hideFootprint'>	hideFootprint: function() {
+</span>		this.footprintShim.hide();
 	},
-	showFootprint: function () {
-		this.footprintShim.show();	
+<span id='App-usr-nodal-ws-objects-NodePort-method-showFootprint'>	showFootprint: function () {
+</span>		this.footprintShim.show();	
 	},
-	highlightError: function() {
-		if(!this.errorProxy) {
+<span id='App-usr-nodal-ws-objects-NodePort-method-highlightError'>	highlightError: function() {
+</span>		if(!this.errorProxy) {
 			this.errorProxy = this.getHighlightProxy();
 			this.errorProxy.stroke = '#aa0000';
 		}
@@ -98,21 +104,21 @@ Ext.define('App.usr.nodal.ws.objects.NodePort', {
 		this.errorProxy.attachTo(this);
 		this.errorProxy.show();
 	},
-	hideError: function() {
-		if(this.errorProxy)
+<span id='App-usr-nodal-ws-objects-NodePort-method-hideError'>	hideError: function() {
+</span>		if(this.errorProxy)
 			this.errorProxy.hide();
 	},
-	onRebuild : function() {
-		this.change('computedPolarity', this.get('computedPolarity'));
+<span id='App-usr-nodal-ws-objects-NodePort-method-onRebuild'>	onRebuild : function() {
+</span>		this.change('computedPolarity', this.get('computedPolarity'));
 		this.change('footprint', this.get('footprint'));
 		this.change('segments', this.get('segments'));
 	},
-	getRealtime : function(prop) {
-		var obj = this.getLibraryObject();
+<span id='App-usr-nodal-ws-objects-NodePort-method-getRealtime'>	getRealtime : function(prop) {
+</span>		var obj = this.getLibraryObject();
 		return obj ? obj[prop] : false;
 	},
-	getLibraryObject : function() {
-		if(this.parent &amp;&amp; this.getParent().isWType('App.usr.nodal.ws.objects.Node')) {
+<span id='App-usr-nodal-ws-objects-NodePort-method-getLibraryObject'>	getLibraryObject : function() {
+</span>		if(this.parent &amp;&amp; this.getParent().isWType('App.usr.nodal.ws.objects.Node') || this.getParent().isWType('App.usr.nodal.ws.objects.Motif')) {
 			var node = this.parent.getLibraryObject(), name = this.get('name');
 			if(node) {
 				var me = _.find(node.getDomains(), function(dom) {

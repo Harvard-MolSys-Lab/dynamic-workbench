@@ -20,10 +20,10 @@
  */
 Ext.define('App.usr.ms.Editor', {
 	extend: 'App.usr.text.Editor',
-	iconCls:'ms-icon',
-	editorType: 'MS',
-	mode: 'nupack',
-	alias: 'widget.multisubjectiveedit',
+<span id='App-usr-ms-Editor-property-iconCls'>	iconCls:'ms-icon',
+</span><span id='App-usr-ms-Editor-property-editorType'>	editorType: 'MS',
+</span><span id='App-usr-ms-Editor-cfg-mode'>	mode: 'nupack',
+</span>	alias: 'widget.multisubjectiveedit',
 	requires: ['App.ui.SequenceThreader','App.ui.NupackMenu'],
 <span id='App-usr-ms-Editor-cfg-showNupackButton'>	/**
 </span>	 * @cfg
@@ -41,8 +41,8 @@ Ext.define('App.usr.ms.Editor', {
 	 */
 	showSaveButton:true,
 	
-	dockedItems: [{
-		xtype: 'cite',
+<span id='App-usr-ms-Editor-property-dockedItems'>	dockedItems: [{
+</span>		xtype: 'cite',
 		cite: {
 			authors: ['John P. Sadowski', 'Peng Yin'],
 			title: 'Multisubjective: better nucleic acid design through fast identification and removal of undesired secondary structure',
@@ -56,8 +56,8 @@ Ext.define('App.usr.ms.Editor', {
 	 */
 	multisubjective: false,
 	
-	initComponent: function() {
-		this.mode = {
+<span id='App-usr-ms-Editor-method-initComponent'>	initComponent: function() {
+</span>		this.mode = {
 				name: 'nupack',
 				multisubjective: true,
 			}
@@ -123,19 +123,19 @@ Ext.define('App.usr.ms.Editor', {
 		})
 		this.callParent(arguments);
 	},
-	runMS: function() {
-		App.runTask('Multisubjective', {
+<span id='App-usr-ms-Editor-method-runMS'>	runMS: function() {
+</span>		App.runTask('Multisubjective', {
 			node: this.getDocumentPath(),
 			action: 'default'
 		});
 	},
-	clean: function() {
-		App.runTask('Multisubjective', {
+<span id='App-usr-ms-Editor-method-clean'>	clean: function() {
+</span>		App.runTask('Multisubjective', {
 			node: this.getDocumentPath(),
 			action: 'clean'
 		});
-	},	populateDesignWindow: function(menu,designWindow) {
-		designWindow.updateDesign(this.getValue());
+<span id='App-usr-ms-Editor-method-populateDesignWindow'>	},	populateDesignWindow: function(menu,designWindow) {
+</span>		designWindow.updateDesign(this.getValue());
 	},
 <span id='App-usr-ms-Editor-method-threadStrands'>	/**
 </span>	 * Opens a {@link App.ui.SequenceThreader sequence threader}, allowing the 

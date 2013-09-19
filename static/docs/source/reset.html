@@ -56,10 +56,13 @@ Ext.onReady(function() {
 		}
 	};
 
+<span id='App-ResetWindow'>	/**
+</span>	 * @class App.ResetWindow
+	 */
 	Ext.define('App.ResetWindow', {
 		extend : 'Ext.Window',
-		constructor : function() {
-			Ext.apply(this, {
+<span id='App-ResetWindow-method-constructor'>		constructor : function() {
+</span>			Ext.apply(this, {
 				items : [{
 					html : 'Welcome to ' + App.name + '. From this page you can reset your password',
 					frame : true,
@@ -77,7 +80,7 @@ Ext.onReady(function() {
 						anchor : '100%'
 					},
 					items : [{
-						xtype: 'displayfield'
+						xtype: 'displayfield',
 						name : 'name',
 						fieldLabel : 'Name',
 						allowBlank : false,
@@ -149,7 +152,7 @@ Ext.onReady(function() {
 			}, this);
 			this.on('destroy', this.destroyTips, this);
 		},
-<span id='global-method-buildTip'>		/**
+<span id='App-ResetWindow-method-buildTip'>		/**
 </span>		 * Constructs a tooltip for the given field using the field's tooltip configuration parameter.
 		 */
 		buildTip : function(field) {
@@ -176,7 +179,7 @@ Ext.onReady(function() {
 			this.tips.push(tip);
 			field.tip = tip;
 		},
-<span id='global-method-destroyTips'>		/**
+<span id='App-ResetWindow-method-destroyTips'>		/**
 </span>		 * Destroys all tooltips for this components' children.
 		 */
 		destroyTips : function() {
@@ -186,14 +189,14 @@ Ext.onReady(function() {
 				}
 			})
 		},
-		closable : false,
-		width : 350,
-		height : 450,
-		modal : true,
-		layout : 'border',
-		title : &quot;Register for an Account&quot;,
-		iconCls : 'lock',
-
+<span id='App-ResetWindow-property-closable'>		closable : false,
+</span><span id='App-ResetWindow-property-width'>		width : 350,
+</span><span id='App-ResetWindow-property-height'>		height : 450,
+</span><span id='App-ResetWindow-property-modal'>		modal : true,
+</span><span id='App-ResetWindow-property-layout'>		layout : 'border',
+</span><span id='App-ResetWindow-property-title'>		title : &quot;Register for an Account&quot;,
+</span><span id='App-ResetWindow-property-iconCls'>		iconCls : 'lock',
+</span>
 	});
 	regWindow = new App.RegWindow();
 	loginWindow.show();

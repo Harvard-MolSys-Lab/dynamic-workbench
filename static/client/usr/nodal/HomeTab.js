@@ -1,3 +1,7 @@
+/**
+ * @class App.usr.nodal.HomeTab
+ * Contains basic toolbox and actions for the {@link App.usr.nodal.Canvas Nodal canvas}
+ */
 Ext.define('App.usr.nodal.HomeTab', {
 	extend: 'App.usr.canvas.ToolsTab',
 	alias: 'widget.nodal-hometab',

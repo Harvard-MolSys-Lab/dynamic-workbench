@@ -1,4 +1,5 @@
 /**
+ * @class Workspace.objects.VectorObject
  * Represents a workspace object rendered by an SVG/VML (Raphael) element
  * @extends Workspace.objects.Object2d
  */

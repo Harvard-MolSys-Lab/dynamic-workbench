@@ -22,18 +22,18 @@
 Ext.define('App.ui.console.ScriptsPanel', {
 	extend: 'Ext.panel.Panel',
 	requires: ['App.ui.CodeMirror',],
-	id:'x-debug-scripts',
-	region: 'east',
-	minWidth: 200,
-	split: true,
-	width: 350,
-	border: false,
-	layout:'fit',
-	bodyBorder: false,
-	padding: '0 0 5 0',
-	cls: 'noborder-top',
-	//	style:'border-width:0 0 0 1px;',
-
+<span id='App-ui-console-ScriptsPanel-property-id'>	id:'x-debug-scripts',
+</span><span id='App-ui-console-ScriptsPanel-property-region'>	region: 'east',
+</span><span id='App-ui-console-ScriptsPanel-property-minWidth'>	minWidth: 200,
+</span><span id='App-ui-console-ScriptsPanel-property-split'>	split: true,
+</span><span id='App-ui-console-ScriptsPanel-property-width'>	width: 350,
+</span><span id='App-ui-console-ScriptsPanel-property-border'>	border: false,
+</span><span id='App-ui-console-ScriptsPanel-property-layout'>	layout:'fit',
+</span><span id='App-ui-console-ScriptsPanel-property-bodyBorder'>	bodyBorder: false,
+</span><span id='App-ui-console-ScriptsPanel-property-padding'>	padding: '0 0 5 0',
+</span><span id='App-ui-console-ScriptsPanel-property-cls'>	cls: 'noborder-top',
+</span><span id='App-ui-console-ScriptsPanel-method-initComponent'>	//	style:'border-width:0 0 0 1px;',
+</span>
 	initComponent : function() {
 		
 <span id='App-ui-console-ScriptsPanel-property-scriptField'>		/**
@@ -94,8 +94,8 @@ Ext.define('App.ui.console.ScriptsPanel', {
 		var s = this.scriptField.getValue();
 		this.executeInContext(s,App.ui.active(),this.trapBox.getValue());
 	},
-	executeInContext: function(s,ctx,trap,params) {
-		var paramNames = [], paramValues = [];
+<span id='App-ui-console-ScriptsPanel-method-executeInContext'>	executeInContext: function(s,ctx,trap,params) {
+</span>		var paramNames = [], paramValues = [];
 		if(trap) {
 			try {
 				

@@ -24,8 +24,8 @@
  * @param {Object} config
  */
 Ext.define('Workspace.tools.ResizeHandle', {
-	constructor: function(workspace, config) {
-		Workspace.tools.ResizeHandle.superclass.constructor.call(this, workspace, config);
+<span id='Workspace-tools-ResizeHandle-method-constructor'>	constructor: function(workspace, config) {
+</span>		Workspace.tools.ResizeHandle.superclass.constructor.call(this, workspace, config);
 
 		Ext.applyIf(this, {
 			location: 'tl'
@@ -48,8 +48,8 @@ Ext.define('Workspace.tools.ResizeHandle', {
 		this.onItemMove();
 	},
 	extend:'Workspace.tools.Handle',
-	drag: function() {
-		var box = this.item.getBox();
+<span id='Workspace-tools-ResizeHandle-method-drag'>	drag: function() {
+</span>		var box = this.item.getBox();
 		var pos = this.getPosition();
 
 		switch (this.location) {
@@ -67,25 +67,25 @@ Ext.define('Workspace.tools.ResizeHandle', {
 				break;
 		}
 	},
-	dragStartHandler: function() {
-		this.item.applyProxy();
+<span id='Workspace-tools-ResizeHandle-method-dragStartHandler'>	dragStartHandler: function() {
+</span>		this.item.applyProxy();
 		Workspace.tools.ResizeHandle.superclass.dragStartHandler.apply(this, arguments);
 	},
-	dragEndHandler: function() {
-		if (this.dragging) {
+<span id='Workspace-tools-ResizeHandle-method-dragEndHandler'>	dragEndHandler: function() {
+</span>		if (this.dragging) {
 			this.item.restoreFromProxy();
 			Workspace.tools.ResizeHandle.superclass.dragEndHandler.apply(this, arguments);
 			return false;
 		}
 	},
-	onItemMove: function() {
-		this.move(this.item.getBox());
+<span id='Workspace-tools-ResizeHandle-method-onItemMove'>	onItemMove: function() {
+</span>		this.move(this.item.getBox());
 	},
-	onProxyMove: function() {
-		this.move(this.proxy.getBox());
+<span id='Workspace-tools-ResizeHandle-method-onProxyMove'>	onProxyMove: function() {
+</span>		this.move(this.proxy.getBox());
 	},
-	move: function(box) {
-		switch (this.location) {
+<span id='Workspace-tools-ResizeHandle-method-move'>	move: function(box) {
+</span>		switch (this.location) {
 			case 'tl':
 				this.setPosition(box.tl.x, box.tl.y);
 				break;
@@ -100,8 +100,8 @@ Ext.define('Workspace.tools.ResizeHandle', {
 				break;
 		}
 	},
-	destroy: function() {
-		//Workspace.tools.ResizeHandle.superclass.destroy.call(this);
+<span id='Workspace-tools-ResizeHandle-method-destroy'>	destroy: function() {
+</span>		//Workspace.tools.ResizeHandle.superclass.destroy.call(this);
 		this.callParent(arguments);
 		this.item.un('move', this.onItemMove, this);
 		this.item.un('resize', this.onItemMove, this);

@@ -23,8 +23,8 @@
 Ext.define('App.usr.nupack.Results', {
 	extend: 'Ext.panel.Panel',
 	requires: ['App.usr.nupack.Panel'],
-	template: '&lt;div class=&quot;app-nupack-complex-wrap&quot;&gt;'+
-	'&lt;div&gt;'+
+<span id='App-usr-nupack-Results-property-template'>	template: '&lt;div class=&quot;app-nupack-complex-wrap&quot;&gt;'+
+</span>	'&lt;div&gt;'+
 	'&lt;span class=&quot;app-nupack-complex&quot;&gt;Complex: {complex}&lt;/span&gt;'+
 	'&amp;nbsp;|&amp;nbsp;'+
 	'&lt;span class=&quot;app-nupack-order&quot;&gt;Order: {order}&lt;/span&gt;'+
@@ -34,22 +34,22 @@ Ext.define('App.usr.nupack.Results', {
 	mixins: {
 		app: 'App.ui.Application',
 	},
-	html: '&lt;fieldset class=&quot;x-fieldset x-fieldset-default&quot;&gt;&lt;legend class=&quot;x-fieldset-header x-fieldset-header-default nupack-strand-summary-title&quot;&gt;Distinct strands&lt;/legend&gt;&lt;pre class=&quot;nupack-strand-summary cm-s-default&quot;&gt;&lt;/pre&gt;&lt;/fieldset&gt;'+
-	'&lt;fieldset class=&quot;x-fieldset x-fieldset-default&quot;&gt;&lt;legend class=&quot;x-fieldset-header x-fieldset-header-default nupack-strand-summary-title&quot;&gt;Complex Minimum Free Energy&lt;/legend&gt;&lt;div class=&quot;nupack-mfe-summary&quot;&gt;&lt;/div&gt;&lt;/fieldset&gt;'+
+<span id='App-usr-nupack-Results-property-html'>	html: '&lt;fieldset class=&quot;x-fieldset x-fieldset-default&quot;&gt;&lt;legend class=&quot;x-fieldset-header x-fieldset-header-default nupack-strand-summary-title&quot;&gt;Distinct strands&lt;/legend&gt;&lt;pre class=&quot;nupack-strand-summary cm-s-default&quot;&gt;&lt;/pre&gt;&lt;/fieldset&gt;'+
+</span>	'&lt;fieldset class=&quot;x-fieldset x-fieldset-default&quot;&gt;&lt;legend class=&quot;x-fieldset-header x-fieldset-header-default nupack-strand-summary-title&quot;&gt;Complex Minimum Free Energy&lt;/legend&gt;&lt;div class=&quot;nupack-mfe-summary&quot;&gt;&lt;/div&gt;&lt;/fieldset&gt;'+
 	'&lt;div class=&quot;nupack-concentration-summary&quot;&gt;&lt;/div&gt;',
-	bodyPadding: 5,
-	autoScroll: true,
-	requires: [''],
-	constructor: function(config) {
-		this.callParent(arguments);
+<span id='App-usr-nupack-Results-property-bodyPadding'>	bodyPadding: 5,
+</span><span id='App-usr-nupack-Results-property-autoScroll'>	autoScroll: true,
+</span>	requires: [''],
+<span id='App-usr-nupack-Results-method-constructor'>	constructor: function(config) {
+</span>		this.callParent(arguments);
 		this.mixins.app.constructor.apply(this,arguments);
 	},
-	initComponent: function() {
-		this.callParent(arguments);
+<span id='App-usr-nupack-Results-method-initComponent'>	initComponent: function() {
+</span>		this.callParent(arguments);
 		this.on('afterrender',this.loadFile,this);
 	},
-	onLoad: function() {
-		if(this.data) {
+<span id='App-usr-nupack-Results-method-onLoad'>	onLoad: function() {
+</span>		if(this.data) {
 			if(!this.xt) {
 				this.xt = new Ext.XTemplate(this.template);
 			}

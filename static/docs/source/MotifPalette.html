@@ -21,14 +21,14 @@
 Ext.define('App.usr.nodal.MotifPalette', {
 	extend : 'App.usr.canvas.Palette',
 	requires : ['App.usr.nodal.ws.objects.Motifs'],
-	tpl : '&lt;tpl for=&quot;.&quot;&gt;' + '&lt;div class=&quot;motif-template&quot;&gt;' +
-	//'&lt;img src=&quot;images/motifs/{number}.gif&quot; /&gt;'+
+<span id='App-usr-nodal-MotifPalette-cfg-tpl'>	tpl : '&lt;tpl for=&quot;.&quot;&gt;' + '&lt;div class=&quot;motif-template&quot;&gt;' +
+</span>	//'&lt;img src=&quot;images/motifs/{number}.gif&quot; /&gt;'+
 	'&lt;/div&gt;' + '&lt;/tpl&gt;&lt;div class=&quot;x-clear&quot; /&gt;',
-	itemSelector : 'div.motif-template',
-	mimeType : 'ext/motif',
-	overflow: 'auto',
-	constructor : function(config) {
-		if(!config.store) {
+<span id='App-usr-nodal-MotifPalette-cfg-itemSelector'>	itemSelector : 'div.motif-template',
+</span><span id='App-usr-nodal-MotifPalette-cfg-mimeType'>	mimeType : 'ext/motif',
+</span><span id='App-usr-nodal-MotifPalette-property-overflow'>	overflow: 'auto',
+</span><span id='App-usr-nodal-MotifPalette-method-constructor'>	constructor : function(config) {
+</span>		if(!config.store) {
 			//Ext.apply(this,{
 			Ext.applyIf(config, {
 				store : App.usr.nodal.ws.objects.motifStore,
@@ -37,11 +37,11 @@ Ext.define('App.usr.nodal.MotifPalette', {
 		this.callParent(arguments);
 		this.view.on('itemupdate',this.redrawMotif,this);
 	},
-	onRefresh : function() {
-		this.drawMotifs();
+<span id='App-usr-nodal-MotifPalette-method-onRefresh'>	onRefresh : function() {
+</span>		this.drawMotifs();
 	},
-	drawMotifs : function() {
-		var store = this.view.getStore(), view = this.view;
+<span id='App-usr-nodal-MotifPalette-method-drawMotifs'>	drawMotifs : function() {
+</span>		var store = this.view.getStore(), view = this.view;
 		if(!this.papers) {
 			this.papers = {};
 		}
@@ -50,8 +50,8 @@ Ext.define('App.usr.nodal.MotifPalette', {
 			this.redrawMotif(rec, null, node);
 		}, this);
 	},
-	redrawMotif : function(rec, index, node) {
-		node = Ext.get(node);
+<span id='App-usr-nodal-MotifPalette-method-redrawMotif'>	redrawMotif : function(rec, index, node) {
+</span>		node = Ext.get(node);
 		var id = node.id, 
 			/* if index != null, that means this is coming from Ext's itemupdate event, so we definitely need to generate a new paper, 
 			 * since Ext just deleted it.
@@ -60,8 +60,8 @@ Ext.define('App.usr.nodal.MotifPalette', {
 			(this.papers[id] = Raphael(node.dom, node.getWidth(), node.getHeight()));
 		this.drawMotif(paper, rec.get('spec'));
 	},
-	drawMotif : function(paper, spec) {
-		var r = paper.width * 0.35, cx = paper.width / 2, cy = paper.height / 2;
+<span id='App-usr-nodal-MotifPalette-method-drawMotif'>	drawMotif : function(paper, spec) {
+</span>		var r = paper.width * 0.35, cx = paper.width / 2, cy = paper.height / 2;
 		paper.clear();
 		paper.add([{
 			type : 'circle',

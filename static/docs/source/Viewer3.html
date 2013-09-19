@@ -15,16 +15,19 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('App.usr.viewer.Viewer', {
+  <pre class="prettyprint lang-js"><span id='App-usr-viewer-Viewer'>/**
+</span> * Allows content to be viewed with an iframe
+ */
+Ext.define('App.usr.viewer.Viewer', {
 	extend: 'App.usr.browser.Browser',
-	editorType: 'Viewer',
-	iconCls: 'application',
-	autoHideLoadingMask: true,
-	mixins: {
+<span id='App-usr-viewer-Viewer-property-editorType'>	editorType: 'Viewer',
+</span><span id='App-usr-viewer-Viewer-property-iconCls'>	iconCls: 'application',
+</span><span id='App-usr-viewer-Viewer-cfg-autoHideLoadingMask'>	autoHideLoadingMask: true,
+</span>	mixins: {
 		app: 'App.ui.Application'
 	},
-	constructor: function(config) {
-		this.mixins.app.constructor.apply(this,arguments);
+<span id='App-usr-viewer-Viewer-method-constructor'>	constructor: function(config) {
+</span>		this.mixins.app.constructor.apply(this,arguments);
 
 		this.url = Ext.urlAppend(App.getEndpoint('load'),Ext.Object.toQueryString({
 			'node':this.getPath()

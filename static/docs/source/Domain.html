@@ -21,17 +21,17 @@
  */
 Ext.define('App.usr.nodal.ws.objects.Domain', {
 	extend : 'Workspace.objects.Path',
-	buildPathPolar : function(x1, y1, length, arc) {
-		return [['M', x1, x2], ['L', x1 + Math.cos(arc) * v, y1 + Math.sin(arc) * v]];
+<span id='App-usr-nodal-ws-objects-Domain-method-buildPathPolar'>	buildPathPolar : function(x1, y1, length, arc) {
+</span>		return [['M', x1, x2], ['L', x1 + Math.cos(arc) * v, y1 + Math.sin(arc) * v]];
 	},
-	buildPath : function() {
-		if(!this.path) {
+<span id='App-usr-nodal-ws-objects-Domain-method-buildPath'>	buildPath : function() {
+</span>		if(!this.path) {
 			return this.rebuildPath();
 		}
 		return this.path;
 	},
-	rebuildPath : function() {
-		var left = this.get('leftPoint'), right = this.get('rightPoint'), length = this.get('length'), arc = this.get('arc'), path = [];
+<span id='App-usr-nodal-ws-objects-Domain-method-rebuildPath'>	rebuildPath : function() {
+</span>		var left = this.get('leftPoint'), right = this.get('rightPoint'), length = this.get('length'), arc = this.get('arc'), path = [];
 		if(left &amp;&amp; left.length &gt; 1) {
 			path[0] = ['M'].concat(left);
 		} else {
@@ -47,8 +47,8 @@ Ext.define('App.usr.nodal.ws.objects.Domain', {
 		this.path = path;
 		return path;
 	},
-	constructor : function() {
-		this.callParent(arguments);
+<span id='App-usr-nodal-ws-objects-Domain-method-constructor'>	constructor : function() {
+</span>		this.callParent(arguments);
 
 		this.expose('hybridize', true, true, true, false);
 
@@ -81,14 +81,14 @@ Ext.define('App.usr.nodal.ws.objects.Domain', {
 		});
 	},
 	statics : {
-		getComplement : function(x) {
-			return x.complement;
+<span id='App-usr-nodal-ws-objects-Domain-static-method-getComplement'>		getComplement : function(x) {
+</span>			return x.complement;
 		},
-		setComplement : function(x, v) {
-			x.complement = v;
+<span id='App-usr-nodal-ws-objects-Domain-static-method-setComplement'>		setComplement : function(x, v) {
+</span>			x.complement = v;
 		},
-		ntLength : 5,
-	}
+<span id='App-usr-nodal-ws-objects-Domain-static-property-ntLength'>		ntLength : 5,
+</span>	}
 })
 </pre>
 </body>

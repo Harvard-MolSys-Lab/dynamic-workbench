@@ -21,13 +21,13 @@
  */
 Ext.define('App.ui.SaveButton', {
 	extend : 'Ext.button.Split',
-	text: 'Save',
-	iconCls: 'save',
-	saveText : 'Save',
-	createText : 'Create',
-	forceDefaultExtension : true,
-	initComponent : function() {
-
+<span id='App-ui-SaveButton-property-text'>	text: 'Save',
+</span><span id='App-ui-SaveButton-property-iconCls'>	iconCls: 'save',
+</span><span id='App-ui-SaveButton-property-saveText'>	saveText : 'Save',
+</span><span id='App-ui-SaveButton-property-createText'>	createText : 'Create',
+</span><span id='App-ui-SaveButton-property-forceDefaultExtension'>	forceDefaultExtension : true,
+</span><span id='App-ui-SaveButton-method-initComponent'>	initComponent : function() {
+</span>
 		this.overwrite = Ext.create('Ext.menu.CheckItem', {
 			text : 'Overwrite exiting file',
 			checked : !!(this.app &amp;&amp; this.app.document),
@@ -40,7 +40,7 @@ Ext.define('App.ui.SaveButton', {
 			}
 		})
 		
-<span id='App-ui-SaveButton-property-saveMenu'>		/**
+<span id='App-ui-SaveButton-property-'>		/**
 </span>		 * @property {App.ui.CreateMenu}
 		 */
 		this.saveMenu = Ext.create('App.ui.CreateMenu', {
@@ -68,8 +68,8 @@ Ext.define('App.ui.SaveButton', {
 			this.app.on('unbinddocument',this.updateOverwrite,this);
 		}
 	},
-	doSave: function(fileName) {
-		var file;
+<span id='App-ui-SaveButton-method-doSave'>	doSave: function(fileName) {
+</span>		var file;
 		if(this.getDefaultExtension()) {
 			if(this.forceDefaultExtension &amp;&amp; (App.Path.extname(fileName) != this.getDefaultExtension())) {					
 				fileName = App.Path.addExt(fileName,this.getDefaultExtension());
@@ -90,12 +90,12 @@ Ext.define('App.ui.SaveButton', {
 		this.app.saveFile();
 	},
 
-	getDefaultExtension : function() {
-		if(this.defaultExtension) { return this.defaultExtension; }
+<span id='App-ui-SaveButton-method-getDefaultExtension'>	getDefaultExtension : function() {
+</span>		if(this.defaultExtension) { return this.defaultExtension; }
 		else { return ''; }
 	},
-	selectionChange : function(sm, rec) {
-		rec = sm.getLastSelected();
+<span id='App-ui-SaveButton-method-selectionChange'>	selectionChange : function(sm, rec) {
+</span>		rec = sm.getLastSelected();
 		if(rec) {
 			if(rec.isLeaf()) {
 				this.saveMenu.fileNameField.setValue(rec.get('text'));
@@ -106,20 +106,20 @@ Ext.define('App.ui.SaveButton', {
 			this.overwrite.setDisabled(!rec.isLeaf());
 		}
 	},
-	updateOverwrite : function() {
-		if(this.app &amp;&amp; this.app.document) {
+<span id='App-ui-SaveButton-method-updateOverwrite'>	updateOverwrite : function() {
+</span>		if(this.app &amp;&amp; this.app.document) {
 			this.overwrite.setChecked(true);
 		} else {
 			this.overwrite.setChecked(false);
 		}
 	},
-	changeOverwrite : function(item, checked) {
-		this.saveMenu.fileNameField.setDisabled(checked);
+<span id='App-ui-SaveButton-method-changeOverwrite'>	changeOverwrite : function(item, checked) {
+</span>		this.saveMenu.fileNameField.setDisabled(checked);
 		this.saveMenu.createButton.setText( checked ? this.saveText : this.createText);
 		
 	},
-	afterrender : function() {
-		this.tip = Ext.create('Ext.tip.ToolTip', {
+<span id='App-ui-SaveButton-method-afterrender'>	afterrender : function() {
+</span>		this.tip = Ext.create('Ext.tip.ToolTip', {
 			target : this.saveMenu.fileNameField.getEl(),
 			autoHide : true,
 			anchorToTarget : true,
@@ -131,19 +131,19 @@ Ext.define('App.ui.SaveButton', {
 			// autoShow : true,
 		});
 	},
-	menushow : function() {
-		this.changeOverwrite(this.overwrite,this.overwrite.checked);
+<span id='App-ui-SaveButton-method-menushow'>	menushow : function() {
+</span>		this.changeOverwrite(this.overwrite,this.overwrite.checked);
 		App.ui.filesTree.getSelectionModel().on('selectionchange', this.selectionChange, this);
 		if(this.app &amp;&amp; this.app.document) {
 			this.saveMenu.fileNameField.setValue(this.app.document.get('text'));
 			App.ui.filesTree.getSelectionModel().select(this.app.document);
 		}
 	},
-	menuhide : function() {
-		App.ui.filesTree.getSelectionModel().un('selectionchange', this.selectionChange, this);
+<span id='App-ui-SaveButton-method-menuhide'>	menuhide : function() {
+</span>		App.ui.filesTree.getSelectionModel().un('selectionchange', this.selectionChange, this);
 	},
-	click : function() {
-		if(this.app) {
+<span id='App-ui-SaveButton-method-click'>	click : function() {
+</span>		if(this.app) {
 			if(this.app.document) {
 				this.app.saveFile();
 			} else {

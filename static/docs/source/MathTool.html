@@ -25,8 +25,8 @@
  */
 Ext.define('Workspace.tools.MathTool', {
 	requires: ['Workspace.tools.SelectorBand','Workspace.tools.MathQuillTool','Workspace.objects.MathEquationObject'],
-	constructor: function(workspace, config) {
-		this.workspace = workspace;
+<span id='Workspace-tools-MathTool-method-constructor'>	constructor: function(workspace, config) {
+</span>		this.workspace = workspace;
 		Ext.apply(this, config, {
 			parameters: {}
 		});
@@ -43,22 +43,22 @@ Ext.define('Workspace.tools.MathTool', {
 		this.y1 = 0;
 	},
 	extend: 'Workspace.tools.BaseTool',
-	minWidth: 75,
-	maxWidth: false,
-	minHeight: 30,
-	maxHeight: false,
-	click: function(e, item) {
-		if (item &amp;&amp; item.wtype == 'MathEquationObject') {
+<span id='Workspace-tools-MathTool-property-minWidth'>	minWidth: 75,
+</span><span id='Workspace-tools-MathTool-property-maxWidth'>	maxWidth: false,
+</span><span id='Workspace-tools-MathTool-property-minHeight'>	minHeight: 30,
+</span><span id='Workspace-tools-MathTool-property-maxHeight'>	maxHeight: false,
+</span><span id='Workspace-tools-MathTool-method-click'>	click: function(e, item) {
+</span>		if (item &amp;&amp; item.wtype == 'MathEquationObject') {
 			this.workspace.edit(item);
 		}
 		e.stopEvent();
 	},
-	dblclick: function(e, item) {
-
+<span id='Workspace-tools-MathTool-method-dblclick'>	dblclick: function(e, item) {
+</span>
 		e.stopEvent();
 	},
-	mousedown: function(e, item) {
-		this.dragging = true;
+<span id='Workspace-tools-MathTool-method-mousedown'>	mousedown: function(e, item) {
+</span>		this.dragging = true;
 		if (this.proto) {
 			this.proto.remove();
 			this.proto = false;
@@ -66,8 +66,8 @@ Ext.define('Workspace.tools.MathTool', {
 
 		e.stopEvent();
 	},
-	mouseup: function(e, item) {
-		this.dragging = false;
+<span id='Workspace-tools-MathTool-method-mouseup'>	mouseup: function(e, item) {
+</span>		this.dragging = false;
 
 		if (this.proto) {
 
@@ -90,8 +90,8 @@ Ext.define('Workspace.tools.MathTool', {
 		}
 		e.stopEvent();
 	},
-	mousemove: function(e, item) {
-		if (this.dragging) {
+<span id='Workspace-tools-MathTool-method-mousemove'>	mousemove: function(e, item) {
+</span>		if (this.dragging) {
 			if (!this.proto) {
 				this.createProto(e);
 			}
@@ -112,16 +112,16 @@ Ext.define('Workspace.tools.MathTool', {
 			e.stopEvent();
 		}
 	},
-	createProto: function(e) {
-		var pos = this.getAdjustedXY(e);
+<span id='Workspace-tools-MathTool-method-createProto'>	createProto: function(e) {
+</span>		var pos = this.getAdjustedXY(e);
 		this.x1 = pos.x;
 		this.y1 = pos.y;
 
 		this.proto = this.workspace.paper.rect(this.x1, this.y1, 0, 0);
 		this.proto.attr(this.parameters);
 	},
-	deactivate: function() {
-		if (this.proto) {
+<span id='Workspace-tools-MathTool-method-deactivate'>	deactivate: function() {
+</span>		if (this.proto) {
 			this.proto.remove();
 			this.proto = false;
 		}

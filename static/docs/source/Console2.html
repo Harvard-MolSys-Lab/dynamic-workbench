@@ -20,18 +20,18 @@
  */
 Ext.define('App.ui.Console', {
 	extend : 'Ext.panel.Panel',
-	iconCls : 'terminal',
-	region : 'south',
-	height : 200,
-	split : true,
-	collapsible : true,
-	collapsed : true,
-	collapseMode : 'mini',
-	titleCollapse : true,
-	title : 'Console',
-	layout : 'border',
-	initComponent : function() {
-		var scriptPanel = this.scriptPanel = Ext.create('Ext.debug.ScriptsPanel');
+<span id='App-ui-Console-property-iconCls'>	iconCls : 'terminal',
+</span><span id='App-ui-Console-property-region'>	region : 'south',
+</span><span id='App-ui-Console-property-height'>	height : 200,
+</span><span id='App-ui-Console-property-split'>	split : true,
+</span><span id='App-ui-Console-property-collapsible'>	collapsible : true,
+</span><span id='App-ui-Console-property-collapsed'>	collapsed : true,
+</span><span id='App-ui-Console-property-collapseMode'>	collapseMode : 'mini',
+</span><span id='App-ui-Console-property-titleCollapse'>	titleCollapse : true,
+</span><span id='App-ui-Console-property-title'>	title : 'Console',
+</span><span id='App-ui-Console-property-layout'>	layout : 'border',
+</span><span id='App-ui-Console-method-initComponent'>	initComponent : function() {
+</span>		var scriptPanel = this.scriptPanel = Ext.create('Ext.debug.ScriptsPanel');
 		var logView = this.logView = new Ext.create('Ext.debug.LogPanel');
 		cp = logView;
 		Ext.apply(this, {
@@ -40,8 +40,8 @@ Ext.define('App.ui.Console', {
 		
 		this.callParent(arguments);
 	},
-	executeInContext: function() {
-		this.scriptPanel.executeInContext.apply(this.scriptPanel,arguments);
+<span id='App-ui-Console-method-executeInContext'>	executeInContext: function() {
+</span>		this.scriptPanel.executeInContext.apply(this.scriptPanel,arguments);
 	}
 });
 </pre>

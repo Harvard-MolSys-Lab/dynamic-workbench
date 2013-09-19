@@ -22,8 +22,8 @@
  */
 Ext.define('App.usr.canvas.MetaTab', {
 	extend:'App.ui.BoundObjectPanel',
-	initComponent: function() {
-		Ext.apply(this, {
+<span id='App-usr-canvas-MetaTab-method-initComponent'>	initComponent: function() {
+</span>		Ext.apply(this, {
 			tbar: [{
 
 				// Name group
@@ -84,8 +84,8 @@ Ext.define('App.usr.canvas.MetaTab', {
 
 		//this.on('afterrender', this.afterrender, this);
 	},
-	afterrender: function() {
-		var tips = [this.nameField];
+<span id='App-usr-canvas-MetaTab-method-afterrender'>	afterrender: function() {
+</span>		var tips = [this.nameField];
 		this.tips = [];
 		Ext.each(tips, function(field) {
 			if (field.tooltip) {

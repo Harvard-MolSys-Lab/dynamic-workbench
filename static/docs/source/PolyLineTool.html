@@ -24,8 +24,8 @@
  * @param {Object} config
  */
 Ext.define('Workspace.tools.PolyLineTool', {
-	targetWType: 'Workspace.objects.Path',//'Workspace.objects.SegmentedPath',
-	
+<span id='Workspace-tools-PolyLineTool-method-constructor'><span id='Workspace-tools-PolyLineTool-property-targetWType'>	targetWType: 'Workspace.objects.Path',//'Workspace.objects.SegmentedPath',
+</span></span>	
 	constructor : function(workspace, config) {
 		this.workspace = workspace;
 		Ext.apply(this, config, {
@@ -42,8 +42,8 @@ Ext.define('Workspace.tools.PolyLineTool', {
 	extend : 'Workspace.tools.BaseTool',
 	requires : ['Workspace.tools.VectorTool', 'Workspace.objects.Path', 'Workspace.objects.SegmentedPath'],
 
-	startDrawing : function(pos) {
-		this.drawing = true;
+<span id='Workspace-tools-PolyLineTool-method-startDrawing'>	startDrawing : function(pos) {
+</span>		this.drawing = true;
 		this.x1 = parseInt(pos.x);
 		this.y1 = parseInt(pos.y);
 
@@ -56,8 +56,8 @@ Ext.define('Workspace.tools.PolyLineTool', {
 		this.currentShape = this.workspace.paper.path(this.currentPath);
 		this.currentShape.attr(this.parameters);
 	},
-	addPoint : function(pos) {
-		this.x = parseInt(pos.x);
+<span id='Workspace-tools-PolyLineTool-method-addPoint'>	addPoint : function(pos) {
+</span>		this.x = parseInt(pos.x);
 		this.y = parseInt(pos.y);
 
 		this.lastPos = {
@@ -72,14 +72,14 @@ Ext.define('Workspace.tools.PolyLineTool', {
 			path : this.currentPath
 		});
 	},
-	mousedown : function(e, item) {
-		this.dragging = true;
+<span id='Workspace-tools-PolyLineTool-method-mousedown'>	mousedown : function(e, item) {
+</span>		this.dragging = true;
 		var pos = this.snapXY(this.getAdjustedXY(e), this.lastPos);
 		this.mousedownPos = pos;
 		e.stopEvent();
 	},
-	mouseup : function(e, item) {
-		this.dragging = false;
+<span id='Workspace-tools-PolyLineTool-method-mouseup'>	mouseup : function(e, item) {
+</span>		this.dragging = false;
 		var pos = this.snapXY(this.getAdjustedXY(e), this.lastPos);
 		this.mouseupPos = pos;
 		if(this.drawing) {
@@ -91,8 +91,8 @@ Ext.define('Workspace.tools.PolyLineTool', {
 		this.mousedownPos = false;
 		this.mouseupPos = false;
 	},
-	dblclick : function(e, item) {
-
+<span id='Workspace-tools-PolyLineTool-method-dblclick'>	dblclick : function(e, item) {
+</span>
 		this.currentPoints.pop();
 		this.currentPath.pop();
 		this.points.pop();
@@ -104,8 +104,8 @@ Ext.define('Workspace.tools.PolyLineTool', {
 		this.workspace.setSelection([o]);
 		e.stopEvent();
 	},
-	stopDrawing : function() {
-		this.drawing = false;
+<span id='Workspace-tools-PolyLineTool-method-stopDrawing'>	stopDrawing : function() {
+</span>		this.drawing = false;
 		this.dragging = false;
 
 		if(this.currentShape) {
@@ -119,16 +119,16 @@ Ext.define('Workspace.tools.PolyLineTool', {
 		this.points = false;
 
 	},
-	buildObject : function() {
-		return {
+<span id='Workspace-tools-PolyLineTool-method-buildObject'>	buildObject : function() {
+</span>		return {
 			wtype : this.targetWType,
 			points : this.currentPoints,
 			//path: this.currentPath,
 			fillOpacity : 0.1
 		};
 	},
-	mousemove : function(e, item) {
-		if(this.drawing) {
+<span id='Workspace-tools-PolyLineTool-method-mousemove'>	mousemove : function(e, item) {
+</span>		if(this.drawing) {
 			var pos = this.snapXY(this.getAdjustedXY(e), this.lastPos);
 			this.updateDrawing(pos,this.mousedownPos);
 		}
@@ -145,8 +145,8 @@ Ext.define('Workspace.tools.PolyLineTool', {
 			path : this.currentPath
 		});
 	},
-	deactivate : function() {
-		this.stopDrawing();
+<span id='Workspace-tools-PolyLineTool-method-deactivate'>	deactivate : function() {
+</span>		this.stopDrawing();
 		this.callParent(arguments);
 	},
 <span id='Workspace-tools-PolyLineTool-method-snapXY'>	/**

@@ -21,21 +21,21 @@
  */
 Ext.define('App.usr.canvas.Canvas', {
 	extend: 'Ext.panel.Panel',
-	layout: 'border',
-	alias: 'widget.canvas',
-	editorType: 'Whiteboard',
-	iconCls: 'whiteboard',
-	requires: ['App.usr.canvas.Ribbon','App.usr.canvas.ObjectTree','App.usr.nodal.MotifPalette','App.usr.canvas.ObjectProperties',],
-	border: false,
-	mixins: {
+<span id='App-usr-canvas-Canvas-property-layout'>	layout: 'border',
+</span>	alias: 'widget.canvas',
+<span id='App-usr-canvas-Canvas-property-editorType'>	editorType: 'Whiteboard',
+</span><span id='App-usr-canvas-Canvas-property-iconCls'>	iconCls: 'whiteboard',
+</span>	requires: ['App.usr.canvas.Ribbon','App.usr.canvas.ObjectTree','App.usr.nodal.MotifPalette','App.usr.canvas.ObjectProperties',],
+<span id='App-usr-canvas-Canvas-property-border'>	border: false,
+</span>	mixins: {
 		app: 'App.ui.Application'
 	},
-	constructor: function(config) {
-		this.callParent(arguments);
+<span id='App-usr-canvas-Canvas-method-constructor'>	constructor: function(config) {
+</span>		this.callParent(arguments);
 		this.mixins.app.constructor.apply(this,arguments);
 	},
-	initComponent: function(config) {
-
+<span id='App-usr-canvas-Canvas-method-initComponent'>	initComponent: function(config) {
+</span>
 		// set defaults
 		Ext.applyIf(this, {
 			workspaceData: {},

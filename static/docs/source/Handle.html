@@ -24,9 +24,9 @@
  * @param {Object} config
  */
 Ext.define('Workspace.tools.Handle', {
-	forceFront : false,
-	constructor : function(workspace, config) {
-
+<span id='Workspace-tools-Handle-property-forceFront'>	forceFront : false,
+</span><span id='Workspace-tools-Handle-method-constructor'>	constructor : function(workspace, config) {
+</span>
 		// Call Observable Constructor
 		Workspace.tools.Handle.superclass.constructor.call(this);
 
@@ -86,34 +86,34 @@ Ext.define('Workspace.tools.Handle', {
 		highlightable : 'Workspace.tools.Highlightable',
 	},
 	extend : 'Ext.util.Observable',
-	xMax : false,
-	yMax : false,
-	xMin : false,
-	yMin : false,
-	destroy : function() {
-		Ext.get(this.handleShape.node).un('mousedown', this.dragStartHandler, this);
+<span id='Workspace-tools-Handle-property-xMax'>	xMax : false,
+</span><span id='Workspace-tools-Handle-property-yMax'>	yMax : false,
+</span><span id='Workspace-tools-Handle-property-xMin'>	xMin : false,
+</span><span id='Workspace-tools-Handle-property-yMin'>	yMin : false,
+</span><span id='Workspace-tools-Handle-method-destroy'>	destroy : function() {
+</span>		Ext.get(this.handleShape.node).un('mousedown', this.dragStartHandler, this);
 		this.workspace.un('mouseup', this.dragEndHandler, this);
 		this.workspace.un('mousemove', this.dragHandler, this);
 		this.handleShape.remove();
 		delete this.handleShape;
 	},
-	getAdjustedXY : function(e) {
-		return Workspace.tools.BaseTool.prototype.getAdjustedXY.call(this, e);
+<span id='Workspace-tools-Handle-method-getAdjustedXY'>	getAdjustedXY : function(e) {
+</span>		return Workspace.tools.BaseTool.prototype.getAdjustedXY.call(this, e);
 	},
-	getAdjustedXYcoords : function(x, y) {
-		return Workspace.tools.BaseTool.prototype.getAdjustedXYcoords.apply(this, arguments);
+<span id='Workspace-tools-Handle-method-getAdjustedXYcoords'>	getAdjustedXYcoords : function(x, y) {
+</span>		return Workspace.tools.BaseTool.prototype.getAdjustedXYcoords.apply(this, arguments);
 	},
-	getPosition : function() {
-		return {
+<span id='Workspace-tools-Handle-method-getPosition'>	getPosition : function() {
+</span>		return {
 			x : this.x,
 			y : this.y
 		};
 	},
-	antiAlias : function(v) {
-		return Math.round(v) + 0.5;
+<span id='Workspace-tools-Handle-method-antiAlias'>	antiAlias : function(v) {
+</span>		return Math.round(v) + 0.5;
 	},
-	setPosition : function(x, y) {
-		this.x = x;
+<span id='Workspace-tools-Handle-method-setPosition'>	setPosition : function(x, y) {
+</span>		this.x = x;
 		this.y = y;
 		if(this.handleShape) {
 			this.handleShape.attr({
@@ -122,14 +122,14 @@ Ext.define('Workspace.tools.Handle', {
 			});
 		}
 	},
-	accept : function() {
-		return false;
+<span id='Workspace-tools-Handle-method-accept'>	accept : function() {
+</span>		return false;
 	},
-	toFront : function() {
-		if (this.handleShape) this.handleShape.toFront();
+<span id='Workspace-tools-Handle-method-toFront'>	toFront : function() {
+</span>		if (this.handleShape) this.handleShape.toFront();
 	},
-	dragStartHandler : function(e) {
-		this.dragging = true;
+<span id='Workspace-tools-Handle-method-dragStartHandler'>	dragStartHandler : function(e) {
+</span>		this.dragging = true;
 		var pos = this.getAdjustedXY(e);
 
 		// remember initial position to calculate delta x/y
@@ -143,8 +143,8 @@ Ext.define('Workspace.tools.Handle', {
 		this.workspace.on('mouseout', this.mouseout, this);
 		e.stopEvent();
 	},
-	dragHandler : function(e) {
-		if(this.dragging) {
+<span id='Workspace-tools-Handle-method-dragHandler'>	dragHandler : function(e) {
+</span>		if(this.dragging) {
 			/* calculate mouse delta to avoid strange snapping when user doesn't click on the
 			 * center of the handle
 			 */
@@ -165,14 +165,14 @@ Ext.define('Workspace.tools.Handle', {
 			}
 		}
 	},
-	snap : function(pos,e) {
-		if(e.hasModifier()) {
+<span id='Workspace-tools-Handle-method-snap'>	snap : function(pos,e) {
+</span>		if(e.hasModifier()) {
 			
 		}
 		return pos;
 	},
-	dragEndHandler : function(e) {
-		if(this.dragging) {
+<span id='Workspace-tools-Handle-method-dragEndHandler'>	dragEndHandler : function(e) {
+</span>		if(this.dragging) {
 			this.dragging = false;
 
 			// ignore subsequent mouseover/out events
@@ -181,8 +181,8 @@ Ext.define('Workspace.tools.Handle', {
 			this.fireEvent('dragend');
 		}
 	},
-	bounds : function(v, max, min) {
-		return Workspace.Utils.bounds(v, min, max);
+<span id='Workspace-tools-Handle-method-bounds'>	bounds : function(v, max, min) {
+</span>		return Workspace.Utils.bounds(v, min, max);
 	}
 });
 </pre>

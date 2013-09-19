@@ -15,14 +15,17 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('App.usr.nodal.NodeInspector', {
+  <pre class="prettyprint lang-js"><span id='App-usr-nodal-NodeInspector'>/**
+</span> * Displays a graphical preview of a node when the node is selected in the canvas interface
+ */
+Ext.define('App.usr.nodal.NodeInspector', {
 	requires : ['App.usr.nodal.StrandPreview'],
 	extend : 'Ext.form.Panel',
-	title : 'Node',
-	bodyPadding : 5,
-	enableBoundFields : true,
-	initComponent : function() {
-		var me = this;
+<span id='App-usr-nodal-NodeInspector-property-title'>	title : 'Node',
+</span><span id='App-usr-nodal-NodeInspector-property-bodyPadding'>	bodyPadding : 5,
+</span><span id='App-usr-nodal-NodeInspector-property-enableBoundFields'>	enableBoundFields : true,
+</span><span id='App-usr-nodal-NodeInspector-method-initComponent'>	initComponent : function() {
+</span>		var me = this;
 
 		Ext.apply(this, {
 			defaults : {
@@ -118,8 +121,8 @@
 		this.callParent(arguments);
 		this.mixins.boundObjectPanel.initialize.apply(this, arguments);
 	},
-	getBoundObject: function () {
-		return this.boundObjects.getAt(0);
+<span id='App-usr-nodal-NodeInspector-method-getBoundObject'>	getBoundObject: function () {
+</span>		return this.boundObjects.getAt(0);
 	},
 	mixins : {
 		boundObjectPanel : 'App.ui.BoundObjectPanel'

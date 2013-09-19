@@ -15,11 +15,15 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('Complex', {
+  <pre class="prettyprint lang-js"><span id='App-usr-dil-Complex'>/**
+</span> * @class
+ * Record defining a complex. Use with App.usr.dil.ComplexStore
+ */
+Ext.define('App.usr.dil.Complex', {
 	extend: 'Ext.data.Model',
 	requires: ['App.usr.dil.StrandStore','App.usr.dil.SegmentStore'],
-	fields: [{
-		name: 'id',
+<span id='App-usr-dil-Complex-property-fields'>	fields: [{
+</span>		name: 'id',
 		type: 'int'
 	}, {
 		name: 'name'
@@ -37,21 +41,21 @@
 	}, {
 		name: 'structure'
 	}, ],
-	idgen: 'sequential',
-	getDynaml: function(lib) {
-		return lib.getNode(this.get('name'));
+<span id='App-usr-dil-Complex-property-idgen'>	idgen: 'sequential',
+</span><span id='App-usr-dil-Complex-method-getDynaml'>	getDynaml: function(lib) {
+</span>		return lib.getNode(this.get('name'));
 	},
-	getStrands: function() {
-		return this.get('strands');
+<span id='App-usr-dil-Complex-method-getStrands'>	getStrands: function() {
+</span>		return this.get('strands');
 	},
-	getStructures: function() {
-		var structures = this.get('structure') || '';
+<span id='App-usr-dil-Complex-method-getStructures'>	getStructures: function() {
+</span>		var structures = this.get('structure') || '';
 		return  _.map(structures.split('+'), function(s) {
 			return s.trim();
 		});
 	},
-	fixStructure: function(strandIndex,added,removed) {
-		var structures = this.getStructures(),
+<span id='App-usr-dil-Complex-method-fixStructure'>	fixStructure: function(strandIndex,added,removed) {
+</span>		var structures = this.getStructures(),
 			struct = structures[strandIndex];
 		if(struct) {
 			struct = struct.split('');
@@ -67,17 +71,17 @@
 			this.set('structure',structures.join('+'));
 		}
 	},
-	proxy: 'memory',
-});
+<span id='App-usr-dil-Complex-property-proxy'>	proxy: 'memory',
+</span>});
 
 <span id='App-usr-dil-ComplexStore'>/**
 </span> * Store representing a collection of {@link App.dynamic.Complex DyNAML complexes}.
  */
 Ext.define('App.usr.dil.ComplexStore', {
 	extend: 'Ext.data.Store',
-	model: 'Complex',
-	constructor: function() {
-		this.callParent(arguments);
+<span id='App-usr-dil-ComplexStore-property-model'>	model: 'App.usr.dil.Complex',
+</span><span id='App-usr-dil-ComplexStore-method-constructor'>	constructor: function() {
+</span>		this.callParent(arguments);
 		if(this.strandStore) {
 			this.strandStore.on('update', function(segmentStore, rec, op, modifiedFieldNames) {
 				if(modifiedFieldNames.indexOf('sequence') != -1 || modifiedFieldNames.indexOf('spec') != -1) {
@@ -86,8 +90,9 @@ Ext.define('App.usr.dil.ComplexStore', {
 			}, this);
 		}
 	},
-	updateComplexes: function(changedStrand) {
-		var strandSpecs = {},
+
+<span id='App-usr-dil-ComplexStore-method-updateComplexes'>	updateComplexes: function(changedStrand) {
+</span>		var strandSpecs = {},
 			strandSeqs = {},
 			strands = this.strandStore.getRange(),
 			complexes = this.getRange();
@@ -125,6 +130,11 @@ Ext.define('App.usr.dil.ComplexStore', {
 			complex.endEdit();
 		}
 	},
+
+<span id='App-usr-dil-ComplexStore-method-addComplex'>	/**
+</span>	 * Adds a new complex to this store, automatically naming it
+	 * @return {App.usr.dil.Complex} The newly added complex
+	 */
 	addComplex: function() {
 		var name = _.max(_.map(this.getRange(), function(rec) {
 			var k = rec.get('name').match(/\d+/g);

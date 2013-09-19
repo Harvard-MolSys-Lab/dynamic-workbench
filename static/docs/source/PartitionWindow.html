@@ -20,13 +20,13 @@
  */
 Ext.define('App.ui.nupack.PartitionWindow',{
 	extend:'App.ui.sequence.AnalysisWindow',
-	title: &quot;NUPACK Partition Calculator&quot;,
-	url: 'http://www.nupack.org/partition/new',
-	cite: 'zadeh_etal_2011',
-	iconCls: 'nupack-icon',
-	height: 500,
-	getForm: function() {
-		return {
+<span id='App-ui-nupack-PartitionWindow-property-title'>	title: &quot;NUPACK Partition Calculator&quot;,
+</span><span id='App-ui-nupack-PartitionWindow-property-url'>	url: 'http://www.nupack.org/partition/new',
+</span><span id='App-ui-nupack-PartitionWindow-property-cite'>	cite: 'zadeh_etal_2011',
+</span><span id='App-ui-nupack-PartitionWindow-property-iconCls'>	iconCls: 'nupack-icon',
+</span><span id='App-ui-nupack-PartitionWindow-property-height'>	height: 500,
+</span><span id='App-ui-nupack-PartitionWindow-method-getForm'>	getForm: function() {
+</span>		return {
 			items: [{
 				fieldLabel: 'Nucleic Acid',
 				name      : 'partition_job[nucleic_acid_type]',
@@ -175,8 +175,8 @@ Ext.define('App.ui.nupack.PartitionWindow',{
 		}
 	},
 
-	getParams: function(start_index,end_index) {
-		start_index || (start_index = 0);
+<span id='App-ui-nupack-PartitionWindow-method-getParams'>	getParams: function(start_index,end_index) {
+</span>		start_index || (start_index = 0);
 		end_index || (end_index = null);
 		
 		var strands = this.getStrands();

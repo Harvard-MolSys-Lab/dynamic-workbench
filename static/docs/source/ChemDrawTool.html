@@ -28,24 +28,24 @@
  * @param {Object} config
  */
 Ext.define('Workspace.tools.ChemDrawTool', {
-	constructor: function(workspace, config) {
-		Workspace.tools.CodeMirrorTool.superclass.constructor.call(this, workspace, config);
+<span id='Workspace-tools-ChemDrawTool-method-constructor'>	constructor: function(workspace, config) {
+</span>		Workspace.tools.CodeMirrorTool.superclass.constructor.call(this, workspace, config);
 	},
 	extend: 'Workspace.tools.BaseTool',
-	click: function(e, item) {
-
+<span id='Workspace-tools-ChemDrawTool-method-click'>	click: function(e, item) {
+</span>
 	},
-	dblclick: function(e, item) {
-
+<span id='Workspace-tools-ChemDrawTool-method-dblclick'>	dblclick: function(e, item) {
+</span>
 	},
-	mousedown: function(e, item) {
-
+<span id='Workspace-tools-ChemDrawTool-method-mousedown'>	mousedown: function(e, item) {
+</span>
 	},
-	mouseup: function(e, item) {
-
+<span id='Workspace-tools-ChemDrawTool-method-mouseup'>	mouseup: function(e, item) {
+</span>
 	},
-	mousemove: function(e, item) {
-
+<span id='Workspace-tools-ChemDrawTool-method-mousemove'>	mousemove: function(e, item) {
+</span>
 	},
 <span id='Workspace-tools-ChemDrawTool-method-attach'>	/**
 </span>	 * attach
@@ -82,11 +82,11 @@ Ext.define('Workspace.tools.ChemDrawTool', {
 			this.item = false;
 		}
 	},
-	activate: function() {
-		this.callParent(arguments);
+<span id='Workspace-tools-ChemDrawTool-method-activate'>	activate: function() {
+</span>		this.callParent(arguments);
 	},
-	deactivate: function() {
-		this.callParent(arguments);
+<span id='Workspace-tools-ChemDrawTool-method-deactivate'>	deactivate: function() {
+</span>		this.callParent(arguments);
 		this.detach();
 	}
 }, function() {

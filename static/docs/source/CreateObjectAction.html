@@ -35,19 +35,19 @@ Ext.define('Workspace.actions.CreateObjectAction', {
 			scope: this
 		})
 	},
-	wtype: 'CreateObjectAction',
-	handler: function() {
-		this.workspace.createObjects(this.objects);
+<span id='Workspace-actions-CreateObjectAction-property-wtype'>	wtype: 'CreateObjectAction',
+</span><span id='Workspace-actions-CreateObjectAction-method-handler'>	handler: function() {
+</span>		this.workspace.createObjects(this.objects);
 	},
-	getUndo: function() {
-		return new Workspace.actions.DeleteObjectAction({
+<span id='Workspace-actions-CreateObjectAction-method-getUndo'>	getUndo: function() {
+</span>		return new Workspace.actions.DeleteObjectAction({
 			subjects: this.subjects.concat([]),
 			text: 'Undo &quot;' + this.text + '&quot;',
 			iconCls: this.iconCls
 		});
 	},
-	serialize: function() {
-		return {
+<span id='Workspace-actions-CreateObjectAction-method-serialize'>	serialize: function() {
+</span>		return {
 			wtype: this.wtype,
 			objects: Workspace.Components.serialize(this.subjects),
 		}

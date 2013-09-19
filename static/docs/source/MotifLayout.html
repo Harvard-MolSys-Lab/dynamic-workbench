@@ -20,8 +20,8 @@
  */
 Ext.define('App.usr.nodal.ws.objects.MotifLayout', {
 	extend : 'Workspace.idea.BaseLayout',
-	doLayout : function() {
-		if(!this.ignore) {
+<span id='App-usr-nodal-ws-objects-MotifLayout-method-doLayout'>	doLayout : function() {
+</span>		if(!this.ignore) {
 			var objects = this.getObjects().getRange();
 			var groups = _.groupBy(objects, function(child) {
 				if(child.hasWType(['App.usr.nodal.ws.objects.InputPort', 'App.usr.nodal.ws.objects.OutputPort', 'App.usr.nodal.ws.objects.BridgePort'])) {
@@ -68,10 +68,10 @@ Ext.define('App.usr.nodal.ws.objects.MotifLayout', {
 			}
 		}
 	},
-	childrenMovable : false,
-	paddingTop : 5,
-	paddingLeft : 5,
-}, function() {
+<span id='App-usr-nodal-ws-objects-MotifLayout-property-childrenMovable'>	childrenMovable : false,
+</span><span id='App-usr-nodal-ws-objects-MotifLayout-property-paddingTop'>	paddingTop : 5,
+</span><span id='App-usr-nodal-ws-objects-MotifLayout-property-paddingLeft'>	paddingLeft : 5,
+</span>}, function() {
 	Workspace.Layouts.register('App.usr.nodal.ws.objects.MotifLayout', App.usr.nodal.ws.objects.MotifLayout);
 	Workspace.Layouts.register('Workspace.objects.dna.MotifLayout', App.usr.nodal.ws.objects.MotifLayout);
 });

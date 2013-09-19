@@ -38,9 +38,9 @@ Ext.define('Workspace.actions.UnwrapObjectsAction', {
 			scope: this
 		})
 	},
-	wtype: 'UnwrapIdeaAction',
-	handler: function() {
-		Ext.each(this.subjects, function(obj) {
+<span id='Workspace-actions-UnwrapObjectsAction-property-wtype'>	wtype: 'UnwrapIdeaAction',
+</span><span id='Workspace-actions-UnwrapObjectsAction-method-handler'>	handler: function() {
+</span>		Ext.each(this.subjects, function(obj) {
 			var children = obj.getChildren();
 			_.each(children,function(child) {
 				child.orphan();
@@ -48,16 +48,16 @@ Ext.define('Workspace.actions.UnwrapObjectsAction', {
 		});
 		this.workspace.deleteObjects(this.subjects);
 	},
-	getUndo: function() {
-		// TODO: fix this
+<span id='Workspace-actions-UnwrapObjectsAction-method-getUndo'>	getUndo: function() {
+</span>		// TODO: fix this
 		return new Workspace.actions.AdoptObjectAction({
 			objects: this.subjects.concat([]),
 			text: 'Undo &quot;' + this.text + '&quot;',
 			iconCls: this.iconCls
 		});
 	},
-	serialize: function() {
-		return {
+<span id='Workspace-actions-UnwrapObjectsAction-method-serialize'>	serialize: function() {
+</span>		return {
 			wtype: this.wtype,
 			subjects: Workspace.Components.serialize(this.subjects)
 		}

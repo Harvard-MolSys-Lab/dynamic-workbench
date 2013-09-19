@@ -16,8 +16,8 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js">////////////////////////////////////////////////////////////////////////////////////////////////
-/*
- * @class Workspace.objects.IFrameObject
+<span id='Workspace-objects-IFrameObject'>/**
+</span> * @class Workspace.objects.IFrameObject
  * Represents a workspace object containing an iframe
  * @extends Workspace.objects.ElementObject
  */
@@ -44,12 +44,12 @@ Ext.define('Workspace.objects.IFrameObject', {
 	iconCls: 'iframe-icon',
 	width: 300,
 	height: 400,
-<span id='global-cfg-padding'>	/**
+<span id='Workspace-objects-IFrameObject-cfg-padding'>	/**
 </span>	 * @cfg {Number} padding
 	 * Amount to pad the iframe element (to allow this object to be dragged from iframe edges)
 	 */
 	padding: 2,
-<span id='global-cfg-url'>	/**
+<span id='Workspace-objects-IFrameObject-cfg-url'>	/**
 </span>	 * @cfg {String} url
 	 */
 	url: '',
@@ -66,7 +66,7 @@ Ext.define('Workspace.objects.IFrameObject', {
 		// apply &quot;padding&quot; to this element so that iframe can be dragged
 		this.getIFrameEl().setLeftTop(this.padding, this.padding);
 	},
-<span id='global-method-getFullUrl'>	/**
+<span id='Workspace-objects-IFrameObject-method-getFullUrl'>	/**
 </span>	 * getFullUrl
 	 * Allows descendent classes to implement URL filtering
 	 * @abstract
@@ -83,7 +83,7 @@ Ext.define('Workspace.objects.IFrameObject', {
 			src: value
 		});
 	},
-<span id='global-method-getIFrameEl'>	/**
+<span id='Workspace-objects-IFrameObject-method-getIFrameEl'>	/**
 </span>	 * getImageEl
 	 * Returns the DOM iframe element
 	 * @return {Ext.Element}

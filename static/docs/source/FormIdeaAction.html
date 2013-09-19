@@ -33,24 +33,24 @@ Ext.define('Workspace.actions.FormIdeaAction', {
 			ideaConfig: {}
 		})
 	},
-	wtype: 'FormIdeaAction',
-	handler: function() {
-		Ext.apply(this.ideaConfig, {
+<span id='Workspace-actions-FormIdeaAction-property-wtype'>	wtype: 'FormIdeaAction',
+</span><span id='Workspace-actions-FormIdeaAction-method-handler'>	handler: function() {
+</span>		Ext.apply(this.ideaConfig, {
 			children: this.subjects,
 			wtype: 'Workspace.IdeaObject'
 		});
 		var parent = this.workspace.createObject(this.ideaConfig);
 
 	},
-	getUndo: function() {
-		return new Workspace.actions.OrphanObjectAction({
+<span id='Workspace-actions-FormIdeaAction-method-getUndo'>	getUndo: function() {
+</span>		return new Workspace.actions.OrphanObjectAction({
 			objects: this.subjects.concat([]),
 			text: 'Undo &quot;' + this.text + '&quot;',
 			iconCls: this.iconCls
 		});
 	},
-	serialize: function() {
-		return {
+<span id='Workspace-actions-FormIdeaAction-method-serialize'>	serialize: function() {
+</span>		return {
 			wtype: this.wtype,
 			subjects: Workspace.Components.serialize(this.subjects)
 		}

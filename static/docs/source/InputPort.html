@@ -23,26 +23,26 @@ Ext.define('App.usr.nodal.ws.objects.InputPort', {
 	mixins: {
 		port: 'App.usr.nodal.ws.objects.NodePort'
 	},
-	constructor: function() {
-		this.callParent(arguments);
+<span id='App-usr-nodal-ws-objects-InputPort-method-constructor'>	constructor: function() {
+</span>		this.callParent(arguments);
 		this.mixins.port.constructor.apply(this,arguments);
 	},
-	wtype: 'App.usr.nodal.ws.objects.InputPort',
-	role: 'input',
-	width: 12,
-	height: 12,
-	polarity: 1,
-	//shape: 'triangle',
-	//dtheta: 30,
+<span id='App-usr-nodal-ws-objects-InputPort-property-wtype'>	wtype: 'App.usr.nodal.ws.objects.InputPort',
+</span><span id='App-usr-nodal-ws-objects-InputPort-property-role'>	role: 'input',
+</span><span id='App-usr-nodal-ws-objects-InputPort-cfg-width'>	width: 12,
+</span><span id='App-usr-nodal-ws-objects-InputPort-cfg-height'>	height: 12,
+</span><span id='App-usr-nodal-ws-objects-InputPort-property-polarity'>	polarity: 1,
+</span><span id='App-usr-nodal-ws-objects-InputPort-cfg-shape'>	//shape: 'triangle',
+</span>	//dtheta: 30,
 	shape: 'triangle2',
-	dtheta: 0,
-
-	stroke: 'orange',
-	strokeWidth: 2,
-	name: 'Input Port',
-	path: false,
-	render: function() {
-		this.arguments = [this.get('x') + this.getRadiusX(), this.get('y') + this.getRadiusY(), this.getRadiusX()]; //, this.getRadiusY()];
+<span id='App-usr-nodal-ws-objects-InputPort-property-dtheta'>	dtheta: 0,
+</span>
+<span id='App-usr-nodal-ws-objects-InputPort-cfg-stroke'>	stroke: 'orange',
+</span><span id='App-usr-nodal-ws-objects-InputPort-property-strokeWidth'>	strokeWidth: 2,
+</span><span id='App-usr-nodal-ws-objects-InputPort-cfg-name'>	name: 'Input Port',
+</span><span id='App-usr-nodal-ws-objects-InputPort-property-path'>	path: false,
+</span><span id='App-usr-nodal-ws-objects-InputPort-method-render'>	render: function() {
+</span>		this.arguments = [this.get('x') + this.getRadiusX(), this.get('y') + this.getRadiusY(), this.getRadiusX()]; //, this.getRadiusY()];
 		Workspace.objects.Path.superclass.render.call(this);
 		this.path = this.vectorElement.attr('path');
 		this.updateDimensions();

@@ -24,29 +24,29 @@
  * @param {Object} config
  */
 Ext.define('Workspace.tools.MathQuillTool', {
-	constructor: function(workspace, config) {
-		Workspace.tools.MathQuillTool.superclass.constructor.call(this, workspace, config);
+<span id='Workspace-tools-MathQuillTool-method-constructor'>	constructor: function(workspace, config) {
+</span>		Workspace.tools.MathQuillTool.superclass.constructor.call(this, workspace, config);
 	},
 	extend: 'Workspace.tools.BaseTool',
-	click: function(e, item) {
-
+<span id='Workspace-tools-MathQuillTool-method-click'>	click: function(e, item) {
+</span>
 	},
-	dblclick: function(e, item) {
-		if (!item || (item &amp;&amp; item.getId &amp;&amp; item.getId() != this.item.getId())) {
+<span id='Workspace-tools-MathQuillTool-method-dblclick'>	dblclick: function(e, item) {
+</span>		if (!item || (item &amp;&amp; item.getId &amp;&amp; item.getId() != this.item.getId())) {
 			this.workspace.endEdit();
 		}
 	},
-	mousedown: function(e, item) {
-
+<span id='Workspace-tools-MathQuillTool-method-mousedown'>	mousedown: function(e, item) {
+</span>
 	},
-	mouseup: function(e, item) {
-
+<span id='Workspace-tools-MathQuillTool-method-mouseup'>	mouseup: function(e, item) {
+</span>
 	},
-	mousemove: function(e, item) {
-
+<span id='Workspace-tools-MathQuillTool-method-mousemove'>	mousemove: function(e, item) {
+</span>
 	},
-	attach: function(item) {
-		if (item &amp;&amp; item.element) {
+<span id='Workspace-tools-MathQuillTool-method-attach'>	attach: function(item) {
+</span>		if (item &amp;&amp; item.element) {
 			// save reference to the attached item and the Aloha.Editable object
 			this.item = item;
 			this.item.activate();
@@ -54,8 +54,8 @@ Ext.define('Workspace.tools.MathQuillTool', {
 		}
 		return false;
 	},
-	detach: function() {
-		if (this.item) {
+<span id='Workspace-tools-MathQuillTool-method-detach'>	detach: function() {
+</span>		if (this.item) {
 			this.item.deactivate();
 
 			// rebuild events because somehow between aloha and contentEditable they usually get clobbered
@@ -65,11 +65,11 @@ Ext.define('Workspace.tools.MathQuillTool', {
 			this.item = false;
 		}
 	},
-	activate: function() {
-		Workspace.tools.MathQuillTool.superclass.activate.call(this);
+<span id='Workspace-tools-MathQuillTool-method-activate'>	activate: function() {
+</span>		Workspace.tools.MathQuillTool.superclass.activate.call(this);
 	},
-	deactivate: function() {
-		Workspace.tools.MathQuillTool.superclass.deactivate.call(this);
+<span id='Workspace-tools-MathQuillTool-method-deactivate'>	deactivate: function() {
+</span>		Workspace.tools.MathQuillTool.superclass.deactivate.call(this);
 		this.detach();
 	}
 }, function() {

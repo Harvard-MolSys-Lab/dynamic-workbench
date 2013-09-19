@@ -28,18 +28,18 @@
 Ext.define('Workspace.Scoller', {
 	alias: 'WorkspaceScroller',
 	extend: 'Ext.util.Observable',
-	constructor: function(cfg) {
-		WorkspaceScroller.superclass.constructor.apply(this, arguments);
+<span id='Workspace-Scoller-method-constructor'>	constructor: function(cfg) {
+</span>		WorkspaceScroller.superclass.constructor.apply(this, arguments);
 		Ext.apply(this, cfg);
 	},
-	side: 'top',
-	threshold: 20,
-	delay: 1500,
-	velocity: 20,
-	animate: true,
-	interval: 100,
-	render: function() {
-		this.element = Ext.get(Ext.core.DomHelper.append(document.body, {
+<span id='Workspace-Scoller-property-side'>	side: 'top',
+</span><span id='Workspace-Scoller-property-threshold'>	threshold: 20,
+</span><span id='Workspace-Scoller-property-delay'>	delay: 1500,
+</span><span id='Workspace-Scoller-property-velocity'>	velocity: 20,
+</span><span id='Workspace-Scoller-property-animate'>	animate: true,
+</span><span id='Workspace-Scoller-property-interval'>	interval: 100,
+</span><span id='Workspace-Scoller-method-render'>	render: function() {
+</span>		this.element = Ext.get(Ext.core.DomHelper.append(document.body, {
 			tagName: 'div',
 			cls: 'scroller'
 		}));
@@ -50,8 +50,8 @@ Ext.define('Workspace.Scoller', {
 		this.onResize();
 		this.workspace.on('bodyresize', this.onResize, this);
 	},
-	onResize: function() {
-		var el = this.workspace.getContainerEl();
+<span id='Workspace-Scoller-method-onResize'>	onResize: function() {
+</span>		var el = this.workspace.getContainerEl();
 		switch (this.side) {
 			case 'top':
 				this.element.setWidth(el.getWidth());
@@ -75,12 +75,12 @@ Ext.define('Workspace.Scoller', {
 				break;
 		}
 	},
-	mouseover: function() {
-		this.delayTask = new Ext.util.DelayedTask(this.startScroll, this);
+<span id='Workspace-Scoller-method-mouseover'>	mouseover: function() {
+</span>		this.delayTask = new Ext.util.DelayedTask(this.startScroll, this);
 		this.delayTask.delay(this.delay);
 	},
-	startScroll: function() {
-		this.scrollTask = {
+<span id='Workspace-Scoller-method-startScroll'>	startScroll: function() {
+</span>		this.scrollTask = {
 			run: this.doScroll,
 			scope: this,
 			interval: this.interval
@@ -88,12 +88,12 @@ Ext.define('Workspace.Scoller', {
 		this.scrollRunner = new Ext.util.TaskRunner();
 		this.scrollRunner.start(this.scrollTask);
 	},
-	doScroll: function() {
-		var scrolled = this.workspace.getEl().scroll(this.side, this.velocity, this.animate);
+<span id='Workspace-Scoller-method-doScroll'>	doScroll: function() {
+</span>		var scrolled = this.workspace.getEl().scroll(this.side, this.velocity, this.animate);
 		// if not scrolled, expand workspace
 	},
-	mouseout: function() {
-		if (this.delayTask) {
+<span id='Workspace-Scoller-method-mouseout'>	mouseout: function() {
+</span>		if (this.delayTask) {
 			this.delayTask.cancel();
 			delete this.delayTask;
 		}
@@ -101,8 +101,8 @@ Ext.define('Workspace.Scoller', {
 			this.scrollRunner.stopAll();
 		}
 	},
-	getEl: function() {
-		return this.element;
+<span id='Workspace-Scoller-method-getEl'>	getEl: function() {
+</span>		return this.element;
 	}
 });</pre>
 </body>

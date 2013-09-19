@@ -20,10 +20,10 @@
  */
 Ext.define('App.usr.nupack.Editor', {
 	extend: 'App.usr.text.Editor',
-	iconCls:'nupack',
-	editorType: 'NUPACK',
-	mode: 'nupack',
-	alias: 'widget.nupack',
+<span id='App-usr-nupack-Editor-property-iconCls'>	iconCls:'nupack',
+</span><span id='App-usr-nupack-Editor-property-editorType'>	editorType: 'NUPACK',
+</span><span id='App-usr-nupack-Editor-cfg-mode'>	mode: 'nupack',
+</span>	alias: 'widget.nupack',
 	requires: ['App.ui.SequenceThreader','App.ui.NupackMenu'],
 <span id='App-usr-nupack-Editor-cfg-showNupackButton'>	/**
 </span>	 * @cfg
@@ -52,10 +52,10 @@ Ext.define('App.usr.nupack.Editor', {
 	 * Display citation bar
 	 */
 	showCite: true,
-	cite: 'zadeh_etal_2011',
-	
-	initComponent: function() {
-		if(this.multisubjective) {
+<span id='App-usr-nupack-Editor-property-cite'>	cite: 'zadeh_etal_2011',
+</span>	
+<span id='App-usr-nupack-Editor-method-initComponent'>	initComponent: function() {
+</span>		if(this.multisubjective) {
 			this.mode = {
 				name: 'nupack',
 				multisubjective: true,
@@ -141,8 +141,8 @@ Ext.define('App.usr.nupack.Editor', {
 		this.editor.on('cursorchange',this.updateStatusBar,this,{buffer: 500});
 		this.editor.on('cursorchange',this.updateHelp,this)
 	},
-	updateStatusBar: function() {
-		var sel = this.getSelection(),
+<span id='App-usr-nupack-Editor-method-updateStatusBar'>	updateStatusBar: function() {
+</span>		var sel = this.getSelection(),
 			selRange = this.getCursorRange();
 			
 		if(selRange[0].line != selRange[1].line || selRange[0].ch != selRange[1].ch) {
@@ -153,8 +153,8 @@ Ext.define('App.usr.nupack.Editor', {
 			this.colNo.setText('Col:' + selRange[0].ch);
 		}
 	},
-	updateHelp: function() {
-		// var selRange = this.getCursorRange();
+<span id='App-usr-nupack-Editor-method-updateHelp'>	updateHelp: function() {
+</span>		// var selRange = this.getCursorRange();
 		// var tokens = [];
 		// var pos = selRange[0];
 // 		
@@ -170,8 +170,8 @@ Ext.define('App.usr.nupack.Editor', {
 // 		
 		
 	},
-	populateDesignWindow: function(menu,designWindow) {
-		designWindow.updateDesign(this.getValue());
+<span id='App-usr-nupack-Editor-method-populateDesignWindow'>	populateDesignWindow: function(menu,designWindow) {
+</span>		designWindow.updateDesign(this.getValue());
 	},
 <span id='App-usr-nupack-Editor-method-threadStrands'>	/**
 </span>	 * Opens a {@link App.ui.SequenceThreader sequence threader}, allowing the 

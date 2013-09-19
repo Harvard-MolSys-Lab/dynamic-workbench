@@ -22,24 +22,24 @@
  * @extends Workspace.objects.VectorObject
  */
 Ext.define('Workspace.objects.Ellipse', {
-	constructor: function(workspace, config) {
-		Workspace.objects.Ellipse.superclass.constructor.call(this, workspace, config);
+<span id='Workspace-objects-Ellipse-method-constructor'>	constructor: function(workspace, config) {
+</span>		Workspace.objects.Ellipse.superclass.constructor.call(this, workspace, config);
 
 	},
 	extend: 'Workspace.objects.VectorObject',
 	alias: 'Workspace.VectorEllipseObject',
-	wtype: 'Workspace.objects.Ellipse',
-	name: 'New Ellipse',
-	iconCls: 'ellipse',
-	shape: 'ellipse',
-	isResizable: true,
-	x: 0,
-	y: 0,
-	width: 0,
-	height: 0,
-
-	render: function() {
-		this.arguments = [this.get('x') + this.getRadiusX(), this.get('y') + this.getRadiusY(), this.getRadiusX(), this.getRadiusY()];
+<span id='Workspace-objects-Ellipse-property-wtype'>	wtype: 'Workspace.objects.Ellipse',
+</span><span id='Workspace-objects-Ellipse-cfg-name'>	name: 'New Ellipse',
+</span><span id='Workspace-objects-Ellipse-property-iconCls'>	iconCls: 'ellipse',
+</span><span id='Workspace-objects-Ellipse-cfg-shape'>	shape: 'ellipse',
+</span><span id='Workspace-objects-Ellipse-property-isResizable'>	isResizable: true,
+</span><span id='Workspace-objects-Ellipse-cfg-x'>	x: 0,
+</span><span id='Workspace-objects-Ellipse-cfg-y'>	y: 0,
+</span><span id='Workspace-objects-Ellipse-cfg-width'>	width: 0,
+</span><span id='Workspace-objects-Ellipse-cfg-height'>	height: 0,
+</span>
+<span id='Workspace-objects-Ellipse-method-render'>	render: function() {
+</span>		this.arguments = [this.get('x') + this.getRadiusX(), this.get('y') + this.getRadiusY(), this.getRadiusX(), this.getRadiusY()];
 		//[(this.x-(this.width/2)),(this.y-(this.height/2)),(this.width/2),(this.height/2)];
 		Workspace.objects.Ellipse.superclass.render.call(this);
 	},
@@ -71,26 +71,26 @@ Ext.define('Workspace.objects.Ellipse', {
 	getCenterY: function() {
 		return (this.getY() + this.getRadiusY());
 	},
-	updateX: function(x) {
-		Workspace.objects.VectorObject.superclass.updateX.apply(this, arguments);
+<span id='Workspace-objects-Ellipse-method-updateX'>	updateX: function(x) {
+</span>		Workspace.objects.VectorObject.superclass.updateX.apply(this, arguments);
 		this.vectorElement.attr({
 			cx: x + this.getRadiusX()
 		})
 	},
-	updateY: function(y) {
-		Workspace.objects.VectorObject.superclass.updateY.apply(this, arguments);
+<span id='Workspace-objects-Ellipse-method-updateY'>	updateY: function(y) {
+</span>		Workspace.objects.VectorObject.superclass.updateY.apply(this, arguments);
 		this.vectorElement.attr({
 			cy: y + this.getRadiusY()
 		})
 	},
-	updateWidth: function(w) {
-		this.vectorElement.attr({
+<span id='Workspace-objects-Ellipse-method-updateWidth'>	updateWidth: function(w) {
+</span>		this.vectorElement.attr({
 			rx: this.getRadiusX()
 		});
 		this.updateX(this.getX());
 	},
-	updateHeight: function(w) {
-		this.vectorElement.attr({
+<span id='Workspace-objects-Ellipse-method-updateHeight'>	updateHeight: function(w) {
+</span>		this.vectorElement.attr({
 			ry: this.getRadiusY()
 		})
 		this.updateY(this.getY());

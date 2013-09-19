@@ -35,9 +35,9 @@ Ext.define('Workspace.actions.AdoptObjectAction', {
 			scope: this
 		})
 	},
-	wtype: 'AdoptObjectAction',
-	handler: function() {
-		Ext.each(this.subjects, function(obj) {
+<span id='Workspace-actions-AdoptObjectAction-property-wtype'>	wtype: 'AdoptObjectAction',
+</span><span id='Workspace-actions-AdoptObjectAction-method-handler'>	handler: function() {
+</span>		Ext.each(this.subjects, function(obj) {
 			this.parent.adopt(obj)
 		},
 		this);
@@ -45,15 +45,15 @@ Ext.define('Workspace.actions.AdoptObjectAction', {
 			this.parent.adjustSize()
 		}
 	},
-	getUndo: function() {
-		return new Workspace.actions.OrphanObjectAction({
+<span id='Workspace-actions-AdoptObjectAction-method-getUndo'>	getUndo: function() {
+</span>		return new Workspace.actions.OrphanObjectAction({
 			objects: this.subjects.concat([]),
 			text: 'Undo &quot;' + this.text + '&quot;',
 			iconCls: this.iconCls
 		});
 	},
-	serialize: function() {
-		return {
+<span id='Workspace-actions-AdoptObjectAction-method-serialize'>	serialize: function() {
+</span>		return {
 			wtype: this.wtype,
 			parent: Workspace.Components.serialize(this.parent),
 			subjects: Workspace.Components.serialize(this.subjects)

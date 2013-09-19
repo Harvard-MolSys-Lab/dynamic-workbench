@@ -28,10 +28,10 @@ Ext.define('App.usr.canvas.ToolsTab', {
 	 * The default tool
 	 */
 	tool: 'pointer',
-	border: false,
-	layout: 'hbox',
-	generateConfig: function() {
-		return {
+<span id='App-usr-canvas-ToolsTab-property-border'>	border: false,
+</span><span id='App-usr-canvas-ToolsTab-property-layout'>	layout: 'hbox',
+</span><span id='App-usr-canvas-ToolsTab-method-generateConfig'>	generateConfig: function() {
+</span>		return {
 			items: [{
 
 				// 'Tools' group
@@ -286,8 +286,8 @@ Ext.define('App.usr.canvas.ToolsTab', {
 			}]
 		};
 	},
-	initComponent: function() {
-<span id='App-usr-canvas-ToolsTab-event-toolChange'>		/**
+<span id='App-usr-canvas-ToolsTab-method-initComponent'>	initComponent: function() {
+</span><span id='App-usr-canvas-ToolsTab-event-toolChange'>		/**
 </span>		 * @event toolChange
 		 */
 		this.addEvents('toolChange');
@@ -352,19 +352,19 @@ Ext.define('App.usr.canvas.ToolsTab', {
 		//			}
 		//		});
 	},
-	// not implemented
-	pushUndo: function(action) {
+<span id='App-usr-canvas-ToolsTab-method-pushUndo'>	// not implemented
+</span>	pushUndo: function(action) {
 		this.undoStack.push(action);
 		this.rebuildUndo();
 	},
-	// not implemented
-	popUndo: function() {
+<span id='App-usr-canvas-ToolsTab-method-popUndo'>	// not implemented
+</span>	popUndo: function() {
 		var a = this.undoStack.pop();
 		this.rebuildUndo();
 		return a;
 	},
-	// not implemented
-	rebuildUndo: function() {
+<span id='App-usr-canvas-ToolsTab-method-rebuildUndo'>	// not implemented
+</span>	rebuildUndo: function() {
 		this.undoButton.menu.removeAll();
 		this.undoButton.menu.add(this.undoStack);
 		if (this.undoStack.length &gt; 0) {
@@ -373,12 +373,12 @@ Ext.define('App.usr.canvas.ToolsTab', {
 			this.undoButton.disable();
 		}
 	},
-	// not implemented
-	undo: function() {
+<span id='App-usr-canvas-ToolsTab-method-undo'>	// not implemented
+</span>	undo: function() {
 		this.fireEvent('undo', this);
 	},
-	// not implemented
-	redo: function() {
+<span id='App-usr-canvas-ToolsTab-method-redo'>	// not implemented
+</span>	redo: function() {
 		this.fireEvent('redo', this)
 	},
 <span id='App-usr-canvas-ToolsTab-method-deleteObjects'>	/**

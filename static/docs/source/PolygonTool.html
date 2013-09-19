@@ -24,15 +24,15 @@
  * @param {Object} config
  */
 Ext.define('Workspace.tools.PolygonTool', {
-	constructor: function(workspace, config) {
-		this.workspace = workspace;
+<span id='Workspace-tools-PolygonTool-method-constructor'>	constructor: function(workspace, config) {
+</span>		this.workspace = workspace;
 		Workspace.tools.PolygonTool.superclass.constructor.call(this, workspace, config);
 
 		Ext.apply(this.protoProps, App.Stylesheet.Draw);
 	},
 	extend:'Workspace.tools.PolyLineTool',
-	dblclick: function(e, item) {
-		this.drawing = false;
+<span id='Workspace-tools-PolygonTool-method-dblclick'>	dblclick: function(e, item) {
+</span>		this.drawing = false;
 		this.dragging = false;
 		this.currentPath.pop();
 		this.currentPath.pop();

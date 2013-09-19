@@ -15,16 +15,21 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('App.usr.nodal.MotifEditor',{
+  <pre class="prettyprint lang-js"><span id='App-usr-nodal-MotifEditor'>/**
+</span> * Provides facilities for designing and editing Motifs
+ */
+Ext.define('App.usr.nodal.MotifEditor',{
 	extend:'Ext.panel.Panel',
 	mixins: {
 		tip: 'App.ui.TipHelper',
 	},
-	layout: 'border',
-	border: false,
-	bodyBorder: false,
-	initComponent: function() {
-
+	requires: ['App.usr.dil.SegmentStore','App.usr.dil.StrandStore','App.usr.dil.ComplexStore',
+	'App.usr.dil.StrandsGrid','App.usr.dil.SegmentsGrid','App.usr.nodal.MotifPreview','App.usr.dil.EditComplexPanel'],
+<span id='App-usr-nodal-MotifEditor-property-layout'>	layout: 'border',
+</span><span id='App-usr-nodal-MotifEditor-property-border'>	border: false,
+</span><span id='App-usr-nodal-MotifEditor-property-bodyBorder'>	bodyBorder: false,
+</span><span id='App-usr-nodal-MotifEditor-method-initComponent'>	initComponent: function() {
+</span>
 		this.segmentStore = Ext.create('App.usr.dil.SegmentStore', {});
 		this.strandStore = Ext.create('App.usr.dil.StrandStore', {
 			segmentStore: this.segmentStore
@@ -98,13 +103,17 @@
 		this.motifPreview = this.down('[name=motifPreview]');
 	},
 
-	refresh: function () {
-		var motif = this.buildMotif();
-		this.motifPreview.setValue(motif);
+<span id='App-usr-nodal-MotifEditor-method-refresh'>	refresh: function () {
+</span>		if(!this.suspendRefresh) {
+			var motif = this.buildMotif();
+			this.motifPreview.setValue(motif);
+
+			//this.complexPanel.updateComplex();
+		}
 	},
 
-	/* ------------------------------------------------------------------------------------------- 
-	   Data handling                                                                             
+<span id='App-usr-nodal-MotifEditor-method-getComplexData'>	/* ------------------------------------------------------------------------------------------- 
+</span>	   Data handling                                                                             
 
 	/**
 	 * Gets the names of strands, the structure, and the sequences for segments comprising a complex.
@@ -126,7 +135,7 @@
 			}
 		}
 	},
-<span id='global-method-getStrandData'>	/**
+<span id='App-usr-nodal-MotifEditor-method-getStrandData'>	/**
 </span>	 * Gets the name, the list of domains, and the list of segments in a strand
 	 * @param  {String/Strand} rec A record or name representing the strand in question
 	 * @return {Object} An object containing the strandData
@@ -147,17 +156,21 @@
 		}
 	},
 
-	getSegmentMap: function() {
-		return this.segmentStore.getSegmentMap();
+<span id='App-usr-nodal-MotifEditor-method-getSegmentMap'>	getSegmentMap: function() {
+</span>		return this.segmentStore.getSegmentMap();
 	},
-	updateStrandSequences: function() {
-		var segmentMap = this.getSegmentMap();
+<span id='App-usr-nodal-MotifEditor-method-updateStrandSequences'>	updateStrandSequences: function() {
+</span>		var segmentMap = this.getSegmentMap();
 		this.strandStore.each(function(strand) {
 			var strandSpec = strand.getFlatSpec();
 			strand.set('sequence', DNA.threadSegments(segmentMap, strandSpec));
 		}, this);
 	},
 
+<span id='App-usr-nodal-MotifEditor-method-loadDynaml'>	/**
+</span>	 * Loads data from a DyNAML string. The string should be a valid DyNAML depiction of a {@link App.dynamic.Motif}.
+	 * @param  {String} input DyNAML string describing a motif
+	 */
 	loadDynaml: function(input) {
 		input || (input = '{}');
 		var cfg;
@@ -178,6 +191,10 @@
 		this.complex = this.complexStore.getAt(0) || _.first(this.complexStore.addComplex());
 	},
 
+<span id='App-usr-nodal-MotifEditor-method-loadMotif'>	/**
+</span>	 * Loads data from a {@link App.dynamic.Motif Motif} object.
+	 * @param  {App.dynamic.Motif} motif 
+	 */
 	loadMotif: function(motif) {
 		motif || (motif = {});
 		var complexStore = this.complexStore,
@@ -186,16 +203,39 @@
 			segmentColors = d3.scale.category20();
 
 		segmentStore.colorGenerator = segmentColors;
-		segmentStore.add(_.map(motif.getSegments() || [], function(seg) {
+
+		this.suspendRefresh = true;
+
+		// this.segmentStore.suspendEvents();
+		// this.strandStore.suspendEvents();
+		// this.complexStore.suspendEvents();
+		
+		var segData = _.map(motif.getSegments() || [], function(seg) {
 			return {
 				identity: seg.getIdentity(),
 				sequence: seg.getSequence(),
 				color: !!seg.color ? seg.color : segmentColors(seg.getIdentity()),
 			};
-		}));
+		}), newSegData = [];
+		for(var i=0; i&lt;segData.length; i++) {
+			var data = segData[i],
+				rec = segmentStore.findRecord('identity',data.identity);
+			if(rec) {
+				rec.beginEdit();
+				rec.set('identity',data.identity);
+				rec.set('sequence',data.sequence);
+				rec.set('color',data.color);
+				rec.endEdit();
+			} else {
+				newSegData.push(data);
+			}
+		}
+		segmentStore.add(newSegData);
+
+
 
 		complexStore.add([(function(node) {
-			strandStore.add(_.map(node.getStrands() || [], function(strand) {
+			var strandData = _.map(node.getStrands() || [], function(strand) {
 				return {
 					name: strand.getName(),
 					sequence: strand.getSequence(),
@@ -203,7 +243,23 @@
 					spec: strand.printDomains( /* omitLengths */ true),
 					polarity: strand.getPolarity(),
 				};
-			}));
+			}),newStrandData = [];
+			for(var i=0; i&lt;strandData.length; i++) {
+				var data = strandData[i],
+					rec = strandStore.findRecord('name',data.name);
+				if(rec) {
+					rec.beginEdit();
+					rec.set('name',data.name);
+					rec.set('sequence',data.sequence);
+					rec.set('complex',data.complex);
+					rec.set('spec',data.spec);
+					rec.set('polarity',data.polarity);
+					rec.endEdit();
+				} else {
+					newStrandData.push(data);
+				}
+			}
+			strandStore.add(newStrandData);
 
 			var structure;
 			try {
@@ -221,9 +277,16 @@
 				})
 			};
 		})(motif)]);
+
+		this.suspendRefresh = false;
+
+		// this.segmentStore.resumeEvents();
+		// this.strandStore.resumeEvents();
+		// this.complexStore.resumeEvents();
+
 	},
-	buildMotif: function() {
-		var segmentIds = this.segmentStore.getRange(),
+<span id='App-usr-nodal-MotifEditor-method-buildMotif'>	buildMotif: function() {
+</span>		var segmentIds = this.segmentStore.getRange(),
 			strandRecs = this.strandStore.getRange(),
 			complexRecs = this.complexStore.getRange(),
 			segmentMap = {},
@@ -296,14 +359,14 @@
 
 		return new App.dynamic.Motif(node);
 	},
-	getValue: function() {
-		var motif = this.buildMotif();
+<span id='App-usr-nodal-MotifEditor-method-getValue'>	getValue: function() {
+</span>		var motif = this.buildMotif();
 		return JSON.stringify(motif.serialize(),null,'\t');
 	},
-	setValue: function (data) {
-		this.complexStore.remove(this.complexStore.getRange());
-		this.strandStore.remove(this.strandStore.getRange());
-		this.segmentStore.remove(this.segmentStore.getRange());
+<span id='App-usr-nodal-MotifEditor-method-setValue'>	setValue: function (data) {
+</span>		this.complexStore.remove(this.complexStore.getRange());
+		//this.strandStore.remove(this.strandStore.getRange());
+		//this.segmentStore.remove(this.segmentStore.getRange());
 
 		this.data = data;
 		this.loadDynaml(this.data);

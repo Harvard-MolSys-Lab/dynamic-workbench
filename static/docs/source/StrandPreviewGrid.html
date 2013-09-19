@@ -21,34 +21,72 @@
 Ext.define('App.usr.dil.StrandPreviewGrid', {
 	extend: 'Ext.view.View',
 	requires: ['App.usr.dil.SegmentStore','App.usr.dil.ComplexStore'],
+<span id='App-usr-dil-StrandPreviewGrid-cfg-cellWidth'>	/**
+</span>	 * @cfg
+	 */
 	cellWidth: 200,
+<span id='App-usr-dil-StrandPreviewGrid-cfg-cellHeight'>	/**
+</span>	 * @cfg
+	 */
 	cellHeight: 200,
-	itemSelector: 'div.complex-wrap',
-	trackOver: true,
-	overItemCls: 'x-view-over',
-	multiSelect: false,
-	singleSelect: true,
 
-	autoScroll: true,
-	paddingWidth: 6,
-	paddingHeight: 14,
-
+<span id='App-usr-dil-StrandPreviewGrid-property-itemSelector'>	itemSelector: 'div.complex-wrap',
+</span><span id='App-usr-dil-StrandPreviewGrid-property-trackOver'>	trackOver: true,
+</span><span id='App-usr-dil-StrandPreviewGrid-property-overItemCls'>	overItemCls: 'x-view-over',
+</span><span id='App-usr-dil-StrandPreviewGrid-property-multiSelect'>	multiSelect: false,
+</span><span id='App-usr-dil-StrandPreviewGrid-property-singleSelect'>	singleSelect: true,
+</span><span id='App-usr-dil-StrandPreviewGrid-property-autoScroll'>	autoScroll: true,
+</span><span id='App-usr-dil-StrandPreviewGrid-property-paddingWidth'>	paddingWidth: 6,
+</span><span id='App-usr-dil-StrandPreviewGrid-property-paddingHeight'>	paddingHeight: 14,
+</span>
+<span id='App-usr-dil-StrandPreviewGrid-cfg-nodeFillMode'>	/**
+</span>	 * @cfg nodeFillMode
+	 * One of `identity`, `segment`, or `domain`
+	 */
 	nodeFillMode: 'segment', // 'identity', 'segment', 'domain'
+<span id='App-usr-dil-StrandPreviewGrid-cfg-nodeStrokeMode'>	/**
+</span>	 * @cfg nodeStrokeMode
+	 * One of `identity`, `segment`, or `domain`
+	 */
 	nodeStrokeMode: 'segment', // 'identity', 'segment', 'domain'
+<span id='App-usr-dil-StrandPreviewGrid-cfg-lineStrokeMode'>	/**
+</span>	 * @cfg lineStrokeMode
+	 */
 	lineStrokeMode: 'default',
+<span id='App-usr-dil-StrandPreviewGrid-cfg-textFillMode'>	/**
+</span>	 * @cfg textFillMode
+	 */
 	textFillMode: 'default',
-	showBubbles: true,
-	loopMode: 'linear',
-	showBases : true,
-	showIndexes : true,
-	showSegments : true,
-	zoom: -1,
 
-	initComponent: function() {
-		this.strandPreviews = {};
-		this.tpl = ['&lt;tpl for=&quot;.&quot;&gt;', '&lt;div style=&quot;border:solid 1px white;padding:4px;margin:10px;float:left;width:' + this.cellWidth + 'px;height:' + (this.cellHeight+this.paddingHeight) + 'px;&quot; class=&quot;complex-wrap&quot;&gt;',
-		//'&lt;span&gt;{name}&lt;/span&gt; = &lt;span&gt;{[values.strands.join(&quot; + &quot;)]}&lt;/span&gt; : &lt;span&gt;{structure}&lt;/span&gt;',
-		'&lt;span style=&quot;position:absolute;&quot;&gt;{name}&lt;/span&gt;', '&lt;/div&gt;', '&lt;/tpl&gt;'].join(''),
+<span id='App-usr-dil-StrandPreviewGrid-cfg-showBubbles'>	/**
+</span>	 * @cfg showBubbles
+	 * True to show node &quot;bubbles,&quot; false to hide them
+	 */
+	showBubbles: true,
+
+<span id='App-usr-dil-StrandPreviewGrid-cfg-loopMode'>	/**
+</span>	 * @cfg loopMode
+	 */
+	loopMode: 'linear',
+
+<span id='App-usr-dil-StrandPreviewGrid-cfg-showBases'>	/**
+</span>	 * @cfg showBases
+	 */
+	showBases : true,
+<span id='App-usr-dil-StrandPreviewGrid-cfg-showIndexes'>	/**
+</span>	 * @cfg showIndexes
+	 */
+	showIndexes : true,
+<span id='App-usr-dil-StrandPreviewGrid-cfg-showSegments'>	/**
+</span>	 * @cfg showSegments
+	 */
+	showSegments : true,
+
+<span id='App-usr-dil-StrandPreviewGrid-property-zoom'>	zoom: -1,
+</span>
+<span id='App-usr-dil-StrandPreviewGrid-method-initComponent'>	initComponent: function() {
+</span>		this.strandPreviews = {};
+		this.tpl = this.generateTemplate(),
 
 		this.on('itemadd', this.addComplexes);
 		this.on('itemupdate', this.updateComplex);
@@ -58,6 +96,13 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 			this.fireEvent('updateToolbar', el);
 		}, this);
 		
+<span id='App-usr-dil-StrandPreviewGrid-cfg-store'>		/**
+</span>		 * @cfg {App.usr.dil.ComplexStore} store (required)
+		 * Store containing the Complexes
+		 */
+<span id='App-usr-dil-StrandPreviewGrid-cfg-segmentStore'>		/**
+</span>		 * @cfg {App.usr.dil.SegmentStore} segmentStore (required)
+		 */
 		this.segmentStore.on('update', function(segmentStore, rec, op, modifiedFieldNames) {
 			if(modifiedFieldNames.indexOf('color') != -1) {
 				this.refresh();
@@ -68,7 +113,7 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 	},
 <span id='App-usr-dil-StrandPreviewGrid-method-getChart'>	/**
 </span>	 * Returns a StrandPreview chart object
-	 * @param  {Boolean} update
+	 * @param  {Boolean} [update=false]
 	 * True to force the chart to be updated with #cellHeight, #cellWidth, #nodeStrokeMode, etc. properties.
 	 *
 	 * @return {[type]}
@@ -92,16 +137,14 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 		}
 		return this.chart;
 	},
-	updateChartProperties: function() {
-		this.tpl = new Ext.XTemplate(['&lt;tpl for=&quot;.&quot;&gt;', '&lt;div style=&quot;border:solid 1px white;padding:4px;margin:10px;float:left;width:' + this.cellWidth + 'px;height:' + (this.cellHeight+this.paddingHeight) + 'px;&quot; class=&quot;complex-wrap&quot;&gt;',
-		//'&lt;span&gt;{name}&lt;/span&gt; = &lt;span&gt;{[values.strands.join(&quot; + &quot;)]}&lt;/span&gt; : &lt;span&gt;{structure}&lt;/span&gt;',
-		'&lt;span style=&quot;position:absolute;&quot;&gt;{name}&lt;/span&gt;', '&lt;/div&gt;', '&lt;/tpl&gt;'].join(''));
+<span id='App-usr-dil-StrandPreviewGrid-method-updateChartProperties'>	updateChartProperties: function() {
+</span>		this.tpl = new Ext.XTemplate(this.generateTemplate());
 
 		this.getChart(true);
 		this.refresh();
 	},
-	setCellSize: function(sizeX,sizeY) {
-		if(arguments.length &lt; 2) {
+<span id='App-usr-dil-StrandPreviewGrid-method-setCellSize'>	setCellSize: function(sizeX,sizeY) {
+</span>		if(arguments.length &lt; 2) {
 			sizeY = sizeX;
 		}
 		this.cellWidth = sizeX;
@@ -109,10 +152,14 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 
 		this.updateChartProperties();
 	},
-	setZoom: function (zoom) {
-		this.zoom = zoom;
+<span id='App-usr-dil-StrandPreviewGrid-method-setZoom'>	setZoom: function (zoom) {
+</span>		this.zoom = zoom;
 		this.updateChartProperties();
 	},
+
+<span id='App-usr-dil-StrandPreviewGrid-method-refresh'>	/**
+</span>	 * Rebuilds the view based on data in the #store
+	 */
 	refresh: function() {
 		this.callParent(arguments);
 
@@ -121,23 +168,14 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 			records = me.store.getRange(),
 			data = [],
 			segmentMap = me.getSegmentMap();
+
 		for(var i = 0; i &lt; records.length; i++) {
 			var rec = records[i],
 				dom = this.getNode(rec);
 
 			if(dom) {
 				nodes.push(dom);
-
-				data.push({
-					strands: _.map(rec.getStrands(), function(strandName) {
-						return {
-							name: strandName,
-							domains: me.strandStore.findRecord('name', strandName).getParsedSpec()
-						}
-					}),
-					structure: rec.get('structure'),
-					sequences: segmentMap,
-				});
+				data.push(me.getComplexData(rec, segmentMap));
 			}
 		}
 
@@ -149,13 +187,14 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 			var nodeData = d3.selectAll(nodes).data(data).append('svg');
 			this.preview = chart(nodeData);
 
-
-			// this.resizers = [];
-			// for(var i=0; i&lt;nodes.length; i++) {
-			// this.resizers.push(Ext.create('Ext.resizer.Resizer',{target:nodes[i]}));
-			// }
 		}
 	},
+<span id='App-usr-dil-StrandPreviewGrid-method-addComplexes'>	/**
+</span>	 * Adds the passed complexes to the view. Called by the underlying view on the #itemadd event
+	 * @param {App.usr.dil.Complex[]} records Records to be added
+	 * @param {Number} index Index at which the records are added
+	 * @param {HTMLElement[]} nodes Array of nodes corresponding to the complexes to be added
+	 */
 	addComplexes: function(records, index, nodes) {
 
 		var me = this,
@@ -164,17 +203,7 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 
 		for(var i = 0; i &lt; records.length; i++) {
 			var rec = records[i];
-
-			data.push({
-				strands: _.map(rec.getStrands(), function(strandName) {
-					return {
-						name: strandName,
-						domains: me.strandStore.findRecord('name', strandName).getParsedSpec()
-					}
-				}),
-				structure: rec.get('structure'),
-				sequences: segmentMap,
-			});
+			data.push(me.getComplexData(rec, segmentMap));
 		}
 
 		if(nodes.length &gt; 0) {
@@ -185,27 +214,19 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 			var nodeData = d3.selectAll(nodes).data(data).append('svg');
 			this.preview = chart(nodeData);
 
-
-			// this.resizers = [];
-			// for(var i=0; i&lt;nodes.length; i++) {
-			// this.resizers.push(Ext.create('Ext.resizer.Resizer',{target:nodes[i]}));
-			// }
 		}
 	},
+<span id='App-usr-dil-StrandPreviewGrid-method-updateComplex'>	/**
+</span>	 * Updates the passed complex in the view. Called by the underlying view on the #itemupdate event
+	 * @param {App.usr.dil.Complex[]} records Record to be updated
+	 * @param {Number} index Index at which the records are updated
+	 * @param {HTMLElement[]} node Node corresponding to the complexes to be added
+	 */
 	updateComplex: function(record, index, node) {
 		var me = this,
 			rec = record,
 			segmentMap = this.getSegmentMap(),
-			data = [{
-				strands: _.map(rec.getStrands(), function(strandName) {
-					return {
-						name: strandName,
-						domains: me.strandStore.findRecord('name', strandName).getParsedSpec()
-					}
-				}),
-				structure: rec.get('structure'),
-				sequences: segmentMap,
-			}];
+			data = [me.getComplexData(rec, segmentMap)];
 		var chart = me.getChart();
 
 		var nodeData = d3.select(node).data(data).append('svg');
@@ -213,9 +234,37 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 		this.preview.expandSelection(nodeData);
 
 	},
-	removeComplex: function(record, index) {
-
+<span id='App-usr-dil-StrandPreviewGrid-method-removeComplex'>	removeComplex: function(record, index) {
+</span>
 	},
+
+<span id='App-usr-dil-StrandPreviewGrid-method-getComplexData'>	/**
+</span>	 * @private
+	 * Gets the object that will serve as the data for StrandPreview visualization
+	 * @param  {[type]} rec [description]
+	 * @param  {[type]} segmentMap [description]
+	 * @return {[type]} [description]
+	 */
+	getComplexData: function(rec, segmentMap) {
+		var me = this;
+		segmentMap = segmentMap || me.getSegmentMap();
+
+		return {
+			strands: _.map(rec.getStrands(), function(strandName) {
+				return {
+					name: strandName,
+					domains: me.strandStore.findRecord('name', strandName).getParsedSpec()
+				}
+			}),
+			structure: rec.get('structure'),
+			sequences: segmentMap,
+		}
+	},
+<span id='App-usr-dil-StrandPreviewGrid-method-getSegmentMap'>	/**
+</span>	 * @private
+	 * Gets the segment map associated with this view's #segmentStore
+	 * @return {Object} segmentMap
+	 */
 	getSegmentMap: function() {
 		if(this.segmentMap) {
 			return this.segmentMap;
@@ -223,15 +272,38 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 			return this.segmentStore.getSegmentMap();
 		}
 	},
+<span id='App-usr-dil-StrandPreviewGrid-method-getSegmentColorScale'>	/**
+</span>	 * @private
+	 * Gets the color scale associated with this view's #segmentStore
+	 * @return {Object} colorScale
+	 */
 	getSegmentColorScale: function() {
 		return this.segmentStore.getSegmentColorScale()
 	},
-	highlight: function(criteria) {
-		this.preview.highlight(criteria);
+<span id='App-usr-dil-StrandPreviewGrid-method-highlight'>	highlight: function(criteria) {
+</span>		this.preview.highlight(criteria);
 	},
-	unhighlight: function(criteria) {
-		this.preview.unhighlight(criteria);
+<span id='App-usr-dil-StrandPreviewGrid-method-unhighlight'>	unhighlight: function(criteria) {
+</span>		this.preview.unhighlight(criteria);
 	},
+
+<span id='App-usr-dil-StrandPreviewGrid-method-generateTemplate'>	/**
+</span>	 * Generates the text to be passed to the Ext.XTemplate constructor. Reflects updated values of #cellWidth, #cellHeight, and #paddingHeight.
+	 * @return {String} Template string
+	 */
+	generateTemplate: function () {
+		return ['&lt;tpl for=&quot;.&quot;&gt;', 
+			'&lt;div style=&quot;border:solid 1px white;padding:4px;margin:10px;float:left;width:' + this.cellWidth + 'px;height:' + (this.cellHeight+this.paddingHeight) + 'px;&quot; class=&quot;complex-wrap&quot;&gt;',
+			//'&lt;span&gt;{name}&lt;/span&gt; = &lt;span&gt;{[values.strands.join(&quot; + &quot;)]}&lt;/span&gt; : &lt;span&gt;{structure}&lt;/span&gt;',
+			'&lt;span style=&quot;position:absolute;&quot;&gt;{name}&lt;/span&gt;', '&lt;/div&gt;', 
+		'&lt;/tpl&gt;'].join('');
+	},
+
+<span id='App-usr-dil-StrandPreviewGrid-method-getMarkup'>	/**
+</span>	 * @private
+	 * @param  {Function} cb Callback to be passed the markup
+	 * @param {String} cb.markup The generated markup
+	 */
 	getMarkup: function(cb) {
 		if(!this.svgStyles) {
 			Ext.Ajax.request({
@@ -246,8 +318,8 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 			this.doGetMarkup(cb);
 		}
 	},
-	doGetMarkup: function(cb) {
-		var me = this, 
+<span id='App-usr-dil-StrandPreviewGrid-method-doGetMarkup'>	doGetMarkup: function(cb) {
+</span>		var me = this, 
 			rowLength = 6,
 			x_offset = 10,
 			y_offset = 10,

@@ -15,13 +15,16 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('App.usr.nodal.PortInspector', {
+  <pre class="prettyprint lang-js"><span id='App-usr-nodal-PortInspector'>/**
+</span> * Displays information about a port when it is selected in the canvas.
+ */
+Ext.define('App.usr.nodal.PortInspector', {
 	extend : 'Ext.form.Panel',
-	title : 'Port',
-	bodyPadding : 5,
-	enableBoundFields : true,
-	initComponent : function() {
-		Ext.apply(this, {
+<span id='App-usr-nodal-PortInspector-property-title'>	title : 'Port',
+</span><span id='App-usr-nodal-PortInspector-property-bodyPadding'>	bodyPadding : 5,
+</span><span id='App-usr-nodal-PortInspector-property-enableBoundFields'>	enableBoundFields : true,
+</span><span id='App-usr-nodal-PortInspector-method-initComponent'>	initComponent : function() {
+</span>		Ext.apply(this, {
 			defaults : {
 				xtype : 'textfield',
 			},

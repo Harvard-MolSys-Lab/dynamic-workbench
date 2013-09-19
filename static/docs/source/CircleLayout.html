@@ -23,8 +23,8 @@
  */
 Ext.define('Workspace.idea.CircleLayout', {
 	extend: 'Workspace.idea.BaseLayout',
-	constructor: function(config) {
-		Workspace.idea.BaseLayout.superclass.constructor.apply(this,arguments);
+<span id='Workspace-idea-CircleLayout-method-constructor'>	constructor: function(config) {
+</span>		Workspace.idea.BaseLayout.superclass.constructor.apply(this,arguments);
 		Ext.apply(this,config);
 		this.defaultChildConfig = {
 			wtype: this.defaultChildType,
@@ -32,8 +32,8 @@ Ext.define('Workspace.idea.CircleLayout', {
 			height: 100
 		};
 	},
-	doLayout: function() {
-		if(!this.ignore) {
+<span id='Workspace-idea-CircleLayout-method-doLayout'>	doLayout: function() {
+</span>		if(!this.ignore) {
 			var count = this.getObjects().getCount(),
 			theta = this.idea.get('theta'),
 			dtheta = 2*Math.PI / count,
@@ -57,9 +57,9 @@ Ext.define('Workspace.idea.CircleLayout', {
 			this.ignore = false;
 		}
 	},
-	paddingTop: 5,
-	paddingLeft: 5,
-});
+<span id='Workspace-idea-CircleLayout-property-paddingTop'>	paddingTop: 5,
+</span><span id='Workspace-idea-CircleLayout-property-paddingLeft'>	paddingLeft: 5,
+</span>});
 </pre>
 </body>
 </html>

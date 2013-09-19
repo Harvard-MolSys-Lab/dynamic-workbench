@@ -20,8 +20,8 @@
  */
 Ext.define('App.ui.files.FileUploader', {
 	statics : {
-		buildStandardHandlers : function() {
-			var types = ['jpg', 'png', 'gif', 'txt', 'pdf', 'svg', 'txt', 'seq', 'nupack', 'nodal', 'workspace', 'html', 'js', 'xml'];
+<span id='App-ui-files-FileUploader-static-method-buildStandardHandlers'>		buildStandardHandlers : function() {
+</span>			var types = ['jpg', 'png', 'gif', 'txt', 'pdf', 'svg', 'txt', 'seq', 'nupack', 'nodal', 'workspace', 'html', 'js', 'xml'];
 			types = _.uniq(types.concat(_.keys(App.triggers)));
 
 			App.ui.files.FileUploader.addHandler(types, function(fileName) {

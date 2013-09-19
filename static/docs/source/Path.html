@@ -38,27 +38,27 @@
  */
 Ext.define('Workspace.objects.Path', {
 	extend : 'Workspace.objects.VectorObject',
-	constructor : function(config) {
-		this.callParent(arguments);
+<span id='Workspace-objects-Path-method-constructor'>	constructor : function(config) {
+</span>		this.callParent(arguments);
 		this.expose('path', true, true, true, false);
 		this.expose('points', true, true, true, false);
 		this.expose('interpolator', true, true, true, false);
 	},
 	requires : ['Workspace.objects.Interpolators'],
 	alias : 'Workspace.VectorPathObject',
-	wtype : 'Workspace.objects.Path',
-	editor : 'vector',
-	name : 'New Path',
-	iconCls : 'path',
-	shape : 'path',
-<span id='Workspace-objects-Path-cfg-interpolator'>	/**
+<span id='Workspace-objects-Path-property-wtype'>	wtype : 'Workspace.objects.Path',
+</span><span id='Workspace-objects-Path-property-editor'>	editor : 'vector',
+</span><span id='Workspace-objects-Path-cfg-name'>	name : 'New Path',
+</span><span id='Workspace-objects-Path-property-iconCls'>	iconCls : 'path',
+</span><span id='Workspace-objects-Path-cfg-shape'>	shape : 'path',
+</span><span id='Workspace-objects-Path-cfg-interpolator'>	/**
 </span>	 * @cfg {String} interpolator
 	 * Name of a {@link Workspace.objects.Interpolators interpolator} which can 
 	 * generate an SVG path string from an array of #points.
 	 */
 	interpolator : 'linear',
-	isResizable : false,
-<span id='Workspace-objects-Path-property-path'>	/**
+<span id='Workspace-objects-Path-property-isResizable'>	isResizable : false,
+</span><span id='Workspace-objects-Path-property-path'>	/**
 </span>	 * @property {Array[]}
 	 * Array of SVG path commands which form an SVG path string. 
 	 */
@@ -75,8 +75,8 @@ Ext.define('Workspace.objects.Path', {
 </span>	 * @inheritdoc
 	 */
 	fillOpacity : 0,
-	render : function() {
-		if(!this.path || (this.points &amp;&amp; this.points.length &gt; 0)) {
+<span id='Workspace-objects-Path-method-render'>	render : function() {
+</span>		if(!this.path || (this.points &amp;&amp; this.points.length &gt; 0)) {
 			this.buildPath(this.points);
 		}
 		this.arguments = [this.path];
@@ -101,8 +101,8 @@ Ext.define('Workspace.objects.Path', {
 			workspace : this.workspace,
 		}, App.Stylesheet.Highlight));
 	},
-	updateHighlightProxy : function() {
-		if(this.highlightProxy)
+<span id='Workspace-objects-Path-method-updateHighlightProxy'>	updateHighlightProxy : function() {
+</span>		if(this.highlightProxy)
 			this.highlightProxy.path = this.path;
 	},
 <span id='Workspace-objects-Path-method-buildPath'>	/**
@@ -161,8 +161,8 @@ Ext.define('Workspace.objects.Path', {
 		this.path.push(point);
 		this.updatePath(this.path);
 	},
-	translate : function(dx, dy) {
-		var i;
+<span id='Workspace-objects-Path-method-translate'>	translate : function(dx, dy) {
+</span>		var i;
 		if(this.points &amp;&amp; this.points.length &gt; 0) {
 			var points = this.points;
 			for(i = 0; i&lt;points.length;i++) {
@@ -191,8 +191,8 @@ Ext.define('Workspace.objects.Path', {
 		var delta = this.getDelta(x, y);
 		this.translate(delta.dx, delta.dy);
 	},
-	setDimensions : function(w, h) {
-
+<span id='Workspace-objects-Path-method-setDimensions'>	setDimensions : function(w, h) {
+</span>
 	}
 }, function() {
 	Workspace.reg('Workspace.objects.Path', Workspace.objects.Path);

@@ -25,8 +25,8 @@
  * @param {Object} config
  */
 Ext.define('Workspace.tools.VectorTool', {
-	constructor : function(workspace, config) {
-		this.workspace = workspace;
+<span id='Workspace-tools-VectorTool-method-constructor'>	constructor : function(workspace, config) {
+</span>		this.workspace = workspace;
 		Ext.apply(this, config, {
 
 		});
@@ -37,8 +37,8 @@ Ext.define('Workspace.tools.VectorTool', {
 	},
 	extend : 'Workspace.tools.BaseTool',
 	requires : ['Workspace.tools.VectorHandle'],
-	attach : function(item) {
-		if(item.editable) {
+<span id='Workspace-tools-VectorTool-method-attach'>	attach : function(item) {
+</span>		if(item.editable) {
 			if(item.element) {
 				if(item.unhighlight)
 					item.unhighlight();
@@ -49,14 +49,14 @@ Ext.define('Workspace.tools.VectorTool', {
 		}
 		return false;
 	},
-	detach : function() {
-		if(this.item) {
+<span id='Workspace-tools-VectorTool-method-detach'>	detach : function() {
+</span>		if(this.item) {
 			this.removeHandles(this.item)
 			this.item = false;
 		}
 	},
-	createHandle : function(item, index, points) {
-		var spec = {
+<span id='Workspace-tools-VectorTool-method-createHandle'>	createHandle : function(item, index, points) {
+</span>		var spec = {
 			item : item,
 			index : index,
 			forceFront : true,
@@ -82,8 +82,8 @@ Ext.define('Workspace.tools.VectorTool', {
 		// }
 		return Ext.create('Workspace.tools.VectorHandle', this.workspace, spec)
 	},
-	addHandles : function(item) {
-		if(!this.handles.containsKey(item.getId())) {
+<span id='Workspace-tools-VectorTool-method-addHandles'>	addHandles : function(item) {
+</span>		if(!this.handles.containsKey(item.getId())) {
 			var handles = [], points = item.get('points');
 			if(points) {
 				_.each(points, function(point, i) {
@@ -93,8 +93,8 @@ Ext.define('Workspace.tools.VectorTool', {
 			}
 		}
 	},
-	removeHandles : function(itemId) {
-		// if an itemId is given, remove all its handles
+<span id='Workspace-tools-VectorTool-method-removeHandles'>	removeHandles : function(itemId) {
+</span>		// if an itemId is given, remove all its handles
 		if(itemId) {
 			if(!Ext.isString(itemId) &amp;&amp; Ext.isFunction(itemId.getId)) {
 				itemId = itemId.getId();
@@ -119,25 +119,25 @@ Ext.define('Workspace.tools.VectorTool', {
 			this.handles.clear();
 		}
 	},
-	click : function(e, item) {
-
+<span id='Workspace-tools-VectorTool-method-click'>	click : function(e, item) {
+</span>
 	},
-	dblclick : function(e, item) {
-		if(!item || (item &amp;&amp; item.getId &amp;&amp; item.getId() != this.item.getId())) {
+<span id='Workspace-tools-VectorTool-method-dblclick'>	dblclick : function(e, item) {
+</span>		if(!item || (item &amp;&amp; item.getId &amp;&amp; item.getId() != this.item.getId())) {
 			this.workspace.endEdit();
 		}
 	},
-	mousedown : function(e, item) {
-
+<span id='Workspace-tools-VectorTool-method-mousedown'>	mousedown : function(e, item) {
+</span>
 	},
-	mouseup : function(e, item) {
-
+<span id='Workspace-tools-VectorTool-method-mouseup'>	mouseup : function(e, item) {
+</span>
 	},
-	mousemove : function(e, item) {
-
+<span id='Workspace-tools-VectorTool-method-mousemove'>	mousemove : function(e, item) {
+</span>
 	},
-	deactivate : function() {
-		this.detach();
+<span id='Workspace-tools-VectorTool-method-deactivate'>	deactivate : function() {
+</span>		this.detach();
 		this.callParent(arguments);
 	}
 }, function() {

@@ -32,9 +32,9 @@ Ext.define('App.ui.D3Panel', {
 	 * zoom with this speed; false to disable zooming (defaults to 1)
 	 */
 	zoom : 1,
-	bpadding : 20,
-	visPadding : 10,
-<span id='App-ui-D3Panel-cfg-autoRender'>	/**
+<span id='App-ui-D3Panel-property-bpadding'>	bpadding : 20,
+</span><span id='App-ui-D3Panel-property-visPadding'>	visPadding : 10,
+</span><span id='App-ui-D3Panel-cfg-autoRender'>	/**
 </span>	 * @cfg autoRender {Boolean}
 	 * true to automatically render the visualization after the component
 	 * renders; false to render manually using {@link #afterrender} (defaults
@@ -46,8 +46,8 @@ Ext.define('App.ui.D3Panel', {
 	 * the size of the panel's body element (defaults to true)
 	 */
 	autoSize : true,
-	initComponent : function() {
-		//this.on('afterrender',this.afterrender,this);
+<span id='App-ui-D3Panel-method-initComponent'>	initComponent : function() {
+</span>		//this.on('afterrender',this.afterrender,this);
 		this.callParent(arguments);
 		if (this.autoRender) {
 			this.on('afterrender', this.afterrender, this, {
@@ -94,8 +94,8 @@ Ext.define('App.ui.D3Panel', {
 		this.updateVis();
 		//this.vis.render();
 	},
-	doAutoSize : function() {
-		if(this.vis != this.svg) {
+<span id='App-ui-D3Panel-method-doAutoSize'>	doAutoSize : function() {
+</span>		if(this.vis != this.svg) {
 			this.vis
 			.attr('width', this.getBodyWidth() - this.visPadding)
 			.attr('height', this.getBodyHeight() - this.visPadding)
@@ -170,7 +170,8 @@ Ext.define('App.ui.D3Panel', {
 			if (this.pan || this.zoom) {
 				var me = this;
 				function redraw() {
-					me.vis.attr(&quot;transform&quot;, &quot;translate(&quot; + d3.event.translate + &quot;)&quot; + &quot; scale(&quot; + d3.event.scale + &quot;)&quot;);
+					//me.vis.attr(&quot;transform&quot;, &quot;translate(&quot; + d3.event.translate + &quot;)&quot; + &quot; scale(&quot; + d3.event.scale + &quot;)&quot;);
+					me.redraw(d3.event.translate,d3.event.scale);
 				}
 				
 				this.vis = this.vis.append('svg:g').call(d3.behavior.zoom().on(&quot;zoom&quot;, redraw)).append('svg:g');
@@ -186,12 +187,12 @@ Ext.define('App.ui.D3Panel', {
 		}
 		return this.vis;
 	},
-	getCanvasMarkup : function() {
-		var html = this.body.getHTML();
+<span id='App-ui-D3Panel-method-getCanvasMarkup'>	getCanvasMarkup : function() {
+</span>		var html = this.body.getHTML();
 		return html.replace(/&lt;div\s+id=&quot;[\w-]+&quot;\s+class=&quot;x-clear&quot;\s+role=&quot;presentation&quot;&gt;&lt;\/div&gt;/g,'');
 	},
-	redraw : function() {
-		this.vis.attr(&quot;transform&quot;, &quot;translate(&quot; + d3.event.translate + &quot;)&quot; + &quot; scale(&quot; + d3.event.scale + &quot;)&quot;);
+<span id='App-ui-D3Panel-method-redraw'>	redraw : function(translate,scale) {
+</span>		this.vis.attr(&quot;transform&quot;, &quot;translate(&quot; + translate + &quot;)&quot; + &quot; scale(&quot; + scale + &quot;)&quot;);
 	}
 })</pre>
 </body>

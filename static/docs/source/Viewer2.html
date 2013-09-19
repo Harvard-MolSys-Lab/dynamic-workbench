@@ -23,12 +23,12 @@ Ext.define('App.usr.ms.Viewer', {
 	mixins : {
 		app : 'App.ui.Application'
 	},
-	iconCls : 'ms-icon',
-	editorType : 'MS',
-	alias : 'widget.multisubjectiveview',
+<span id='App-usr-ms-Viewer-property-iconCls'>	iconCls : 'ms-icon',
+</span><span id='App-usr-ms-Viewer-property-editorType'>	editorType : 'MS',
+</span>	alias : 'widget.multisubjectiveview',
 	requires : ['App.ui.SequenceThreader', 'App.ui.NupackMenu'],
-	dockedItems : [{
-		xtype : 'cite',
+<span id='App-usr-ms-Viewer-property-dockedItems'>	dockedItems : [{
+</span>		xtype : 'cite',
 		cite : {
 			authors : ['John P. Sadowski', 'Peng Yin'],
 			title : 'Multisubjective: better nucleic acid design through fast identification and removal of undesired secondary structure',
@@ -36,17 +36,17 @@ Ext.define('App.usr.ms.Viewer', {
 		},
 	}],
 
-	autoRender : false,
-	constructor : function() {
-		this.callParent(arguments);
+<span id='App-usr-ms-Viewer-cfg-autoRender'>	autoRender : false,
+</span><span id='App-usr-ms-Viewer-method-constructor'>	constructor : function() {
+</span>		this.callParent(arguments);
 		this.mixins.app.constructor.apply(this, arguments);
 		this.on('afterrender', this.loadFile, this);
 	},
-	onLoad : function() {
-		this.afterrender();
+<span id='App-usr-ms-Viewer-method-onLoad'>	onLoad : function() {
+</span>		this.afterrender();
 	},
-	buildVis : function() {
-		var data = JSON.parse(this.data);
+<span id='App-usr-ms-Viewer-method-buildVis'>	buildVis : function() {
+</span>		var data = JSON.parse(this.data);
 		var panel = this.getCanvas();
 
 		function range(arr) {
@@ -313,8 +313,8 @@ Ext.define('App.usr.ms.Viewer', {
 			return d.name
 		});
 	},
-	initComponent : function() {
-
+<span id='App-usr-ms-Viewer-method-initComponent'>	initComponent : function() {
+</span>
 		this.callParent(arguments);
 	},
 })</pre>

@@ -20,15 +20,15 @@
  */
 Ext.define('App.ui.FileUploader', {
 	extend: 'Ext.util.Observable',
-	constructor: function(cfg) {
-		this.callParent(arguments);
+<span id='App-ui-FileUploader-method-constructor'>	constructor: function(cfg) {
+</span>		this.callParent(arguments);
 		Ext.apply(this, cfg);
 	},
 	inheritableStatics: {
-		handlers: {},
-		handlerOrder: [],
-		addHandler: function(mimeType, handler) {
-			if(Ext.isArray(mimeType)) {
+<span id='App-ui-FileUploader-static-property-handlers'>		handlers: {},
+</span><span id='App-ui-FileUploader-static-property-handlerOrder'>		handlerOrder: [],
+</span><span id='App-ui-FileUploader-static-method-addHandler'>		addHandler: function(mimeType, handler) {
+</span>			if(Ext.isArray(mimeType)) {
 				Ext.each(mimeType, function(mt) {
 					this.handlers[mt] = handler;
 					this.handlerOrder.unshift(mt);
@@ -38,29 +38,29 @@ Ext.define('App.ui.FileUploader', {
 				this.handlerOrder.unshift(mimeType);
 			}
 		},
-		hasHandler: function(mimeType) {
-			return (this.handlers[mimeType]!=false);
+<span id='App-ui-FileUploader-static-method-hasHandler'>		hasHandler: function(mimeType) {
+</span>			return (this.handlers[mimeType]!=false);
 		},
-		getHandler: function(mimeType) {
-			return this.handlers[mimeType];
+<span id='App-ui-FileUploader-static-method-getHandler'>		getHandler: function(mimeType) {
+</span>			return this.handlers[mimeType];
 		},
-		eachHandler: function(f) {
-			Ext.each(this.handlerOrder,f);
+<span id='App-ui-FileUploader-static-method-eachHandler'>		eachHandler: function(f) {
+</span>			Ext.each(this.handlerOrder,f);
 		},
-		getExtension: function(fileName) {
-			return fileName.split('.').pop();
+<span id='App-ui-FileUploader-static-method-getExtension'>		getExtension: function(fileName) {
+</span>			return fileName.split('.').pop();
 		},
 	},
-	getConfig: function() {
-		return {
+<span id='App-ui-FileUploader-method-getConfig'>	getConfig: function() {
+</span>		return {
 			onComplete: Ext.bind(this.onComplete,this),
 			onProgress: Ext.bind(this.onProgress,this),
 			onCancel: Ext.bind(this.onCancel,this)
 		};
 	},
 
-	onComplete: function(id, fileName, response) {
-		var data = response,ext,name;
+<span id='App-ui-FileUploader-method-onComplete'>	onComplete: function(id, fileName, response) {
+</span>		var data = response,ext,name;
 		if(response.success) {
 			name = response.readablePath;
 			ext = Ext.getClass(this).getExtension(name);
@@ -72,11 +72,11 @@ Ext.define('App.ui.FileUploader', {
 			}
 		}
 	},
-	onProgress: function(id, fileName, loaded, total) {
-
+<span id='App-ui-FileUploader-method-onProgress'>	onProgress: function(id, fileName, loaded, total) {
+</span>
 	},
-	onCancel: function(id, fileName) {
-
+<span id='App-ui-FileUploader-method-onCancel'>	onCancel: function(id, fileName) {
+</span>
 	}
 }, function() {
 });</pre>

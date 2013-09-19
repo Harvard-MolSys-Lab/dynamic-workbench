@@ -28,9 +28,9 @@ Ext.define('App.ui.Launcher', {
 	 * Delimiter to separate trigger properties
 	 */
 	triggerDelimiter : ':',
-	_triggers : {},
-	_openTabs : {},
-<span id='App-ui-Launcher-method-register'>	/**
+<span id='App-ui-Launcher-property-_triggers'>	_triggers : {},
+</span><span id='App-ui-Launcher-property-_openTabs'>	_openTabs : {},
+</span><span id='App-ui-Launcher-method-register'>	/**
 </span>	 * Registers a trigger with the provided {@link App.ui.Application} subclass
 	 * @param {String} name Name of the trigger
 	 * @param {String} className Name of the {@link App.ui.Application} subclass
@@ -75,8 +75,8 @@ Ext.define('App.ui.Launcher', {
 		}
 		return null;
 	},
-	renewAll : function() {
-		// _.each(this._openTabs,function(tab,trigger) {
+<span id='App-ui-Launcher-method-renewAll'>	renewAll : function() {
+</span>		// _.each(this._openTabs,function(tab,trigger) {
 			// if(tab.renew)
 				// tab.renew();
 		// })
@@ -207,8 +207,8 @@ Ext.define('App.ui.Launcher', {
 		this.appMenu.doLayout();
 		return this.appMenu;
 	},
-	updateAppMenu: function(menu,handler) {
-
+<span id='App-ui-Launcher-method-updateAppMenu'>	updateAppMenu: function(menu,handler) {
+</span>
 	}
 }, function() {
 	App.ui.Launcher.register('help', 'App.ui.Help', {
@@ -219,9 +219,9 @@ Ext.define('App.ui.Launcher', {
 		iconCls : 'nodal',
 	});
 	
-	App.ui.Launcher.register('secondary', 'App.ui.SecondaryCanvas', {
-		title : 'Secondary Structure',
-	});
+	// App.ui.Launcher.register('secondary', 'App.ui.SecondaryCanvas', {
+	// 	title : 'Secondary Structure',
+	// });
 	
 	App.ui.Launcher.register('primary', 'App.usr.canvas.Canvas', {
 		title : 'Primary Structure',

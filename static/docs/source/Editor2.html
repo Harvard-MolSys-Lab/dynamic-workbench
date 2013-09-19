@@ -20,11 +20,11 @@
  */
 Ext.define('App.usr.enum.Editor', {
 	extend: 'App.usr.text.Editor',
-	iconCls:'enum-icon',
-	editorType: 'Enum',
-	title: 'Enumerator',
-	mode: 'pepper',
-	alias: 'widget.enumedit',
+<span id='App-usr-enum-Editor-property-iconCls'>	iconCls:'enum-icon',
+</span><span id='App-usr-enum-Editor-property-editorType'>	editorType: 'Enum',
+</span><span id='App-usr-enum-Editor-property-title'>	title: 'Enumerator',
+</span><span id='App-usr-enum-Editor-cfg-mode'>	mode: 'pepper',
+</span>	alias: 'widget.enumedit',
 <span id='App-usr-enum-Editor-cfg-showEditButton'>	/**
 </span>	 * @cfg
 	 * True to show the edit button
@@ -36,8 +36,8 @@ Ext.define('App.usr.enum.Editor', {
 	 */
 	showSaveButton:true,
 	
-	dockedItems: [{
-		xtype: 'cite',
+<span id='App-usr-enum-Editor-property-dockedItems'>	dockedItems: [{
+</span>		xtype: 'cite',
 		cite: {
 			authors: ['Karthik Sarma', 'Brian Wolfe', 'Erik Winfree'],
 			title: 'Domain-based reaction enumeration',
@@ -51,8 +51,8 @@ Ext.define('App.usr.enum.Editor', {
 	 */
 	multisubjective: false,
 	
-	initComponent: function() {
-		
+<span id='App-usr-enum-Editor-method-initComponent'>	initComponent: function() {
+</span>		
 		this.extraTbarItems = [];
 		
 		this.condense = Ext.create('Ext.menu.CheckItem', {
@@ -119,13 +119,13 @@ Ext.define('App.usr.enum.Editor', {
 		})
 		this.callParent(arguments);
 	},
-	makeEnumHandler: function(mode) {
-		return function() {
+<span id='App-usr-enum-Editor-method-makeEnumHandler'>	makeEnumHandler: function(mode) {
+</span>		return function() {
 			this.runEnum(mode);
 		}
 	},
-	runEnum: function(mode) {
-		App.runTask('Enumerator', {
+<span id='App-usr-enum-Editor-method-runEnum'>	runEnum: function(mode) {
+</span>		App.runTask('Enumerator', {
 			node: this.getDocumentPath(),
 			mode: mode,
 			condense: this.condense.checked

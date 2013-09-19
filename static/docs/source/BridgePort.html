@@ -23,32 +23,32 @@ Ext.define('App.usr.nodal.ws.objects.BridgePort', {
 	mixins: {
 		port: 'App.usr.nodal.ws.objects.NodePort'
 	},
-	wtype: 'App.usr.nodal.ws.objects.BridgePort',
-	width: 8,
-	height: 8,
-	polarity: 1,
-	shape: 'square',
-	stroke: 'purple',
-	strokeWidth: 2,
-	name: 'Bridge Port',
-	role: 'bridge',
-	isResizable: false,
-
-	path: false,
-	constructor: function() {
-		App.usr.nodal.ws.objects.BridgePort.superclass.constructor.apply(this,arguments);
+<span id='App-usr-nodal-ws-objects-BridgePort-property-wtype'>	wtype: 'App.usr.nodal.ws.objects.BridgePort',
+</span><span id='App-usr-nodal-ws-objects-BridgePort-cfg-width'>	width: 8,
+</span><span id='App-usr-nodal-ws-objects-BridgePort-cfg-height'>	height: 8,
+</span><span id='App-usr-nodal-ws-objects-BridgePort-property-polarity'>	polarity: 1,
+</span><span id='App-usr-nodal-ws-objects-BridgePort-cfg-shape'>	shape: 'square',
+</span><span id='App-usr-nodal-ws-objects-BridgePort-cfg-stroke'>	stroke: 'purple',
+</span><span id='App-usr-nodal-ws-objects-BridgePort-property-strokeWidth'>	strokeWidth: 2,
+</span><span id='App-usr-nodal-ws-objects-BridgePort-cfg-name'>	name: 'Bridge Port',
+</span><span id='App-usr-nodal-ws-objects-BridgePort-property-role'>	role: 'bridge',
+</span><span id='App-usr-nodal-ws-objects-BridgePort-property-isResizable'>	isResizable: false,
+</span>
+<span id='App-usr-nodal-ws-objects-BridgePort-property-path'>	path: false,
+</span><span id='App-usr-nodal-ws-objects-BridgePort-method-constructor'>	constructor: function() {
+</span>		App.usr.nodal.ws.objects.BridgePort.superclass.constructor.apply(this,arguments);
 		this.mixins.port.constructor.apply(this,arguments);
 		this.expose('complementarity',true,true,true,false);
 	},
-	render: function() {
-		this.arguments = [this.get('x') + this.getRadiusX(), this.get('y') + this.getRadiusY(), this.getRadiusX()]; //, this.getRadiusY()];
+<span id='App-usr-nodal-ws-objects-BridgePort-method-render'>	render: function() {
+</span>		this.arguments = [this.get('x') + this.getRadiusX(), this.get('y') + this.getRadiusY(), this.getRadiusX()]; //, this.getRadiusY()];
 		Workspace.objects.Rectangle.superclass.render.call(this);
 		this.mixins.port.render.apply(this,arguments);
 		//		this.path = this.vectorElement.attr('path');
 		//		this.updateDimensions();
 	},
-	initialize: function() {
-		if(this.complementarity) {
+<span id='App-usr-nodal-ws-objects-BridgePort-method-initialize'>	initialize: function() {
+</span>		if(this.complementarity) {
 			this.set('complementarity', Workspace.Components.realize(this.complementarity));
 		}
 		this.callParent(arguments);

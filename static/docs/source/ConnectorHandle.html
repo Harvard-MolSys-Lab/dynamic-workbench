@@ -24,8 +24,8 @@
 
 Ext.define('Workspace.tools.ConnectorHandle', {
 	extend:'Workspace.tools.Handle',
-	constructor: function() {
-		Workspace.tools.ConnectorHandle.superclass.constructor.apply(this,arguments);
+<span id='Workspace-tools-ConnectorHandle-method-constructor'>	constructor: function() {
+</span>		Workspace.tools.ConnectorHandle.superclass.constructor.apply(this,arguments);
 
 		this.item.on('move', this.onItemMove, this);
 		this.item.on('resize', this.onItemMove, this);
@@ -42,11 +42,11 @@ Ext.define('Workspace.tools.ConnectorHandle', {
 		// TODO: reject leftobject
 		return (item != null);
 	},
-	setHoverItem: function(item) {
-		this.dropTarget = item;
+<span id='Workspace-tools-ConnectorHandle-method-setHoverItem'>	setHoverItem: function(item) {
+</span>		this.dropTarget = item;
 	},
-	drag: function() {
-		var pos = this.getPosition(),
+<span id='Workspace-tools-ConnectorHandle-method-drag'>	drag: function() {
+</span>		var pos = this.getPosition(),
 		point = Workspace.ConnectionObject.getPoint(pos.x,pos.y),
 		left, right;
 		switch(this.location) {
@@ -61,8 +61,8 @@ Ext.define('Workspace.tools.ConnectorHandle', {
 		}
 		this.item.applyPath(this.item.buildPath(left,right));
 	},
-	dragEndHandler: function() {
-		if(this.dragging) {
+<span id='Workspace-tools-ConnectorHandle-method-dragEndHandler'>	dragEndHandler: function() {
+</span>		if(this.dragging) {
 			Workspace.tool.ConnectorHandle.superclass.dragEndHandler.apply(this,arguments);
 			if(!this.dropTarget) {
 				var pos = this.getPosition();
@@ -82,8 +82,8 @@ Ext.define('Workspace.tools.ConnectorHandle', {
 			this.dropTarget = false;
 		}
 	},
-	onItemMove: function() {
-		var point;
+<span id='Workspace-tools-ConnectorHandle-method-onItemMove'>	onItemMove: function() {
+</span>		var point;
 		switch(this.location) {
 			case 'left':
 				point = this.item.getLeftPoint();
@@ -94,8 +94,8 @@ Ext.define('Workspace.tools.ConnectorHandle', {
 		}
 		this.setPosition(point[0],point[1]);
 	},
-	destroy: function() {
-		Workspace.tools.ConnectorHandle.superclass.destroy.apply(this,arguments);
+<span id='Workspace-tools-ConnectorHandle-method-destroy'>	destroy: function() {
+</span>		Workspace.tools.ConnectorHandle.superclass.destroy.apply(this,arguments);
 		this.item.un('move', this.onItemMove, this);
 		this.item.un('resize', this.onItemMove, this);
 	}

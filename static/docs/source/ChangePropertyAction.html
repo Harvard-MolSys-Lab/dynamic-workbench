@@ -24,23 +24,23 @@
  */
 Ext.define('Workspace.actions.ChangePropertyAction', {
 	extend: 'Workspace.actions.Action',
-	constructor: function(config) {
-		Workspace.actions.ChangePropertyAction.superclass.constructor.apply(this, arguments);
+<span id='Workspace-actions-ChangePropertyAction-method-constructor'>	constructor: function(config) {
+</span>		Workspace.actions.ChangePropertyAction.superclass.constructor.apply(this, arguments);
 		Ext.applyIf(this, {
 			scope: this
 		})
 	},
-	wtype: 'ChangePropertyAction',
-	handler: function() {
-		for (var i = 0, l = this.subjects.length, subject; i &lt; l; i++) {
+<span id='Workspace-actions-ChangePropertyAction-property-wtype'>	wtype: 'ChangePropertyAction',
+</span><span id='Workspace-actions-ChangePropertyAction-method-handler'>	handler: function() {
+</span>		for (var i = 0, l = this.subjects.length, subject; i &lt; l; i++) {
 			subject = this.subjects[i];
 			for (var key in this.values) {
 				subject.set(key, this.values[key]);
 			}
 		}
 	},
-	getUndo: function() {
-		var undoData = {};
+<span id='Workspace-actions-ChangePropertyAction-method-getUndo'>	getUndo: function() {
+</span>		var undoData = {};
 		for (var i = 0, l = this.subjects.length, subject; i &lt; l; i++) {
 			subject = this.subjects[i];
 			for (var key in this.values) {
@@ -54,8 +54,8 @@ Ext.define('Workspace.actions.ChangePropertyAction', {
 			iconCls: this.iconCls,
 		});
 	},
-	serialize: function() {
-		return {
+<span id='Workspace-actions-ChangePropertyAction-method-serialize'>	serialize: function() {
+</span>		return {
 			wtype: this.wtype,
 			subjects: Workspace.Components.serialize(this.subjects),
 			values: Workspace.Components.serialize(this.values)

@@ -15,18 +15,21 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('App.usr.nodal.MotifInspector', {
+  <pre class="prettyprint lang-js"><span id='App-usr-nodal-MotifInspector'>/**
+</span> * Allows editing DyNAML for a custom motif
+ */
+Ext.define('App.usr.nodal.MotifInspector', {
 	requires : ['App.ui.CodeMirror','App.usr.nodal.MotifEditor'],
 	extend : 'Ext.form.Panel',
 	mixins : {
 		boundObjectPanel : 'App.ui.BoundObjectPanel',
 		tip: 'App.ui.TipHelper'
 	},
-	title : 'Motif',
-	bodyPadding : 5,
-	enableBoundFields : true,
-	initComponent : function() {
-		var me = this;
+<span id='App-usr-nodal-MotifInspector-property-title'>	title : 'Motif',
+</span><span id='App-usr-nodal-MotifInspector-property-bodyPadding'>	bodyPadding : 5,
+</span><span id='App-usr-nodal-MotifInspector-property-enableBoundFields'>	enableBoundFields : true,
+</span><span id='App-usr-nodal-MotifInspector-method-initComponent'>	initComponent : function() {
+</span>		var me = this;
 
 		Ext.apply(this, {
 			defaults : {
@@ -108,8 +111,8 @@
 		this.codeEditor = this.down('[xtype=codemirror]');
 	},
 	
-	showMotifEditor : function() {
-		var object = this.getBoundObject();
+<span id='App-usr-nodal-MotifInspector-method-showMotifEditor'>	showMotifEditor : function() {
+</span>		var object = this.getBoundObject();
 		if(!this.motifEditors[object.getId()]) {
 
 			var updateMotifDynaml = (function (motifObject) {
@@ -149,8 +152,8 @@
 		this.motifEditors[object.getId()].show();
 		
 	},
-	getBoundObject: function () {
-		return this.boundObjects.getAt(0);
+<span id='App-usr-nodal-MotifInspector-method-getBoundObject'>	getBoundObject: function () {
+</span>		return this.boundObjects.getAt(0);
 	}
 })</pre>
 </body>

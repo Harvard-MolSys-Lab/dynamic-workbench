@@ -15,12 +15,16 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('App.usr.nodal.HomeTab', {
+  <pre class="prettyprint lang-js"><span id='App-usr-nodal-HomeTab'>/**
+</span> * @class App.usr.nodal.HomeTab
+ * Contains basic toolbox and actions for the {@link App.usr.nodal.Canvas Nodal canvas}
+ */
+Ext.define('App.usr.nodal.HomeTab', {
 	extend: 'App.usr.canvas.ToolsTab',
 	alias: 'widget.nodal-hometab',
 	requires: ['Workspace.DDManager','Workspace.actions.UnwrapObjectsAction',],
-	generateConfig: function() {
-		return {
+<span id='App-usr-nodal-HomeTab-method-generateConfig'>	generateConfig: function() {
+</span>		return {
 			// dockedItems: [{
 				// 'xtype': 'toolbar',
 				defaults: {
@@ -260,7 +264,7 @@
 			// }]
 		}
 	},
-<span id='global-method-unwrapObjects'>		/**
+<span id='App-usr-nodal-HomeTab-method-unwrapObjects'>		/**
 </span>	 * Generates a WorkspaceAction to decouple the bound objects from their parent(s)
 	 */
 	unwrapObjects: function() {

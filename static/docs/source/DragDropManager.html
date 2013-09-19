@@ -31,14 +31,14 @@ Ext.define('App.ui.DragDropManager', {
 	 * a #dropZone for this manager.
 	 */
 	allowExtDD: false,
-	constructor: function(cfg) {
-		this.callParent(arguments);
+<span id='App-ui-DragDropManager-method-constructor'>	constructor: function(cfg) {
+</span>		this.callParent(arguments);
 		Ext.apply(this, cfg);
 	},
 	inheritableStatics: {
-		handlers: {},
-		handlerOrder: [],
-<span id='App-ui-DragDropManager-method-addHandler'>		/**
+<span id='App-ui-DragDropManager-static-property-handlers'>		handlers: {},
+</span><span id='App-ui-DragDropManager-static-property-handlerOrder'>		handlerOrder: [],
+</span><span id='App-ui-DragDropManager-static-method-addHandler'>		/**
 </span>		 * Add a handler to respond to a particular MIME type
 		 * @param {String} mimeType
 		 * @param {Function} handler
@@ -54,21 +54,21 @@ Ext.define('App.ui.DragDropManager', {
 				this.handlerOrder.unshift(mimeType);
 			}
 		},
-<span id='App-ui-DragDropManager-method-hasHandler'>		/**
+<span id='App-ui-DragDropManager-static-method-hasHandler'>		/**
 </span>		 * Determine whether a handler exists for a particular MIME-type
 		 * @param {String} mimeType
 		 */
 		hasHandler: function(mimeType) {
 			return (this.handlers[mimeType]!=false);
 		},
-<span id='App-ui-DragDropManager-method-getHandler'>		/**
+<span id='App-ui-DragDropManager-static-method-getHandler'>		/**
 </span>		 * Returns the handler for a MIME-type
 		 * @param {String} mimeType
 		 */
 		getHandler: function(mimeType) {
 			return this.handlers[mimeType];
 		},
-<span id='App-ui-DragDropManager-method-eachHandler'>		/**
+<span id='App-ui-DragDropManager-static-method-eachHandler'>		/**
 </span>		 * Performs the passed function once for each handler, in each case passing:
 		 * 	-	{String} mimeType
 		 * 	-	{Function} handler
@@ -107,8 +107,8 @@ Ext.define('App.ui.DragDropManager', {
 			});
 		}
 	},
-	/*
-	 * Handles events from the ExtJS drag and drop facility
+<span id='App-ui-DragDropManager-method-notifyDrop'>	/*
+</span>	 * Handles events from the ExtJS drag and drop facility
 	 */
 	notifyDrop: function(dd, e,	data) {
 		if(data.mimeType &amp;&amp; Ext.getClass(this).hasHandler(data.mimeType)) {
@@ -147,8 +147,8 @@ Ext.define('App.ui.DragDropManager', {
 	onDragOver: function(e) {
 		e.preventDefault();
 	},
-	destroy: function() {
-		this.workspace.getEl().un('drop',this.onDrop,this);
+<span id='App-ui-DragDropManager-method-destroy'>	destroy: function() {
+</span>		this.workspace.getEl().un('drop',this.onDrop,this);
 	},
 <span id='App-ui-DragDropManager-method-getAdjustedXYcoords'>	/**
 </span>	 * inheritdoc Workspace.tools.BaseTool#getAdjustedXYcoords

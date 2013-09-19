@@ -20,15 +20,16 @@
  */
 Ext.define('App.usr.nodal.ws.objects.Motif', {
 	extend: 'App.usr.nodal.ws.objects.AbstractNode',
-	wtype: 'App.usr.nodal.ws.objects.Motif',
-	layout: 'App.usr.nodal.ws.objects.MotifLayout',
-	name: false,
-	proxifyOnMove : true,
-	polarity: 0,
-	stroke: '#888',
-	requires: ['App.usr.nodal.ws.objects.MotifLayout',],
-	constructor: function() {
-		this.callParent(arguments);
+<span id='App-usr-nodal-ws-objects-Motif-property-wtype'>	wtype: 'App.usr.nodal.ws.objects.Motif',
+</span><span id='App-usr-nodal-ws-objects-Motif-property-layout'>	layout: 'App.usr.nodal.ws.objects.MotifLayout',
+</span><span id='App-usr-nodal-ws-objects-Motif-cfg-name'>	name: false,
+</span><span id='App-usr-nodal-ws-objects-Motif-property-proxifyOnMove'>	proxifyOnMove : true,
+</span><span id='App-usr-nodal-ws-objects-Motif-property-polarity'>	polarity: 0,
+</span><span id='App-usr-nodal-ws-objects-Motif-cfg-stroke'>	stroke: '#888',
+</span><span id='App-usr-nodal-ws-objects-Motif-cfg-strokeDasharray'>	strokeDasharray: '5,5',
+</span>	requires: ['App.usr.nodal.ws.objects.MotifLayout',],
+<span id='App-usr-nodal-ws-objects-Motif-method-constructor'>	constructor: function() {
+</span>		this.callParent(arguments);
 		this.expose('nodes',function() {
 			return _.filter(this.getChildren(),function(child) { return child.hasWType('App.usr.nodal.ws.objects.Node')});
 		},false,false,false);
@@ -39,8 +40,8 @@ Ext.define('App.usr.nodal.ws.objects.Motif', {
 
 		this.on('change:dynaml',this.syncDynaml,this);
 	},
-	render: function() {
-		this.callParent(arguments);
+<span id='App-usr-nodal-ws-objects-Motif-method-render'>	render: function() {
+</span>		this.callParent(arguments);
 		// this.addShim(new Workspace.ConnectionLabel({
 			// cls: 'workspace-label-plain workspace-label-small',
 			// offsets:[0,2],
@@ -50,8 +51,8 @@ Ext.define('App.usr.nodal.ws.objects.Motif', {
 		// }));
 
 	},
-	syncDynaml: function() {
-		var dynaml = this.get('dynaml');
+<span id='App-usr-nodal-ws-objects-Motif-method-syncDynaml'>	syncDynaml: function() {
+</span>		var dynaml = this.get('dynaml');
 		var groups;
 		if(dynaml) {
 			try {
@@ -116,8 +117,8 @@ Ext.define('App.usr.nodal.ws.objects.Motif', {
 		}
 		
 	},
-	makePort: function (dom) {
-		var port = _.clone(dom); 
+<span id='App-usr-nodal-ws-objects-Motif-method-makePort'>	makePort: function (dom) {
+</span>		var port = _.clone(dom); 
 		var cfg = {};
 		if(_.isObject(port) &amp;&amp; App.usr.nodal.ws.objects.PortClasses[port.role]) {
 			cfg.name = port.name;//'p'+(i+1);
@@ -130,18 +131,18 @@ Ext.define('App.usr.nodal.ws.objects.Motif', {
 			return this.workspace.buildManager.buildPort(cfg);
 		}
 	},
-	nextName: function() {
-		return this.workspace.buildManager.getNextMotifName()
+<span id='App-usr-nodal-ws-objects-Motif-method-nextName'>	nextName: function() {
+</span>		return this.workspace.buildManager.getNextMotifName()
 	},
-	onRebuild: function() {
-		
+<span id='App-usr-nodal-ws-objects-Motif-method-onRebuild'>	onRebuild: function() {
+</span>		
 	},
-	getRealtime: function(prop) {
-		if(this.workspace.buildManager)
+<span id='App-usr-nodal-ws-objects-Motif-method-getRealtime'>	getRealtime: function(prop) {
+</span>		if(this.workspace.buildManager)
 		return this.workspace.buildManager.getRealtime('motif',this.get('name'),prop);
 	},
-	getLibraryObject: function() { 
-		if(this.workspace.buildManager)
+<span id='App-usr-nodal-ws-objects-Motif-method-getLibraryObject'>	getLibraryObject: function() { 
+</span>		if(this.workspace.buildManager)
 		return this.workspace.buildManager.getRealtime('motif',this.get('name'),'this');
 	},
 }, function() {

@@ -21,12 +21,12 @@
 Ext.define('App.ui.BasePicker',{
 	alias: 'widget.basepicker',
 	extend: 'Ext.ux.form.field.BoxSelect',
-	displayField: 'base',
-	valueField: 'value',
-	multiSelect: true,
-	queryMode: 'local',
-	constructor:function() {
-		this.store = Ext.create('Ext.data.Store',{
+<span id='App-ui-BasePicker-property-displayField'>	displayField: 'base',
+</span><span id='App-ui-BasePicker-property-valueField'>	valueField: 'value',
+</span><span id='App-ui-BasePicker-property-multiSelect'>	multiSelect: true,
+</span><span id='App-ui-BasePicker-property-queryMode'>	queryMode: 'local',
+</span><span id='App-ui-BasePicker-method-constructor'>	constructor:function() {
+</span>		this.store = Ext.create('Ext.data.Store',{
 			fields: [
            {name: 'base', type: 'string'},
            {name: 'value', type: 'int'},

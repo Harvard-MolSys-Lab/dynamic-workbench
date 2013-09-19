@@ -33,8 +33,8 @@ Ext.Loader.setPath('Workspace','client/workspace');
  * @param {Object} config Configuration properties
  */
 Ext.define('Workspace', {
-	wtype: 'Workspace',
-	extend: 'Machine.core.Serializable',
+<span id='Workspace-property-wtype'>	wtype: 'Workspace',
+</span>	extend: 'Machine.core.Serializable',
 	requires: ['Ext.core.DomHelper'],
 	uses: ['Workspace.actions.CreateObjectAction','Workspace.actions.ChangePropertyAction','Workspace.actions.DuplicateObjectAction',
 'Workspace.actions.DeleteObjectAction','Workspace.actions.FormIdeaAction','Workspace.actions.AdoptObjectAction',
@@ -512,8 +512,8 @@ Ext.define('Workspace', {
 	getSelection: function() {
 		return this.selection.getRange();
 	},
-	getSelectionWType: function() {
-		return this.selection.getCommonWType();
+<span id='Workspace-method-getSelectionWType'>	getSelectionWType: function() {
+</span>		return this.selection.getCommonWType();
 	},
 <span id='Workspace-method-getAllObjects'>	/**
 </span>	 * Gets all #objects in the workspace
@@ -781,24 +781,24 @@ Ext.define('Workspace', {
 	getVisibleDimensions: function() {
 		return this.getVisibleSize();
 	},
-	resize: function(w, h) {
-		this.set('width', w);
+<span id='Workspace-method-resize'>	resize: function(w, h) {
+</span>		this.set('width', w);
 		this.set('height', h);
 	},
-	expand: function(w, h) {
-		w = w || 100;
+<span id='Workspace-method-expand'>	expand: function(w, h) {
+</span>		w = w || 100;
 		h = h || 100;
 		this.set('width', this.getWidth() + w);
 		this.set('height', this.getHeight() + h);
 	},
-	getWidth: function() {
-		return this.get('width');
+<span id='Workspace-method-getWidth'>	getWidth: function() {
+</span>		return this.get('width');
 	},
-	getHeight: function() {
-		return this.get('height');
+<span id='Workspace-method-getHeight'>	getHeight: function() {
+</span>		return this.get('height');
 	},
-	onResize: function() {
-		var z = this.lens.getZoom();
+<span id='Workspace-method-onResize'>	onResize: function() {
+</span>		var z = this.lens.getZoom();
 		if(z&lt;1) {
 			z = 1;
 		}
@@ -822,14 +822,14 @@ Ext.define('Workspace', {
 	getEl: function() {
 		return this.element;
 	},
-	refreshEl: function() {
-		this.element = Ext.get(this.element.id);
+<span id='Workspace-method-refreshEl'>	refreshEl: function() {
+</span>		this.element = Ext.get(this.element.id);
 	},
-	getPaper: function() {
-		return this.paper;
+<span id='Workspace-method-getPaper'>	getPaper: function() {
+</span>		return this.paper;
 	},
-	getContainerEl: function() {
-		return this.containerEl;
+<span id='Workspace-method-getContainerEl'>	getContainerEl: function() {
+</span>		return this.containerEl;
 	},
 <span id='Workspace-method-doAction'>	/**
 </span>	 * doAction
@@ -1158,9 +1158,9 @@ Workspace.regAlias = Workspace.Components.registerAlias;
  * @singleton
  */
 Workspace.Utils = {
-	deserialize: Workspace.Components.deserialize,
-	serialize: Workspace.Components.serialize,
-<span id='Workspace-Utils-method-ideaColor'>	/**
+<span id='Workspace-Utils-property-deserialize'>	deserialize: Workspace.Components.deserialize,
+</span><span id='Workspace-Utils-property-serialize'>	serialize: Workspace.Components.serialize,
+</span><span id='Workspace-Utils-method-ideaColor'>	/**
 </span>	 * ideaColor
 	 * Iterates through some nice pastel colors for default idea backgrounds
 	 * @return {String} color
@@ -1259,8 +1259,8 @@ Workspace.Utils = {
 		}
 		return Workspace.Utils.completeBox(bbox.tl, bbox.br);
 	},
-	getBBox: function(x, y, w, h) {
-		return {
+<span id='Workspace-Utils-method-getBBox'>	getBBox: function(x, y, w, h) {
+</span>		return {
 			x: x,
 			y: y,
 			width: w,
@@ -1390,28 +1390,28 @@ Workspace.Layouts = new App.Registry('ltype');
  * does the related math for other classes.
  */
 Ext.define('Workspace.Lens', {
-	constructor: function(config) {
-		Workspace.Lens.superclass.constructor.apply(this);
+<span id='Workspace-Lens-method-constructor'>	constructor: function(config) {
+</span>		Workspace.Lens.superclass.constructor.apply(this);
 		Ext.apply(this, config, {
 			origin: [0,0],
 			zoom: 1.0
 		});
 	},
 	extend: 'Ext.util.Observable',
-	getOrigin: function() {
-		return this.origin;
+<span id='Workspace-Lens-method-getOrigin'>	getOrigin: function() {
+</span>		return this.origin;
 	},
-	getOriginX: function() {
-		return this.origin[0];
+<span id='Workspace-Lens-method-getOriginX'>	getOriginX: function() {
+</span>		return this.origin[0];
 	},
-	getOriginY: function() {
-		return this.origin[1];
+<span id='Workspace-Lens-method-getOriginY'>	getOriginY: function() {
+</span>		return this.origin[1];
 	},
-	getZoom: function() {
-		return this.zoom;
+<span id='Workspace-Lens-method-getZoom'>	getZoom: function() {
+</span>		return this.zoom;
 	},
-	setZoom: function(v) {
-		this.zoom = v;
+<span id='Workspace-Lens-method-setZoom'>	setZoom: function(v) {
+</span>		this.zoom = v;
 	},
 <span id='Workspace-Lens-method-getAdjustedXYcoords'>	/**
 </span>	 * Adjusts frame x/y coordinates to workspace coordinates
@@ -1427,53 +1427,53 @@ Ext.define('Workspace.Lens', {
 			y: (y-this.getOriginY()) / this.getZoom()
 		}
 	},
-	translateToViewX: function(v) {
-		return (v-this.getOriginX()) * this.getZoom();
+<span id='Workspace-Lens-method-translateToViewX'>	translateToViewX: function(v) {
+</span>		return (v-this.getOriginX()) * this.getZoom();
 	},
-	translateToViewY: function(v) {
-		return (v-this.getOriginY()) * this.getZoom();
+<span id='Workspace-Lens-method-translateToViewY'>	translateToViewY: function(v) {
+</span>		return (v-this.getOriginY()) * this.getZoom();
 	},
-	translateToViewWidth: function(v) {
-		return v * this.getZoom();
+<span id='Workspace-Lens-method-translateToViewWidth'>	translateToViewWidth: function(v) {
+</span>		return v * this.getZoom();
 	},
-	translateToViewHeight: function(v) {
-		return v * this.getZoom();
+<span id='Workspace-Lens-method-translateToViewHeight'>	translateToViewHeight: function(v) {
+</span>		return v * this.getZoom();
 	},
-	getX: function(obj) {
-		return this.translateToViewX(obj.get('x'))
+<span id='Workspace-Lens-method-getX'>	getX: function(obj) {
+</span>		return this.translateToViewX(obj.get('x'))
 	},
-	getY: function(obj) {
-		return this.translateToViewY(obj.get('y'));
+<span id='Workspace-Lens-method-getY'>	getY: function(obj) {
+</span>		return this.translateToViewY(obj.get('y'));
 	},
-	getWidth: function(obj) {
-		return this.translateToViewWidth(obj.get('width'));
+<span id='Workspace-Lens-method-getWidth'>	getWidth: function(obj) {
+</span>		return this.translateToViewWidth(obj.get('width'));
 	},
-	getHeight: function(obj) {
-		return this.translateToViewHeight(obj.get('height'));
+<span id='Workspace-Lens-method-getHeight'>	getHeight: function(obj) {
+</span>		return this.translateToViewHeight(obj.get('height'));
 	},
-	translateToRealX: function(obj,v) {
-		return (v / this.getZoom()) + this.getOriginX();
+<span id='Workspace-Lens-method-translateToRealX'>	translateToRealX: function(obj,v) {
+</span>		return (v / this.getZoom()) + this.getOriginX();
 	},
-	translateToRealY: function(obj,v) {
-		return (v / this.getZoom()) + this.getOriginY();
+<span id='Workspace-Lens-method-translateToRealY'>	translateToRealY: function(obj,v) {
+</span>		return (v / this.getZoom()) + this.getOriginY();
 	},
-	translateToRealWidth: function(obj,v) {
-		return (v / this.getZoom());
+<span id='Workspace-Lens-method-translateToRealWidth'>	translateToRealWidth: function(obj,v) {
+</span>		return (v / this.getZoom());
 	},
-	translateToRealHeight: function(obj,v) {
-		return (v / this.getZoom());
+<span id='Workspace-Lens-method-translateToRealHeight'>	translateToRealHeight: function(obj,v) {
+</span>		return (v / this.getZoom());
 	},
-	setX: function(obj,v) {
-		return obj.set('x',translateToRealX(v));
+<span id='Workspace-Lens-method-setX'>	setX: function(obj,v) {
+</span>		return obj.set('x',translateToRealX(v));
 	},
-	setY: function(obj,v) {
-		return obj.set('y',translateToRealY(v));
+<span id='Workspace-Lens-method-setY'>	setY: function(obj,v) {
+</span>		return obj.set('y',translateToRealY(v));
 	},
-	setWidth: function(obj,v) {
-		return obj.set('width',translateToRealWidth(v));
+<span id='Workspace-Lens-method-setWidth'>	setWidth: function(obj,v) {
+</span>		return obj.set('width',translateToRealWidth(v));
 	},
-	setHeight: function(obj,v) {
-		return obj.set('height',translateToRealHeight(v));
+<span id='Workspace-Lens-method-setHeight'>	setHeight: function(obj,v) {
+</span>		return obj.set('height',translateToRealHeight(v));
 	}
 });
 </pre>

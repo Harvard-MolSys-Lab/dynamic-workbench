@@ -21,13 +21,13 @@
  */
 Ext.define('App.usr.nodal.ws.tools.NodeTool', {
 	extend:'Workspace.tools.BaseTool',
-	defaultMotif: '0',
-	statics: {
+<span id='App-usr-nodal-ws-tools-NodeTool-property-defaultMotif'>	defaultMotif: '0',
+</span>	statics: {
 		
 	},
 	requires: ['App.usr.nodal.ws.objects.Node','App.usr.nodal.ws.tools.PortTool'],
-	click: function(e,item) {
-		var pos = this.getAdjustedXY(e);
+<span id='App-usr-nodal-ws-tools-NodeTool-method-click'>	click: function(e,item) {
+</span>		var pos = this.getAdjustedXY(e);
 		this.buildMotif(this.defaultMotif,pos.x,pos.y);
 	},
 	

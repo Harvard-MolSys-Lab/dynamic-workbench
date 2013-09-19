@@ -22,8 +22,8 @@
  */
 Ext.define('App.Document', {
 	extend : 'Ext.data.Model',
-	fields : [{
-		name : 'text',
+<span id='App-Document-property-fields'>	fields : [{
+</span>		name : 'text',
 		type : 'string'
 	}, {
 		name : 'type',
@@ -42,9 +42,9 @@ Ext.define('App.Document', {
 		type : 'bool',
 		defaultValue : false,
 	}],
-	isLeaf: true,
-	iconCls: 'document-error',
-<span id='App-Document-method-getDocumentPath'>	/**
+<span id='App-Document-property-isLeaf'>	isLeaf: true,
+</span><span id='App-Document-property-iconCls'>	iconCls: 'document-error',
+</span><span id='App-Document-method-getDocumentPath'>	/**
 </span>	 * Returns the file path to this document
 	 * 
 	 * Why the funny name? In 4.0.7 Ext introduced a method which does 
@@ -60,8 +60,8 @@ Ext.define('App.Document', {
 	getBasename : function() {
 		return App.Path.basename(this.getDocumentPath());
 	},
-	getExt : function() {
-		return App.Path.extname(this.getDocumentPath());
+<span id='App-Document-method-getExt'>	getExt : function() {
+</span>		return App.Path.extname(this.getDocumentPath());
 	},
 <span id='App-Document-method-getFolder'>	/**
 </span>	 * If this record represents a folder, returns this; otherwise returns this record's parent node.

@@ -26,11 +26,11 @@ Ext.define('App.usr.canvas.ObjectProperties', {
 </span>	 * @inheritdoc
 	 */
 	enableBoundFields : false,
-	constructor : function() {
-		App.usr.canvas.ObjectProperties.superclass.constructor.apply(this, arguments);
+<span id='App-usr-canvas-ObjectProperties-method-constructor'>	constructor : function() {
+</span>		App.usr.canvas.ObjectProperties.superclass.constructor.apply(this, arguments);
 	},
-	initComponent : function() {
-		this.grid = Ext.create('Ext.grid.property.Grid', {
+<span id='App-usr-canvas-ObjectProperties-method-initComponent'>	initComponent : function() {
+</span>		this.grid = Ext.create('Ext.grid.property.Grid', {
 			border : false,
 			bodyBorder : false,
 			source : {},
@@ -93,8 +93,8 @@ Ext.define('App.usr.canvas.ObjectProperties', {
 		this.selection = this.workspace.getSelection();
 	},
 	
-	bind : function(obj) {
-		this.unbind();
+<span id='App-usr-canvas-ObjectProperties-method-bind'>	bind : function(obj) {
+</span>		this.unbind();
 		this.boundObject = obj;
 		this.boundObject.on('change', this.onObjectChange, this);
 		this.grid.setSource(obj.getReadableHash());
@@ -103,8 +103,8 @@ Ext.define('App.usr.canvas.ObjectProperties', {
 			panel.bind(obj);
 		});
 	},
-	unbind : function(obj) {
-		if(this.boundObject) {
+<span id='App-usr-canvas-ObjectProperties-method-unbind'>	unbind : function(obj) {
+</span>		if(this.boundObject) {
 			if((obj == this.boundObject) || (!obj)) {
 				this.boundObject.un('change', this.onObjectChange, this);
 				this.grid.setSource({});
@@ -116,12 +116,12 @@ Ext.define('App.usr.canvas.ObjectProperties', {
 			panel.unbind(obj);
 		});
 	},
-	onObjectChange : function(prop, val) {
-		if(!this.ignore)
+<span id='App-usr-canvas-ObjectProperties-method-onObjectChange'>	onObjectChange : function(prop, val) {
+</span>		if(!this.ignore)
 			this.grid.setProperty(prop, val, true);
 	},
-	onPropertyChange : function(src, prop, value) {
-		if(this.boundObject) {
+<span id='App-usr-canvas-ObjectProperties-method-onPropertyChange'>	onPropertyChange : function(src, prop, value) {
+</span>		if(this.boundObject) {
 			this.ignore = true;
 			this.boundObject.set(prop, value);
 			this.ignore = true;

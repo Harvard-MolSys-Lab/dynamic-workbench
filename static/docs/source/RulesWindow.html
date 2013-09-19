@@ -21,14 +21,14 @@
 Ext.define('App.usr.dd.RulesWindow', {
 	extend: 'Ext.window.Window',
 	requires: ['App.ui.BasePicker'],
-	plain: true,
-	bodyBorder: false,
-	border: false,
-	layout: 'fit',
-	title: 'Design Options',
-	width: 350,
-	initComponent: function() {
-		Ext.apply(this, {
+<span id='App-usr-dd-RulesWindow-property-plain'>	plain: true,
+</span><span id='App-usr-dd-RulesWindow-property-bodyBorder'>	bodyBorder: false,
+</span><span id='App-usr-dd-RulesWindow-property-border'>	border: false,
+</span><span id='App-usr-dd-RulesWindow-property-layout'>	layout: 'fit',
+</span><span id='App-usr-dd-RulesWindow-property-title'>	title: 'Design Options',
+</span><span id='App-usr-dd-RulesWindow-property-width'>	width: 350,
+</span><span id='App-usr-dd-RulesWindow-method-initComponent'>	initComponent: function() {
+</span>		Ext.apply(this, {
 			items: {
 				xtype: 'form',
 				frame: true,
@@ -94,12 +94,12 @@ Ext.define('App.usr.dd.RulesWindow', {
 		this.callParent(arguments);
 		this.form = this.down('form');
 	},
-	save: function() {
-		this.designer.updateRules(this.getValues());
+<span id='App-usr-dd-RulesWindow-method-save'>	save: function() {
+</span>		this.designer.updateRules(this.getValues());
 		this.hide();
 	},
-	getValues: function() {
-		var v = this.form.getValues();
+<span id='App-usr-dd-RulesWindow-method-getValues'>	getValues: function() {
+</span>		var v = this.form.getValues();
 		_.each(this.query('basepicker'),function(cmp) {
 			v[cmp.name] = cmp.getAggregate();
 		});
@@ -108,8 +108,8 @@ Ext.define('App.usr.dd.RulesWindow', {
 		})
 		return v;
 	},
-	setValues: function(v) {
-		var stringified = {}; 
+<span id='App-usr-dd-RulesWindow-method-setValues'>	setValues: function(v) {
+</span>		var stringified = {}; 
 		_.each(v,function(value,key) {stringified[key] = value.toString()});
 		this.form.getForm().setValues(stringified);
 		_.each(this.query('basepicker'),function(cmp) {

@@ -20,11 +20,11 @@
  */
 Ext.define('App.ui.Attribution', {
 	'statics' : {
-		getCite : function(cite) {
-			return _.copy(this.cites[cite]);
+<span id='App-ui-Attribution-static-method-getCite'>		getCite : function(cite) {
+</span>			return _.copy(this.cites[cite]);
 		},
-		cites : {
-			'zhang_2011' : {
+<span id='App-ui-Attribution-static-property-cites'>		cites : {
+</span>			'zhang_2011' : {
 				authors : ['Zhang, David Y.'],
 				title : 'Towards Domain-Based Sequence Design for DNA Strand Displacement Reactions',
 				publication : 'Lecture Notes in Computer Science',
@@ -69,23 +69,23 @@ Ext.define('App.ui.Attribution', {
 				pages: '524–531'
 			}
 		},
-		printAllCitations: function() {
-			this.tpl = new Ext.XTemplate(this.tpl);
+<span id='App-ui-Attribution-static-method-printAllCitations'>		printAllCitations: function() {
+</span>			this.tpl = new Ext.XTemplate(this.tpl);
 			return &quot;&lt;ul&gt;&quot;+_.map(this.cites,function(cite,key) {
 				return this.tpl.apply(cite)
 			},this).join('\n')+&quot;&lt;/ul&gt;&quot;;
 		},
-		tpl: '&lt;li&gt;&lt;b&gt;{[values.authors.join(&quot;, &quot;)]}&lt;/b&gt;. &quot;{title}&quot;. &lt;tpl if=&quot;!!publication&quot;&gt;&lt;i&gt;{publication}&lt;/i&gt; &lt;/tpl&gt;{volume}&lt;tpl if=&quot;!!volume &amp;&amp; !!pages&quot;&gt;:&lt;/tpl&gt;{pages}&lt;tpl if=&quot;!!year&quot;&gt; ({year})&lt;/tpl&gt;. &lt;tpl if=&quot;!!url&quot;&gt;&lt;a href=&quot;{url}&quot;&gt;URL&lt;/a&gt;&lt;/tpl&gt;&lt;/li&gt;',
-	},
+<span id='App-ui-Attribution-static-property-tpl'>		tpl: '&lt;li&gt;&lt;b&gt;{[values.authors.join(&quot;, &quot;)]}&lt;/b&gt;. &quot;{title}&quot;. &lt;tpl if=&quot;!!publication&quot;&gt;&lt;i&gt;{publication}&lt;/i&gt; &lt;/tpl&gt;{volume}&lt;tpl if=&quot;!!volume &amp;&amp; !!pages&quot;&gt;:&lt;/tpl&gt;{pages}&lt;tpl if=&quot;!!year&quot;&gt; ({year})&lt;/tpl&gt;. &lt;tpl if=&quot;!!url&quot;&gt;&lt;a href=&quot;{url}&quot;&gt;URL&lt;/a&gt;&lt;/tpl&gt;&lt;/li&gt;',
+</span>	},
 	extend : 'Ext.window.Window',
-	width : 500,
-	height : 500,
-	bodyStyle : 'padding:10px; background-color: white;',
-	autoScroll : true,
-	closeAction : 'hide',
-	title : 'About',
-	initComponent : function() {
-		Ext.apply(this, {
+<span id='App-ui-Attribution-property-width'>	width : 500,
+</span><span id='App-ui-Attribution-property-height'>	height : 500,
+</span><span id='App-ui-Attribution-property-bodyStyle'>	bodyStyle : 'padding:10px; background-color: white;',
+</span><span id='App-ui-Attribution-property-autoScroll'>	autoScroll : true,
+</span><span id='App-ui-Attribution-property-closeAction'>	closeAction : 'hide',
+</span><span id='App-ui-Attribution-property-title'>	title : 'About',
+</span><span id='App-ui-Attribution-method-initComponent'>	initComponent : function() {
+</span>		Ext.apply(this, {
 			autoLoad : {
 				url : '/attribution',
 				callback : this.initAttribution,
@@ -94,8 +94,8 @@ Ext.define('App.ui.Attribution', {
 		});
 		this.callParent(arguments);
 	},
-	initAttribution : function() {
-
+<span id='App-ui-Attribution-method-initAttribution'>	initAttribution : function() {
+</span>
 	},
 	
 })

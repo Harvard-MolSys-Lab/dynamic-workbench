@@ -19,8 +19,8 @@
 </span> * Manages HTML drag-and-drop events on to an {@link App.FilesTree}.
  */
 Ext.define('App.ui.files.DragDropManager', {
-	constructor : function() {
-		this.callParent(arguments);
+<span id='App-ui-files-DragDropManager-method-constructor'>	constructor : function() {
+</span>		this.callParent(arguments);
 
 <span id='App-ui-files-DragDropManager-cfg-filesTree'>		/**
 </span>		 * @cfg {App.FilesTree} filesTree
@@ -32,8 +32,8 @@ Ext.define('App.ui.files.DragDropManager', {
 	},
 	requires: ['App.ui.files.FileUploader'],
 	extend : 'App.ui.DragDropManager',
-	fileHandler : function(files, e) {
-		var el = Ext.get(e.target).up('.x-grid-row'), rec;
+<span id='App-ui-files-DragDropManager-method-fileHandler'>	fileHandler : function(files, e) {
+</span>		var el = Ext.get(e.target).up('.x-grid-row'), rec;
 		if(el) {
 			rec = this.filesTree.getView().getRecord(el);
 			if(rec) {

@@ -24,8 +24,8 @@
 Ext.define('Machine.core.Serializable', {
 	extend: 'Ext.util.Observable',
 	alias: 'SerializableObject',
-	constructor: function() {
-<span id='Machine-core-Serializable-property-wtype'>		/**
+<span id='Machine-core-Serializable-method-constructor'>	constructor: function() {
+</span><span id='Machine-core-Serializable-property-wtype'>		/**
 </span>		 * @property {String} wtype
 		 * The canonical name of the type which this object represents. Inspired by {@link Ext.Component#xtype}.
 		 */
@@ -161,8 +161,8 @@ Ext.define('Machine.core.Serializable', {
 		}
 		return out;
 	},
-	// deprecated
-	deserialize: function(obj) {
+<span id='Machine-core-Serializable-method-deserialize'>	// deprecated
+</span>	deserialize: function(obj) {
 		for (var prop in obj) {
 			this.set(prop, Workspace.Utils.deserialize(obj[prop]));
 		}
@@ -333,11 +333,11 @@ Ext.define('Machine.core.Serializable', {
 	previous: function(property) {
 		return _.clone(this._previous[property]);
 	},
-	previousValues: function() {
-		return this._previous;
+<span id='Machine-core-Serializable-method-previousValues'>	previousValues: function() {
+</span>		return this._previous;
 	},
-	realize: function() {
-		// vestigial
+<span id='Machine-core-Serializable-method-realize'>	realize: function() {
+</span>		// vestigial
 	},
 <span id='Machine-core-Serializable-method-onChange'>	/**
 </span> 	* Sets an event listener to watch for changes to a given property
@@ -355,7 +355,7 @@ Ext.define('Machine.core.Serializable', {
 });
 
 Ext.override(Ext.util.MixedCollection, {
-<span id='global-method-serialize'>	/**
+<span id='Ext-util-MixedCollection-method-serialize'>	/**
 </span>	 * See {@link Machine.core.Serializable#serialize}
 	 * @member Ext.util.MixedCollection
 	 */

@@ -21,8 +21,8 @@
  * @extends Ext.util.Observable
  */
 Ext.define('Workspace.Shim', {
-	constructor : function(config) {
-		Workspace.Shim.superclass.constructor.apply(this, arguments);
+<span id='Workspace-Shim-method-constructor'>	constructor : function(config) {
+</span>		Workspace.Shim.superclass.constructor.apply(this, arguments);
 		Ext.applyIf(this, config, {
 <span id='Workspace-Shim-cfg-elementSpec'>			/**
 </span>			 * @cfg {Object} elementSpec
@@ -36,9 +36,17 @@ Ext.define('Workspace.Shim', {
 		});
 	},
 	extend : 'Ext.util.Observable',
-	position : 'tl-bl?',
-	animate : false,
-	passThroughEvents : true,
+<span id='Workspace-Shim-property-position'>	position : 'tl-bl?',
+</span><span id='Workspace-Shim-property-animate'>	animate : false,
+</span><span id='Workspace-Shim-property-passThroughEvents'>	passThroughEvents : true,
+</span><span id='Workspace-Shim-cfg-True'>	/**
+</span>	 * @cfg {Boolean} True to hide the shim when the #object is hidden
+	 */
+	hideOnHide: true,
+<span id='Workspace-Shim-cfg-True'>	/**
+</span>	 * @cfg {Boolean} True to show the shim when the #object is shown
+	 */
+	showOnShow: true,
 <span id='Workspace-Shim-method-applyTo'>	/**
 </span>	 * Links this shim to a {@link Workspace.objects.Object}
 	 * @param {Workspace.objects.Object} object
@@ -47,8 +55,8 @@ Ext.define('Workspace.Shim', {
 		if(obj.getEl) {
 			this.object = obj;
 			obj.on('move', this.onMove, this);
-			obj.on('hide', this.hide, this);
-			obj.on('show', this.show, this);
+			if(this.hideOnHide) obj.on('hide', this.hide, this);
+			if(this.showOnShow) obj.on('show', this.show, this);
 			obj.on('destroy', this.destroy, this);
 			if(obj.is('rendered')) {
 				this.render();
@@ -74,11 +82,11 @@ Ext.define('Workspace.Shim', {
 			}
 		}
 	},
-	getLeft: function(el) {
-		return this.object.getX();		
+<span id='Workspace-Shim-method-getLeft'>	getLeft: function(el) {
+</span>		return this.object.getX();		
 	},
-	getTop: function(el) {
-		return this.object.getY() - el.getHeight()
+<span id='Workspace-Shim-method-getTop'>	getTop: function(el) {
+</span>		return this.object.getY() - el.getHeight()
 	},
 <span id='Workspace-Shim-method-render'>	/**
 </span>	 * Creates an element for the shim in the DOM. Automatically applied or scheduled by {@link #applyTo}

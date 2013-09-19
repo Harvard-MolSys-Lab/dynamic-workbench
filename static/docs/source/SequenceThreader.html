@@ -22,22 +22,22 @@
  */
 Ext.define('App.ui.SequenceThreader', {
 	extend : 'Ext.window.Window',
-	title: 'Thread Sequences',
-	iconCls: 'thread-sequence',
-	requires : ['App.usr.seq.Editor','App.ui.CodeMirror',],
-	layout : 'fit',
-	minimize : function() {
-		this.toggleCollapse();
+<span id='App-ui-SequenceThreader-property-title'>	title: 'Thread Sequences',
+</span><span id='App-ui-SequenceThreader-property-iconCls'>	iconCls: 'thread-sequence',
+</span>	requires : ['App.usr.seq.Editor','App.ui.CodeMirror',],
+<span id='App-ui-SequenceThreader-property-layout'>	layout : 'fit',
+</span><span id='App-ui-SequenceThreader-method-minimize'>	minimize : function() {
+</span>		this.toggleCollapse();
 	},
-	minimizable : true,
-	maximizable : true,
-	width : 400,
-	height : 400,
-	border: false,
-	bodyBorder: false,// '1 0 0 0',
-	layout : 'border',
-	//margins : 5,
-	initComponent : function() {
+<span id='App-ui-SequenceThreader-property-minimizable'>	minimizable : true,
+</span><span id='App-ui-SequenceThreader-property-maximizable'>	maximizable : true,
+</span><span id='App-ui-SequenceThreader-property-width'>	width : 400,
+</span><span id='App-ui-SequenceThreader-property-height'>	height : 400,
+</span><span id='App-ui-SequenceThreader-property-border'>	border: false,
+</span><span id='App-ui-SequenceThreader-property-layout'><span id='App-ui-SequenceThreader-property-bodyBorder'>	bodyBorder: false,// '1 0 0 0',
+</span></span>	layout : 'border',
+<span id='App-ui-SequenceThreader-method-initComponent'>	//margins : 5,
+</span>	initComponent : function() {
 		Ext.apply(this, {
 			//padding: '5 5 5 5',
 			tbar : [{
@@ -173,8 +173,8 @@ Ext.define('App.ui.SequenceThreader', {
 		this.sequences = out.join('\n');
 		this.resultsPane.setValue(this.sequences);
 	},
-	toggleDethreaded: function() {
-		var dethreaded = this.down('[name=dethreaded]');
+<span id='App-ui-SequenceThreader-method-toggleDethreaded'>	toggleDethreaded: function() {
+</span>		var dethreaded = this.down('[name=dethreaded]');
 		if(dethreaded.pressed) {
 			this.resultsPane.setValue(this.dethreaded);
 		} else {			

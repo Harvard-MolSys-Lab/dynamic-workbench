@@ -24,8 +24,8 @@
  * @param {Object} config
  */
 Ext.define('Workspace.tools.LineTool', {
-	requires: ['Workspace.objects.Path', ], //'Workspace.objects.secondary.Domain'],
-	constructor: function(workspace, config) {
+<span id='Workspace-tools-LineTool-method-constructor'>	requires: ['Workspace.objects.Path', ], //'Workspace.objects.secondary.Domain'],
+</span>	constructor: function(workspace, config) {
 		this.workspace = workspace;
 		Ext.apply(this, config, {
 			parameters: {}
@@ -40,28 +40,28 @@ Ext.define('Workspace.tools.LineTool', {
 		this.y1 = 0;
 	},
 	extend:'Workspace.tools.BaseTool',
-	targetWType: 'Workspace.objects.Path',
-	//targetWType: 'Workspace.objects.Path',
-	//targetWType: 'Workspace.objects.secondary.Domain',
+<span id='Workspace-tools-LineTool-property-targetWType'>	targetWType: 'Workspace.objects.Path',
+</span><span id='Workspace-tools-LineTool-method-click'>	//targetWType: 'Workspace.objects.Path',
+</span>	//targetWType: 'Workspace.objects.secondary.Domain',
 	
 	click: function(e, item) {
 
 		e.stopEvent();
 	},
-	dblclick: function(e, item) {
-
+<span id='Workspace-tools-LineTool-method-dblclick'>	dblclick: function(e, item) {
+</span>
 		e.stopEvent();
 	},
-	mousedown: function(e, item) {
-		this.dragging = true;
+<span id='Workspace-tools-LineTool-method-mousedown'>	mousedown: function(e, item) {
+</span>		this.dragging = true;
 		if (this.proto) {
 			this.proto.remove();
 		}
 
 		this.createProto(e);
 	},
-	mouseup: function(e, item) {
-		this.dragging = false;
+<span id='Workspace-tools-LineTool-method-mouseup'>	mouseup: function(e, item) {
+</span>		this.dragging = false;
 
 		if (this.proto) {
 
@@ -78,8 +78,8 @@ Ext.define('Workspace.tools.LineTool', {
 			this.workspace.setSelection([o]);
 		}
 	},
-	mousemove: function(e, item) {
-		if (this.dragging) {
+<span id='Workspace-tools-LineTool-method-mousemove'>	mousemove: function(e, item) {
+</span>		if (this.dragging) {
 			if (!this.proto) {
 				this.createProto(e);
 			}
@@ -93,8 +93,8 @@ Ext.define('Workspace.tools.LineTool', {
 			});
 		}
 	},
-	createProto: function(e) {
-		var pos = this.getAdjustedXY(e);
+<span id='Workspace-tools-LineTool-method-createProto'>	createProto: function(e) {
+</span>		var pos = this.getAdjustedXY(e);
 		this.x1 = pos.x;
 		this.y1 = pos.y;
 

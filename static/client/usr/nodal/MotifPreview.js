@@ -120,6 +120,9 @@ function MotifPreview() {
 	return chart;
 }
 
+/**
+ * Displays a graphical preview of a single motif as a node
+ */
 Ext.define('App.usr.nodal.MotifPreview',{
 	extend : 'App.ui.D3Panel',
 	alias: 'widget.motifpreview',

@@ -1,3 +1,6 @@
+/**
+ * Displays a graphical preview of a node when the node is selected in the canvas interface
+ */
 Ext.define('App.usr.nodal.NodeInspector', {
 	requires : ['App.usr.nodal.StrandPreview'],
 	extend : 'Ext.form.Panel',

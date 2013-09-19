@@ -109,7 +109,7 @@ Ext.define('Workspace.tools.BaseTool', {
 		return this.getAdjustedXYcoords(e.getPageX(), e.getPageY());
 	},
 	/**
-	 * @inheritdocs Workspace.Lens.getAdjustedXYcoords
+	 * @inheritdoc Workspace.Lens.getAdjustedXYcoords
 	 */
 	getAdjustedXYcoords : function(x, y) {
 		var pos = this.workspace.lens.getAdjustedXYcoords((x - this.workspace.element.getX()), (y - this.workspace.element.getY()));

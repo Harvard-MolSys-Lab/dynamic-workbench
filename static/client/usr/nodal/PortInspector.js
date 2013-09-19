@@ -1,3 +1,6 @@
+/**
+ * Displays information about a port when it is selected in the canvas.
+ */
 Ext.define('App.usr.nodal.PortInspector', {
 	extend : 'Ext.form.Panel',
 	title : 'Port',

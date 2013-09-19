@@ -124,12 +124,12 @@ App.Endpoints = App.endpoints = function() {
 	}
 }();
 /**
- * @inheritdocs App.endpoints#getEndpoint
+ * @inheritdoc App.endpoints#getEndpoint
  * @member App
  */
 App.getEndpoint = App.endpoints.getEndpoint;
 /**
- * @inheritdocs App.endpoints#setEndpoint
+ * @inheritdoc App.endpoints#setEndpoint
  * @member App
  */
  App.setEndpoint = App.endpoints.setEndpoint;

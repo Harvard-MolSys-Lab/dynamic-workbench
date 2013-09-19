@@ -1,3 +1,6 @@
+/**
+ * Tab allowing the user to build the nodal system to various targets
+ */
 Ext.define('App.usr.nodal.BuildTab', {
 	extend: 'App.usr.canvas.ToolsTab',
 	alias: 'widget.nodal-buildtab',

@@ -1,4 +1,7 @@
-Ext.define('Strand', {
+/**
+ * Record representing a single strand in a DIL system; use with App.usr.dil.StrandStore
+ */
+Ext.define('App.usr.dil.Strand', {
 	extend: 'Ext.data.Model',
 	fields: [{
 		name: 'id',
@@ -93,7 +96,7 @@ Ext.define('Domain', {
  */
 Ext.define('App.usr.dil.StrandStore', {
 	extend: 'Ext.data.Store',
-	model: 'Strand',
+	model: 'App.usr.dil.Strand',
 	constructor: function() {
 		this.callParent(arguments);
 		if(this.segmentStore) {

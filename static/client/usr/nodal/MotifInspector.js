@@ -1,3 +1,6 @@
+/**
+ * Allows editing DyNAML for a custom motif
+ */
 Ext.define('App.usr.nodal.MotifInspector', {
 	requires : ['App.ui.CodeMirror','App.usr.nodal.MotifEditor'],
 	extend : 'Ext.form.Panel',

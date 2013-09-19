@@ -1,6 +1,6 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-/*
+/**
  * @class Workspace.objects.PDFEmbedObject
  * Represents a workspace object containing an iframe
  * @extends Workspace.objects.IFrameObject

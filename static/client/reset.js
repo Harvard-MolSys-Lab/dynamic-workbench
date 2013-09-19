@@ -39,6 +39,9 @@ Ext.onReady(function() {
 		}
 	};
 
+	/**
+	 * @class App.ResetWindow
+	 */
 	Ext.define('App.ResetWindow', {
 		extend : 'Ext.Window',
 		constructor : function() {
@@ -60,7 +63,7 @@ Ext.onReady(function() {
 						anchor : '100%'
 					},
 					items : [{
-						xtype: 'displayfield'
+						xtype: 'displayfield',
 						name : 'name',
 						fieldLabel : 'Name',
 						allowBlank : false,

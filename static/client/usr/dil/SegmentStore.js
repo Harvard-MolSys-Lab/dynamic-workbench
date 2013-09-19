@@ -1,4 +1,7 @@
-Ext.define('Segment', {
+/**
+ * Model representing a Segment. To be used with App.usr.dil.SegmentStore
+ */
+Ext.define('App.usr.dil.Segment', {
 	extend: 'Ext.data.Model',
 	fields: [{
 		name: 'identity'
@@ -14,7 +17,7 @@ Ext.define('Segment', {
  */
 Ext.define('App.usr.dil.SegmentStore', {
 	extend: 'Ext.data.Store',
-	model: 'Segment',
+	model: 'App.usr.dil.Segment',
 	constructor: function() {
 		this.callParent(arguments);
 		this.on('update', function(segmentStore, rec, op, modifiedFieldNames) {
@@ -57,6 +60,17 @@ Ext.define('App.usr.dil.SegmentStore', {
 		}
 		return segmentMap;
 	},
+	/**
+	 * Gets a hash mapping segments to their sequences. Does not include complements
+	 * as a separate sequences; if you need a hash containing each segment and its 
+	 * complement (e.g. a and a* instead of just a), use #getSegmentMapWithComplements.
+	 * 
+	 * @return {Object} 
+	 * Hash mapping segments to their sequences. Example:
+	 * 
+	 * 		{ 'a':'AATNNNN', '5':'CAAG' }
+	 * 		
+	 */
 	getSegmentMap: function() {
 		if(this.segmentMap) {
 			return this.segmentMap;
@@ -64,10 +78,26 @@ Ext.define('App.usr.dil.SegmentStore', {
 			this.segmentMap = this.buildSegmentMap();
 		}
 	},
+	/**
+	 * Gets a hash mapping segments to their sequences. Includes complement pairs 
+	 * (e.g. 1/1*, a/a*, etc.) as separate sequences. Use #getSegmentMap is you don't 
+	 * want the complements.
+	 * 
+	 * @return {Object} 
+	 * Hash mapping segments to their sequences. Example:
+	 * 
+	 * 		{ 'a':'AATNNNN', 'a*':'NNNNATT', '5':'CAAG', '5*':'GTTC' }
+	 * 		
+	 */
 	getSegmentMapWithComplements: function() {
 		var segmentMap = this.getSegmentMap();
 		return DNA.hashComplements(segmentMap);
 	},
+	/**
+	 * Updates the cached #segmentMap with data from the given record, so it does not
+	 * need to be re-generated.
+	 * @param  {App.usr.dil.Segment} rec Record representing the segment to be updated
+	 */
 	updateSegmentMap: function(rec) {
 		if(rec && this.segmentMap) {
 			if(_.isArray(rec)) {
@@ -93,6 +123,12 @@ Ext.define('App.usr.dil.SegmentStore', {
 		}
 		return segmentMap;
 	},
+	/**
+	 * Gets a hash mapping each segment to its color.
+	 * @return {Object} 
+	 * Hash mapping each segment to its color. Example:
+	 * 		{ 'a': '#ADADAD', 'b':'#CDCDCD' }
+	 */
 	getSegmentColorMap: function() {
 		if(this.segmentColorMap) {
 			return this.segmentColorMap;
@@ -100,6 +136,11 @@ Ext.define('App.usr.dil.SegmentStore', {
 			this.segmentColorMap = this.buildSegmentColorMap();
 		}
 	},
+	/**
+	 * Updates the cached #segmentColorMap with data from the given record, so it does not
+	 * need to be re-generated.
+	 * @param  {App.usr.dil.Segment} rec Record representing the segment to be updated
+	 */
 	updateSegmentColorMap: function(rec) {
 		if(rec && this.segmentColorMap) {
 			if(_.isArray(rec)) {
@@ -114,6 +155,10 @@ Ext.define('App.usr.dil.SegmentStore', {
 		}
 		return this.segmentColorMap;
 	},
+	/**
+	 * Returns a D3 color scale describing the segments in this store
+	 * @return {[type]} [description]
+	 */
 	getSegmentColorScale: function() {
 		var me = this;
 		return function segmentColorScale(_) {
@@ -126,10 +171,21 @@ Ext.define('App.usr.dil.SegmentStore', {
 		}
 		return this.segmentColors;
 	},
+	/**
+	 * Gets the color associated with a particular segment identity
+	 * @param  {String} identity Identity of the segment
+	 * @return {String} Color of the segment
+	 */
 	getColor: function(identity) {
 		var gen = this.getColorGenerator();
 		return gen(identity);
 	},
+
+	/**
+	 * Adds a new segment consisting of `N`s of the prescribed length 
+	 * @param {Number} length Length of the segment
+	 * @return {App.usr.dil.Segment} Record representing the new segment
+	 */
 	addSegment: function(length) {
 		var segmentMap = this.getSegmentMap(),
 			identity = _.max(_.map(_.keys(segmentMap), function(key) {

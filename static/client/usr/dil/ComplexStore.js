@@ -1,4 +1,8 @@
-Ext.define('Complex', {
+/**
+ * @class
+ * Record defining a complex. Use with App.usr.dil.ComplexStore
+ */
+Ext.define('App.usr.dil.Complex', {
 	extend: 'Ext.data.Model',
 	requires: ['App.usr.dil.StrandStore','App.usr.dil.SegmentStore'],
 	fields: [{
@@ -58,7 +62,7 @@ Ext.define('Complex', {
  */
 Ext.define('App.usr.dil.ComplexStore', {
 	extend: 'Ext.data.Store',
-	model: 'Complex',
+	model: 'App.usr.dil.Complex',
 	constructor: function() {
 		this.callParent(arguments);
 		if(this.strandStore) {
@@ -69,6 +73,7 @@ Ext.define('App.usr.dil.ComplexStore', {
 			}, this);
 		}
 	},
+
 	updateComplexes: function(changedStrand) {
 		var strandSpecs = {},
 			strandSeqs = {},
@@ -108,6 +113,11 @@ Ext.define('App.usr.dil.ComplexStore', {
 			complex.endEdit();
 		}
 	},
+
+	/**
+	 * Adds a new complex to this store, automatically naming it
+	 * @return {App.usr.dil.Complex} The newly added complex
+	 */
 	addComplex: function() {
 		var name = _.max(_.map(this.getRange(), function(rec) {
 			var k = rec.get('name').match(/\d+/g);

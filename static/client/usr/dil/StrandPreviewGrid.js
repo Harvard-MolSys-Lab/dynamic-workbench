@@ -4,34 +4,72 @@
 Ext.define('App.usr.dil.StrandPreviewGrid', {
 	extend: 'Ext.view.View',
 	requires: ['App.usr.dil.SegmentStore','App.usr.dil.ComplexStore'],
+	/**
+	 * @cfg
+	 */
 	cellWidth: 200,
+	/**
+	 * @cfg
+	 */
 	cellHeight: 200,
+
 	itemSelector: 'div.complex-wrap',
 	trackOver: true,
 	overItemCls: 'x-view-over',
 	multiSelect: false,
 	singleSelect: true,
-
 	autoScroll: true,
 	paddingWidth: 6,
 	paddingHeight: 14,
 
+	/**
+	 * @cfg nodeFillMode
+	 * One of `identity`, `segment`, or `domain`
+	 */
 	nodeFillMode: 'segment', // 'identity', 'segment', 'domain'
+	/**
+	 * @cfg nodeStrokeMode
+	 * One of `identity`, `segment`, or `domain`
+	 */
 	nodeStrokeMode: 'segment', // 'identity', 'segment', 'domain'
+	/**
+	 * @cfg lineStrokeMode
+	 */
 	lineStrokeMode: 'default',
+	/**
+	 * @cfg textFillMode
+	 */
 	textFillMode: 'default',
+
+	/**
+	 * @cfg showBubbles
+	 * True to show node "bubbles," false to hide them
+	 */
 	showBubbles: true,
+
+	/**
+	 * @cfg loopMode
+	 */
 	loopMode: 'linear',
+
+	/**
+	 * @cfg showBases
+	 */
 	showBases : true,
+	/**
+	 * @cfg showIndexes
+	 */
 	showIndexes : true,
+	/**
+	 * @cfg showSegments
+	 */
 	showSegments : true,
+
 	zoom: -1,
 
 	initComponent: function() {
 		this.strandPreviews = {};
-		this.tpl = ['<tpl for=".">', '<div style="border:solid 1px white;padding:4px;margin:10px;float:left;width:' + this.cellWidth + 'px;height:' + (this.cellHeight+this.paddingHeight) + 'px;" class="complex-wrap">',
-		//'<span>{name}</span> = <span>{[values.strands.join(" + ")]}</span> : <span>{structure}</span>',
-		'<span style="position:absolute;">{name}</span>', '</div>', '</tpl>'].join(''),
+		this.tpl = this.generateTemplate(),
 
 		this.on('itemadd', this.addComplexes);
 		this.on('itemupdate', this.updateComplex);
@@ -41,6 +79,13 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 			this.fireEvent('updateToolbar', el);
 		}, this);
 		
+		/**
+		 * @cfg {App.usr.dil.ComplexStore} store (required)
+		 * Store containing the Complexes
+		 */
+		/**
+		 * @cfg {App.usr.dil.SegmentStore} segmentStore (required)
+		 */
 		this.segmentStore.on('update', function(segmentStore, rec, op, modifiedFieldNames) {
 			if(modifiedFieldNames.indexOf('color') != -1) {
 				this.refresh();
@@ -51,7 +96,7 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 	},
 	/**
 	 * Returns a StrandPreview chart object
-	 * @param  {Boolean} update
+	 * @param  {Boolean} [update=false]
 	 * True to force the chart to be updated with #cellHeight, #cellWidth, #nodeStrokeMode, etc. properties.
 	 *
 	 * @return {[type]}
@@ -76,9 +121,7 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 		return this.chart;
 	},
 	updateChartProperties: function() {
-		this.tpl = new Ext.XTemplate(['<tpl for=".">', '<div style="border:solid 1px white;padding:4px;margin:10px;float:left;width:' + this.cellWidth + 'px;height:' + (this.cellHeight+this.paddingHeight) + 'px;" class="complex-wrap">',
-		//'<span>{name}</span> = <span>{[values.strands.join(" + ")]}</span> : <span>{structure}</span>',
-		'<span style="position:absolute;">{name}</span>', '</div>', '</tpl>'].join(''));
+		this.tpl = new Ext.XTemplate(this.generateTemplate());
 
 		this.getChart(true);
 		this.refresh();
@@ -96,6 +139,10 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 		this.zoom = zoom;
 		this.updateChartProperties();
 	},
+
+	/**
+	 * Rebuilds the view based on data in the #store
+	 */
 	refresh: function() {
 		this.callParent(arguments);
 
@@ -104,23 +151,14 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 			records = me.store.getRange(),
 			data = [],
 			segmentMap = me.getSegmentMap();
+
 		for(var i = 0; i < records.length; i++) {
 			var rec = records[i],
 				dom = this.getNode(rec);
 
 			if(dom) {
 				nodes.push(dom);
-
-				data.push({
-					strands: _.map(rec.getStrands(), function(strandName) {
-						return {
-							name: strandName,
-							domains: me.strandStore.findRecord('name', strandName).getParsedSpec()
-						}
-					}),
-					structure: rec.get('structure'),
-					sequences: segmentMap,
-				});
+				data.push(me.getComplexData(rec, segmentMap));
 			}
 		}
 
@@ -132,13 +170,14 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 			var nodeData = d3.selectAll(nodes).data(data).append('svg');
 			this.preview = chart(nodeData);
 
-
-			// this.resizers = [];
-			// for(var i=0; i<nodes.length; i++) {
-			// this.resizers.push(Ext.create('Ext.resizer.Resizer',{target:nodes[i]}));
-			// }
 		}
 	},
+	/**
+	 * Adds the passed complexes to the view. Called by the underlying view on the #itemadd event
+	 * @param {App.usr.dil.Complex[]} records Records to be added
+	 * @param {Number} index Index at which the records are added
+	 * @param {HTMLElement[]} nodes Array of nodes corresponding to the complexes to be added
+	 */
 	addComplexes: function(records, index, nodes) {
 
 		var me = this,
@@ -147,17 +186,7 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 
 		for(var i = 0; i < records.length; i++) {
 			var rec = records[i];
-
-			data.push({
-				strands: _.map(rec.getStrands(), function(strandName) {
-					return {
-						name: strandName,
-						domains: me.strandStore.findRecord('name', strandName).getParsedSpec()
-					}
-				}),
-				structure: rec.get('structure'),
-				sequences: segmentMap,
-			});
+			data.push(me.getComplexData(rec, segmentMap));
 		}
 
 		if(nodes.length > 0) {
@@ -168,27 +197,19 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 			var nodeData = d3.selectAll(nodes).data(data).append('svg');
 			this.preview = chart(nodeData);
 
-
-			// this.resizers = [];
-			// for(var i=0; i<nodes.length; i++) {
-			// this.resizers.push(Ext.create('Ext.resizer.Resizer',{target:nodes[i]}));
-			// }
 		}
 	},
+	/**
+	 * Updates the passed complex in the view. Called by the underlying view on the #itemupdate event
+	 * @param {App.usr.dil.Complex[]} records Record to be updated
+	 * @param {Number} index Index at which the records are updated
+	 * @param {HTMLElement[]} node Node corresponding to the complexes to be added
+	 */
 	updateComplex: function(record, index, node) {
 		var me = this,
 			rec = record,
 			segmentMap = this.getSegmentMap(),
-			data = [{
-				strands: _.map(rec.getStrands(), function(strandName) {
-					return {
-						name: strandName,
-						domains: me.strandStore.findRecord('name', strandName).getParsedSpec()
-					}
-				}),
-				structure: rec.get('structure'),
-				sequences: segmentMap,
-			}];
+			data = [me.getComplexData(rec, segmentMap)];
 		var chart = me.getChart();
 
 		var nodeData = d3.select(node).data(data).append('svg');
@@ -199,6 +220,34 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 	removeComplex: function(record, index) {
 
 	},
+
+	/**
+	 * @private
+	 * Gets the object that will serve as the data for StrandPreview visualization
+	 * @param  {[type]} rec [description]
+	 * @param  {[type]} segmentMap [description]
+	 * @return {[type]} [description]
+	 */
+	getComplexData: function(rec, segmentMap) {
+		var me = this;
+		segmentMap = segmentMap || me.getSegmentMap();
+
+		return {
+			strands: _.map(rec.getStrands(), function(strandName) {
+				return {
+					name: strandName,
+					domains: me.strandStore.findRecord('name', strandName).getParsedSpec()
+				}
+			}),
+			structure: rec.get('structure'),
+			sequences: segmentMap,
+		}
+	},
+	/**
+	 * @private
+	 * Gets the segment map associated with this view's #segmentStore
+	 * @return {Object} segmentMap
+	 */
 	getSegmentMap: function() {
 		if(this.segmentMap) {
 			return this.segmentMap;
@@ -206,6 +255,11 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 			return this.segmentStore.getSegmentMap();
 		}
 	},
+	/**
+	 * @private
+	 * Gets the color scale associated with this view's #segmentStore
+	 * @return {Object} colorScale
+	 */
 	getSegmentColorScale: function() {
 		return this.segmentStore.getSegmentColorScale()
 	},
@@ -215,6 +269,24 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 	unhighlight: function(criteria) {
 		this.preview.unhighlight(criteria);
 	},
+
+	/**
+	 * Generates the text to be passed to the Ext.XTemplate constructor. Reflects updated values of #cellWidth, #cellHeight, and #paddingHeight.
+	 * @return {String} Template string
+	 */
+	generateTemplate: function () {
+		return ['<tpl for=".">', 
+			'<div style="border:solid 1px white;padding:4px;margin:10px;float:left;width:' + this.cellWidth + 'px;height:' + (this.cellHeight+this.paddingHeight) + 'px;" class="complex-wrap">',
+			//'<span>{name}</span> = <span>{[values.strands.join(" + ")]}</span> : <span>{structure}</span>',
+			'<span style="position:absolute;">{name}</span>', '</div>', 
+		'</tpl>'].join('');
+	},
+
+	/**
+	 * @private
+	 * @param  {Function} cb Callback to be passed the markup
+	 * @param {String} cb.markup The generated markup
+	 */
 	getMarkup: function(cb) {
 		if(!this.svgStyles) {
 			Ext.Ajax.request({

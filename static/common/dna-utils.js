@@ -2717,8 +2717,9 @@ var DNA = module.exports.DNA = (function(_) {
 			return 0;
 		},
 		/**
-		 * Gets the polarity of a given identifier string. Strings ending with * or
-		 * ' are assumed to have negative (3' to 5') polarity.
+		 * Gets the polarity of a given identifier string. Strings ending with `*` or
+		 * `'` are assumed to have negative (3' to 5') polarity; other strings are 
+		 * assumed to have positive (5' to 3' polarity)
 		 * @param {String} identifier
 		 * @return {Number} polarity 1 for 5' -> 3', -1 for 3' -> 5'
 		 */
@@ -2726,8 +2727,14 @@ var DNA = module.exports.DNA = (function(_) {
 			return identifier ? ((identifier[identifier.length - 1] == '*' || identifier[identifier.length - 1] == "'") ? -1 : 1) : 0;
 		},
 		/**
-		 * Parses an identifier (identity + optional polarity specifier)
-		 * to an object containing the `identity` and `polarity`
+		 * Parses an identifier (a segment identity + an optional polarity specifier)
+		 * to an object containing the `identity` and `polarity`. Examples:
+		 *
+		 * 		DNA.parseIdentifier('5*') // -> { identity: '5', polarity: -1 }
+		 * 		DNA.parseIdentifier('hi') // -> { identity: 'hi', polarity: 1 }
+		 * 		DNA.parseIdentifier('17') // -> { identity: '17', polarity: 1 }
+		 * 		DNA.parseIdentifier("a'") // -> { identity: 'a', polarity: -1 }
+		 * 		
 		 * @return {Object} spec
 		 * @return {Object} spec.identity
 		 * @return {Object} spec.polarity

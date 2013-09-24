@@ -1822,13 +1822,6 @@ var DNA = module.exports.DNA = (function(_) {
 							});
 						}
 					}
-					// if(labels[n]) {
-					// links.push({
-					// source : n,
-					// target :
-					// })
-					// }
-
 					theta += dtheta;
 				}
 				n++;
@@ -2714,6 +2707,7 @@ var DNA = module.exports.DNA = (function(_) {
 			return {
 				domains : sequences,
 				strands : strands,
+				structures: structures,
 			};
 		},
 		defaultPolaritySpecifier : '*',

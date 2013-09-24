@@ -2899,9 +2899,10 @@ App.dynamic = module.exports = (function(_,DNA) {
 									throw new DynamlError({
 									type : 'segment length mismatch',
 										message : _.template('Complementarity statement (<%= sourceNode %>.<%= sourcePort %> * <%= targetNode %>.<%= targetPort %>) '+
-										'in node <%= sourceNode %> implies segment <%= targetNode %>.<%= targetPort %>.<%= targetSegment %> (<%= targetSegmentIndex %>/<%= targetSegmentCount %>)' + //
-										'should have same length as <%= sourceNode %>.<%= sourcePort %>.<%= sourceSegment %> (<%= sourceSegmentIndex %>/<%= sourceSegmentCount %>): '+
-										'<%= expected %> segments, but instead it has <%= encountered %> segments.', {
+										'in node <%= sourceNode %> implies: '+
+										'segment <%= targetNode %>.<%= targetPort %>.<%= targetSegment %> (#<%= targetSegmentIndex %>/<%= targetSegmentCount %>) ' + //
+										'should have same length as <%= sourceNode %>.<%= sourcePort %>.<%= sourceSegment %> (#<%= sourceSegmentIndex %>/<%= sourceSegmentCount %>): '+
+										'<%= expected %> nt, but instead it has <%= encountered %> nt.', {
 											sourceNode : complement.sourceNode.getName(),
 											sourcePort : complement.sourcePort.getName(),
 											sourceSegment : sourceSegment.getName(),

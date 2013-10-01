@@ -1014,6 +1014,17 @@ path.resting-state-hull {
 .sequence-highlight-complement {
 	background: #99D6FF;
 }
+.sequence-segment {
+	margin: 0px 4px 0px 0px;
+}
+
+.space-segments .sequence-segment {
+	margin: 0px 2px 0 0;
+	border-style: none solid none none;
+	border-width: 1px;
+	border-color: silver;
+	padding: 0 2px 0 0
+}
 
 .complex-wrap.x-item-selected {
 	background-color: #dfe8f6 !important;

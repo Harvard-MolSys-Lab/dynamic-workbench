@@ -207,7 +207,16 @@ test('validateDotParen', function() {
 
 test('structureSpec', function() {
 
-	var lines = [
+	// sequence 1 : NNNNNNNN
+	// sequence 2 : NNNNNNNN
+	// sequence 3 : NNNNNNNN
+	// sequence 4 : NNNNNNNN
+
+	// n1_n1 : 1* 2* 3*   4* 5* 3   2 6* 7* 
+	// n2_n2 : 3* 5 4   1 8* 4*   5* 9* 10* 
+	// n3_n3 : 4 8 1*   3 2 1   8* 11* 12* 
+	
+	var lines1 = [
 		[
 			["keyword", "sequence"],
 			["string", "1"],
@@ -216,14 +225,14 @@ test('structureSpec', function() {
 			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"]
 		],
 		[
-			["keyword", "sequence"],
+			["keyword", "domain"],
 			["string", "2"],
 			["operator", ":"],
 			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], 
 			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"]
 		],
 		[
-			["keyword", "sequence"],
+			["keyword", "segment"],
 			["string", "3"],
 			["operator", ":"],
 			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], 
@@ -232,82 +241,68 @@ test('structureSpec', function() {
 		[
 			["keyword", "sequence"],
 			["string", "4"],
-			["operator", ":"],
-			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], 
-			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"]
-		],
-		[
-			["keyword", "sequence"],
-			["string", "5"],
-			["operator", ":"],
-			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], 
-			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"]
-		],
-		[
-			["keyword", "sequence"],
-			["string", "6"],
-			["operator", ":"],
-			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], 
-			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"]
-		],
-		[
-			["keyword", "sequence"],
-			["string", "7"],
-			["operator", ":"],
-			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], 
-			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"]
-		],
-		[
-			["keyword", "sequence"],
-			["string", "8"],
-			["operator", ":"],
-			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], 
-			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"]
-		],
-		[
-			["keyword", "sequence"],
-			["string", "9"],
-			["operator", ":"],
-			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], 
-			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"]
-		],
-		[
-			["keyword", "sequence"],
-			["string", "10"],
-			["operator", ":"],
-			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], 
-			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"]
-		],
-		[
-			["keyword", "sequence"],
-			["string", "11"],
-			["operator", ":"],
-			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], 
-			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"]
-		],
-		[
-			["keyword", "sequence"],
-			["string", "12"],
-			["operator", ":"],
+			["operator", "="],
 			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], 
 			["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"]
 		],
 		[
 			["variable", "n1_n1"],
 			["operator", ":"],
-			["string", "1* 2* 3*   4* 5* 3   2 6* 7* "]
+			["string", "1* 2* 3*   4 "]
 		],
-		[
-			["variable", "n2_n2"],
-			["operator", ":"],
-			["string", "3* 5 4   1 8* 4*   5* 9* 10* "]
-		],
-		[
-			["variable", "n3_n3"],
-			["operator", ":"],
-			["string", "4 8 1*   3 2 1   8* 11* 12* "]
-		]
 	]
+	var expect1 = {"domains":{"1":"NNNNNNNN","2":"NNNNNNNN","3":"NNNNNNNN","4":"NNNNNNNN"},"strands":{"n1_n1":"1* 2* 3*   4 "}} ;
 
+	var spec1 = DNA.structureSpec(lines1);
+	deepEqual(spec1,expect1,'Simple example')
+	console.log(JSON.stringify(spec1))
+
+
+	// ------------------------------------------------------------------------
+	
+	var lines2 = [
+		[
+			["keyword", "sequence"],
+			["string", "s1"],
+			["operator", "="],
+			["sequence-a", "A"], ["sequence-t", "T"], ["sequence-c", "C"], ["sequence-g", "G"], ["sequence-a", "A"]
+		],
+		[
+			["keyword", "sequence"],
+			["string", "s2"],
+			["operator", "="],
+			["number", "6"], ["sequence-n", "N"]
+		],
+		[
+			["keyword", "domain"],
+			["string", "s3"],
+			["operator", ":"],
+			["sequence-n", "N"], ["sequence-y", "Y"], ["sequence-r", "R"], ["sequence-t", "T"], ["sequence-b", "B"]
+		],
+		[],
+		[
+			["variable", "m1"],
+			["operator", ":"],
+			["string", "s1 s2* s3"]
+		],
+		[
+			["keyword", "strand"],
+			["variable", "m2"],
+			["operator", "="],
+			["string", "s2 s3*"]
+		],
+		[
+			["variable", "m3"],
+			["operator", "="],
+			["string", "s3 s1' s2"]
+		]
+	];
+
+	var expect2 = {"domains":{"s1":"ATCGA","s2":"NNNNNN","s3":"NYRTB"},"strands":{"m1":"s1 s2* s3","m3":"s3 s1' s2"}} ;
+
+	var spec2 = DNA.structureSpec(lines2);
+	deepEqual(spec2,expect2,'More complex example')
+
+	console.log(JSON.stringify(spec2))
 
 })

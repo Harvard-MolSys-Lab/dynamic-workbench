@@ -92,13 +92,14 @@ Ext.onReady(function() {
 
 	var adminWindow = Ext.create('Ext.Window',{
 		closable : false,
+		maximizable: true,
 		width : 500,
 		height : 300,
 		modal : true,
 		layout : 'border',
 		title : "Administration for " + App.name,
 		iconCls : 'lock',
-		overflow: 'auto',
+		autoScroll:true,
 		items : [{
 			html : 'Edit users who have access to ' + App.name + '.',
 			frame : true,

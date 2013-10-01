@@ -2656,7 +2656,7 @@ var DNA = module.exports.DNA = (function(_) {
 					 *     sequence a = ATCGNA
 					 *     domain   a = GYRBA
 					 */
-					else if (line[0][1] == 'sequence' || line[0][1] == 'domain') {
+					else if (line[0][1] == 'sequence' || line[0][1] == 'domain' || line[0][1] == 'segment') {
 						/*
 						 *	e.g:
 						 *	
@@ -2674,7 +2674,7 @@ var DNA = module.exports.DNA = (function(_) {
 
 						// e.g. `6N`
 						if (spec[0][0] == 'number') {
-							var base = spec[1][1], times = spec[0][1], spec = '';
+							var base = spec[1][1], times = parseInt(spec[0][1]), spec = '';
 							spec = Array(times+1).join(base);
 						} 
 						// e.g. `GATCANY` ... 
@@ -2685,13 +2685,27 @@ var DNA = module.exports.DNA = (function(_) {
 
 						
 					} 
-					/* Handle threading assignments
+					/* Handle Pepper-style threading assignments
+					 * e.g.:
+					 *     0      1  2 3...
+					 *     strand m1 = a b c*
+					 */
+					else if (line[0][1] == 'strand') {
+						var name = line[1][1], spec = _.select(line.slice(3), function(x) {
+							return x[0] == 'string';
+						});
+						spec = _.pluck(spec, 1);
+						spec = spec.join(' ');
+
+					}
+
+					/* Handle NUPACK-style threading assignments
 					 * e.g.:
 					 *     0      1 2...
 					 *     M1     : 1 2* 3 4
 					 *     M2.seq = 1 2* 3 4
 					 */
-					else if (line[0][0] == 'variable' && line[1] && line[1][1] == ':') {
+					else if (line[0][0] == 'variable' && line[1] && (line[1][1] == ':' || line[1][1] == '=')) {
 						var name = line[0][1], spec = _.select(line.slice(2), function(x) {
 							return x[0] == 'string';
 						});

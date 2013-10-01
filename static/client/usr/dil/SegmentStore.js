@@ -1,22 +1,9 @@
 /**
- * Model representing a Segment. To be used with App.usr.dil.SegmentStore
- */
-Ext.define('App.usr.dil.Segment', {
-	extend: 'Ext.data.Model',
-	fields: [{
-		name: 'identity'
-	}, {
-		name: 'sequence'
-	}, {
-		name: 'color',
-	}],
-});
-
-/**
  * Store representing a collection of {@link App.dynamic.Segment DyNAML segments}.
  */
 Ext.define('App.usr.dil.SegmentStore', {
 	extend: 'Ext.data.Store',
+	requires: ['App.usr.dil.Segment'],
 	model: 'App.usr.dil.Segment',
 	constructor: function() {
 		this.callParent(arguments);

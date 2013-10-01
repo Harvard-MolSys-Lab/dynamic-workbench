@@ -347,6 +347,25 @@ App.dynamic = module.exports = (function(_,DNA) {
 			}
 			return concatamer;
 		},
+		getOrderedStructure: function () {
+			var r = Structure.join(_.map(this.getStrands(), function(strand) {
+				var s = strand.Structure();
+				return (strand.getPolarity() == -1) ? s.reverse() : s;
+			}));
+			return (this.getPolarity() == -1) ? r.reverse() : r;
+		},
+		getSegmentwiseStructure: function() {
+			return Structure.join(_.map(this.getStrands(),function(strand) {
+				return strand.getSegmentwiseStructure();
+			}));
+		},
+		getOrderedSegmentwiseStructure: function() {
+			var r = Structure.join(_.map(this.getStrands(), function(strand) {
+				var s = strand.getSegmentwiseStructure();
+				return (strand.getPolarity() == -1) ? s.reverse() : s;
+			}));
+			return (this.getPolarity() == -1) ? r.reverse() : r;
+		},
 		/**
 		 * Returns object like:
 		 * 	[{strand: {Strand}, structure:strand.getAnnotatedStructure()},...]
@@ -357,16 +376,6 @@ App.dynamic = module.exports = (function(_,DNA) {
 			});
 			s.dotParen = this.getStructure().toDotParen();
 			return s;
-		},
-		getSegmentwiseStructure: function() {
-			return Structure.join(_.map(this.getStrands(),function(strand) {
-				return strand.getSegmentwiseStructure();
-			}));
-		},
-		getOrderedSegmentLengths: function() {
-			return _.comprehend(this.getOrderedStrands(),function(strand) {
-				return strand.getOrderedSegmentLengths();
-			});
 		},
 
 		/**
@@ -399,6 +408,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 			return _.clone(_.comprehend(this.getOrderedStrands(),function(strand) {
 				return strand.getOrderedSegments();
 			}))
+		},
+		getOrderedSegmentLengths: function() {
+			return _.comprehend(this.getOrderedStrands(),function(strand) {
+				return strand.getOrderedSegmentLengths();
+			});
 		},
 		/**
 		 * Gets all {@link App.dynamic.Domain domains} associated with this motif/node
@@ -2899,9 +2913,10 @@ App.dynamic = module.exports = (function(_,DNA) {
 									throw new DynamlError({
 									type : 'segment length mismatch',
 										message : _.template('Complementarity statement (<%= sourceNode %>.<%= sourcePort %> * <%= targetNode %>.<%= targetPort %>) '+
-										'in node <%= sourceNode %> implies segment <%= targetNode %>.<%= targetPort %>.<%= targetSegment %> (<%= targetSegmentIndex %>/<%= targetSegmentCount %>)' + //
-										'should have same length as <%= sourceNode %>.<%= sourcePort %>.<%= sourceSegment %> (<%= sourceSegmentIndex %>/<%= sourceSegmentCount %>): '+
-										'<%= expected %> segments, but instead it has <%= encountered %> segments.', {
+										'in node <%= sourceNode %> implies: '+
+										'segment <%= targetNode %>.<%= targetPort %>.<%= targetSegment %> (#<%= targetSegmentIndex %>/<%= targetSegmentCount %>) ' + //
+										'should have same length as <%= sourceNode %>.<%= sourcePort %>.<%= sourceSegment %> (#<%= sourceSegmentIndex %>/<%= sourceSegmentCount %>): '+
+										'<%= expected %> nt, but instead it has <%= encountered %> nt.', {
 											sourceNode : complement.sourceNode.getName(),
 											sourcePort : complement.sourcePort.getName(),
 											sourceSegment : sourceSegment.getName(),

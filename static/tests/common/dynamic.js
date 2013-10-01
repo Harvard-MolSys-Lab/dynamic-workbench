@@ -10,7 +10,88 @@ function ids(list) {
 	});
 }
 
+// ---------------------------------------------------------------------------
+
 module("App.dynamic.Node");
+
+test("getOrderedSegmentwiseStructure",function () {
+	var s1 = new App.dynamic.Node({
+		name: 'n1',
+		polarity: -1,
+		domains: 'd1[s1 s2 s3]- d2[s2* s1* s4]+',
+		structure: '((.)).',
+		library: App.dynamic.Library.dummy()
+	});
+	deepEqual(s1.getOrderedSegmentwiseStructure().toDotParen(),'.((.))','One strand, created from `domains`');
+
+	var s3 = new App.dynamic.Node({
+		name: 'n3',
+		polarity: 1,
+		strands: [{
+			name: 'S1',
+			domains: 'd1[s1 s2 s3]- d2[s4 s3* s2*]+',
+			polarity: 1,
+			structure: '.((.))'
+		}],
+		library: App.dynamic.Library.dummy()
+	});
+	deepEqual(s3.getOrderedSegmentwiseStructure().toDotParen(),'.((.))','One strand, created from strands[]');
+
+	var s5 = new App.dynamic.Node({
+		name: 'n5',
+		polarity: -1,
+		strands: [{
+			name: 'S1',
+			domains: 'd1[s1 s2 s3]- d2[s4 s5 s6]+',
+			polarity: 1
+		}, {
+			name: 'S2',
+			domains: 'd3[s7 s8 s9]- d4[s10 s11 s12]+',
+			polarity: 1
+		}],
+		structure: '.(((..+...)))',
+		library: App.dynamic.Library.dummy()
+	});
+	deepEqual(s5.getOrderedSegmentwiseStructure().toDotParen(),'(((...+..))).','Two strands, (-) node polarity');
+
+	var s6 = new App.dynamic.Node({
+		name: 'n5',
+		polarity: 1,
+		strands: [{
+			name: 'S1',
+			domains: 'd1[s1 s2 s3]- d2[s4 s5 s6]+',
+			polarity: 1,
+			structure: '.(((..',
+		}, {
+			name: 'S2',
+			domains: 'd3[s7 s8 s9]- d4[s10 s11 s12]+',
+			polarity: -1,
+			structure: '(((...'
+		}],
+		library: App.dynamic.Library.dummy()
+	});
+	deepEqual(s6.getOrderedSegmentwiseStructure().toDotParen(),'.(((..+...)))','Two strands, (-) opposite polarities');
+
+	var s7 = new App.dynamic.Node({
+		name: 'n5',
+		polarity: -1,
+		strands: [{
+			name: 'S1',
+			domains: 'd1[s1 s2 s3]- d2[s4 s5 s6]+',
+			polarity: 1,
+			structure: '.(((..',
+		}, {
+			name: 'S2',
+			domains: 'd3[s7 s8 s9]- d4[s10 s11 s12]+',
+			polarity: -1,
+			structure: '(((...'
+		}],
+		library: App.dynamic.Library.dummy()
+	});
+	deepEqual(s7.getOrderedSegmentwiseStructure().toDotParen(),'(((...+..))).','Two strands');
+
+})
+
 test("getOrderedSegments", function() {
 	var s1 = new App.dynamic.Node({
 		name: 'n1',
@@ -141,6 +222,9 @@ test("segmentLength", function() {
 		equal(s2.getLength(), clampLength)
 		equal(s3.getLength(), segmentLength)
 })
+
+// ---------------------------------------------------------------------------
+
 module("App.dynamic.Library");
 test("DIL output", function() {
 	var originalLib = new App.dynamic.Library({
@@ -208,6 +292,9 @@ test("DIL output", function() {
 	//deepEqual(originalLib,dilLib)
 	expect(0)
 })
+
+// ---------------------------------------------------------------------------
+
 module("App.dynamic.Compiler");
 test("parseSegmentString", function() {
 	var input1 = "a b:t c(4) d(5)c",
@@ -247,7 +334,7 @@ test("parseSegmentString", function() {
 			length: 1
 		}]
 
-		deepEqual(App.dynamic.Compiler.parseSegmentString(input1), output1, "Segment string");
+	deepEqual(App.dynamic.Compiler.parseSegmentString(input1), output1, "Segment string");
 	deepEqual(App.dynamic.Compiler.parseSegmentString(input2), output2, "Segment string with complements");
 	deepEqual(App.dynamic.Compiler.parseSegmentString(input3), output3, "Single segment");
 

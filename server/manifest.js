@@ -28,11 +28,11 @@ var libs = ['jquery-1.5.1.min', 'underscore', 'string', 'color-field-1.0.0/color
 'jquery-animate-css-rotate-scale/jquery-css-transform', //
 'jquery-animate-css-rotate-scale/jquery-animate-css-rotate-scale', 'Ext.ux.StatusBar', //
 'protovis-3.2/protovis-d3.2','d3-v2/d3.v2','dagre-master/dagre','/extjs-boxselect/src/BoxSelect','object-browser/ObjectBrowser',//
-'ChemDoodleWeb/install/ChemDoodleWeb-libs-nojQuery',
+//'ChemDoodleWeb/install/ChemDoodleWeb-libs-nojQuery',
 //'ChemDoodleWeb/install/ChemDoodleWeb',
-'ChemDoodleWeb/src/ChemDoodleWeb-unpacked',
-'ChemDoodleWeb/install/sketcher/jquery-ui-1.8.7.custom.min',
-'ChemDoodleWeb/src/ChemDoodleWeb-sketcher-unpacked',
+//'ChemDoodleWeb/src/ChemDoodleWeb-unpacked',
+//'ChemDoodleWeb/install/sketcher/jquery-ui-1.8.7.custom.min',
+//'ChemDoodleWeb/src/ChemDoodleWeb-sketcher-unpacked',
 //'ChemDoodleWeb/install/sketcher/ChemDoodleWeb-sketcher',//
 'naturalSort',
 ];//

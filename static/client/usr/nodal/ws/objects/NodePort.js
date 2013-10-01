@@ -101,7 +101,9 @@ Ext.define('App.usr.nodal.ws.objects.NodePort', {
 		return obj ? obj[prop] : false;
 	},
 	getLibraryObject : function() {
-		if(this.parent && this.getParent().isWType('App.usr.nodal.ws.objects.Node') || this.getParent().isWType('App.usr.nodal.ws.objects.Motif')) {
+		if(this.parent && 
+			(this.getParent().isWType('App.usr.nodal.ws.objects.Node') 
+				|| this.getParent().isWType('App.usr.nodal.ws.objects.Motif'))) {
 			var node = this.parent.getLibraryObject(), name = this.get('name');
 			if(node) {
 				var me = _.find(node.getDomains(), function(dom) {

@@ -588,7 +588,7 @@ Ext.define('App.usr.dil.DilEditor', {
 			return {
 				name: node.getName(),
 				polarity: node.getPolarity(),
-				structure: node.getSegmentwiseStructure().toDotParen(),
+				structure: node.getOrderedSegmentwiseStructure().toDotParen(),
 				strands: _.map(node.getStrands(), function(strand) {
 					return strand.getQualifiedName()
 				})

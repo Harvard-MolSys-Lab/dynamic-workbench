@@ -99,7 +99,7 @@ Ext.onReady(function() {
 		layout : 'border',
 		title : "Administration for " + App.name,
 		iconCls : 'lock',
-		autoScroll:true,
+		// autoScroll:true,
 		items : [{
 			html : 'Edit users who have access to ' + App.name + '.',
 			frame : true,
@@ -108,6 +108,7 @@ Ext.onReady(function() {
 			margins : '5 5 0 5'
 		}, {
 			xtype : 'grid',
+			autoScroll:true,
 			plugins: [cellEditing],
 			region : 'center',
 			layout : 'anchor',

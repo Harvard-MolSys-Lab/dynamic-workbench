@@ -288,9 +288,9 @@ CodeMirror.defineMode("dd-sequence", function() {
 	};
 });
 
-CodeMirror.defineMode("nupack", function(config) {
+CodeMirror.defineMode("nupack", function(options,config) {
 	var sequenceMode = CodeMirror.getMode(config, 'sequence');
-	var ms = !! config && !! config.mode && !! config.mode.multisubjective;
+	var ms = !! config && (config.multisubjective || config.ms);
 	return {
 		startState: function() {
 			return {
@@ -307,7 +307,12 @@ CodeMirror.defineMode("nupack", function(config) {
 				if(stream.match('#`', true, true) || stream.match('#``', true, true)) {
 					stream.skipToEnd();
 					return 'builtin';
-				} else if(stream.eat('%') || stream.eat('#')) {
+				} 
+				else if (stream.match(/^(material|temperature|trials|sodium|magnesium|dangles|prevent)/,true)) {
+					state.value = 'parameter';
+					return 'keyword';
+				} 
+				else if(stream.eat('%') || stream.eat('#')) {
 					stream.skipToEnd();
 					return 'comment';
 				} else if(stream.match('structure', true, true)) {
@@ -336,8 +341,7 @@ CodeMirror.defineMode("nupack", function(config) {
 						} else if(stream.match('!length', true, true)) {
 							state.value = 'sequence-definition-left';
 							return 'keyword';
-						} 
-						else if(stream.match('!',true,true)) {
+						} else if(stream.match('!',true,true)) {
 							stream.skipToEnd();
 							state.value = '';
 							return 'string';
@@ -352,6 +356,11 @@ CodeMirror.defineMode("nupack", function(config) {
 			
 			else {
 				switch (state.value) {
+					case 'parameter':
+						stream.skipToEnd();
+						state.value = '';
+						return 'string';
+
 					// multisubjective
 					case 'ms-definition-left': 
 						stream.eatWhile(/\S/);
@@ -590,9 +599,9 @@ CodeMirror.renderMode = function(mode, v) {
 
 CodeMirror.getModeRenderer = function(modespec, options) {
 	function esc(str) {
-		return str.replace(/[<&]/g, function(ch) {
+		return !!str ? str.replace(/[<&]/g, function(ch) {
 			return ch == "<" ? "&lt;" : "&amp;";
-		});
+		}) : '';
 	}
 
 	var mode = CodeMirror.getMode(CodeMirror.defaults, modespec);
@@ -604,6 +613,8 @@ CodeMirror.getModeRenderer = function(modespec, options) {
 			return text;
 	}
 	return function(string) {
+		string = string || '';
+
 		var accum = [],
 			col = 0;
 		callback = function(text, style) {

@@ -6,6 +6,7 @@ fs = require('fs'), //
 _ = require('underscore'), 
 async = require('async'), //
 winston = require('winston'), //
+ansispan = require('ansispan'),
 glob = require('glob');
 
 // Utils abbreviations
@@ -136,28 +137,31 @@ exports.start = function(req, res, params) {
 				proc.exec(cmd, {
 					env : env,
 					maxBuffer : maxBuffer
-				}, function(err, stdout, stderr) {
-					if (err) {
-						utils.log("error", "Node execution error. ", {
-							cmd : cmd,
-							stderr : stderr,
-							stdout : stdout,
-							err : err,
-						});
-					}
-					if (stderr) {
-						utils.log({
-							level : "error",
+				}, function(code, stdout, stderr) {
+					// because apparently sometimes node just returns `null`... 
+					if (!code) { code = 0; }
+
+					if (code != 0) {
+						utils.log("error", "Multisubjective returned non-zero exit code. ", {
+							level : "Warning",
 							source : "ms",
-							message : "MS execution error. ",
 							cmd : cmd,
 							stderr : stderr,
 							stdout : stdout,
+							code: code,
 						});
-						res.send("Task completed with errors. \n\n" + stderr + '\n' + stdout);
-					} else {
-						res.send(stdout);
 					}
+					var output;
+					if (stderr) {
+						if (code != 0) {
+							output = "Task completed with error "+code+". \n\n" + stderr + '\n\n' + stdout 
+						} else {
+							output = "Task completed with warnings. \n\n" + stderr + '\n\n' + stdout;
+						}
+					} else {
+						output = "Task completed successfully. \n\n" + stdout
+					}
+					res.send(output, code == 0 ? 200 : 500);
 				})
 
 			}

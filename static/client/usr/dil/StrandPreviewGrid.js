@@ -65,6 +65,15 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 	 */
 	showSegments : true,
 
+	/**
+	 * @cfg {'segment'/'base'} structureMode
+	 * Determines whether the {@link App.usr.dil.Complex#structure} field 
+	 * should be interpreted to be a base-wise or a segment-wise structure.
+	 * If a segment-wise structure, it will be {@link DNA#expandStructure expanded}
+	 * by the underlying StrandPreview.
+	 */
+	structureMode: 'segment',
+
 	zoom: -1,
 
 	initComponent: function() {
@@ -239,8 +248,10 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 					domains: me.strandStore.findRecord('name', strandName).getParsedSpec()
 				}
 			}),
-			structure: rec.get('structure'),
+			structure: this.structureMode == 'segment' ? rec.get('structure') : undefined,
+			dotParen: this.structureMode == 'base' ? rec.get('structure') : undefined,
 			sequences: segmentMap,
+			extraData: this.extraData || null,
 		}
 	},
 	/**

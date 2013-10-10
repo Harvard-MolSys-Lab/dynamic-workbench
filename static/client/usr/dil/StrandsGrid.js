@@ -104,9 +104,9 @@ Ext.define('App.usr.dil.StrandsGrid',{
 						var dom = spec[i];
 						for(var j = 0; j < dom.segments.length; j++) {
 							var seg = dom.segments[j],
-								seq = segmentMap[DNA.makeIdentifier(seg.identity, seg.polarity)];
+								seq = segmentMap[DNA.makeIdentifier(seg.identity, seg.polarity)] || '(?)';
 							out.push('<span class="sequence-segment" data-segment-identity="' + seg.identity + '" data-segment-polarity="' + seg.polarity + '">' + renderer(seq) + '</span>');
-							pos += seq.length;
+							// pos += seq.length;
 						}
 					}
 					return out.join('');

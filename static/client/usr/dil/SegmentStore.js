@@ -30,6 +30,64 @@ Ext.define('App.usr.dil.SegmentStore', {
 			this.updateSegmentColorMap(recs);
 		}, this);
 	},
+
+	/**
+	 * Adds a segment with the passed {@link DNA#parseIdentity identity} and sequence to the store
+	 * @param {String} identity Identity of the new segment
+	 * @param {String} sequence Sequence of bases
+	 */
+	addSegment: function(identity,sequence) {
+		return _.first(this.add({
+			identity: identity,
+			sequence: sequence,
+			color: this.getColor(identity),
+		}));
+	},
+	/**
+	 * Adds several segments to the store.
+	 * @param {Object} map 
+	 * A hash mapping segment {@link DNA#parseIdentity identities} to their sequences. Example:
+	 *
+	 * 		{ '1':'AAATAGCG', 'd': 'TAATCG', '17': 'GATACA' }
+	 * @return {App.usr.dil.Segment[]} Array of segment records
+	 */
+	addSegments: function(map) {
+		var me = this;
+		return this.add(_.map(map,function(sequence,identity) {
+			return {
+				identity: identity,
+				sequence: sequence,
+				color: me.getColor(identity),
+			}
+		}));
+	},
+	/**
+	 * Updates several segments to the store.
+	 * @param {Object} map 
+	 * A hash mapping segment {@link DNA#parseIdentity identities} to their sequences new. Example:
+	 *
+	 * 		{ '1':'AAATAGCG', 'd': 'TAATCG', '17': 'GATACA' }
+	 * 		
+	 * @return {App.usr.dil.Segment[]} Array of modified segment records
+	 */
+	updateSegments: function(map) {
+		var me = this;
+		return _.map(map,function(sequence,identity) {
+			var seg = me.findRecord('identity',identity);
+			if(seg) {
+				seg.set('sequence',sequence);
+				return seg;
+			} else {
+				return _.first(me.add({
+					identity: identity,
+					sequence: sequence,
+					color: me.getColor(identity),
+				}));
+			}
+		});
+	},
+
+
 	buildSegmentMap: function() {
 		var segmentIds = this.getRange(),
 			allSegments = [],

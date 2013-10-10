@@ -16,6 +16,12 @@
 	stroke: #aaa;
 	stroke-linecap: round;
 }
+
+.link-undesired {
+	stroke-width: 3px;
+	stroke: #e00;
+}
+
 .tail {
 	stroke-width: 5px;
 	stroke: #aaa;

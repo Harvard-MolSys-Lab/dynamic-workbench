@@ -60,6 +60,12 @@ function StrandPreview() {
 				sequences: structure.sequences,
 				persistenceLength: false,
 			});
+		} else if(structure.dotParen && !structure.structure) {
+			return DNA.generateAdjacency4(structure.dotParen, structure.strands, {
+				extraData: structure.extraData || null,
+				sequences: structure.sequences,
+				persistenceLength: false,
+			});
 		} else {
 			return DNA.generateAdjacency2(structure, {
 				linkStrands : true,
@@ -136,7 +142,8 @@ function StrandPreview() {
 			
 			// Build nodeLayout; this is the arrangement of nodes and links
 			// which is fed to d3.
-			nodeLayout = buildNodeLayout(data);
+			nodeLayout = buildNodeLayout(structure);
+			// nodeLayout = buildNodeLayout(data);
 			
 			// Build pointLayout; this determines the (starting) 2D positions
 			// of each node. By default uses a planar graph layout

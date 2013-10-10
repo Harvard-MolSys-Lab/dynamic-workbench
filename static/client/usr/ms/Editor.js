@@ -11,7 +11,7 @@ Ext.define('App.usr.ms.Editor', {
 		tip: 'App.ui.TipHelper',
 	},
 	requires: ['App.ui.D3Panel', 'App.usr.seq.Editor',  //
-	'App.usr.dd.SequenceWindow', 'App.ui.SequenceThreader', 'App.ui.AddDomainButton', 'App.ui.StrandPreviewViewMenu',
+	'App.usr.dd.SequenceWindow', 'App.ui.SequenceThreader', 'App.ui.AddDomainButton', 'App.ui.StrandPreviewViewMenu', 'App.ui.ButtonPicker',
 	'App.usr.dil.SegmentStore','App.usr.dil.StrandStore','App.usr.dil.ComplexStore',
 	'App.usr.dil.SegmentsGrid','App.usr.dil.StrandsGrid','App.usr.dil.StrandPreviewGrid'],
 	
@@ -104,7 +104,7 @@ Ext.define('App.usr.ms.Editor', {
 						handler: this.clean,
 						scope: this
 					}]
-				},{
+				},Ext.create('App.ui.ButtonPicker',{
 
 					/*
 					 * Load:
@@ -125,37 +125,39 @@ Ext.define('App.usr.ms.Editor', {
 					 * x - no designer
 					 */
 					text: 'Input mode',
+					value: 'f',
 					menu: {
 						name: 'inputMenu',
 						defaults: { group: 'inputMode', checked: false },
 						items: [{
-							text: 'Load sequences from DD file', mode: 'd'
+							text: 'Load sequences from DD file', value: 'd',
 						},{
-							text: 'Load sequences from multiple DD files', mode: 'm'
+							text: 'Load sequences from multiple DD files', value: 'm'
 						},{
-							text: 'Fill with random bases', mode: 'f', checked: true,
+							text: 'Fill with random bases', value: 'f', checked: true,
 						},{
-							text: 'Load sequences from NUPACK multiobjective file (.npo)', mode: 'n'
+							text: 'Load sequences from NUPACK multiobjective file (.npo)', value: 'n'
 						},{
-							text: 'Autofill from last NUPACK web submission', mode: 'a'
+							text: 'Autofill from last NUPACK web submission', value: 'a'
 						},{
-							text: 'Load from NUPACK job number...', mode: 'j'
+							text: 'Load from NUPACK job number...', value: 'j'
 						}]
 					}
-				},{
+				}),Ext.create('App.ui.ButtonPicker',{
 					text: 'Iteration mode',
+					value: 'o',
 					menu: {
 						name: 'iterationMenu',
 						defaults: { group: 'iterationMode', checked: false },
 						items: [
-							{ text: "Run DD once", mode: 'o', checked: true },
-							{ text: "Run DD 10 times", mode: 'l' },
-							{ text: "Submit to NUPACK web server", mode: 'w' },
-							{ text: "Make random mutations in a loop", mode: 'r' },
-							{ text: "No designer (analysis only)", mode: 'x' },
+							{ text: "Run DD once", value: 'o', checked: true, iconCls: '' },
+							{ text: "Run DD 10 times", value: 'l' },
+							{ text: "Submit to NUPACK web server", value: 'w' },
+							{ text: "Make random mutations in a loop", value: 'r' },
+							{ text: "No designer (analysis only)", value: 'x' },
 						]
 					}
-				}]
+				})]
 			},{
 				xtype: 'buttongroup',
 				columns: 1,
@@ -163,7 +165,7 @@ Ext.define('App.usr.ms.Editor', {
 				items: [{
 					text: 'Load results',
 					width: 64,
-					iconCls: 'sequence-24',
+					iconCls: 'folder-open-24',
 					scale: 'medium',
 					iconAlign: 'top',
 					rowspan: 2,
@@ -210,6 +212,7 @@ Ext.define('App.usr.ms.Editor', {
 				region: 'center',
 				items: [Ext.create('App.usr.dil.StrandPreviewGrid', {
 					name: 'complexView',
+					createTip: true,
 					store: this.complexStore,
 					strandStore: this.strandStore,
 					segmentStore: this.segmentStore,
@@ -307,31 +310,23 @@ Ext.define('App.usr.ms.Editor', {
 		this.inputMenu = this.down('[name=inputMenu]');
 
 
+		this.highlightManager = Ext.create('App.usr.dil.HighlightManager',{
+			segmentStore: this.segmentStore,
+			strandStore: this.strandStore,
+			complexStore: this.complexStore,
+
+			segmentsGrid: this.segmentsGrid,
+			strandsGrid: this.strandsGrid,
+			complexView: this.complexView
+		});
+
 		// this.segmentStore.on('update', function(store, rec, operation, modifiedFieldNames) {
 		// 	this.updateStrandSequences();
 		// }, this);
 
-		// // Highlight items in the #strandsGrid and #complexView when they're moused over in the segments grid
-		// this.segmentsGrid.on('itemmouseenter', function(grid, rec, el, e) {
-		// 	this.fireEvent('updateSegmentHighlight', rec.get('identity'), 1);
-		// }, this);
-		// this.segmentsGrid.on('itemmouseleave', function(grid, rec, el, e) {
-		// 	this.fireEvent('updateSegmentHighlight', null);
-		// }, this);
-		// this.on('updateSegmentHighlight', this.updateSegmentHighlight, this, {
-		// 	buffer: 10,
-		// });
-
-		// // Highlight items in #segmentsGrid and #complexView when they're moused over in the strands grid
-		// this.on('afterrender', function() {
-		// 	this.strandsGrid.getEl().on('mouseover', function(e, el) {
-		// 		var identity = el.getAttribute('data-segment-identity'),
-		// 			polarity = el.getAttribute('data-segment-polarity');
-		// 		this.fireEvent('updateSegmentHighlight', identity, polarity);
-		// 	}, this, {
-		// 		delegate: 'span.sequence-segment'
-		// 	});
-		// }, this);
+		this.on('afterrender', function() {
+			this.highlightManager.afterrender();
+		},this);
 
 
 	},
@@ -576,11 +571,21 @@ Ext.define('App.usr.ms.Editor', {
 		// 		{"pair":[193,211], "warning":{"type":-1, "pos":[193,211]},
 		// 		...
 		// 	]
+		var changes = {};
 		var undesired = _.reduce(data['undesired'], function(memo, p) {
 			var o = _.clone(p);
 			o.target = p.pair[1];
 			if (!memo[p.pair[1]]) {
 				memo[p.pair[0]] = o
+			}
+			if(p.changed) {
+				for(var index in p.changed) {
+					if(!changes[index]) {
+						changes[index] = {}
+					}
+					changes[index].base = p.changed[index];
+					changes[index].reason = 'undesired'
+				}
 			}
 			return memo;
 		}, {})
@@ -650,7 +655,7 @@ Ext.define('App.usr.ms.Editor', {
 
 				// add extra data for particular bases to indicate if they're immutable 
 				// or were changed as part of a prevented sequence.
-				if (immutable[j] || prevented[j]) {
+				if (immutable[j] || prevented[j] || changes[j]) {
 					complexData.bases[k] = {}
 				}
 				if(immutable[j]) {
@@ -658,6 +663,9 @@ Ext.define('App.usr.ms.Editor', {
 				}
 				if(prevented[j]) {
 					complexData.bases[k].prevented = prevented[j].identity;
+				}
+				if(changes[j]) {
+					complexData.bases[k].changed = changes[j];	
 				}
 
 			}
@@ -714,10 +722,10 @@ Ext.define('App.usr.ms.Editor', {
 		// calculate running mode
 		var mode = '';
 		this.inputMenu.items.each(function(item) {
-			if(item.checked) mode += item.mode;
+			if(item.checked) mode += item.value;
 		})
 		this.iterationMenu.items.each(function(item) {
-			if(item.checked) mode += item.mode;
+			if(item.checked) mode += item.value;
 		})
 		console.log(ms);
 

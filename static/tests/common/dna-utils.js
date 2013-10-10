@@ -34,6 +34,16 @@ test('dotParenToDU', function() {
 	equal(DNA.dotParenToDU('....(((((..+..))..((+)))))...'), 'U4 D3(D2(U2 + U2) U2 D2(+)) U3', "Complex example");
 })
 
+test('dotParenToBaseMap', function () {
+	deepEqual(DNA.dotParenToBaseMap('.(.)'), {"map":{"1":3,"3":1},"breaks":{}}, 'Simple');
+	deepEqual(DNA.dotParenToBaseMap('.((.).)'), {"map":{"1":6,"2":4,"4":2,"6":1},"breaks":{}}, 'Complex nesting');
+
+	deepEqual(DNA.dotParenToBaseMap('.(+.)'), {"map":{"1":3,"3":1},"breaks":{"2":true}}, 'Simple with breaks');
+	deepEqual(DNA.dotParenToBaseMap('.+((.+)+.)'), {"map":{"1":6,"2":4,"4":2,"6":1},"breaks":{"1":true,"4":true,"5":true}}, 'Complex nesting with breaks');
+
+
+})
+
 test('parseIdentifier', function() {
 	deepEqual(DNA.parseIdentifier("1"), {
 		identity: '1',
@@ -204,7 +214,6 @@ test('validateDotParen', function() {
 
 });
 
-
 test('structureSpec', function() {
 
 	// sequence 1 : NNNNNNNN
@@ -251,7 +260,7 @@ test('structureSpec', function() {
 			["string", "1* 2* 3*   4 "]
 		],
 	]
-	var expect1 = {"domains":{"1":"NNNNNNNN","2":"NNNNNNNN","3":"NNNNNNNN","4":"NNNNNNNN"},"strands":{"n1_n1":"1* 2* 3*   4 "}} ;
+	var expect1 = {"complexes":{}, "structures":{}, "domains":{"1":"NNNNNNNN","2":"NNNNNNNN","3":"NNNNNNNN","4":"NNNNNNNN"},"strands":{"n1_n1":"1* 2* 3*   4 "}} ;
 
 	var spec1 = DNA.structureSpec(lines1);
 	deepEqual(spec1,expect1,'Simple example')
@@ -298,7 +307,7 @@ test('structureSpec', function() {
 		]
 	];
 
-	var expect2 = {"domains":{"s1":"ATCGA","s2":"NNNNNN","s3":"NYRTB"},"strands":{"m1":"s1 s2* s3","m3":"s3 s1' s2"}} ;
+	var expect2 = {"complexes":{}, "structures":{}, "domains":{"s1":"ATCGA","s2":"NNNNNN","s3":"NYRTB"},"strands":{"m1":"s1 s2* s3", "m2":"s2 s3*", "m3":"s3 s1' s2"}} ;
 
 	var spec2 = DNA.structureSpec(lines2);
 	deepEqual(spec2,expect2,'More complex example')

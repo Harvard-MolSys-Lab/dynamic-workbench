@@ -74,6 +74,10 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 	 */
 	structureMode: 'segment',
 
+	createTip: false,
+
+	tipDelegate: 'circle',
+
 	zoom: -1,
 
 	initComponent: function() {
@@ -101,7 +105,44 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 			}
 		},this,{buffer: 100});
 
+
+		this.on('afterrender', function() {
+			if(this.createTip) { 
+				this.tip = Ext.create('Ext.tip.ToolTip', {
+					target: this.getEl(),
+					delegate: this.tipDelegate,
+					trackMouse: true,
+					showDelay: false,
+					renderTo: Ext.getBody(),
+					listeners: {
+						// Change content dynamically depending on which element triggered the show.
+						beforeshow: {
+							fn: this.updateTipBody,
+							scope: this
+						}
+					}
+				});
+
+				this.sequenceRenderer = CodeMirror.modeRenderer('sequence');
+			}
+		}, this);
+
 		this.callParent(arguments);
+	},
+	updateTipBody: function(tip) {
+		var targetEl = Ext.get(tip.triggerElement).up('g');
+		if(targetEl) { 
+			targetEl = d3.select(targetEl.dom);
+			var data = targetEl.datum()
+			tip.update(this.getTipBody(data));
+		}
+	},
+	getTipBody: function (data) {
+		var out = '<b>'+this.sequenceRenderer(data.base)+'</b> | <b>'+data.strand+'</b> / <b>'+data.segment+'</b> / '+data.segment_index+'<br />';
+		if(data.immutable) { out+='<b>Immutable</b><br />'; }
+		if(data.prevented) { out+='<b>Prevented</b> ('+this.sequenceRenderer(data.prevented)+')<br />'; }
+		if(data.changed) { out+='<b>Changed</b> ('+data.changed.reason+')'; }
+		return out;
 	},
 	/**
 	 * Returns a StrandPreview chart object

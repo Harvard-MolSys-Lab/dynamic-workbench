@@ -259,7 +259,14 @@ function StrandPreview() {
 			// Node Groups
 			nodeSel = panel.selectAll("g.node").data(nodes);
 			nodeSel.exit().remove();
-			nodeSel = nodeSel.enter().append('g').attr("class", "node").call(force.drag);
+			nodeSel = nodeSel.enter().append('g').attr("class", function(d) {
+				var cls = ["node"];
+				if(d.immutable) { cls.push('immutable') }
+				if(d.prevented) { cls.push('prevented') }
+				if(d.changed) { cls.push('changed') }
+				return cls.join(' ')
+
+			}).call(force.drag);
 	
 			// Node circle
 			if(showBubbles) {

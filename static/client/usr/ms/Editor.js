@@ -538,6 +538,17 @@ Ext.define('App.usr.ms.Editor', {
 	},
 
 	updateFromMSO: function(data) {
+		// e.g.:
+		// 		"blocks":[ 
+		//			{"name":"_1", "sequence":"VTTCRNKC"},
+		//			...
+		//		]
+		var blocks = _.reduce(data['blocks'], function(memo, b) {
+			memo[b.name] = b.sequence;
+			return memo;
+		}, {});
+		this.complexView.pauseUpdates = true;
+		this.segmentStore.updateSegments(blocks);
 
 		// e.g.:
 		// 		"immutable":[17,308,309, ... ]
@@ -662,7 +673,7 @@ Ext.define('App.usr.ms.Editor', {
 		}
 
 		// this.extraData = strands;
-
+		this.complexView.pauseUpdates = false;
 		this.refresh();
 
 	},
@@ -676,9 +687,10 @@ Ext.define('App.usr.ms.Editor', {
 		if(data) this.updateFromMSO(data);
 	},
 	openMSO: function (path) {
-		var doc = this.document, basename = doc.getBasename(), ext = 'mso', sibling;
+		var doc = this.document, basename = doc.getBasename(), ext = 'mso', sibling, siblingName;
 		path = path || basename; 
-		sibling = doc.getSiblingByName(App.Path.repostfix(path,ext));
+		siblingName = App.Path.repostfix(path,ext)
+		sibling = doc.getSiblingByName(siblingName);
 		
 		if(sibling) {
 			sibling.loadBody({
@@ -694,6 +706,8 @@ Ext.define('App.usr.ms.Editor', {
 	},
 
 	runMS: function() {
+		var me = this;
+
 		// build NUPACK file
 		var ms = this.buildMS();
 
@@ -707,16 +721,57 @@ Ext.define('App.usr.ms.Editor', {
 		})
 		console.log(ms);
 
-		App.runTask('Multisubjective', {
+		var task = App.runTask('Multisubjective', {
 			node: this.getDocumentPath(),
 			text: ms,
 			mode: mode,
 			action: 'default'
 		},function(responseText, arguments, success) {
 			if(success) {
-				this.openMSO()
+				App.msg('Multisubjective completed','Click for details',{handler: 'console'})				
+			} else {
+				App.msg('Multisubjective failed','Click for details',{handler: 'console'})
 			}
-		}, this);
+		}, this, {
+			// listeners: {
+			// 	'refresh': {
+			// 		fn: function() {
+			// 			this.renew();
+			// 			this.openMSO();
+			// 		},
+			// 		scope: this,
+			// 	}
+			// }
+			loadOnEnd: {
+				files: [function() { 
+					var ext = 'mso', siblingName; 
+					siblingName = App.path.repostfix(me.getDocumentPath(),ext);
+					return siblingName;
+				}()],
+				callback: function(docs) {	
+					var sibling = docs[0];	
+					if(sibling) {
+						sibling.loadBody({
+							success: function (responseText) {
+								this.loadMSO(responseText);
+							},
+							failure: function (responseText) {
+								App.msg('Unable to update Multisubjective view', 'Could not load multisubjective output file')
+							},
+							scope: this
+						})
+					}
+				},
+				scope: this,
+			}
+		});
+
+		if(task) {
+			App.msg('Multisubjective started','Click for details',{handler: 'console'})
+		} else {
+			App.msg('Multisubjective failed to start','Click for details',{handler: 'console'})
+		}
+
 	},
 	clean: function() {
 		App.runTask('Multisubjective', {

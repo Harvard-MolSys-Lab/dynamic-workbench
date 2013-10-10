@@ -153,6 +153,8 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 	 * Rebuilds the view based on data in the #store
 	 */
 	refresh: function() {
+		if(this.pauseUpdates) return;
+
 		this.callParent(arguments);
 
 		var me = this,
@@ -188,6 +190,7 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 	 * @param {HTMLElement[]} nodes Array of nodes corresponding to the complexes to be added
 	 */
 	addComplexes: function(records, index, nodes) {
+		if(this.pauseUpdates) return;
 
 		var me = this,
 			data = [],
@@ -215,6 +218,8 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 	 * @param {HTMLElement[]} node Node corresponding to the complexes to be added
 	 */
 	updateComplex: function(record, index, node) {
+		if(this.pauseUpdates) return;
+
 		var me = this,
 			rec = record,
 			segmentMap = this.getSegmentMap(),
@@ -227,7 +232,7 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 
 	},
 	removeComplex: function(record, index) {
-
+		if(this.pauseUpdates) return;
 	},
 
 	/**

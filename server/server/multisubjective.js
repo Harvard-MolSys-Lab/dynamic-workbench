@@ -29,7 +29,7 @@ var sendError = utils.sendError,
 
 exports.name = 'Multisubjective';
 exports.iconCls = 'ms-icon';
-exports.params = ['node', 'mode', 'action']
+exports.params = ['node', 'mode', 'action', 'text']
 exports.start = function(req, res, params) {
 	var node = params['node'], fullPath = utils.userFilePath(node), cmd;
 
@@ -61,12 +61,17 @@ exports.start = function(req, res, params) {
 
 	var mode = params['mode'] || 'fw',
 		action = params['action'] || 'default',
-		pre = path.basename(fullPath, '.np'), //path.basename(fullPath, '.ms'),
+		msFileExt = 'np',
+		pre = path.basename(fullPath, '.'+msFileExt), //path.basename(fullPath, '.ms'),
+		infile = postfix(pre, msFileExt),
+		text = params['text'] || '',
 		working_dir = path.dirname(fullPath);
 
 	switch(action) {
 		case 'clean':
-			glob(path.join(working_dir, pre) + '{-*.{dd,msq,},.mso,.log}', function(err, files) {
+			var pattern = path.join(working_dir, pre) + '{-*.{dd,msq,},.mso,.log},'+path.join(working_dir,'candidate')+'{-*.{dd,msq},.mso}';
+			utils.log({ level: 'info', source: 'ms', pattern: pattern });
+			glob(pattern, function(err, files) {
 				if (err) {
 					utils.log({
 						level : "error",
@@ -94,8 +99,8 @@ exports.start = function(req, res, params) {
 							err : err,
 						});
 						res.send("Cleaning error.");
-					} else {
-						res.send("Files cleaned.");
+					} else {	
+						res.send("Cleaned files: \n"+files.join("\n"));
 					}
 				})
 			});
@@ -103,40 +108,58 @@ exports.start = function(req, res, params) {
 
 		case 'default':
 		default:
-			cmd = getCommand(commands['ms'], ['-m', mode, '-d', working_dir, '-i', pre, '-o', pre, '-w']);
+			if(text) {
+				fs.writeFile(fullPath,text,'utf8',function (err) {
+					if (err) {
+						utils.log("error", "Error writing file.", {
+							fullPath: fullPath,
+							err : err,
+						});
+					} else {
+						runMS();
+					}
+				})
+			} else {
+				runMS()
+			}
 
-			var env = {
-				"NUPACKHOME" : utils.toolPath("nupack3"),
-				"HOME" : '/home/webserver-user',
-				"CLDDPATH": utils.toolPath("multisubjective/bin/cldd.js")
-			};
-			utils.log({level: "info", message: cmd, env: env});
+			function runMS() {
+				cmd = getCommand(commands['ms'], ['-m', mode, '-d', working_dir, '-i', infile, '-o', pre, '-w']);
 
-			proc.exec(cmd, {
-				env : env,
-				maxBuffer : maxBuffer
-			}, function(err, stdout, stderr) {
-				if (err) {
-					utils.log("error", "Node execution error. ", {
-						cmd : cmd,
-						stderr : stderr,
-						stdout : stdout,
-						err : err,
-					});
-				}
-				if (stderr) {
-					utils.log({
-						level : "error",
-						source : "ms",
-						message : "MS execution error. ",
-						cmd : cmd,
-						stderr : stderr,
-						stdout : stdout,
-					});
-					res.send("Task completed with errors. \n\n" + stderr + '\n' + stdout);
-				} else {
-					res.send(stdout);
-				}
-			})
+				var env = {
+					"NUPACKHOME" : utils.toolPath("nupack3"),
+					"HOME" : '/home/webserver-user',
+					"CLDDPATH": utils.toolPath("multisubjective/bin")
+				};
+				utils.log({level: "info", message: cmd, env: env});
+
+				proc.exec(cmd, {
+					env : env,
+					maxBuffer : maxBuffer
+				}, function(err, stdout, stderr) {
+					if (err) {
+						utils.log("error", "Node execution error. ", {
+							cmd : cmd,
+							stderr : stderr,
+							stdout : stdout,
+							err : err,
+						});
+					}
+					if (stderr) {
+						utils.log({
+							level : "error",
+							source : "ms",
+							message : "MS execution error. ",
+							cmd : cmd,
+							stderr : stderr,
+							stdout : stdout,
+						});
+						res.send("Task completed with errors. \n\n" + stderr + '\n' + stdout);
+					} else {
+						res.send(stdout);
+					}
+				})
+
+			}
 	}
 };

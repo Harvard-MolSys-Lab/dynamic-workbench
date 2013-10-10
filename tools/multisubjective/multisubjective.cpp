@@ -1,13 +1,8 @@
-// Multisubjective, a nucleic acid sequence designer - version 1.0.9, 2013-03-22
+// Multisubjective, a nucleic acid sequence design platform - version 1.0.10b, 2013-10-03
 // by John P. Sadowski
 // Do not distribute
 
 // TO DO:
-// X single specification file
-// X immutable prevented sequences
-// X initial independent DD
-// X all NP-MO trials
-// X specify leap size
 // - libcurl
 // - dot-paren notation fix
 // - internal analysis ("Simulacrum")
@@ -36,13 +31,13 @@ using namespace std;
 
 #endif
 
-const char vers[13] = "1.0.9       ";
+const char vers[13] = "1.0.10b     ";
 
-const int stringsize = 256;	// for filenames and system commands and buffers
+const int stringsize = 1024;	// for filenames and system commands and buffers
 
 char workingdir[stringsize] = "/d/test";
 char nupackhome[stringsize] = "/d/New Research/Programming/downloads/nupack3.0";
-char infile_prefix[stringsize] = "specification";
+char spec_filename[stringsize] = "specification.np";
 char seqfile_prefix[stringsize] = "candidate";
 //char seq_infile[stringsize] = "\0";
 char outfile_prefix[stringsize] = "analysis";
@@ -59,6 +54,7 @@ char trials[stringsize] = "10";
 bool workbench = false;
 float threshold = .67;
 float toethreshold = .67;
+float srinivas = 0.;
 int intermode = 0;
 float strandconc = 1E-7;
 int immutablemode = 0;
@@ -291,6 +287,12 @@ JChunkList<ht_type> hairpintemp(default_ht);
 } def_bt;
 JChunkList<bt_type> bridgetemp(def_bt);*/
 
+struct score
+{
+	int subp;
+	float ned;
+};
+
 ofstream log;
 fstream json;
 
@@ -328,7 +330,7 @@ void outputsequences();
 void outputINfile(int mode);
 
 int setthreshold();
-int meta_analyze();
+score meta_analyze();
 bool isundesired_c(int first, int second);
 bool isundesired_o(int first, int second);
 bool isimmutable(int tpos);
@@ -471,7 +473,7 @@ int main(int argc, char **argv)
 			remove(fullpath(outfile_prefix, ".log"));
 		}
 				
-		if (job[0] == 'm' || job[0] == 'f' || job[0] == 'i' || !strcmp(trial, "all"))
+		if (job[0] == 'm' || job[0] == 'f' || job[0] == 'i')
 			tries = 10;
 		
 		// ===== LOAD SPECIFICATION AND INITIAL SEQUENCES =====
@@ -568,8 +570,9 @@ int main(int argc, char **argv)
 			
 			if (!strcmp(trial, "all"))					// all trials
 			{
+				tries = 10;
 				char t[3] = "\0\0";
-				for (t[0] = '0'; t[0] <= '9'; t[0]++)
+				for (t[0] = '0'; t[0] <= '9'; (t[0])++)
 				{
 					strcpy(cmd[2], fullpath("mo_output/"));
 					strcat(cmd[2], job);
@@ -581,6 +584,8 @@ int main(int argc, char **argv)
 					
 					copyfile(cmd[2], fullpath(seqfile_prefix, ".npo", -1, atoi(t)), true);
 				}
+				copyfile( fullpath(seqfile_prefix, ".npo", -1, 0), fullpath(seqfile_prefix, ".npo", -1, 10), true );	// move "0" to "10"
+				remove( fullpath(seqfile_prefix, ".npo", -1, 0) );
 			}
 			else
 			{			
@@ -613,7 +618,7 @@ int main(int argc, char **argv)
 				
 		//cout << "\nLoading structural data from file...\n";
 		//initialize();
-		loadspecification(fullpath(infile_prefix, ".np"));
+		loadspecification(fullpath(spec_filename/*, ".np"*/));
 		resolvebases();
 		
 		// ===== RUN ANALYSIS =====
@@ -622,8 +627,11 @@ int main(int argc, char **argv)
 		{		
 			//cout << "\nExtracting sequences...\n";
 
+			score result;
 			int favoritetrial = -1;
 			int favoritescore = 1000000;	// dummy values
+			float favoritened;
+			int favhisto[histosize+1];
 			int currscore = 0;
 			
 			if (designer == 'r' || designer == 'l')
@@ -632,54 +640,16 @@ int main(int argc, char **argv)
 			for (int trynum = 1; trynum <= tries; trynum++)
 			{
 				//cin >> job[3];
-					
-				if (job[0] == 'f' || job[0] == 'i')							// make random input file(s)
+
+				if (job[0] == 'f')							// make random input file(s)
 				{
 					if (designer == 'r' || designer == 'l')
 					{
-						if (job[0] == 'i')
-						{
-							cout << "Generating initial sequences...\n";
-							
-							strcpy(path, "/usr/local/bin/node");			// these parameters are identical for all calls to DD
-							//strcpy(path, "node");				
-							strcpy(cmd[0], "node");
-							if (getenv("CLDDPATH") != NULL)
-							{
-								strcpy(cmd[1], getenv("CLDDPATH"));
-								strcat(cmd[1], "/cldd.js");
-							}
-							else if (getenv("HOME") != NULL)
-							{
-								strcpy(cmd[1], getenv("HOME"));
-								strcat(cmd[1], "/Documents/Multisubjective/cldd.js");
-							}
-							else
-								throw 136;
-							strcpy(cmd[2], "-qi");
-							strcpy(cmd[3], "--format");
-							strcpy(cmd[4], "dd");
-							strcpy(cmd[5], "-b");
-							strcpy(cmd[6], "2000");
-							strcpy(cmd[7], "-o");
-						}
-						
 						for (int i = 1; i <= 10; i++)
 						{
 							outputblocks(2, -1, i);
-
-							if (job[0] == 'i')
-							{
-								strcpy(cmd[8], fullpath(seqfile_prefix, ".dd", -1, i));
-								strcpy(cmd[9], fullpath("random", ".dd", -1, i));
-								forkexec(path, cmd, 10);
-							}
-							else
-							{
-								copyfile(fullpath("random", ".dd", -1, i), fullpath(seqfile_prefix, ".dd", -1, i));
-								remove(fullpath("random", ".dd", -1, i));
-							}
-								
+							copyfile(fullpath("random", ".dd", -1, i), fullpath(seqfile_prefix, ".dd", -1, i));
+							remove(fullpath("random", ".dd", -1, i));
 						}
 						
 						job[0] = 'm';
@@ -687,6 +657,61 @@ int main(int argc, char **argv)
 					else
 					{
 						outputblocks(2);
+						copyfile(fullpath("random", ".dd"), fullpath(seqfile_prefix, ".dd"));
+						remove(fullpath("random", ".dd"));
+						
+						job[0] = 'd';
+						tries = 1;
+					}
+				}
+				
+				else if (job[0] == 'i')							// make random input file(s)
+				{
+
+					cout << "Generating initial sequences...\n";
+							
+					strcpy(path, "/usr/local/bin/node");			// these parameters are identical for all calls to DD
+					//strcpy(path, "node");				
+					strcpy(cmd[0], "node");
+					if (getenv("CLDDPATH") != NULL)
+					{
+						strcpy(cmd[1], getenv("CLDDPATH"));
+						strcat(cmd[1], "/cldd.js");
+					}
+					else if (getenv("HOME") != NULL)
+					{
+						strcpy(cmd[1], getenv("HOME"));
+						strcat(cmd[1], "/Documents/Multisubjective/cldd.js");
+					}
+					else
+						throw 136;
+					strcpy(cmd[2], "-qi");
+					strcpy(cmd[3], "--format");
+					strcpy(cmd[4], "dd");
+					strcpy(cmd[5], "-b");
+					strcpy(cmd[6], "2000");
+					strcpy(cmd[7], "-o");
+						
+					if (designer == 'r' || designer == 'l')
+					{
+						for (int i = 1; i <= 10; i++)
+						{
+							outputblocks(2, -1, i);
+
+							strcpy(cmd[8], fullpath(seqfile_prefix, ".dd", -1, i));
+							strcpy(cmd[9], fullpath("random", ".dd", -1, i));
+							forkexec(path, cmd, 10);	
+						}
+						
+						job[0] = 'm';
+					}
+					else
+					{
+						outputblocks(2);
+						strcpy(cmd[8], fullpath(seqfile_prefix, ".dd"));
+						strcpy(cmd[9], fullpath("random", ".dd"));
+						forkexec(path, cmd, 10);	
+						
 						job[0] = 'd';
 						tries = 1;
 					}
@@ -818,7 +843,8 @@ int main(int argc, char **argv)
 				if (worstmode)
 					setthreshold();
 				
-				currscore = meta_analyze();
+				result = meta_analyze();
+				currscore = result.subp;
 				
 				if (worstmode)
 					currscore = threshold * 1000.;
@@ -830,11 +856,16 @@ int main(int argc, char **argv)
 				
 				//cout <<"\nAssigning sequences to blocks...";
 				assignseqtoblock();
+				if (workbench)
+					outputblocks(4);
 				
 				if (currscore < favoritescore)
 				{
 					favoritescore = currscore;
+					favoritened = result.ned;
 					favoritetrial = trynum;
+					for (int i = 0; i < histosize+1; i++)
+						favhisto[i] = histogram[i];
 					
 					for (int i = 0; i < block.size(); i++)
 						for (int j = 0; j < block[i].size(); j++)
@@ -867,10 +898,20 @@ int main(int argc, char **argv)
 					outputblocks(0);
 					outputblocks(1);
 				}
+
 			}
 			
-			if (job[0] == 'm')
+			if (job[0] == 'm' || !strcmp(trial, "all"))
+			{
 				cout << "\nFavorite trial was " << favoritetrial << endl;
+				
+				log.open(fullpath("favorites.txt"), ios::app);
+				log << roundnum << '\t' << favoritened << "%\t" << favoritescore << '\t' << favoritetrial;
+				for (int i = 0; i < histosize+1; i++)
+					log << '\t' << favhisto[i];
+				log << '\n';
+				log.close();
+			}
 			
 			if (roundnum == rounds-1 && (designer == 'l' || designer == 'r') && !workbench)
 			{
@@ -1188,7 +1229,7 @@ void savesettings()
 	if (outfile.fail())
 		throw 15;
 	
-	outfile << workingdir << endl << infile_prefix << endl << seqfile_prefix << endl << outfile_prefix << endl << nupackhome << endl;
+	outfile << workingdir << endl << spec_filename << endl << seqfile_prefix << endl << outfile_prefix << endl << nupackhome << endl;
 	outfile.close();
 }
 
@@ -1200,7 +1241,7 @@ void loadsettings(char *filename)
 	if (!infile.fail())
 	{
 		infile.getline(workingdir, stringsize);
-		infile >> infile_prefix;
+		infile >> spec_filename;
 		infile >> seqfile_prefix;
 		infile >> outfile_prefix;
 		if (!infile.eof())
@@ -1224,8 +1265,8 @@ void getsettings()
 	{
 		cout << "\n1 - Multisubjective working directory: ";
 		cout << workingdir;
-		cout << "\n2 - Specification filename prefix:     ";
-		cout << infile_prefix;
+		cout << "\n2 - Specification filename:            ";
+		cout << spec_filename;
 		cout << "\n3 - Sequence input filename prefix:    ";
 		cout << seqfile_prefix;
 		cout << "\n4 - Output filename prefix:            ";
@@ -1269,9 +1310,9 @@ void getsettings()
 		}
 		else if (choice == 2)
 		{	
-			cout << infile_prefix << endl;
-			cout << "Input new specification filename prefix: ";
-			cin >> infile_prefix;
+			cout << spec_filename << endl;
+			cout << "Input new specification filename: ";
+			cin >> spec_filename;
 		}
 		else if (choice == 3)
 		{	
@@ -1289,9 +1330,9 @@ void getsettings()
 		{
 			strcpy(workingdir, "/d/test");
 			strcpy(nupackhome, "/d/New Research/Programming/downloads/nupack3.0");
-			strcpy(infile_prefix, "specification");
-			strcpy(seqfile_prefix, "sequences");
-			strcpy(outfile_prefix, "output");
+			strcpy(spec_filename, "specification.np");
+			strcpy(seqfile_prefix, "candidate");
+			strcpy(outfile_prefix, "analysis");
 		}
 	}
 	while (choice != 0);
@@ -1341,7 +1382,7 @@ void commandline(int argc, char **argv, char *job, char &designer, char *trial, 
 				strcpy(workingdir, argv[i+1]);
 				break;
 			case 'i':
-				strcpy(infile_prefix, argv[i+1]);
+				strcpy(spec_filename, argv[i+1]);
 				break;				
 			case 's':
 				strcpy(seqfile_prefix, argv[i+1]);
@@ -1429,7 +1470,7 @@ void outputlog()
 	log << "\nMultisubjective working directory: ";
 	log << workingdir;
 	log << "\nSpecification filename prefix: ";
-	log << infile_prefix;
+	log << spec_filename;
 	log << "\nSequence input filename prefix: ";
 	log << seqfile_prefix;
 	log << "\nOutput filename prefix: ";
@@ -1442,7 +1483,9 @@ void outputlog()
 	log << "\nthreshold: ";
 	log << threshold;
 	log << "\ntoethreshold: ";
-	log << toethreshold;	
+	log << toethreshold;
+	log << "\nsrinivas: ";
+	log << srinivas;	
 	log << "\nintermode: ";
 	log << intermode;
 	log << "\nstrandconc: ";
@@ -1559,7 +1602,7 @@ void outputlog_json()
 {
 	int i, cumpos;
 	
-	json.open(fullpath(outfile_prefix, ".mso"), fstream::out);		//to enable random access
+	json.open(fullpath(outfile_prefix, ".mso"), fstream::out);
 	if (json.fail())
 		throw 72;
 	
@@ -1801,6 +1844,18 @@ void loadspecification(char filename[])
 			if (toethreshold <= 0. || toethreshold > 1.)
 				throw 131;
 		}
+		else if (!strcmp(currsymbol, "!srinivas"))
+		{
+			curroperator = *strtok(NULL, " ");
+			currvalue = strtok(NULL, " ");
+			
+			if (curroperator != '=')
+				throw 141;
+			
+			srinivas = atof(currvalue);
+			if (srinivas < 0. || srinivas > 1.)
+				throw 142;
+		}
 		else if (!strcmp(currsymbol, "!intermolecular"))
 		{
 			curroperator = *strtok(NULL, " ");
@@ -1815,6 +1870,10 @@ void loadspecification(char filename[])
 				intermode = 0;
 			else
 				intermode = atoi(currvalue);
+		}
+		else if (!strcmp(currsymbol, "!workbench"))
+		{
+			workbench = true;
 		}
 		else if (!strcmp(currsymbol, "!strandconc"))
 		{
@@ -2465,7 +2524,7 @@ void parseconditions(char currsymbol[])
 	}
 	else if (!strcmp(currsymbol, "dangles"))
 	{
-		if (strcmp(currvalue, "some") && strcmp(currvalue, "none") && strcmp(currvalue, "full"))
+		if (strcmp(currvalue, "some") && strcmp(currvalue, "none") && strcmp(currvalue, "all") && strcmp(currvalue, "full"))
 			throw 91;
 		
 		if (!strcmp(currvalue, "full"))
@@ -2780,6 +2839,32 @@ void outputsequences()
 	
 	log << '\n';
 	log.close();
+	
+	if (workbench)
+	{
+		json.open(fullpath(outfile_prefix, ".mso"), fstream::app|fstream::out);
+		if (json.fail())
+			throw 140;
+		json << "\t\"analysis\":[ \n";
+		
+		for (strand = 0; strand < numstrands; strand++)
+		{
+			pos = 0;
+			json << "\t\t{\"name\":\"" << strandtoken[strand] << "\", \"sequence\":\"";
+			while (sequence[strand][pos] != X)									// BEGIN basewise while-loop
+			{			
+				json << basetochar(sequence[strand][pos]);
+				pos++;
+			}
+			json << "\"}";
+			if (strand < numstrands-1)
+				json << ",";
+			json << "\n";
+		}
+		json << "\t],\n";
+		
+		json.close();
+	}
 }
 
 char* fullpath(char filename[], char *extension /*= NULL*/, int round /*= -1*/, int trial /*= -1*/)
@@ -3068,7 +3153,7 @@ int setthreshold()
 
 }
 
-int meta_analyze()
+score meta_analyze()
 {
 	ifstream infile;
 	char buffer[stringsize];
@@ -3187,6 +3272,12 @@ int meta_analyze()
 				lastsecond = second;
 			}
 			
+			if (second == tposmax+1 && currprob < srinivas && !isundesired_c(first, second))
+			{
+				log << first << " -";
+				clearpair(first, first);
+			}
+			
 			infile.get();  // get rid of return character
 			//cout << char(infile.peek()) << endl;
 			if (infile.eof() || infile.peek() == '%')		// end of data block
@@ -3290,6 +3381,12 @@ int meta_analyze()
 				lastfirst = first;
 				lastsecond = second;
 			}
+			
+			if (second == oposmax+1 && currprob < srinivas && !isundesired_o(first, second))	// if it is desired to be unpaired
+			{
+				log << opostotpos(first) << " -";
+				clearpair(opostotpos(first), opostotpos(first));
+			}
 		}
 	}
 	
@@ -3327,7 +3424,10 @@ int meta_analyze()
 		json.close();
 	}
 	
-	return totalpairs;
+	score result;
+	result.subp = totalpairs;
+	result.ned = ensdefect;
+	return result;
 }
 
 bool isundesired_c(int first, int second)
@@ -3649,7 +3749,7 @@ void assignseqtoblock()
 		long fpos = json.tellp();		// get rid of last comma
 		//cout << "fpos = " << fpos << " \n";
 		json.seekp(fpos-2);
-		json << "\n\t]\n}\n";
+		json << "\n\t],\n";
 		json.close();
 	}
 }
@@ -3707,7 +3807,7 @@ base basecollide(base first, base second, int pos1, int pos2)    //precedence: m
 	}
 }
 
-void outputblocks(int mode, int round /*= -1*/, int trial /*= -1*/)				// 0=.msq, 1=.dd, 2=.dd/rand, 3=.msq/copy
+void outputblocks(int mode, int round /*= -1*/, int trial /*= -1*/)				// 0=.msq, 1=.dd, 2=.dd/rand, 3=.msq/copy, 4=json
 {
 	int blocknum, pos, counter = 0, numblocks = 0;
 	
@@ -3732,25 +3832,37 @@ void outputblocks(int mode, int round /*= -1*/, int trial /*= -1*/)				// 0=.msq
 	}
 	else if (mode == 3)
 		outfile.open(fullpath(seqfile_prefix, ".msq", round, trial));
+	else if (mode == 4)
+	{
+		outfile.open(fullpath(outfile_prefix, ".mso"), fstream::app|fstream::out);
+		outfile << "\t\"blocks\":[ \n";
+	}
 	
 	if (outfile.fail())
 		throw 6;
 	
 	for (blocknum = 1; blocknum <= numblocks; blocknum++)
 	{
-		if (mode == 0 || mode == 3)
+		if (mode == 0 || mode == 3 || mode == 4)			// msq or mso
 		{
-			outfile << "domain " << blocktoken[blocknum] << " = ";
+			if (mode == 4)
+				outfile << "\t\t{\"name\":\"" << blocktoken[blocknum] << "\", \"sequence\":\"";
+			else
+				outfile << "domain " << blocktoken[blocknum] << " = ";
 			
 			for (pos = 0; pos < blocklength[blocknum]; pos++)
 			{
-				if (mode == 2)
-					outfile << basetochar(randombase(block[blocknum][pos]));
-				else
-					outfile << basetochar(block[blocknum][pos]);
+				outfile << basetochar(block[blocknum][pos]);
 				
 				if (block[blocknum][pos] != A && block[blocknum][pos] != C && block[blocknum][pos] != G && block[blocknum][pos] != T)
 					counter++;
+			}
+			
+			if (mode == 4)
+			{
+				outfile << "\"}";
+				if (blocknum < numblocks)
+					outfile << ",";
 			}
 		}
 		else
@@ -3791,6 +3903,9 @@ void outputblocks(int mode, int round /*= -1*/, int trial /*= -1*/)				// 0=.msq
 	
 	if (mode == 0)
 		cout << counter << " nt to design.";
+	else if (mode == 4)
+		// !!!!!!!!!!!
+		outfile << "\t]\n}\n";
 	
 	outfile.close();
 }
@@ -3807,7 +3922,7 @@ char* outputMOpost()		// URL encoding
 		throw 7;
 	
 	ifstream infile;
-	infile.open(fullpath(infile_prefix, ".np"));
+	infile.open(fullpath(spec_filename/*, ".np"*/));
 	if (infile.fail())
 		throw 17;
 	
@@ -3877,7 +3992,7 @@ char* outputMOpost()		// URL encoding
 	outfile << "&design_job%5Bdangle_level%5D=";
 	if (!strcmp(dangles, "none"))
 		outfile << "0";
-	else if (!strcmp(dangles, "none"))
+	else if (!strcmp(dangles, "some"))
 		outfile << "1";
 	else if (!strcmp(dangles, "all"))
 		outfile << "2";
@@ -4325,7 +4440,7 @@ void displaysubbox (int line, int type)
   		else if (line == 2) cout << "        ▒                                        ▒" << endl;
 		else if (line == 3) cout << " =====> ▒ 20. Multisubjective working directory: ▒" << endl;
 		else if (line == 4) cout << "        ▒ 21. NUPACK home directory:             ▒" << endl;
-		else if (line == 5) cout << "        ▒ 22. specification filename prefix:     ▒" << endl;
+		else if (line == 5) cout << "        ▒ 22. specification filename:            ▒" << endl;
   		else if (line == 6) cout << "        ▒ 23. sequence filename prefix:          ▒" << endl;
   		else if (line == 7) cout << "        ▒ 24. output filename prefix:            ▒" << endl;
   		else if (line == 8) cout << "        ▒                                        ▒" << endl;
@@ -4534,7 +4649,7 @@ void handleerror(int errorlevel)
 		case 3: /*case 5:*/ case 123:
 			cerr << "Error opening NUPACK file for output"; 
 			break;
-		case 4: case 62: case 63: case 64: case 72: case 73: case 74: case 80:	
+		case 4: case 62: case 63: case 64: case 72: case 73: case 74: case 80: case 140:
 			cerr << "Error opening log file for output"; 
 			break;
 		case 6: case 7: 	
@@ -4564,7 +4679,7 @@ void handleerror(int errorlevel)
 		case 90: case 91: case 114: case 115:
 			cerr << "Invalid value for material or dangles";
 			break;
-		case 21: case 24: /*case 29:*/ case 88: case 89: case 108: case 109: case 125: case 126: case 127: case 132:
+		case 21: case 24: /*case 29:*/ case 88: case 89: case 108: case 109: case 125: case 126: case 127: case 132: case 141:
 			cerr << "Incorrect operator in specification file";
 			break;
 		case 22: /*case 50: case 51: case 52:*/ case 94: case 139:
@@ -4573,7 +4688,7 @@ void handleerror(int errorlevel)
 		case 92: case 93:
 			cerr << "Valid numerical value expected in specification file";
 			break;
-		case 128: case 129: case 130: case 131:
+		case 128: case 129: case 130: case 131: case 142:
 			cerr << "Threshold out of range";
 			break;
 		case 133:

@@ -23,7 +23,9 @@ Ext.define('App.usr.dil.Complex', {
 		// array
 	}, {
 		name: 'structure'
-	}, ],
+	}, {
+		name: 'extraData' // object
+	} ],
 	idgen: 'sequential',
 	getDynaml: function(lib) {
 		return lib.getNode(this.get('name'));

@@ -343,7 +343,7 @@ Ext.define('App.usr.ms.Editor', {
 
 	},
 	refresh: function () {
-		this.complexView.extraData = this.extraData;
+		// this.complexView.extraData = this.extraData;
 		this.complexView.refresh();
 	},
 	loadLibrary: function(data) {
@@ -599,27 +599,29 @@ Ext.define('App.usr.ms.Editor', {
 		// 			{ "name":"A1", "length":79, "range":[1,79] },
 		// 			{ "name":"A2", "length":79, "range":[80,158] },
 		// 		]
-		var strands = {};
+		var complexes = {};
 
-		// iterate across each strand
+		// iterate across each "strand;" because of the perverse way 
+		// multisubjective defines 'strand', this actually corresponds to each 
+		// _complex_.
 		for(var i=0; i<data['strands'].length; i++) {
-			// i = strand index
+			// i = complex index
 			
 			// e.g.: 
 			// { "name":"A1", "length":79, "range":[1,79] } 
 			var s = data['strands'][i];
 			var offset = s.range[0];
 
-			// build an object that will contain any extra links associated with this strand (`links`),
+			// build an object that will contain any extra links associated with this complex (`links`),
 			// as well as any additional data associated with particular bases (`bases`)
-			var strandData = {
+			var complexData = {
 				bases: {},
 				links: [],
 			};
 
 			for(var j=offset, k = 0; j < s.range[1]; j++, k++) {
 				// j = absolute base index
-				// k = strand-wise base index
+				// k = complex-wise base index
 
 
 				// add extra links to represent undesired interactions
@@ -632,29 +634,34 @@ Ext.define('App.usr.ms.Editor', {
 					if (undesired[j].changed) {
 						l.changed = undesired[j].changed;
 					}
-					strandData.links.push(l);
+					complexData.links.push(l);
 				}
 
 				// add extra data for particular bases to indicate if they're immutable 
 				// or were changed as part of a prevented sequence.
 				if (immutable[j] || prevented[j]) {
-					strandData[k] = {}
+					complexData.bases[k] = {}
 				}
 				if(immutable[j]) {
-					strandData[k].immutable = true;
+					complexData.bases[k].immutable = true;
 				}
 				if(prevented[j]) {
-					strandData[k].prevented = prevented[j].identity;
+					complexData.bases[k].prevented = prevented[j].identity;
 				}
 
 			}
 
-			// associate the strandData with this strand
-			strands[s.name] = strandData;
+			// associate the complexData with this strand
+			complexes[s.name] = complexData;
+
+			var rec = this.complexStore.findRecord('name',s.name);
+			if(rec) {
+				rec.set('extraData',complexData);
+			}
 
 		}
 
-		this.extraData = strands;
+		// this.extraData = strands;
 
 		this.refresh();
 

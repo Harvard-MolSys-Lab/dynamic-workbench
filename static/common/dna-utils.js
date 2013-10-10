@@ -2149,6 +2149,9 @@ var DNA = module.exports.DNA = (function(_) {
 			extraData = params.extraData,
 			strandIndex = 0, node, n = 0, base = 0;
 			
+			// add extra links (e.g. for undesired interactions)
+			other_links = other_links.concat(extraData.links || []);
+
 			
 			var i = 0, // segment-wise counter (tracks position along structure)
 				j = 0; // base-wise counter (tracks position along structure)
@@ -2157,17 +2160,17 @@ var DNA = module.exports.DNA = (function(_) {
 			for (var s = 0; s < strands.length; s++) {
 				
 				var strand = strands[s], 
-				n = 0, // base-wise, per-strand counter
+				n = 0; // base-wise, per-strand counter
 				
-				// grab extra links and per-base metadata
-				strandData = extraData[strand.name] || {};
+				// // grab extra links and per-base metadata
+				// strandData = extraData[strand.name] || {};
 
-				// add extra links for this strand, adjusting the indices to be globally consistent
-				other_links = other_links.concat(_.map(strandData.links || [], function(link) {
-					link[0]+=j;
-					link[1]+=j;
-					return link;
-				}))
+				// // add extra links for this strand, adjusting the indices to be globally consistent
+				// other_links = other_links.concat(_.map(strandData.links || [], function(link) {
+				// 	link[0]+=j;
+				// 	link[1]+=j;
+				// 	return link;
+				// }))
 
 				// for each domain
 				for(var d = 0; d < strand.domains.length; d++) {
@@ -2202,8 +2205,11 @@ var DNA = module.exports.DNA = (function(_) {
 							};
 							
 							// copy additional data onto the base
-							if(strandData.bases && strandData.bases[n]) {
-								_.extend(node,strandData.bases[n])
+							// if(strandData.bases && strandData.bases[n]) {
+							// 	_.extend(node,strandData.bases[n])
+							// }
+							if(extraData.bases && extraData.bases[j])  {
+								_.extend(node,extraData.bases[j]);
 							}
 
 							if(struct[j] && j > struct[j]) {

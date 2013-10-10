@@ -251,7 +251,7 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 			structure: this.structureMode == 'segment' ? rec.get('structure') : undefined,
 			dotParen: this.structureMode == 'base' ? rec.get('structure') : undefined,
 			sequences: segmentMap,
-			extraData: this.extraData || null,
+			extraData: rec.get('extraData') || null, //this.extraData || null,
 		}
 	},
 	/**

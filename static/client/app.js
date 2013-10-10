@@ -377,7 +377,7 @@ Ext.define('App.TaskRunner', {
 		 * Arguments to pass to the tool
 		 * 
 		 * @param {Function} [callback] 
-		 * Function to call upon completion
+		 * Function to call upon completion; see App.TaskRunner.Task#callback
 		 *
 		 * @param {Object} [scope=window] 
 		 * Scope in which to execute the callback
@@ -545,7 +545,7 @@ Ext.define('App.TaskRunner.Task', {
 	 * Text of the server's response
 	 * 
 	 * @param  {Object} arguments 
-	 * Original arguments passed to the task on #starte 
+	 * Original arguments passed to the task on #start 
 	 * 
 	 * @param  {Boolean} success 
 	 * true if the task completed successfully, false otherwise

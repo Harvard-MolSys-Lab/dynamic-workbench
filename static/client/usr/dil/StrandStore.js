@@ -54,6 +54,14 @@ Ext.define('App.usr.dil.StrandStore', {
 	getSegmentMapWithComplements: function() {
 		return this.segmentStore.getSegmentMapWithComplements();
 	},
+	getSequences: function() {
+		var strands = this.getRange(), map = {}, strand;
+		for(var i=0; i<strands.length; i++) {
+			strand = strands[i];
+			map[strand.get('name')] = strand.get('sequence')
+		}
+		return map;
+	},
 	addStrand: function() {
 		var name = _.max(_.map(this.getRange(), function(rec) {
 			var k = rec.get('name').match(/\d+/g);

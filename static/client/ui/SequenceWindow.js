@@ -6,7 +6,7 @@ Ext.define('App.ui.SequenceWindow',{
 	title: 'Add sequences',
 	closeAction: 'hide',
 	buttonText: 'Add Sequences',
-	helpText: 'Type sequences in any format (NUPACK, FASTA, Multisubjective), with or without names',
+	helpText: 'Type sequences in any format (NUPACK, FASTA, Multisubjective, or paste from Excel), with or without names',
 	handler: function(domains,value) {
 	},
 	initComponent: function () {

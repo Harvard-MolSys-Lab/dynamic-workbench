@@ -21,17 +21,27 @@ Ext.define('App.usr.dil.SegmentsGrid',{
 
 		Ext.apply(this,{
 			tbar: [Ext.create('App.ui.AddDomainButton', {
+				lengthLabel: 'New segment length:',
+				itemLabel: 'Add Segment',
 				addDomain: Ext.bind(this.createSegment, this),
-				extraMenuItems: [{
+				extraMenuItems: ['-',{
 					text: 'Add many segments...',
+					iconCls: 'plus',
 					handler: this.showAddSegmentsWindow,
 					scope: this,
 				}]
 			}),{
+				xtype: 'splitbutton',
 				text: 'Edit',
 				iconCls: 'pencil',
 				handler: this.editSegment,
 				scope: this,
+				menu: [{
+					text: 'Edit all segments...',
+					iconCls: 'pencil',
+					handler: this.showEditSegmentsWindow,
+					scope: this,
+				}]
 			},{
 				text: 'Delete',
 				iconCls: 'delete',
@@ -60,7 +70,7 @@ Ext.define('App.usr.dil.SegmentsGrid',{
 				dataIndex: 'identity',
 				flex: 1,
 				editor: {
-					xtype:'textfield',
+					xtype:'textarea',
 					selectOnFocus:  true,
 				}
 			}, {
@@ -101,6 +111,24 @@ Ext.define('App.usr.dil.SegmentsGrid',{
 			});
 		}
 		this.addSegmentsWindow.show();
+	},
+	showEditSegmentsWindow: function() {
+		var me = this;
+		if(!this.addSegmentsWindow) {
+			/**
+			 * @property {App.ui.SequenceWindow} addSegmentsWindow 
+			 * A window for adding many segments. Calls #updateSegments upon confirmation.
+			 */
+			this.editSegmentsWindow = Ext.create('App.ui.SequenceWindow',{
+				handler: function(domains) {
+					me.updateSegments(domains);
+				},
+				title: 'Update segments in system'
+			});
+		}
+		var segments = this.store.getSegmentMap();
+		this.editSegmentsWindow.show();
+		this.editSegmentsWindow.setValue(DNA.printSequences(segments,':'));
 	},
 	
 	/**

@@ -1415,6 +1415,7 @@ var DNA = module.exports.DNA = (function(_) {
 		return memo;
 	},''));
 	
+
 	function parseNamedSequences(string) {
 		var lines = string.split('\n'), name, seq, pair, out = {};
 
@@ -1430,22 +1431,38 @@ var DNA = module.exports.DNA = (function(_) {
 				} else {
 					seq = '';
 				}
+			}
+
 			// Keyword-style
 			// domain name = ATCG
 			// domain name : ATCG
 			// sequence name : ATCG
+			// segment name : ATCG
 			// ... 
-			} else if(/^(?:domain|sequence|segment)\s*(\w+)\s*[:=]\s*([acgturykmswbdhvnx]+)\s*$/i.test(lines[i])) {
+			else if(/^(?:domain|sequence|segment)\s*(\w+)\s*[:=]\s*([acgturykmswbdhvnx]+)\s*$/i.test(lines[i])) {
 				pair = lines[i].match(/^(?:domain|sequence|segment)\s*(\w+)\s*[:=]\s*([acgturykmswbdhvnx]+)\s*$/i);
 				name = pair[1]; seq = pair[2];
+			}
 
 			// NUPACK-style:
 			// name : ATCG
 			// name = ATCG
-			} else if(/^(\w+)\s*[:=]\s*([acgturykmswbdhvnx]+)\s*$/i.test(lines[i])) {
+			else if(/^(\w+)\s*[:=]\s*([acgturykmswbdhvnx]+)\s*$/i.test(lines[i])) {
 				pair = lines[i].match(/^(\w+)\s*[:=]\s*([acgturykmswbdhvnx]+)\s*$/i);
 				name = pair[1]; seq = pair[2];
-			} else {
+			}
+
+			// TSV or CSV:
+			// name,ATCG
+			// name		ATCG
+			else if(/^(\w+)\s*[,\t]\s*([acgturykmswbdhvnx]+)\s*$/i.test(lines[i])) {
+				pair = lines[i].match(/^(\w+)\s*[,\t]\s*([acgturykmswbdhvnx]+)\s*$/i);
+				name = pair[1]; seq = pair[2];
+
+			}
+
+			// No name
+			else {
 				name = (i+1).toString();
 				seq = lines[i];
 			}
@@ -1453,6 +1470,64 @@ var DNA = module.exports.DNA = (function(_) {
 		}
 		return out;
 	};
+
+	/**
+	 * Prints a set of sequences using the specified format
+	 * @param  {Object} strands Hash mapping sequence name to sequence
+	 * @param  {String} mode 
+	 * One of several possible modes:
+	 * 		- `nupack`
+	 * 		- `dd`
+	 * 		- `colon` (`:`)
+	 * 		- `equals` (`=`)
+	 * 		- `csv` (`,`)
+	 * 		- `tsv` (`\t`)
+	 * @return {[type]} [description]
+	 */
+	function printSequences (sequences, mode, options) {
+		var out = '', seq, count = 0;
+
+
+		// sequences
+		for(var name in sequences) {
+			seq = sequences[name];
+			switch(mode) {
+				case 'nupack':
+					out += 'domain ' + name + ' = ' + seq + '\n'; break;
+				case 'dd':
+					out += seq + ' 1 15' + '\n'; break;
+				case 'colon':
+				case ':':
+					out += name + ' : ' + seq + '\n'; break;
+				case 'equals':
+				case '=':
+					out += name + ' = ' + seq + '\n'; break;	
+				case 'fasta':
+					out += '>'+name + '\n' + seq + '\n'; break;
+				case 'tsv':
+				case '\t':
+					out += name + '\t' + seq + '\n'; break;
+				case 'csv':
+				case ',':
+					out += name + ',' + seq + '\n'; break;
+			}
+			count++;
+		}
+
+		// header
+		switch(mode) {
+			case 'dd':
+				out = count + '\n' + out; break;
+		}
+
+		// footer
+		switch(mode) {
+			default:
+				break;
+		}
+
+		return out;
+	}
 
 	function namedStrandsToNupack(strands) {
 		
@@ -1490,6 +1565,7 @@ var DNA = module.exports.DNA = (function(_) {
 		parseStrandSpec : parseStrandSpec,
 		
 		parseNamedSequences: parseNamedSequences,
+		printSequences: printSequences,
 
 		matchDegenerate : matchDegenerate,
 		populateDegenerate : populateDegenerate,

@@ -90,25 +90,36 @@ Ext.define('App.usr.dil.DilEditor', {
 					text: 'to PIL',
 					iconCls: 'pil',
 				}, {
-					text: 'to Graph (ENJS)'
+					text: 'to SBML',
+					iconCls: 'sbml',
 				}],
 				//disabled: true,
 			}, {
 				xtype: 'buttongroup',
-				columns: 2,
+				columns: 1,
 				title: 'Thermodynamics',
 				items: [{
-					text: 'Predict structures',
+					xtype: 'splitbutton',
+					text: 'Predict',
 					scale: 'medium',
 					rowspan: 2,
 					iconAlign: 'top',
 					iconCls: 'secondary-24',
 					handler: this.buildTherm,
 					scope: this,
-				}, {
-					text: 'Complexes',
-				}, {
-					text: 'MFE structure'
+					menu: [{
+						handler: function() { this.buildTherm('nupack') }, scope: this,
+						text: 'Predict structures with NUPACK',
+						iconCls: 'nupack',
+					},{
+						handler: function() { this.buildTherm('vienna') }, scope: this,
+						text: 'Predict structures with RNAfold',
+						iconCls: 'tbi',
+					},{
+						handler: function() { this.buildTherm('mfold') }, scope: this,
+						text: 'Predict structures with Mfold',
+						iconCls: 'mfold',
+					}]
 				}],
 				//disabled: true,
 			}, {
@@ -614,6 +625,26 @@ Ext.define('App.usr.dil.DilEditor', {
 			nodes: nodes,
 			allSegments: allSegments
 		});
+	},
+	getStrandSequences: function() {
+		return this.strandStore.getSequences();
+	},
+	buildTherm: function (mode) {
+		//var library = this.buildLibrary();
+		var sequences = this.getStrandSequences(), win;
+		mode = mode || 'nupack';
+
+		switch(mode) {
+			case 'mfold':
+				win = Ext.create('App.ui.mfold.QuikFoldWindow'); break;
+			case 'vienna':
+				win = Ext.create('App.ui.vienna.RNAfoldWindow'); break;
+			case 'nupack':
+			default:
+				win = Ext.create('App.ui.nupack.PartitionWindow');
+		}
+		win.show();
+		win.setValue(DNA.printSequences(sequences,':'));
 	},
 	serializeDil: function() {
 		var lib = this.buildLibrary();

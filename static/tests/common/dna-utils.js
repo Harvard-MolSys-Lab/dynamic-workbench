@@ -189,6 +189,18 @@ test('parseNamedSequences', function() {
 			'2': 'CCAGATN',
 			'3': 'AYANNCATTGA'
 		};
+		input8 = 'a\tAATACAG\nb\tCCAGATN\nc\tAYANNCATTGA',
+		output8 = {
+			'a': 'AATACAG',
+			'b': 'CCAGATN',
+			'c': 'AYANNCATTGA'
+		};
+		input9 = 'a,AATACAG\nb,CCAGATN\nc,AYANNCATTGA',
+		output9 = {
+			'a': 'AATACAG',
+			'b': 'CCAGATN',
+			'c': 'AYANNCATTGA'
+		};
 	deepEqual(DNA.parseNamedSequences(input1), output1, 'domain x = NNNN');
 	deepEqual(DNA.parseNamedSequences(input2), output2, 'segment x = NNNN');
 	deepEqual(DNA.parseNamedSequences(input3), output3, 'sequence x = NNNN');
@@ -196,6 +208,76 @@ test('parseNamedSequences', function() {
 	deepEqual(DNA.parseNamedSequences(input5), output5, 'Colon/Equals');
 	deepEqual(DNA.parseNamedSequences(input6), output6, 'FASTA');
 	deepEqual(DNA.parseNamedSequences(input7), output7, 'Newline-delimited');
+	deepEqual(DNA.parseNamedSequences(input8), output8, 'TSV');
+	deepEqual(DNA.parseNamedSequences(input9), output9, 'CSV');
+});
+
+test('printSequences', function() {
+	var input1 = 'domain 1 = AAAA\ndomain 2 = TTTT\ndomain 3 = GGGG',
+		output1 = {
+			'1': 'AAAA',
+			'2': 'TTTT',
+			'3': 'GGGG'
+		},
+		input2 = 'segment 1 = AAAA\nsegment 2 = TTTT\nsegment 3 = GGGG',
+		output2 = {
+			'1': 'AAAA',
+			'2': 'TTTT',
+			'3': 'GGGG'
+		},
+		input3 = 'sequence 1 = AAAA\nsequence 2 = TTTT\nsequence 3 = GGGG',
+		output3 = {
+			'1': 'AAAA',
+			'2': 'TTTT',
+			'3': 'GGGG'
+		},
+		input4 = 'domain 1 = NNNNNNN\nsegment 2 = NN\nsequence 5 = NNNN\ndomain 7 : AAAA\nsegment a : GG\nsequence 8 = TTTT',
+		output4 = {
+			'1': 'NNNNNNN',
+			'2': 'NN',
+			'5': 'NNNN',
+			'7': 'AAAA',
+			'a': 'GG',
+			'8': 'TTTT'
+		},
+		input5 = 'x : AAAA\ny : TTT\nz = GGGGG',
+		output5 = {
+			'x': 'AAAA',
+			'y': 'TTT',
+			'z': 'GGGGG'
+		},
+		input6 = '>s1\nAAAAA\n>s2\nGGGGGG',
+		output6 = {
+			's1': 'AAAAA',
+			's2': 'GGGGGG'
+		},
+		input7 = 'AATACAG\nCCAGATN\nAYANNCATTGA',
+		output7 = {
+			'1': 'AATACAG',
+			'2': 'CCAGATN',
+			'3': 'AYANNCATTGA'
+		};
+		input8 = 'a\tAATACAG\nb\tCCAGATN\nc\tAYANNCATTGA',
+		output8 = {
+			'a': 'AATACAG',
+			'b': 'CCAGATN',
+			'c': 'AYANNCATTGA'
+		};
+		input9 = 'a,AATACAG\nb,CCAGATN\nc,AYANNCATTGA',
+		output9 = {
+			'a': 'AATACAG',
+			'b': 'CCAGATN',
+			'c': 'AYANNCATTGA'
+		};
+	deepEqual(DNA.printSequences(output1,'nupack'),input1+'\n', 'domain x = NNNN');
+	// deepEqual(DNA.printSequences(output2,''),input2, 'segment x = NNNN');
+	// deepEqual(DNA.printSequences(output3,''),input3, 'sequence x = NNNN');
+	// deepEqual(DNA.printSequences(output4,''),input4, 'Mixed (domain, segment, sequence');
+	// deepEqual(DNA.printSequences(output5,''),input5, 'Colon/Equals');
+	deepEqual(DNA.printSequences(output6,'fasta'),input6+'\n', 'FASTA');
+	// deepEqual(DNA.printSequences(output7,''),input7, 'Newline-delimited');
+	deepEqual(DNA.printSequences(output8,'\t'),input8+'\n', 'TSV');
+	deepEqual(DNA.printSequences(output9,','),input9+'\n', 'CSV');
 });
 
 test('validateDotParen', function() {
@@ -260,7 +342,7 @@ test('structureSpec', function() {
 			["string", "1* 2* 3*   4 "]
 		],
 	]
-	var expect1 = {"complexes":{}, "structures":{}, "domains":{"1":"NNNNNNNN","2":"NNNNNNNN","3":"NNNNNNNN","4":"NNNNNNNN"},"strands":{"n1_n1":"1* 2* 3*   4 "}} ;
+	var expect1 = {"others":[],"complexes":{}, "structures":{}, "domains":{"1":"NNNNNNNN","2":"NNNNNNNN","3":"NNNNNNNN","4":"NNNNNNNN"},"strands":{"n1_n1":"1* 2* 3*   4 "}} ;
 
 	var spec1 = DNA.structureSpec(lines1);
 	deepEqual(spec1,expect1,'Simple example')
@@ -307,7 +389,7 @@ test('structureSpec', function() {
 		]
 	];
 
-	var expect2 = {"complexes":{}, "structures":{}, "domains":{"s1":"ATCGA","s2":"NNNNNN","s3":"NYRTB"},"strands":{"m1":"s1 s2* s3", "m2":"s2 s3*", "m3":"s3 s1' s2"}} ;
+	var expect2 = {"others":[],"complexes":{}, "structures":{}, "domains":{"s1":"ATCGA","s2":"NNNNNN","s3":"NYRTB"},"strands":{"m1":"s1 s2* s3", "m2":"s2 s3*", "m3":"s3 s1' s2"}} ;
 
 	var spec2 = DNA.structureSpec(lines2);
 	deepEqual(spec2,expect2,'More complex example')

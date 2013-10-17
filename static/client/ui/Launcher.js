@@ -251,7 +251,6 @@ Ext.define('App.ui.Launcher', {
 	});
 	App.ui.Launcher.register('nupackedit', 'App.usr.nupack.Editor', {});
 	App.ui.Launcher.register('msedit', 'App.usr.ms.Editor');
-	App.ui.Launcher.register('msview', 'App.usr.ms.Viewer');
 	
 	App.ui.Launcher.register('enumedit', 'App.usr.enum.Editor');
 	

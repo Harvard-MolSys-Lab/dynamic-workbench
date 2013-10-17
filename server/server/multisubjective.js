@@ -62,7 +62,7 @@ exports.start = function(req, res, params) {
 
 	var mode = params['mode'] || 'fw',
 		action = params['action'] || 'default',
-		msFileExt = 'np',
+		msFileExt = 'ms',
 		pre = path.basename(fullPath, '.'+msFileExt), //path.basename(fullPath, '.ms'),
 		infile = postfix(pre, msFileExt),
 		text = params['text'] || '',

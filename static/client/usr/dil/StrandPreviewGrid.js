@@ -65,6 +65,19 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 	 */
 	showSegments : true,
 
+	/**
+	 * @cfg {'segment'/'base'} structureMode
+	 * Determines whether the {@link App.usr.dil.Complex#structure} field 
+	 * should be interpreted to be a base-wise or a segment-wise structure.
+	 * If a segment-wise structure, it will be {@link DNA#expandStructure expanded}
+	 * by the underlying StrandPreview.
+	 */
+	structureMode: 'segment',
+
+	createTip: false,
+
+	tipDelegate: 'circle',
+
 	zoom: -1,
 
 	initComponent: function() {
@@ -92,7 +105,44 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 			}
 		},this,{buffer: 100});
 
+
+		this.on('afterrender', function() {
+			if(this.createTip) { 
+				this.tip = Ext.create('Ext.tip.ToolTip', {
+					target: this.getEl(),
+					delegate: this.tipDelegate,
+					trackMouse: true,
+					showDelay: false,
+					renderTo: Ext.getBody(),
+					listeners: {
+						// Change content dynamically depending on which element triggered the show.
+						beforeshow: {
+							fn: this.updateTipBody,
+							scope: this
+						}
+					}
+				});
+
+				this.sequenceRenderer = CodeMirror.modeRenderer('sequence');
+			}
+		}, this);
+
 		this.callParent(arguments);
+	},
+	updateTipBody: function(tip) {
+		var targetEl = Ext.get(tip.triggerElement).up('g');
+		if(targetEl) { 
+			targetEl = d3.select(targetEl.dom);
+			var data = targetEl.datum()
+			tip.update(this.getTipBody(data));
+		}
+	},
+	getTipBody: function (data) {
+		var out = '<b>'+this.sequenceRenderer(data.base)+'</b> | <b>'+data.strand+'</b> / <b>'+data.segment+'</b> / '+data.segment_index+'<br />';
+		if(data.immutable) { out+='<b>Immutable</b><br />'; }
+		if(data.prevented) { out+='<b>Prevented</b> ('+this.sequenceRenderer(data.prevented)+')<br />'; }
+		if(data.changed) { out+='<b>Changed</b> ('+data.changed.reason+')'; }
+		return out;
 	},
 	/**
 	 * Returns a StrandPreview chart object
@@ -144,6 +194,8 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 	 * Rebuilds the view based on data in the #store
 	 */
 	refresh: function() {
+		if(this.pauseUpdates) return;
+
 		this.callParent(arguments);
 
 		var me = this,
@@ -179,6 +231,7 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 	 * @param {HTMLElement[]} nodes Array of nodes corresponding to the complexes to be added
 	 */
 	addComplexes: function(records, index, nodes) {
+		if(this.pauseUpdates) return;
 
 		var me = this,
 			data = [],
@@ -206,6 +259,8 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 	 * @param {HTMLElement[]} node Node corresponding to the complexes to be added
 	 */
 	updateComplex: function(record, index, node) {
+		if(this.pauseUpdates) return;
+
 		var me = this,
 			rec = record,
 			segmentMap = this.getSegmentMap(),
@@ -218,7 +273,7 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 
 	},
 	removeComplex: function(record, index) {
-
+		if(this.pauseUpdates) return;
 	},
 
 	/**
@@ -239,8 +294,10 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 					domains: me.strandStore.findRecord('name', strandName).getParsedSpec()
 				}
 			}),
-			structure: rec.get('structure'),
+			structure: this.structureMode == 'segment' ? rec.get('structure') : undefined,
+			dotParen: this.structureMode == 'base' ? rec.get('structure') : undefined,
 			sequences: segmentMap,
+			extraData: rec.get('extraData') || null, //this.extraData || null,
 		}
 	},
 	/**

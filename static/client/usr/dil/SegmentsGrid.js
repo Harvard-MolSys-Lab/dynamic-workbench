@@ -109,11 +109,7 @@ Ext.define('App.usr.dil.SegmentsGrid',{
 	 * @param {String} sequence Sequence of bases
 	 */
 	addSegment: function(identity,sequence) {
-		return _.first(this.segmentStore.add({
-			identity: identity,
-			sequence: sequence,
-			color: this.segmentStore.getColor(identity),
-		}));
+		return this.segmentStore.addSegment(identity,sequence)
 	},
 	/**
 	 * Adds several segments to the store.
@@ -124,14 +120,7 @@ Ext.define('App.usr.dil.SegmentsGrid',{
 	 * @return {App.usr.dil.Segment[]} Array of segment records
 	 */
 	addSegments: function(map) {
-		var me = this;
-		return this.segmentStore.add(_.map(map,function(sequence,identity) {
-			return {
-				identity: identity,
-				sequence: sequence,
-				color: me.segmentStore.getColor(identity),
-			}
-		}));
+		return this.segmentStore.addSegments(map);
 	},
 	/**
 	 * Updates several segments to the store.
@@ -143,20 +132,7 @@ Ext.define('App.usr.dil.SegmentsGrid',{
 	 * @return {App.usr.dil.Segment[]} Array of modified segment records
 	 */
 	updateSegments: function(map) {
-		var me = this;
-		return _.map(map,function(sequence,identity) {
-			var seg = me.segmentStore.findRecord('identity',identity);
-			if(seg) {
-				seg.set('sequence',sequence);
-				return seg;
-			} else {
-				return _.first(me.segmentStore.add({
-					identity: identity,
-					sequence: sequence,
-					color: me.segmentStore.getColor(identity),
-				}));
-			}
-		});
+		return this.segmentStore.updateSegments(map);
 	},
 	/**
 	 * Creates a segment of the given length, entirely of `N`'s

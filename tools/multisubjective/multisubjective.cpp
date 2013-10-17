@@ -1,26 +1,15 @@
-// Multisubjective, a nucleic acid sequence design program - version 1.0 beta 6a, 2012-06-29
+// Multisubjective, a nucleic acid sequence design platform - version 1.0.10b, 2013-10-03
 // by John P. Sadowski
 // Do not distribute
 
 // TO DO:
-// X block threading
-// X dot-paren notation
-// - different threshold for toeholds
-// - intermolecular complexes
-// - get sequence from NP file
-// - calculate ensemble defect
-// - adaptive threshold
-// - SSM design
-// X signal handling
-// X set threshold and prevented in MS file
-// X rewrite parser
-// X multidigit filenames
-// X read .NPO files
-// X get temp/conc/etc. from .NP file
-// - memory management
+// - libcurl
+// - dot-paren notation fix
+// - internal analysis ("Simulacrum")
+// - internal DD
+// - intermittent intermolecular
+// - open desired base pairs
 // - strong AI
-
-const char vers[13] = "1.0 beta 6  ";
 
 #if defined __GNUG__	// G++ formatting
 #include <iostream>
@@ -42,7 +31,39 @@ using namespace std;
 
 #endif
 
-/*template <class T>
+const char vers[13] = "1.0.10b     ";
+
+const int stringsize = 1024;	// for filenames and system commands and buffers
+
+char workingdir[stringsize] = "/d/test";
+char nupackhome[stringsize] = "/d/New Research/Programming/downloads/nupack3.0";
+char spec_filename[stringsize] = "specification.np";
+char seqfile_prefix[stringsize] = "candidate";
+//char seq_infile[stringsize] = "\0";
+char outfile_prefix[stringsize] = "analysis";
+char email[stringsize] = "\0";
+int roundnum = -2;
+
+char material[stringsize] = "dna";
+char temperature[stringsize] = "23";
+char sodium[stringsize] = "0.5";
+char magnesium[stringsize] = "0.125";
+char dangles[stringsize] = "all";
+char trials[stringsize] = "10";
+
+bool workbench = false;
+float threshold = .67;
+float toethreshold = .67;
+float srinivas = 0.;
+int intermode = 0;
+float strandconc = 1E-7;
+int immutablemode = 0;
+int worstmode = 0;
+//float interthreshold = 0.01;
+int preventlimit[15] = {0,4,4,6,4,6,6,100,4,6,6,100,6,100,100};
+//						X,A,C,M,G,R,S,V  ,T,W,Y,H,  K,D,  B
+
+template <class T>
 class JChunkList
 {
 	protected:
@@ -55,7 +76,7 @@ class JChunkList
 			T item[chunksize];
 			chunk *next;
 			
-			chunk()
+			chunk(T defaultvalue)
 			{
 				next = NULL;
 				for (int i = 0; i < chunksize; i++)
@@ -71,37 +92,29 @@ class JChunkList
 		
 	public:
 	
-		JChunkList(T Defaultvalue, int Errorlevel)
+		JChunkList(T Defaultvalue)		// constructor
 		{
 			defaultvalue = Defaultvalue;
-			errorlevel = Errorlevel;
-			root = new chunk;
+			errorlevel = 200;
+			root = new chunk(defaultvalue);
 			curr = root;
 			currchunk = 0;
 			numchunks = 1;
 		}
 	
-		T operator[] (int pos)
+		T& operator[] (int pos)							
 		{
-			if (pos > numchunks * chunksize)
-				throw errorlevel;
-			
-			return operator() (pos);
-		}
-	
-		T& operator() (int pos)
-		{
-			if (pos < (currchunk-1) * chunksize)		// back up to root if needed
+			if (pos <= currchunk * chunksize)		// back up to root if needed
 			{
 				curr = root;
 				currchunk = 0;
 			}
 			
-			while (pos > currchunk * chunksize)			// move forward to desired chunk
+			while (pos >= (currchunk+1) * chunksize)		// move forward to desired chunk
 			{
 				if (curr->next == NULL)
 				{
-					curr->next = new chunk;				// create new chunk if needed
+					curr->next = new chunk(defaultvalue);		// create new chunk if needed
 					numchunks++;
 				}
 					
@@ -109,74 +122,176 @@ class JChunkList
 				currchunk++;
 			}
 			
-			return curr->item[pos - (currchunk-1) * chunksize];
+			return curr->item[pos - (currchunk * chunksize)];
 		}
 	
-};*/
+		int size()
+		{
+			return numchunks * chunksize;
+		}
+	
+		void clear()
+		{
+			for (int i = 0; i < numchunks * chunksize; i++)
+				(*this)[i] = defaultvalue;
+		}
+	
+		void setdefault(T newdefault)
+		{
+			defaultvalue = newdefault;
+		}
+};
 
-const int strandsize = 64;	// number of strands
-const int tokensize = 32;	// for tokens, bases per block
-const int arraysize = 128;	// for arrays of data, bases per strand
-const int stringsize = 256;	// for filenames and system commands and buffers
-const int desiredsize = 2048; // for desiredbases
+template <class T>
+class JChunkArray
+{
+	protected:
+	
+		JChunkList< JChunkList<T>* > list;
+		T defaultvalue;
+	
+	public:
+	
+		JChunkArray(T Defaultvalue) : list(NULL), defaultvalue(Defaultvalue) {}
+	
+		JChunkList<T>& operator[] (int pos)
+		{
+			if (list[pos] == NULL)
+				list[pos] = new JChunkList<T>(defaultvalue);
 
-char workingdir[stringsize] = "/d/test";
-char nupackhome[stringsize] = "/d/New Research/Programming/downloads/nupack3.0";
-char infile_prefix[stringsize] = "specification";
-char seqfile_prefix[stringsize] = "sequences";
-//char seq_infile[stringsize] = "\0";
-char outfile_prefix[stringsize] = "output";
-char email[stringsize] = "\0";
-int roundnum = -1;
+			return *(list[pos]);
+		}
+	
+		int size()
+		{
+			return list.size();
+		}
+	
+		void clear()
+		{
+			for (int i = 0; i < list.size(); i++)
+				if (list[i] != NULL)
+					list[i]->clear();
+		}
+};
 
-char material[stringsize] = "dna";
-char temperature[stringsize] = "23";
-char sodium[stringsize] = "0.5";
-char magnesium[stringsize] = "0.125";
-char dangles[stringsize] = "all";
-char trials[stringsize] = "10";
-
-bool workbench = false;
-char threshold[8] = ".67";
-int preventlimit[15] = {0,4,4,6,4,6,6,100,4,6,6,100,6,100,100};
-		             // X,A,C,M,G,R,S,V  ,T,W,Y,H,  K,D,  B
+class JStringList
+{
+	protected:
+	
+		JChunkList< JChunkList<char>* > list;
+	
+	public:
+	
+		JStringList() : list(NULL) {}
+	
+	char* operator[] (int pos)
+	{
+		if (list[pos] == NULL)
+			list[pos] = new JChunkList<char>('\0');
+		
+		static char *result = NULL;
+		result = (char*) realloc( result, (1+list[pos]->size()) * sizeof(char) );
+		
+		int i;
+		for (i = 0; i < list[pos]->size(); i++)
+			result[i] = (*(list[pos]))[i];
+		
+		result[i] = '\0';
+		
+		//cout << pos << ' ' << result[0] << endl;
+				
+		return result;
+	}
+	
+	int size()
+	{
+		return list.size();
+	}
+	
+	void clear()
+	{
+		for (int i = 0; i < list.size(); i++)
+			if (list[i] != NULL)
+				list[i]->clear();
+	}
+	
+	void assign(int num, char instring[])
+	{
+		int i = 0;
+		while (instring[i] != '\0')
+		{
+			(*(list[num]))[i] = instring[i];
+			i++;
+		}
+		(*(list[num]))[i] = '\0';
+		//cout << "i: " << i << endl;
+		//cout << num << ": " << instring << " ; " << (*(list[num]))[0] << (*(list[num]))[1] << (*(list[num]))[2] << (*(list[num]))[3] << endl;
+	}
+};
 
 enum base {X=0, A, C, M, G, R, S, V, T, W, Y, H,  K, D,  B, N};
 
-base sequence[strandsize][arraysize];
-int numstrands;
-int strandlength[strandsize];
-int offset[strandsize];					// +=delete first N; -=keep first N
-int strandblocks[strandsize][arraysize];
+JChunkArray<base> sequence(X);
+int numstrands = 0;
+//int strandlength[strandsize];
+JChunkList<int> strandlength(0);
+JChunkList<int> offset(0);					// +=delete first N; -=keep first N
+JChunkList<int> toehold(0);
+JChunkArray<int> strandblocks(0);
 
-base block[3*strandsize][tokensize];
-int blocklength[3*strandsize];
+JChunkArray<base> block(X);
+JChunkList<int> blocklength(0);
 
-int immutablebases[desiredsize];
-int desiredbases[desiredsize][2];
+JChunkArray<int> blockcolor(0);
+JChunkArray<base> favblock(X);
+JChunkArray<int> favblockcolor(0);
+JChunkArray<int> permblockcolor(0);
 
-char strandtoken[strandsize][tokensize];
-char blocktoken[3*strandsize][tokensize];
+const int histosize = 10;
+int histogram[histosize+1];
+
+JChunkList<int> immutablebases(0);
+
+struct des_pair
+{
+	int nums[2];
+	des_pair() { nums[0] = 0; nums [1] = 0; }
+	int& operator[](int pos) { return nums[pos]; }
+} default_pair;
+JChunkList<des_pair> desiredbases(default_pair);
+
+JStringList strandtoken;
+JStringList blocktoken;
 
 struct ht_type
 {
 	int id;
 	int pos1;
 	int pos2;
-	int size;
-	ht_type() {id=0; pos1=0; pos2=0; size=0;}
-} hairpintemp[strandsize];
+	int size;			// size of double-stranded region
+	int toehold;
+	ht_type() {id=0; pos1=0; pos2=0; size=0; toehold=0;}
+} default_ht;
+JChunkList<ht_type> hairpintemp(default_ht);
 
-struct bt_type
+/*struct bt_type
 {
 	int id1;
 	int id2;
 	int pos1;
 	int pos2;
 	int size;
-	char token[tokensize];
+	char token[32];
 	bt_type() {id1=0; id2=0; pos1=0; pos2=0; size=0; token[0]='\0';}
-} bridgetemp[strandsize];
+} def_bt;
+JChunkList<bt_type> bridgetemp(def_bt);*/
+
+struct score
+{
+	int subp;
+	float ned;
+};
 
 ofstream log;
 fstream json;
@@ -188,11 +303,10 @@ void getsettings();
 void commandline(int argc, char **argv, char *job, char &designer, char *trial, char *token);
 
 void forkexec(char *path, char **cmd, int count);
-void initialize();
+void copyfile(char source[], char destination[], bool nofail = false);
 void outputlog();
 void outputlog_json();
-void loadMSdata(char filename[]);
-void loadMOdata(char filename[]);
+void loadspecification(char filename[]);
 int tokenid(char symbol[]);
 int bltokenid(char symbol[], bool nonew = false);
 bool checktoken(char symbol[], bool includebridges = false);
@@ -209,15 +323,18 @@ void parseconditions(char currsymbol[]);
 void loadsequences_MO(char filename[]);
 void loadsequences_MO_old(char filename[]);
 void loadsequences_DD(char filename[]);
-void loadsequences_rand(int suffix);
+//void loadsequences_rand(int suffix);
+void assignblocktoseq();
 char* fullpath(char filename[], char *extension = NULL, int round = -1, int trial = -1);
 void outputsequences();
 void outputINfile(int mode);
 
-int meta_analyze();
+int setthreshold();
+score meta_analyze();
 bool isundesired_c(int first, int second);
 bool isundesired_o(int first, int second);
 bool isimmutable(int tpos);
+bool istoehold(int tpos);
 void clearpair(int first, int second);
 void assigntosequence(int pos, base input);
 base getfromsequence(int tpos);
@@ -235,11 +352,13 @@ void outputblockspost(ofstream &outfile);
 char basetochar(base input);
 base chartobase(char input);
 base randombase(base mask = N);
+bool issinglebase(base input);
 base operator ~ (base input);		// BITWISE not
 base operator ! (base input);		// COMPLEMENT
 void operator ++ (base &input, int);
 
 void displaysplash();
+void displayblocks();
 //void userinterface();
 //void displaydesigner();
 
@@ -253,6 +372,11 @@ int main(int argc, char **argv)
 {
 	try
 	{	
+		// ===== INITIALIZE EVERYTHING =====
+		
+		cout.precision(4);
+		srand(time(NULL));
+		
 		signal(SIGSEGV, &handlesignal);	// register signal handlers
 		signal(SIGBUS, &handlesignal);
 		signal(SIGILL, &handlesignal);
@@ -262,6 +386,11 @@ int main(int argc, char **argv)
 		signal(SIGHUP, &handlesignal);
 		signal(SIGTERM, &handlesignal);
 		signal(SIGQUIT, &handlesignal);
+		//signal(SIGUSR1, &handlesignal);
+		
+		//for (int i = 0; i < permblockcolor.size(); i++)
+		//	for (int j = 0; j < permblockcolor[i].size(); j++)
+		//		permblockcolor[i][j] = 0;
 				
 		char *cmd[20];					// array of pointers
 		for (int i = 0; i < 20; i++)
@@ -283,6 +412,8 @@ int main(int argc, char **argv)
 				loadsettings(cmd[0]);
 		}
 		
+		// ===== GET INSTRUCTIONS FROM USER =====
+		
 		if (argc > 1)
 			cout << "\nThank you for using Multisubjective " <<vers<< "            by John P. Sadowski" << endl;
 		else
@@ -297,11 +428,11 @@ int main(int argc, char **argv)
 				cout << "d - Load a DD file                      n - Load a NUPACK-MO file               " << endl;
 				cout << "m - Load multiple DD files              a - Autofill from last MO web submission" << endl;
 				cout << "f - Fill with random bases              s - Set directory and other options     " << endl;
-				cout << "Or input a NUPACK job number            " << endl;
+				cout << "i - Seed with independent DD sequences  Or input a NUPACK job number            " << endl;
 				cout << "Choose wisely: ";
 				cin >> job;
 				
-				while (!atoi(job) && job[0] != 'd' && job[0] != 'm' && job[0] != 's' && job[0] != 'n' && job[0] != 'a' && job[0] != 'f')
+				while (!atoi(job) && job[0] != 'd' && job[0] != 'm' && job[0] != 's' && job[0] != 'n' && job[0] != 'a' && job[0] != 'f' && job[0] != 'i')
 				{
 					cout <<"Really?\nTry again: ";
 					cin >> job;
@@ -327,6 +458,8 @@ int main(int argc, char **argv)
 			}
 		}
 		
+		// ===== SET INTERATION PARAMETERS =====
+		
 		if (designer == 'l' || designer == 'r')
 		{
 			rounds = 10;
@@ -335,13 +468,15 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			rounds = 0;
-			// roundnum is -1 by default
+			rounds = -1;
+			// roundnum is -2 by default
 			remove(fullpath(outfile_prefix, ".log"));
 		}
 				
-		if (job[0] == 'm' || job[0] == 'f')
+		if (job[0] == 'm' || job[0] == 'f' || job[0] == 'i')
 			tries = 10;
+		
+		// ===== LOAD SPECIFICATION AND INITIAL SEQUENCES =====
 		
 		if (job[0] == 'a' || atoi(job) )
 		{
@@ -376,8 +511,7 @@ int main(int argc, char **argv)
 					infile >> buffer;
 				}
 				
-				cout << "Token is " << token << endl;
-				
+				cout << "Token is " << token << endl;				
 			}
 			else
 			{
@@ -434,45 +568,70 @@ int main(int argc, char **argv)
 			
 			remove(fullpath(seqfile_prefix, ".npo"));
 			
-			strcpy(path, "/bin/cp");
-			//strcpy(path, "cp");
-			strcpy(cmd[0], "cp");
-			strcpy(cmd[1], "-i");
-			strcpy(cmd[2], fullpath("mo_output/"));
-			strcat(cmd[2], job);
-			strcat(cmd[2], "/");
-			strcat(cmd[2], job);
-			strcat(cmd[2], "_");
-			strcat(cmd[2], trial);
-			strcat(cmd[2], "_0.npo");
-			strcpy(cmd[3], fullpath(seqfile_prefix, ".npo"));
-			
-			if (stat(cmd[2], &st) != 0)		// if it doesn't exist, try .seq (old MO format)
+			if (!strcmp(trial, "all"))					// all trials
 			{
+				tries = 10;
+				char t[3] = "\0\0";
+				for (t[0] = '0'; t[0] <= '9'; (t[0])++)
+				{
+					strcpy(cmd[2], fullpath("mo_output/"));
+					strcat(cmd[2], job);
+					strcat(cmd[2], "/");
+					strcat(cmd[2], job);
+					strcat(cmd[2], "_");
+					strcat(cmd[2], t);
+					strcat(cmd[2], "_0.npo");
+					
+					copyfile(cmd[2], fullpath(seqfile_prefix, ".npo", -1, atoi(t)), true);
+				}
+				copyfile( fullpath(seqfile_prefix, ".npo", -1, 0), fullpath(seqfile_prefix, ".npo", -1, 10), true );	// move "0" to "10"
+				remove( fullpath(seqfile_prefix, ".npo", -1, 0) );
+			}
+			else
+			{			
+				//strcpy(path, "/bin/cp");
+				//strcpy(cmd[0], "cp");
+				//strcpy(cmd[1], "-i");
 				strcpy(cmd[2], fullpath("mo_output/"));
 				strcat(cmd[2], job);
 				strcat(cmd[2], "/");
 				strcat(cmd[2], job);
 				strcat(cmd[2], "_");
 				strcat(cmd[2], trial);
-				strcat(cmd[2], "_0.seq");
-			}
+				strcat(cmd[2], "_0.npo");
+				//strcpy(cmd[3], fullpath(seqfile_prefix, ".npo"));
 			
-			forkexec(path, cmd, 4);
+				/*if (stat(cmd[2], &st) != 0)		// if it doesn't exist, try .seq (old MO format)
+				{
+					strcpy(cmd[2], fullpath("mo_output/"));
+					strcat(cmd[2], job);
+					strcat(cmd[2], "/");
+					strcat(cmd[2], job);
+					strcat(cmd[2], "_");
+					strcat(cmd[2], trial);
+					strcat(cmd[2], "_0.seq");
+				}*/
+			
+				copyfile(cmd[2], fullpath(seqfile_prefix, ".npo"));
+			}
 		}
 				
 		//cout << "\nLoading structural data from file...\n";
-		initialize();
-		loadMSdata(fullpath(infile_prefix, ".ms"));
-		loadMOdata(fullpath(infile_prefix, ".np"));
+		//initialize();
+		loadspecification(fullpath(spec_filename/*, ".np"*/));
 		resolvebases();
+		
+		// ===== RUN ANALYSIS =====
 		
 		while (roundnum < rounds)
 		{		
 			//cout << "\nExtracting sequences...\n";
 
+			score result;
 			int favoritetrial = -1;
 			int favoritescore = 1000000;	// dummy values
+			float favoritened;
+			int favhisto[histosize+1];
 			int currscore = 0;
 			
 			if (designer == 'r' || designer == 'l')
@@ -481,14 +640,81 @@ int main(int argc, char **argv)
 			for (int trynum = 1; trynum <= tries; trynum++)
 			{
 				//cin >> job[3];
-					
-				if (job[0] == 'f')
+
+				if (job[0] == 'f')							// make random input file(s)
 				{
-					for (int i = 1; i <= 10; i++)
-						loadsequences_rand(i);
-					job[0] = 'm';
-					//strcpy(seq_infile, seqfile_prefix);
-					//strcat(seq_infile, "-_.dd");
+					if (designer == 'r' || designer == 'l')
+					{
+						for (int i = 1; i <= 10; i++)
+						{
+							outputblocks(2, -1, i);
+							copyfile(fullpath("random", ".dd", -1, i), fullpath(seqfile_prefix, ".dd", -1, i));
+							remove(fullpath("random", ".dd", -1, i));
+						}
+						
+						job[0] = 'm';
+					}
+					else
+					{
+						outputblocks(2);
+						copyfile(fullpath("random", ".dd"), fullpath(seqfile_prefix, ".dd"));
+						remove(fullpath("random", ".dd"));
+						
+						job[0] = 'd';
+						tries = 1;
+					}
+				}
+				
+				else if (job[0] == 'i')							// make random input file(s)
+				{
+
+					cout << "Generating initial sequences...\n";
+							
+					strcpy(path, "/usr/local/bin/node");			// these parameters are identical for all calls to DD
+					//strcpy(path, "node");				
+					strcpy(cmd[0], "node");
+					if (getenv("CLDDPATH") != NULL)
+					{
+						strcpy(cmd[1], getenv("CLDDPATH"));
+						strcat(cmd[1], "/cldd.js");
+					}
+					else if (getenv("HOME") != NULL)
+					{
+						strcpy(cmd[1], getenv("HOME"));
+						strcat(cmd[1], "/Documents/Multisubjective/cldd.js");
+					}
+					else
+						throw 136;
+					strcpy(cmd[2], "-qi");
+					strcpy(cmd[3], "--format");
+					strcpy(cmd[4], "dd");
+					strcpy(cmd[5], "-b");
+					strcpy(cmd[6], "2000");
+					strcpy(cmd[7], "-o");
+						
+					if (designer == 'r' || designer == 'l')
+					{
+						for (int i = 1; i <= 10; i++)
+						{
+							outputblocks(2, -1, i);
+
+							strcpy(cmd[8], fullpath(seqfile_prefix, ".dd", -1, i));
+							strcpy(cmd[9], fullpath("random", ".dd", -1, i));
+							forkexec(path, cmd, 10);	
+						}
+						
+						job[0] = 'm';
+					}
+					else
+					{
+						outputblocks(2);
+						strcpy(cmd[8], fullpath(seqfile_prefix, ".dd"));
+						strcpy(cmd[9], fullpath("random", ".dd"));
+						forkexec(path, cmd, 10);	
+						
+						job[0] = 'd';
+						tries = 1;
+					}
 				}
 				
 				if (job[0] == 'd')							// get the sequences from the file
@@ -498,7 +724,7 @@ int main(int argc, char **argv)
 				}
 				else if (job[0] == 'm')
 				{
-					if (roundnum == 0 || roundnum == -1)
+					if (roundnum == 0 || roundnum == -1 || roundnum == -2)
 					{
 						cout << "\n" << seqfile_prefix << "-" << trynum << ".dd: ";
 						loadsequences_DD(fullpath(seqfile_prefix, ".dd", -1, trynum));
@@ -511,9 +737,20 @@ int main(int argc, char **argv)
 						outputblocks(3, roundnum, trynum);
 					}
 				}
-				else
-					loadsequences_MO(fullpath(seqfile_prefix, ".npo"));
-		
+				else				// 'a' or job number
+				{
+					if (!strcmp(trial, "all"))
+					{
+						cout << "\n" << seqfile_prefix << "-" << trynum << ".npo: ";
+						loadsequences_MO(fullpath(seqfile_prefix, ".npo", -1, trynum));
+					}
+					else
+						loadsequences_MO(fullpath(seqfile_prefix, ".npo"));
+				}
+								
+				cout << "    ";
+				fflush(stdout);
+				
 				//outputsequences();
 				if ( trynum == 1 )
 					outputlog();
@@ -546,63 +783,109 @@ int main(int argc, char **argv)
 				strcpy(cmd[9], "-dangles");
 				strcpy(cmd[10], dangles);
 				strcpy(cmd[11], "-pairs");
-				strcpy(cmd[12], "-ordered");
-				strcpy(cmd[13], "-cutoff");
-				strcpy(cmd[14], threshold);
-				strcpy(cmd[15], "-quiet");
+				//strcpy(cmd[12], "-ordered");
+				strcpy(cmd[12], "-cutoff");
+				strcpy(cmd[13], ".001");
+				strcpy(cmd[14], "-quiet");
 				if (workbench)
 				{
-					strcpy(cmd[16], "-mfe");
-					strcpy(cmd[17], fullpath("nupack/ms0"));
-					forkexec(path, cmd, 18);
-				}
-				else
-				{
+					strcpy(cmd[15], "-mfe");
 					strcpy(cmd[16], fullpath("nupack/ms0"));
 					forkexec(path, cmd, 17);
 				}
+				else
+				{
+					strcpy(cmd[15], fullpath("nupack/ms0"));
+					forkexec(path, cmd, 16);
+				}
 				
-
+				cout << "\b\b\b\b    ";
+				fflush(stdout);
+				
 				//cout << "Running NUPACK analysis on open hairpins...\n";
 				outputINfile(2);
 				if (workbench)
 				{
-					strcpy(cmd[17], fullpath("nupack/ms2"));		// keep other arguments from last call
-					forkexec(path, cmd, 18);
+					strcpy(cmd[16], fullpath("nupack/ms2"));		// keep other arguments from last call
+					forkexec(path, cmd, 17);
 				}
 				else
 				{
-					strcpy(cmd[16], fullpath("nupack/ms2"));
-					forkexec(path, cmd, 17);
+					strcpy(cmd[15], fullpath("nupack/ms2"));
+					forkexec(path, cmd, 16);
 				}
 		
+				if (intermode)
+				{
+					strcpy(path, getenv("NUPACKHOME"));
+					strcat(path, "/bin/concentrations");
+					if (stat(path, &st) != 0)				// check to see whether NUPACKHOME is correctly set
+						throw 122;
+					strcpy(cmd[0], "concentrations");
+					strcpy(cmd[1], "-pairs");
+					strcpy(cmd[2], "-quiet");
+					strcpy(cmd[3], fullpath("nupack/ms2"));
+					forkexec(path, cmd, 4);
+				}
+				
+				cout << "\b\b\b\b";
+				fflush(stdout);
+				
 				//cout <<"Tabulating undesired secondary structure...\n";
-				currscore = meta_analyze();
+				/*if (worstmode)
+				{
+					currscore = setthreshold();
+					meta_analyze();
+				}
+				else
+					currscore = meta_analyze();*/
+				
+				if (worstmode)
+					setthreshold();
+				
+				result = meta_analyze();
+				currscore = result.subp;
+				
+				if (worstmode)
+					currscore = threshold * 1000.;
+				
+				//cout <<"\nChecking for prevented sequences...\n";
+				prevented();
+				
+				outputsequences();
+				
+				//cout <<"\nAssigning sequences to blocks...";
+				assignseqtoblock();
+				if (workbench)
+					outputblocks(4);
 				
 				if (currscore < favoritescore)
 				{
 					favoritescore = currscore;
+					favoritened = result.ned;
 					favoritetrial = trynum;
+					for (int i = 0; i < histosize+1; i++)
+						favhisto[i] = histogram[i];
+					
+					for (int i = 0; i < block.size(); i++)
+						for (int j = 0; j < block[i].size(); j++)
+						{
+							favblock[i][j] = block[i][j];
+							favblockcolor[i][j] = blockcolor[i][j];
+						}
 					
 					if (workbench)						// copy favorite JSON file
 					{
-						strcpy(path, "/bin/cp");
+						//strcpy(path, "/bin/cp");
 						//strcpy(path, "cp");
-						strcpy(cmd[0], "cp");
-						strcpy(cmd[1], "-f");
-						strcpy(cmd[2], fullpath(outfile_prefix, ".mso"));
-						strcpy(cmd[3], fullpath(outfile_prefix, ".mso", -1, 0));
-						forkexec(path, cmd, 4);
+						//strcpy(cmd[0], "cp");
+						//strcpy(cmd[1], "-f");
+						//strcpy(cmd[2], fullpath(outfile_prefix, ".mso"));
+						//strcpy(cmd[3], fullpath(outfile_prefix, ".mso", -1, 0));
+						//forkexec(path, cmd, 4);
+						copyfile( fullpath(outfile_prefix, ".mso"), fullpath(outfile_prefix, ".mso", -1, 0) );
 					}
 				}
-		
-				//cout <<"\nChecking for prevented sequences...\n";
-				prevented();
-		
-				outputsequences();
-			
-				//cout <<"\nAssigning sequences to blocks...";
-				assignseqtoblock();
 		
 				//cout <<"\n\nWriting blocks to file...";
 				if (job[0] == 'm')
@@ -615,34 +898,73 @@ int main(int argc, char **argv)
 					outputblocks(0);
 					outputblocks(1);
 				}
+
 			}
 			
-			if (job[0] == 'm')
+			if (job[0] == 'm' || !strcmp(trial, "all"))
+			{
 				cout << "\nFavorite trial was " << favoritetrial << endl;
+				
+				log.open(fullpath("favorites.txt"), ios::app);
+				log << roundnum << '\t' << favoritened << "%\t" << favoritescore << '\t' << favoritetrial;
+				for (int i = 0; i < histosize+1; i++)
+					log << '\t' << favhisto[i];
+				log << '\n';
+				log.close();
+			}
 			
 			if (roundnum == rounds-1 && (designer == 'l' || designer == 'r') && !workbench)
 			{
 				cout << "Do more rounds (y/n)? ";
 				cin >> job[1];
 				
-				if (job[1] == 'n')
-					break;						// don't do designer on last round if there are multiple rounds
-				
-				rounds += 5;
-				cout << "Old threshold was " << threshold;
-				do
+				if (job[1] == 'n' || job[1] == 'N')
 				{
-					cout << "\nInput new threshold: ";
-					cin >> threshold;
+					strcpy(path, "/bin/cp");		// copy final files out of subdirectory
+					copyfile( fullpath(seqfile_prefix, ".dd", roundnum, favoritetrial), fullpath("final.dd") );
+					copyfile( fullpath(seqfile_prefix, ".msq", roundnum, favoritetrial), fullpath("final.msq") );
+					
+					break;						// don't do designer on last round if there are multiple rounds
+				}				
+				rounds += 5;
+				cout << "Old threshold was " << threshold << endl;
+				cout << "Old toehold threshold was " << toethreshold << endl;
+				
+				cout << "Are these okay (y/n)? ";
+				cin >> job[1];
+
+				if (job[1] == 'n' || job[1] == 'N')
+				{
+					do
+					{
+						cout << "Input new favorite trial: ";
+						cin >> favoritetrial;
+					}
+					while (favoritetrial < 1 || favoritetrial > 10);
+					
+					do
+					{
+						cout << "Input new threshold: ";
+						cin >> threshold;
+					}
+					while (threshold < 0. || threshold > 1.);
+				
+					do
+					{
+						cout << "Input new toehold threshold: ";
+						cin >> toethreshold;
+					}
+					while (toethreshold < 0. || toethreshold > 1.);
 				}
-				while (atof(threshold) == 0.);
 			}
+			
+			displayblocks();
 			
 			if (designer == 'r')
 			{
 				//cout << "\n\nRandomizing problem bases...\n";
 				
-				for (int i = 0; i <= 9; i++)
+				for (int i = 1; i <= 10; i++)
 					outputblocks(2, roundnum+1, i);
 			}
 			else if (designer == 'o' || designer == 'l')			// use DD
@@ -860,6 +1182,27 @@ void forkexec(char *path, char **cmd, int count)
 	//cout << "\nTHAT WAS PID" << pid << endl;
 }
 
+void copyfile(char source[], char destination[], bool nofail /*= false*/)
+{
+	ifstream infile(source, std::ios::binary);
+	if (infile.fail())
+	{
+		if (nofail)
+			return;
+		else
+			throw 134;
+	}
+	
+	ofstream outfile(destination, std::ios::binary);
+	if (infile.fail())
+		throw 135;
+
+	outfile << infile.rdbuf();
+	
+	infile.close();
+	outfile.close();
+}
+
 /****************** PROGRAM SETTINGS FUNCTIONS *********************/
 
 void savesettings()
@@ -886,7 +1229,7 @@ void savesettings()
 	if (outfile.fail())
 		throw 15;
 	
-	outfile << workingdir << endl << infile_prefix << endl << seqfile_prefix << endl << outfile_prefix << endl << nupackhome << endl;
+	outfile << workingdir << endl << spec_filename << endl << seqfile_prefix << endl << outfile_prefix << endl << nupackhome << endl;
 	outfile.close();
 }
 
@@ -898,7 +1241,7 @@ void loadsettings(char *filename)
 	if (!infile.fail())
 	{
 		infile.getline(workingdir, stringsize);
-		infile >> infile_prefix;
+		infile >> spec_filename;
 		infile >> seqfile_prefix;
 		infile >> outfile_prefix;
 		if (!infile.eof())
@@ -922,8 +1265,8 @@ void getsettings()
 	{
 		cout << "\n1 - Multisubjective working directory: ";
 		cout << workingdir;
-		cout << "\n2 - Specification filename prefix:     ";
-		cout << infile_prefix;
+		cout << "\n2 - Specification filename:            ";
+		cout << spec_filename;
 		cout << "\n3 - Sequence input filename prefix:    ";
 		cout << seqfile_prefix;
 		cout << "\n4 - Output filename prefix:            ";
@@ -967,9 +1310,9 @@ void getsettings()
 		}
 		else if (choice == 2)
 		{	
-			cout << infile_prefix << endl;
-			cout << "Input new specification filename prefix: ";
-			cin >> infile_prefix;
+			cout << spec_filename << endl;
+			cout << "Input new specification filename: ";
+			cin >> spec_filename;
 		}
 		else if (choice == 3)
 		{	
@@ -987,9 +1330,9 @@ void getsettings()
 		{
 			strcpy(workingdir, "/d/test");
 			strcpy(nupackhome, "/d/New Research/Programming/downloads/nupack3.0");
-			strcpy(infile_prefix, "specification");
-			strcpy(seqfile_prefix, "sequences");
-			strcpy(outfile_prefix, "output");
+			strcpy(spec_filename, "specification.np");
+			strcpy(seqfile_prefix, "candidate");
+			strcpy(outfile_prefix, "analysis");
 		}
 	}
 	while (choice != 0);
@@ -1039,7 +1382,7 @@ void commandline(int argc, char **argv, char *job, char &designer, char *trial, 
 				strcpy(workingdir, argv[i+1]);
 				break;
 			case 'i':
-				strcpy(infile_prefix, argv[i+1]);
+				strcpy(spec_filename, argv[i+1]);
 				break;				
 			case 's':
 				strcpy(seqfile_prefix, argv[i+1]);
@@ -1052,9 +1395,16 @@ void commandline(int argc, char **argv, char *job, char &designer, char *trial, 
 				break;
 				
 			case 't':
-				strcpy(threshold, argv[i+1]);
+				threshold = atof(argv[i+1]);
+				if (threshold <= 0. || threshold > 1.)
+					throw 128;
 				break;
-			case 'p':
+			case 'T':
+				toethreshold = atof(argv[i+1]);
+				if (toethreshold <= 0. || threshold > 1.)
+					throw 129;
+				break;
+			/*case 'p':
 				do
 				{
 					base currbase;
@@ -1081,7 +1431,7 @@ void commandline(int argc, char **argv, char *job, char &designer, char *trial, 
 					while ( !atoi(argv[i+1]) && argv[i+1][pos] != '\0');
 				}
 				while ( argv[i+1][pos] != '\0');
-			break;
+			break;*/
 				
 			case 'w':
 				workbench = true;
@@ -1093,7 +1443,7 @@ void commandline(int argc, char **argv, char *job, char &designer, char *trial, 
 		}
 	}
 	
-	if (job[0] != 'j' && job[0] != 'd' && job[0] != 'm' && job[0] != 's' && job[0] != 'n' && job[0] != 'a' && job[0] != 'f')	// invalid mode
+	if (job[0] != 'j' && job[0] != 'd' && job[0] != 'm' && job[0] != 's' && job[0] != 'n' && job[0] != 'a' && job[0] != 'f' && job[0] != 'i')	// invalid mode
 		throw 55;
 	if (designer != 'o' && designer != 'l' && designer != 'w' && designer != 'r' && designer != 'x')		// invalid designer
 		throw 69;
@@ -1102,49 +1452,6 @@ void commandline(int argc, char **argv, char *job, char &designer, char *trial, 
 	
 	if (job[0] == 'j')
 		strcpy(job, jobnumber);
-
-}
-
-void initialize()
-{
-	int i, j;
- 
-	for (i = 0; i < strandsize; i++)
-		for (j = 0; j < arraysize; j++)
-			sequence[i][j] = X;
- 
-	for (i = 0; i < 3*strandsize; i++)
-		for (j = 0; j < tokensize; j++)
-			block[i][j] = X;
-
-	for (i = 0; i < tokensize; i++)
-		for (j = 0; j < strandsize; j++)
-			strandtoken[i][j] = '\0';
- 
-	for (i = 0; i < tokensize; i++)
-		for (j = 0; j < 3*strandsize; j++)
-			blocktoken[i][j] = '\0';
- 
-	for (i = 0; i < 3*strandsize; i++)
-		blocklength[i] = 0;
- 
-	for (i = 0; i < strandsize; i++)
-		for (j = 0; j < arraysize; j++)
-			strandblocks[i][j] = 0;
- 
-	numstrands = 0;
- 
-	for (i = 0; i < desiredsize; i++)
-		immutablebases[i] = 0;
-	
-	for (i = 0; i < desiredsize; i++)
-	{
-		desiredbases[i][0] = 0;
-		desiredbases[i][1] = 0;
-	}
-	
-	srand(time(NULL));
-	
 }
 
 void outputlog()
@@ -1163,7 +1470,7 @@ void outputlog()
 	log << "\nMultisubjective working directory: ";
 	log << workingdir;
 	log << "\nSpecification filename prefix: ";
-	log << infile_prefix;
+	log << spec_filename;
 	log << "\nSequence input filename prefix: ";
 	log << seqfile_prefix;
 	log << "\nOutput filename prefix: ";
@@ -1171,13 +1478,27 @@ void outputlog()
 	log << "\nNUPACK home directory preset: ";
 	log << nupackhome;
 	
-	log << "\n\nThreshold: ";
-	log << threshold;	
-	log << "\nPrevent limits: ";
+	log << "\n\nroundnum: ";
+	log << roundnum;
+	log << "\nthreshold: ";
+	log << threshold;
+	log << "\ntoethreshold: ";
+	log << toethreshold;
+	log << "\nsrinivas: ";
+	log << srinivas;	
+	log << "\nintermode: ";
+	log << intermode;
+	log << "\nstrandconc: ";
+	log << strandconc;
+	log << "\nworstmode: ";
+	log << worstmode;
+	log << "\nimmutablemode: ";
+	log << immutablemode;
+	log << "\npreventlimit: ";
 	for (i = 1; i < 15; i++)
 		log << preventlimit[i] << " ";
-	log << "\nRound number: ";
-	log << roundnum;
+	log << "\nworkbench: ";
+	log << workbench;
 	
 	log << "\n\nmaterial: ";
 	log << material;
@@ -1196,62 +1517,66 @@ void outputlog()
 	log << numstrands;
 	
 	log << "\n\nstrandtoken:\n";	
-	for (i = 0; i < strandsize; i++)
+	for (i = 0; i < strandtoken.size(); i++)
 		log << i << ':' << strandtoken[i] << ' ';
 	
 	log << "\n\nstrandlength:\n";	
-	for (i = 0; i < strandsize; i++)
+	for (i = 0; i < strandlength.size(); i++)
 		log << strandlength[i] << ' ';
 	
 	log << "\n\noffset:\n";	
-	for (i = 0; i < strandsize; i++)
+	for (i = 0; i < offset.size(); i++)
 		log << offset[i] << ' ';
 	
+	log << "\n\ntoehold:\n";	
+	for (i = 0; i < toehold.size(); i++)
+		log << toehold[i] << ' ';
+	
 	log << "\n\nsequence:\n";
-	for (i = 0; i < strandsize; i++)
+	for (i = 0; i < sequence.size(); i++)
 	{
-		for (j = 0; j < arraysize; j++)
+		for (j = 0; j < sequence[i].size(); j++)
 			log << basetochar(sequence[i][j]);
 		log << endl;
 	}
 	
 	log << "\n\nstrandblocks:\n";	
-	for (i = 0; i < strandsize; i++)
+	for (i = 0; i < strandblocks.size(); i++)
 	{
-		for (j = 0; j < arraysize; j++)
+		for (j = 0; j < strandblocks[i].size(); j++)
 			log << strandblocks[i][j] << ' ';
 		log << endl;
 	}
 	
 	log << "\n\nblocktoken:\n";	
-	for (i = 0; i < 3*strandsize; i++)
-		log << blocktoken[i] << ' ';
+	for (i = 0; i < blocktoken.size(); i++)
+		log << i << ':' << blocktoken[i] << ' ';
 	
 	log << "\n\nblocklength:\n";
-	for (i = 0; i < 3*strandsize; i++)
+	for (i = 0; i < blocklength.size(); i++)
 		log << blocklength[i] << ' ';
 	
 	log << "\n\nblock:\n";	
-	for (i = 0; i < 3*strandsize; i++)
+	for (i = 0; i < block.size(); i++)
 	{
-		for (j = 0; j < tokensize; j++)
+		for (j = 0; j < block[i].size(); j++)
 			log << basetochar(block[i][j]);
 		log << endl;
 	}
 	
 	log << "\n\nimmutablebases:\n";	
-	for (i = 0; i < desiredsize; i++)
+	for (i = 0; i < immutablebases.size(); i++)
 		log << immutablebases[i] << ' ';
 	
 	log << "\n\ndesiredbases:\n";	
-	for (i = 0; i < desiredsize; i++)
+	for (i = 0; i < desiredbases.size(); i++)
 	{
 		log << desiredbases[i][0] << ',';
 		log << desiredbases[i][1] << ' ';
 	}
 
 	log << "\n\nhairpintemp:\n";
-	for (i = 0; i < strandsize; i++)
+	for (i = 0; i < hairpintemp.size(); i++)
 	{
 		log << hairpintemp[i].id << ' ';
 		log << hairpintemp[i].pos1 << ' ';
@@ -1259,8 +1584,8 @@ void outputlog()
 		log << hairpintemp[i].size << endl;
 	}
 	
-	log << "\n\nbridgetemp:\n";
-	for (i = 0; i < strandsize; i++)
+	/*log << "\n\nbridgetemp:\n";
+	for (i = 0; i < bridgetemp.size(); i++)
 	{
 		log << bridgetemp[i].id1 << ' ';
 		log << bridgetemp[i].id1 << ' ';
@@ -1268,7 +1593,7 @@ void outputlog()
 		log << bridgetemp[i].pos2 << ' ';
 		log << bridgetemp[i].size << ' ';
 		log << bridgetemp[i].token << endl;
-	}
+	}*/
 	
 	log.close();
 }
@@ -1277,7 +1602,7 @@ void outputlog_json()
 {
 	int i, cumpos;
 	
-	json.open(fullpath(outfile_prefix, ".mso"), fstream::out);		//to enable random access
+	json.open(fullpath(outfile_prefix, ".mso"), fstream::out);
 	if (json.fail())
 		throw 72;
 	
@@ -1307,7 +1632,7 @@ void outputlog_json()
 	
 	if (immutablebases[0] != 0)
 		json << immutablebases[0];
-	for (i = i; i < desiredsize; i++)
+	for (i = i; i < immutablebases.size(); i++)
 		if (immutablebases[i] != 0)
 			json << "," << immutablebases[i];
 	
@@ -1316,7 +1641,7 @@ void outputlog_json()
 	json << "\t\"desired\":[\n";
 	if (desiredbases[0][0] != 0)
 		json << "\t\t{\"pair\":[" << desiredbases[0][0] << "," << desiredbases[0][1] << "]}";
-	for (i = 1; i < desiredsize; i++)
+	for (i = 1; i < desiredbases.size(); i++)
 		if (desiredbases[i][0] != 0)
 			json << ",\n\t\t{\"pair\":[" << desiredbases[i][0] << "," << desiredbases[i][1] << "]}";
 
@@ -1326,201 +1651,7 @@ void outputlog_json()
 
 /****************** FILE LOADING FUNCTIONS *********************/
 
-void loadMSdata(char filename[])
-{
-	char buffer[stringsize], *currsymbol = new char[stringsize], *currvalue = new char[stringsize];
-	int currid, bridgecounter = 0;
-	char curroperator;
-	ifstream infile;
-	
-	infile.open(filename);
-	if (infile.fail())
-		throw 20;
-	
-	while(!infile.eof())
-	{	
-		infile.get(buffer, stringsize, '\n');
-		
-		if (buffer[0] == '\0')				// discard blank lines
-		{
-			infile.clear();
-			infile.get(curroperator);
-			continue;
-		}
-		
-		if (buffer[0] == '#')				// discard comments
-		{
-			do
-				infile.get(buffer, stringsize, '\n');
-			while (buffer[0] != '\0' && !infile.eof());
-				
-			infile.get(curroperator);
-			continue;
-		}
-		
-		infile.get(curroperator);			// this should get the '\n' character; otherwise the line was too long
-		if (!infile.eof() && curroperator != '\n')
-			throw 82;
-		
-		tokenize(buffer);
-		currsymbol = strtok(buffer, " ");	// get first token in line
-		
-		if (!strcmp(currsymbol, "hairpin") || !strcmp(currsymbol, "coop"))
-		{
-			currsymbol = strtok(NULL, " ");
-			curroperator = *strtok(NULL, " ");
-			currvalue = strtok(NULL, " ");
-
-			currid = tokenid(currsymbol);
-			
-			if (curroperator == '=')
-			{
-				offset[currid] = atoi(currvalue);
-				if (offset[currid] == 0 || offset[currid] == 1 || offset[currid] == -1)	//error
-					throw 22;
-			}
-			else if (curroperator == ':')
-			{
-				if (currvalue[0] == '+')
-					offset[currid] = 1;
-				else if (currvalue[0] == '-')
-					offset[currid] = -1;
-			}
-			else
-				throw 24;
-			
-			numstrands++;
-			if (numstrands >= strandsize)
-				throw 49;
-		}
-		else if (!strcmp(currsymbol, "bridge"))
-		{
-			currsymbol = strtok(NULL, " ");
-			bridgetemp[bridgecounter].id1 = tokenid(currsymbol);
-
-			currsymbol = strtok(NULL, " ");
-			bridgetemp[bridgecounter].id2 = tokenid(currsymbol);
-
-			curroperator = *strtok(NULL, " ");
-			currvalue = strtok(NULL, " ");			
-			
-			if (curroperator == ':')
-				strcpy(bridgetemp[bridgecounter].token, currvalue);
-			else if (curroperator == '=')
-			{
-				if (!atoi(currvalue))
-					throw 50;
-				bridgetemp[bridgecounter].pos1 = atoi(currvalue);
-				
-				currvalue = strtok(NULL, " ");			
-				if (!atoi(currvalue))
-					throw 51;
-				bridgetemp[bridgecounter].pos2 = atoi(currvalue);
-				
-				currvalue = strtok(NULL, " ");			
-				if (!atoi(currvalue))
-					throw 52;
-				bridgetemp[bridgecounter].size = atoi(currvalue);
-			}
-			else
-				throw 29;
- 
-			bridgecounter++;
-		}
-		else if (!strcmp(currsymbol, "static"))
-		{
-			currsymbol = strtok(NULL, " ");
-			currid = tokenid(currsymbol);
-			
-			offset[currid] = 0;
-			numstrands++;
-			if (numstrands >= strandsize)
-				throw 59;
-		}
-		else if (!strcmp(currsymbol, "length"))  
-		{
-			int pos1 = 0, pos2 = 0, len = 0, num;		// pos1 for buffer, pos2 for block
-			base currbase;
-			
-			currsymbol = strtok(NULL, " ");
-			curroperator = *strtok(NULL, " ");
-			currvalue = strtok(NULL, " ");
-
-			do
-			{
-				currid = bltokenid(currsymbol);
-			
-				while (currvalue[pos1] != '\0')
-				{
-					currbase = chartobase(currvalue[pos1]);
-					currvalue[pos1] = ' ';
-					pos1++;
-				
-					if (atoi(currvalue))			// atoi(...) ignores initial whitespace and anything after the initial integer, returns 0 if no integer
-					{
-						num = atoi(currvalue);
-						while (currvalue[pos1] >= '0' && currvalue[pos1] <= '9')
-						{
-							currvalue[pos1] = ' ';
-							pos1++;
-						}
-					}
-					else
-						num = 1;
-
-					for (int i = 0; i < num; i++)
-					{
-						block[currid][pos2] = currbase;
-						pos2++;
-					}
-				
-					len += num;
-					if (pos1 >= stringsize)
-						throw 45;
-				}
-			
-				blocklength[currid] = len;
-				
-				currvalue = strtok(NULL, " ");
-			}
-			while (currvalue != NULL);			// until it runs out of tokens
-		}
-		else if (!strcmp(currsymbol, "threshold"))
-		{
-			curroperator = *strtok(NULL, " ");
-			currvalue = strtok(NULL, " ");
-			
-			if (curroperator != '=')
-				throw 21;
-			
-			strcpy(threshold, currvalue);
-		}
-		else if (!strcmp(currsymbol, "prevent"))
-		{
-			currsymbol = strtok(NULL, " ");
-			curroperator = *strtok(NULL, " ");
-			currvalue = strtok(NULL, " ");
-			
-			if (curroperator != '=')
-				throw 109;
-			
-			if (currsymbol[1] != '\0')
-				throw 110;
-			
-			base currbase = chartobase(currsymbol[0]);
-			if (currbase == X || currbase == N)
-				throw 113;
-			
-			preventlimit[currbase] = atoi(currvalue);
-		}
-		else
-			throw 60;
-	}
-	
-	infile.close();
-}
-
-void loadMOdata(char filename[])
+void loadspecification(char filename[])
 {
 	char buffer[stringsize], *currsymbol = new char[stringsize], *currvalue = new char[stringsize];
 	int currid, numvirtual = 0;
@@ -1559,7 +1690,248 @@ void loadMOdata(char filename[])
 		tokenize(buffer);
 		currsymbol = strtok(buffer, " ");	// get first token in line
 		
-		if (!strcmp(currsymbol, "structure"))
+		if (!strcmp(currsymbol, "!hairpin") || !strcmp(currsymbol, "!coop"))
+		{
+			currsymbol = strtok(NULL, " ");
+			curroperator = *strtok(NULL, " ");
+			currvalue = strtok(NULL, " ");
+			
+			currid = tokenid(currsymbol);
+			
+			if (curroperator == '=')
+			{
+				offset[currid] = atoi(currvalue);
+				if (offset[currid] == 0 || offset[currid] == 1 || offset[currid] == -1)	//error
+					throw 22;
+			}
+			else if (curroperator == ':')
+			{
+				if (currvalue[0] == '+')
+					offset[currid] = 1;
+				else if (currvalue[0] == '-')
+					offset[currid] = -1;
+			}
+			else
+				throw 24;
+			
+			numstrands++;
+			//if (numstrands >= strandsize)
+			//	throw 49;
+		}
+		/*else if (!strcmp(currsymbol, "!bridge"))
+		 {
+		 currsymbol = strtok(NULL, " ");
+		 bridgetemp[bridgecounter].id1 = tokenid(currsymbol);
+		 
+		 currsymbol = strtok(NULL, " ");
+		 bridgetemp[bridgecounter].id2 = tokenid(currsymbol);
+		 
+		 curroperator = *strtok(NULL, " ");
+		 currvalue = strtok(NULL, " ");			
+		 
+		 if (curroperator == ':')
+		 strcpy(bridgetemp[bridgecounter].token, currvalue);
+		 else if (curroperator == '=')
+		 {
+		 if (!atoi(currvalue))
+		 throw 50;
+		 bridgetemp[bridgecounter].pos1 = atoi(currvalue);
+		 
+		 currvalue = strtok(NULL, " ");			
+		 if (!atoi(currvalue))
+		 throw 51;
+		 bridgetemp[bridgecounter].pos2 = atoi(currvalue);
+		 
+		 currvalue = strtok(NULL, " ");			
+		 if (!atoi(currvalue))
+		 throw 52;
+		 bridgetemp[bridgecounter].size = atoi(currvalue);
+		 }
+		 else
+		 throw 29;
+		 
+		 bridgecounter++;
+		 }*/
+		else if (!strcmp(currsymbol, "!static"))
+		{
+			currsymbol = strtok(NULL, " ");
+			currid = tokenid(currsymbol);
+			
+			offset[currid] = 0;
+			numstrands++;
+			//if (numstrands >= strandsize)
+			//	throw 59;
+		}
+		else if (!strcmp(currsymbol, "domain"))  
+		{
+			int pos1 = 0, pos2 = 0, len = 0, num;		// pos1 for buffer, pos2 for block
+			base currbase;
+			
+			currsymbol = strtok(NULL, " ");
+			curroperator = *strtok(NULL, " ");
+			currvalue = strtok(NULL, " ");
+			
+			do
+			{
+				currid = bltokenid(currsymbol);
+				
+				while (currvalue[pos1] != '\0')
+				{
+					currbase =  chartobase(currvalue[pos1]);	// just to catch invalid bases
+					currvalue[pos1] = ' ';
+					pos1++;
+					
+					if (atoi(currvalue))			// atoi(...) ignores initial whitespace and anything after the initial integer, returns 0 if no integer
+					{
+						num = atoi(currvalue);
+						while (currvalue[pos1] >= '0' && currvalue[pos1] <= '9')
+						{
+							currvalue[pos1] = ' ';
+							pos1++;
+						}
+					}
+					else
+						num = 1;
+					
+					for (int i = 0; i < num; i++)
+					{
+						block[currid][pos2] = currbase;
+						pos2++;
+					}
+					
+					len += num;
+					if (pos1 >= stringsize)
+						throw 45;
+				}
+				
+				blocklength[currid] = len;
+				
+				currvalue = strtok(NULL, " ");
+			}
+			while (currvalue != NULL);			// until it runs out of tokens
+		}
+		else if (!strcmp(currsymbol, "!threshold"))
+		{
+			curroperator = *strtok(NULL, " ");
+			currvalue = strtok(NULL, " ");
+			
+			if (curroperator != '=')
+				throw 21;
+			
+			if (!strcmp(currvalue, "worst"))
+			{
+				currvalue = strtok(NULL, " ");
+				worstmode = atoi(currvalue);
+				if (worstmode == 0)
+					throw 139;
+			}
+			else
+			{
+				threshold = atof(currvalue);
+				if (threshold <= 0. || threshold > 1.)
+					throw 130;
+			}
+		}
+		else if (!strcmp(currsymbol, "!toethreshold"))
+		{
+			curroperator = *strtok(NULL, " ");
+			currvalue = strtok(NULL, " ");
+			
+			if (curroperator != '=')
+				throw 125;
+			
+			toethreshold = atof(currvalue);
+			if (toethreshold <= 0. || toethreshold > 1.)
+				throw 131;
+		}
+		else if (!strcmp(currsymbol, "!srinivas"))
+		{
+			curroperator = *strtok(NULL, " ");
+			currvalue = strtok(NULL, " ");
+			
+			if (curroperator != '=')
+				throw 141;
+			
+			srinivas = atof(currvalue);
+			if (srinivas < 0. || srinivas > 1.)
+				throw 142;
+		}
+		else if (!strcmp(currsymbol, "!intermolecular"))
+		{
+			curroperator = *strtok(NULL, " ");
+			currvalue = strtok(NULL, " ");
+			
+			if (curroperator != '=')
+				throw 126;
+			
+			if (!strcmp(currvalue, "on"))
+				intermode = 1;
+			else if (!strcmp(currvalue, "off"))
+				intermode = 0;
+			else
+				intermode = atoi(currvalue);
+		}
+		else if (!strcmp(currsymbol, "!workbench"))
+		{
+			workbench = true;
+		}
+		else if (!strcmp(currsymbol, "!strandconc"))
+		{
+			curroperator = *strtok(NULL, " ");
+			currvalue = strtok(NULL, " ");
+			
+			if (curroperator != '=')
+				throw 127;
+			
+			strandconc = atof(currvalue);
+		}
+		else if (!strcmp(currsymbol, "!immutable"))
+		{
+			curroperator = *strtok(NULL, " ");
+			currvalue = strtok(NULL, " ");
+			
+			if (curroperator != '=')
+				throw 132;
+			
+			if (!strcmp(currvalue, "off"))
+				immutablemode = 0;
+			else if (!strcmp(currvalue, "auto"))
+				immutablemode = 1;
+			else if (!strcmp(currvalue, "blocks"))
+			{
+				immutablemode = 0;
+				currvalue = strtok(NULL, " ");
+				while (currvalue != NULL)
+				{
+					currid = bltokenid(currvalue);
+					block[currid].setdefault(A);		// placeholder to trigger all bases as immutable
+					block[currid].clear();
+					currvalue = strtok(NULL, " ");
+				}
+			}
+			else
+				throw 133;
+		}
+		else if (!strcmp(currsymbol, "!prevent"))
+		{
+			currsymbol = strtok(NULL, " ");
+			curroperator = *strtok(NULL, " ");
+			currvalue = strtok(NULL, " ");
+			
+			if (curroperator != '=')
+				throw 109;
+			
+			if (currsymbol[1] != '\0')
+				throw 110;
+			
+			base currbase = chartobase(currsymbol[0]);
+			if (currbase == X || currbase == N)
+				throw 113;
+			
+			preventlimit[currbase] = atoi(currvalue);
+		}
+		
+		else if (!strcmp(currsymbol, "structure"))
 		{
 			currsymbol = strtok(NULL, " ");
 			curroperator = *strtok(NULL, " ");
@@ -1567,10 +1939,10 @@ void loadMOdata(char filename[])
 			if (checktoken(currsymbol, true))
 			{
 				currid = tokenid(currsymbol);
-				if (currid < strandsize)	//hairpin
+				//if (currid < strandsize)	//hairpin
 					strandlength[currid] = parseDU(currid);
-				else
-					parseDU(currid);	// don't try to set standlength for bridges, it will cause an overflow!
+				//else
+				//	parseDU(currid);	// don't try to set standlength for bridges, it will cause an overflow!
 			}
 			else // ignore structures not defined in ms.txt
 			{}
@@ -1596,8 +1968,8 @@ void loadMOdata(char filename[])
 			// do not increment numstrands
 			
 			numvirtual++;
-			if (numstrands + numvirtual >= strandsize)
-				throw 111;
+			//if (numstrands + numvirtual >= strandsize)
+			//	throw 111;
 			
 			parseblocks(currid);
 		}
@@ -1634,45 +2006,46 @@ void loadMOdata(char filename[])
 int tokenid(char symbol[])
 {
 	int id = 0;
-	while (id < strandsize)			// check all records
+	while (id < strandtoken.size())			// check all records
 	{
 		if ( !strcmp(symbol, strandtoken[id]) )
 			return id;
 		id++;
 	}
 	
-	id = 0;
+	/*id = 0;
 	while (id < strandsize)			// check bridgetemp records
 	{
 		if ( !strcmp(symbol, bridgetemp[id].token) )
 			return strandsize+id;	// virtual id
 		id++;
-	}
+	}*/
  
  	// if not found, start a new record
 	id = 0;
 	while (strandtoken[id][0] != '\0')
 	{
 		id++;
-		if (id >= strandsize)
-			throw 47;
+		//if (id >= strandsize)
+		//	throw 47;
 	}
  
-	strcpy(strandtoken[id], symbol);
+	//strcpy(strandtoken[id], symbol);
+	strandtoken.assign(id, symbol);
 	return id;
 }
  
 bool checktoken(char symbol[], bool includebridges /*= false*/)
 {
 	int id = 0;
-	while (id < strandsize)			// check all records
+	while (id < strandtoken.size())			// check all records
 	{
 		if ( !strcmp(symbol, strandtoken[id]) )
 			return true;
 		id++;
 	}
 	
-	if (includebridges)
+	/*if (includebridges)
 	{
 		id = 0;
 		while (id < strandsize)			// check bridgetemp records
@@ -1681,7 +2054,7 @@ bool checktoken(char symbol[], bool includebridges /*= false*/)
 				return true;
 			id++;
 		}
-	}
+	}*/
  
 	return false;
 }
@@ -1689,7 +2062,7 @@ bool checktoken(char symbol[], bool includebridges /*= false*/)
 int bltokenid(char symbol[], bool nonew /*= false*/) // make sure [0] not used
 {
 	int id = 1;
-	while (id < 3*strandsize)			// check all records
+	while (id < blocktoken.size())			// check all records
 	{
 		if ( !strcmp(symbol, blocktoken[id]) )
 			return id;
@@ -1704,11 +2077,12 @@ int bltokenid(char symbol[], bool nonew /*= false*/) // make sure [0] not used
 	while (blocktoken[id][0] != '\0')
 	{
 		id++;
-		if (id >= 3*strandsize)
-			throw 48;
+		//if (id >= 3*strandsize)
+		//	throw 48;
 	}
 					
-	strcpy(blocktoken[id], symbol);
+	//strcpy(blocktoken[id], symbol);
+	blocktoken.assign(id, symbol);
 	return id;
 }
 						
@@ -1717,7 +2091,7 @@ int parseDU(int id)		// goal: get strand lengths, get desired bases, fill offset
 	int lastD = 0, lastU = 0, begindes = 0, sizedes = 0, len=0;		// lastD and lastU are only needed if autofilling negative polarity
 	char *currtoken = new char[stringsize];
 
-	if (id < -1 || id >= 2*strandsize)
+	if (id < -1 /*|| id >= 2*strandsize*/)
 		throw 30;
 	
 	currtoken = strtok(NULL, " ");
@@ -1749,7 +2123,10 @@ int parseDU(int id)		// goal: get strand lengths, get desired bases, fill offset
 			int currlen = atoi(currtoken);
 
 			if (id != -1 && offset[id] == 1)
+			{
 				offset[id] = len + currlen;  // this is first D; set strand offset if pos polarity
+				toehold[id] = len;
+			}
 			if (id != -1 && offset[id] == -1)
 				lastD = currlen;
    
@@ -1806,7 +2183,10 @@ int parseDU(int id)		// goal: get strand lengths, get desired bases, fill offset
 	}
 	
 	if (id != -1 && offset[id] == -1)
+	{
 		offset[id] = -(len - lastU - lastD);
+		toehold[id] = lastU;
+	}
 	
 	return len;
 }
@@ -1888,22 +2268,22 @@ void storedesired (int id, int pos1, int pos2, int size)
 {
 	static int hairpincounter = 0;
 	
-	if (id < strandsize)		// hairpin
-	{
+	//if (id < strandsize)		// hairpin
+	//{
 		hairpintemp[hairpincounter].id = id;
 		hairpintemp[hairpincounter].pos1 = pos1;
  		hairpintemp[hairpincounter].pos2 = pos2;
  		hairpintemp[hairpincounter].size = size;
 		
 		hairpincounter++;
-	}
+	/*}
 	else		// bridge, used for autofilling bridge data
 	{
 		id -= strandsize;
 		bridgetemp[id].pos1 = pos1 + offset[bridgetemp[id].id1];
 		bridgetemp[id].pos2 = pos2 - strandlength[bridgetemp[id].id1] + offset[bridgetemp[id].id1];
 		bridgetemp[id].size = size;
-	}	
+	}*/	
 }
 
 void resolvebases()		// desired and immutable
@@ -1919,12 +2299,12 @@ void resolvebases()		// desired and immutable
 			desiredbases[counter][1] = startpos1 + hairpintemp[i].pos2 + hairpintemp[i].size - 1 - j;
 		
 			counter++;
-			if (counter == desiredsize)
-				throw 32;
+			//if (counter == desiredsize)
+			//	throw 32;
 		}
 	}
  
-	for (i = 0; bridgetemp[i].size != 0; i++)
+	/*for (i = 0; bridgetemp[i].size != 0; i++)
 	{
 		startpos1 = getstartpos(bridgetemp[i].id1);
  		startpos2 = getstartpos(bridgetemp[i].id2);
@@ -1941,10 +2321,10 @@ void resolvebases()		// desired and immutable
 			}
 		
 			counter++;
-			if (counter == desiredsize)
-				throw 33;
+			//if (counter == desiredsize)
+			//	throw 33;
 		}
-	}
+	}*/
  
 	counter = 0;
 	startpos2 = 1;   // = tpos
@@ -1960,7 +2340,7 @@ void resolvebases()		// desired and immutable
 				//cout << i << ' ' << j << ' ' << k << "  " << startpos2 << endl;
 				if ( strandblocks[i][j] > 0)
 				{
-					if (block[ strandblocks[i][j] ][k] == Y)
+					if (issinglebase(block[ strandblocks[i][j] ][k]))
 					{
 						//cout << "   " << counter << ' ' << startpos2 << endl;
 						immutablebases[counter] = startpos2;
@@ -1969,7 +2349,7 @@ void resolvebases()		// desired and immutable
 				}
 				else if ( strandblocks[i][j] < 0)  
 				{
-					if (block[ -strandblocks[i][j] ][ blocklength[-strandblocks[i][j]] - 1 - k ] == Y) // if complement, walk block in reverse
+					if (issinglebase(block[ -strandblocks[i][j] ][ blocklength[-strandblocks[i][j]] - 1 - k ])) // if complement, walk block in reverse
 					{
 						//cout << "   " << counter << ' ' << startpos2 << endl;
 						immutablebases[counter] = startpos2;
@@ -1977,8 +2357,8 @@ void resolvebases()		// desired and immutable
 					}
 				}
 				startpos2++;
-				if (counter >= desiredsize)
-					throw 42;
+				//if (counter >= desiredsize)
+				//	throw 42;
 			}
 		}
 	}
@@ -2070,7 +2450,7 @@ void parseblocks(int id)
 				throw 101;
 			j = 0;
 			threadid = tokenid(currtoken);
-			while (j < arraysize && strandblocks[threadid][j] != 0)
+			while (j < strandblocks[threadid].size() && strandblocks[threadid][j] != 0)
 			{
 				strandblocks[id][num] = strandblocks[threadid][j];
 				num++;
@@ -2084,8 +2464,8 @@ void parseblocks(int id)
 		//cout << strandblocks[id][num] << ' ';
 		
 		num++;
-		if (num >= arraysize-1)
-			throw 14;
+		//if (num >= arraysize-1)
+		//	throw 14;
 		
 		currtoken = strtok(NULL, " ");
 	}
@@ -2144,7 +2524,7 @@ void parseconditions(char currsymbol[])
 	}
 	else if (!strcmp(currsymbol, "dangles"))
 	{
-		if (strcmp(currvalue, "some") && strcmp(currvalue, "none") && strcmp(currvalue, "full"))
+		if (strcmp(currvalue, "some") && strcmp(currvalue, "none") && strcmp(currvalue, "all") && strcmp(currvalue, "full"))
 			throw 91;
 		
 		if (!strcmp(currvalue, "full"))
@@ -2259,8 +2639,8 @@ void loadsequences_MO(char filename[])
 				sequence[strand][pos] = chartobase(currbase);
 				pos++;
 					
-				if (pos >= arraysize)
-					throw 9;
+				//if (pos >= arraysize)
+				//	throw 9;
 			}
 		}
 		sequence[strand][pos] = X;
@@ -2272,7 +2652,7 @@ void loadsequences_MO(char filename[])
 void loadsequences_MO_old(char filename[])
 {
 	int strand, pos;
-	char currbase, token[tokensize];
+	char currbase, token[stringsize];
 	ifstream infile;
 	
 	infile.open(filename);
@@ -2294,7 +2674,7 @@ void loadsequences_MO_old(char filename[])
 		infile >> token;
 		
 		// get rid of colon character
-		for (pos = 0; pos < tokensize; pos++)
+		for (pos = 0; pos < stringsize; pos++)
 			 if (token[pos] == ':')
 			 {
 				 token[pos] = '\0';
@@ -2304,11 +2684,11 @@ void loadsequences_MO_old(char filename[])
 		if (checktoken(token))
 			strand = tokenid(token);
 		else
-			strand = strandsize;	// dummy value to avoid getting sequence
+			strand = -1;	// dummy value to avoid getting sequence
 		
 		currbase = infile.get();  // get rid of space character
 		
-		if (strand != strandsize && offset[strand] != 0)		// get sequence only if it is a hairpin (or coop)
+		if (strand != -1 && offset[strand] != 0)		// get sequence only if it is a hairpin (or coop)
 		{
 			pos = 0;
 			while (1)									// BEGIN basewise while-loop
@@ -2324,8 +2704,8 @@ void loadsequences_MO_old(char filename[])
 					sequence[strand][pos] = chartobase(currbase);
 					pos++;
 					
-					if (pos >= arraysize)
-						throw 96;
+					//if (pos >= arraysize)
+					//	throw 96;
 				}
 			}
 			sequence[strand][pos] = X;
@@ -2366,38 +2746,15 @@ void loadsequences_DD(char filename[])
 
 		if (pos != blocklength[blocknum])
 			throw 41;
+
+		block[blocknum][pos] = X;		// to make sure it's properly teminated
 		
 		infile >> buffer >> buffer;		// get rid of last two columns
 	}
 	
 	infile.close();
-	
-	// transfer block sequences to strand sequences
-	
-	int i, j, k;
-	for (i = 0; i < numstrands; i++)    // for each strand
-	{
-		pos = 0;   // = position within strand
-		for (j = 0; strandblocks[i][j] != 0; j++)  // for each block
-		{
-			for (k = 0; k < blocklength[ abs(strandblocks[i][j]) ]; k++)	// for each base
-			{
-				//cout << i << ' ' << j << ' ' << k << "  " << startpos2 << endl;
-				if ( strandblocks[i][j] > 0)
-				{
-					sequence[i][pos] = block[ strandblocks[i][j] ][k];
-				}
-				else if ( strandblocks[i][j] < 0)  
-				{
-					sequence[i][pos] = !block[ -strandblocks[i][j] ][ blocklength[-strandblocks[i][j]] - 1 - k ]; // if complement, walk block in reverse
-				}
-				pos++;
-				
-				if (pos >= arraysize)
-					throw 8;
-			}
-		}
-	}
+		
+	assignblocktoseq();
 		
 	/*cout << "\n\nblock:\n";	
 	for (i = 0; i < 3*strandsize; i++)
@@ -2408,19 +2765,32 @@ void loadsequences_DD(char filename[])
 	}*/
 }
 
-void loadsequences_rand(int suffix)
-{
-	int blocknum, pos;
+//void loadsequences_rand(int suffix)
+//{
+	//int blocknum, pos;
 	
 	// generate random block sequences
 	
-	for (blocknum = 1; blocklength[blocknum] != 0; blocknum++)		
-		for (pos = 0; pos < blocklength[blocknum]; pos++)
-			block[blocknum][pos] = randombase();
+	//for (blocknum = 1; blocklength[blocknum] != 0; blocknum++)		
+	//	for (pos = 0; pos < blocklength[blocknum]; pos++)
+	//		block[blocknum][pos] = randombase();
 
-	// transfer block sequences to strand sequences
+	//assignblocktoseq();
 	
-	int i, j, k;
+	/*cout << "\n\nblock:\n";	
+	for (i = 1; i < 3*strandsize && block[i][0] != X; i++)
+	{
+		for (j = 0; j < tokensize; j++)
+			cout << basetochar(block[i][j]);
+		cout << endl;
+	}
+	cout << endl;*/
+	
+//}
+
+void assignblocktoseq()
+{
+	int i, j, k, pos;
 	for (i = 0; i < numstrands; i++)    // for each strand
 	{
 		pos = 0;   // = position within strand
@@ -2439,22 +2809,11 @@ void loadsequences_rand(int suffix)
 				}
 				pos++;
 				
-				if (pos >= arraysize)
-					throw 68;
+				//if (pos >= arraysize)
+				//	throw 8;
 			}
 		}
 	}
-	
-	/*cout << "\n\nblock:\n";	
-	for (i = 1; i < 3*strandsize && block[i][0] != X; i++)
-	{
-		for (j = 0; j < tokensize; j++)
-			cout << basetochar(block[i][j]);
-		cout << endl;
-	}
-	cout << endl;*/
-	
-	outputblocks(2, -1, suffix);
 }
 
 void outputsequences()
@@ -2480,14 +2839,82 @@ void outputsequences()
 	
 	log << '\n';
 	log.close();
+	
+	if (workbench)
+	{
+		json.open(fullpath(outfile_prefix, ".mso"), fstream::app|fstream::out);
+		if (json.fail())
+			throw 140;
+		json << "\t\"analysis\":[ \n";
+		
+		for (strand = 0; strand < numstrands; strand++)
+		{
+			pos = 0;
+			json << "\t\t{\"name\":\"" << strandtoken[strand] << "\", \"sequence\":\"";
+			while (sequence[strand][pos] != X)									// BEGIN basewise while-loop
+			{			
+				json << basetochar(sequence[strand][pos]);
+				pos++;
+			}
+			json << "\"}";
+			if (strand < numstrands-1)
+				json << ",";
+			json << "\n";
+		}
+		json << "\t],\n";
+		
+		json.close();
+	}
 }
 
 char* fullpath(char filename[], char *extension /*= NULL*/, int round /*= -1*/, int trial /*= -1*/)
 {
 	char* result=(char *)malloc(stringsize * sizeof(char));
-	char num[tokensize];
+	char num[stringsize];
 	
 	strcpy(result, workingdir);
+	
+	if (round > -1)
+	{
+		strcat(result, "/round");
+		sprintf(num, "%d", round);
+		strcat(result, num);
+		
+		struct stat st;
+		if (stat(result, &st) != 0)			// make the directory if it doesn't exist
+			if (mkdir(result, 0755) == -1) throw 121;
+	}	
+	
+	strcat(result, "/");
+	strcat(result, filename);
+	
+	if (round > -1)
+	{
+		strcat(result, "_r");
+		sprintf(num, "%d", round);
+		strcat(result, num);
+	}
+	
+	if (trial != -1)
+	{
+		strcat(result, "-");
+		sprintf(num, "%d", trial);
+		strcat(result, num);
+	}
+	
+	if (extension != NULL)
+		strcat(result, extension);
+	
+	//cout << result;
+	return result;
+}
+
+//char* fullpath(char filename[], char *extension /*= NULL*/, int round /*= -1*/, int trial /*= -1*/)
+/*{
+	char* result=(char *)malloc(stringsize * sizeof(char));
+	char num[tokensize];
+	
+	strcpy(result, workingdir);	
 	strcat(result, "/");
 	strcat(result, filename);
 	
@@ -2510,11 +2937,11 @@ char* fullpath(char filename[], char *extension /*= NULL*/, int round /*= -1*/, 
 		
 	//cout << result;
 	return result;
-}
+}*/
 
 /****************** UNDESIRED SECONDARY STRUCTURE CHECK *********************/
 
-void outputINfile(int mode)
+void outputINfile(int mode)					// 0 = closed, 2 = open
 {
 	int strand, pos;
 	
@@ -2560,33 +2987,178 @@ void outputINfile(int mode)
 		outfile << '\n';
 	}										// END strandwise while-loop
 	
-	//if (mode == 0 || mode == 1)
-		outfile << '1';					// only want complexes of N strands
-	//else
-	//	outfile << '2';
+	if (mode == 2 && intermode)
+		outfile << '2' << endl;					// only want complexes of N strands
+	else
+		outfile << '1' << endl;
 	
 	outfile.close();
 		
+	if (intermode)
+	{
+		outfile.open(fullpath("nupack/ms2.con"));
+		if (outfile.fail())
+			throw 123;
+	 
+		for (strand = 0; strand < numstrands; strand++)							// BEGIN strandwise while-loop
+			if ( !(mode == 2 && offset[strand] == 0) )		// skip static strands			
+				outfile << strandconc << endl;
+	 
+		outfile.close();
+	}
+	
 	if (mode == 2)
 	{
-		outfile.open(fullpath("nupack/ms2.list"));
+		/*outfile.open(fullpath("nupack/ms2.list"));
 		if (outfile.fail())
 			throw 5;
 		
-		for (pos = 0; pos < strandsize; pos++)
+		for (pos = 0; pos < bridgetemp.size(); pos++)
 			if (bridgetemp[pos].id1 != 0)
 				outfile << bridgetemp[pos].id1 + 1 << ' ' << bridgetemp[pos].id2 + 1 << endl;		// +1 because MS is 0-relative while NUPACK is 1-relative
 			
-		outfile.close();
+		outfile.close();*/
 	}
-		
 }
 
-int meta_analyze()
+int setthreshold()
+{
+	char buffer[stringsize];
+	float currprob;
+	float lastprob = 0.;
+	int tposmax = 0, oposmax = 0, first, second, lastprobpos = 0, i;
+	JChunkList<float> worst(0.);
+	JChunkList<int> worstfirst(0);
+	JChunkList<int> worstsecond(0);
+	ifstream infile;
+	
+	// count tposmax and oposmax
+	for (i = 0; i < numstrands; i++)
+	{
+		tposmax += strandlength[i];
+		if (offset[i] > 0)
+			oposmax += strandlength[i] - offset[i];
+		else
+			oposmax += - offset[i];
+	}
+
+	infile.open(fullpath("nupack/ms0.cx-epairs"));
+	if (infile.fail())
+		throw 137;
+	
+	while (1)
+	{
+		do								// skip extraneous characters between data blocks
+			infile >> buffer;
+		while (!infile.eof() && atoi(buffer) != tposmax);
+		
+		if (infile.eof())				// end of file
+			break;
+		
+		//the first thing that's not the comment is the line containing tposmax
+		while (1)
+		{
+			infile >> first;				// skip first and second
+			infile >> second;
+			infile >> currprob;
+			//cout << endl << currprob << ' ' << lastprob << endl;
+			
+			if (currprob > lastprob && second != tposmax+1 && isundesired_c(first, second) /*&& !(isimmutable(first) && isimmutable(second))*/)
+			{
+				worst[lastprobpos] = currprob;			// replace lowest prob with new one
+				worstfirst[lastprobpos] = first;
+				worstsecond[lastprobpos] = second;
+				lastprob = 1.;
+				for (i = 0; i < worstmode; i++)			// recalculate lowest prob
+					if (worst[i] < lastprob)
+					{
+						lastprob = worst[i];
+						lastprobpos = i;
+					}
+			}
+			
+			//for (i = 0; i < worstmode; i++)
+			//	cout << worst[i] << endl;
+			//cin >> i;
+			
+			infile.get();  // get rid of return character
+			if (infile.eof() || infile.peek() == '%')		// end of data block
+				break;
+		}		
+	}
+	
+	infile.close();
+	if (intermode)
+		infile.open(fullpath("nupack/ms2.fpairs"));
+	else
+		infile.open(fullpath("nupack/ms2.cx-epairs"));
+	if (infile.fail())
+		throw 138;
+	
+	while (1)
+	{
+		do								// skip extraneous characters between data blocks
+			infile >> buffer;
+		while (!infile.eof() && atoi(buffer) != oposmax);
+		
+		if (infile.eof())				// end of file
+			break;
+		
+		//the first thing that's not the comment is the line containing tposmax
+		while (1)
+		{
+			infile >> first;				// skip first and second
+			infile >> second;
+			infile >> currprob;
+			//cout << endl << currprob << ' ' << lastprob;
+			
+			if (currprob > lastprob && second != oposmax+1 && first < second)
+			{
+				worst[lastprobpos] = currprob;			// replace lowest prob with new one
+				worstfirst[lastprobpos] = first;
+				worstsecond[lastprobpos] = second;
+				lastprob = 1.;
+				for (i = 0; i < worstmode; i++)			// recalculate lowest prob
+					if (worst[i] < lastprob)
+					{
+						lastprob = worst[i];
+						lastprobpos = i;
+					}
+			}
+			
+			infile.get();  // get rid of return character
+			if (infile.eof() || infile.peek() == '%')		// end of data block
+				break;
+		}		
+	}
+	
+	infile.close();
+	
+	cout << "Criterion threshold is " << lastprob;
+	threshold = lastprob;
+	toethreshold = lastprob;
+	
+	lastprob = 0;
+	for (i = 0; i < worstmode; i++)			// now find highest prob
+		if (worst[i] > lastprob)
+			lastprob = worst[i];
+
+	cout << ", worst is " << lastprob << endl;
+	
+	return lastprob * 1000.;
+	
+	//for (i = 0; i < worstmode; i++)
+	//	cout << worstfirst[i] << ' ' << worstsecond[i] << ' ' << worst[i] << endl;
+	//cout << "->" << lastprob << endl;
+
+}
+
+score meta_analyze()
 {
 	ifstream infile;
 	char buffer[stringsize];
 	int first, second, lastfirst, lastsecond, counter=0, tposmax=0, oposmax=0, totalpairs=0;
+	float currprob, ensdefect;
 	
 	log.open(fullpath(outfile_prefix, ".log", roundnum), fstream::app);
 	if (log.fail())
@@ -2611,74 +3183,129 @@ int meta_analyze()
 		else
 			oposmax += - offset[first];
 	}
-	//cout << "max: " << tposmax << ',' << oposmax << endl;
+	//cout << "max: " << tposmax << ',' << oposmax << " (" << opostotpos(oposmax+1) << ')' << endl;
 	
 	lastfirst = tposmax+1;
 	lastsecond = tposmax+1;
+	ensdefect = tposmax + oposmax;
+	//enscount = tposmax + oposmax;
+	for (int i = 0; i < histosize+1; i++)
+		histogram[i] = 0;
 	
-	infile.open(fullpath("nupack/ms0.ocx-epairs"));
+	infile.open(fullpath("nupack/ms0.cx-epairs"));
 	if (infile.fail())
 		throw 11;
 	
+	/*int enscount;
+	bool found[1000];
+	for (int i = 0; i < 1000; i++)
+		found[i] = false;*/
+	
 	while (1)
 	{
-		do
+		do								// skip extraneous characters between data blocks
 			infile >> buffer;
 		while (!infile.eof() && atoi(buffer) != tposmax);
 		
-		infile >> first;
-		infile >> second;
-		
-		if (infile.eof() || first == tposmax+1)			// end of data
+		if (infile.eof())				// end of file
 			break;
 		
 		//the first thing that's not the comment is the line containing tposmax
-		while (second != tposmax+1)
+		while (1)
 		{
-			if(isundesired_c(first, second))
-			{
-				log << first << ' ' << second << endl;
-				if (workbench)
-					json << "\t\t{\"pair\":[" << first << "," << second << "]},\n";
-				totalpairs++;
-			}
-			
-			if (isundesired_c(first, second) && first == lastfirst+1 && second == lastsecond-1)
-				counter++;			
-			else
-			{
-				if (counter == 1) // isolated base pair
-					clearpair(lastfirst, lastsecond);
-				
-				if (isundesired_c(first, second))
-					counter = 1;
-				else
-					counter = 0;
-			}
-						
-			if (counter == 2)
-				clearpair(first, second);
-			else if (counter > 3)
-				clearpair(lastfirst, lastsecond);
-			
-			lastfirst = first;
-			lastsecond = second;
-			
-			infile.get(buffer, 512, '\n');  // get rid of third column
-			
 			infile >> first;				// get new values
 			infile >> second;
+			infile >> currprob;
+						
+			if (second != tposmax+1 && isundesired_c(first, second))
+				histogram[int(currprob*histosize)]++;
+				
+			if(!isundesired_c(first, second))
+			{
+				//cout << first << ' ' << second << ' ' << currprob << ' ' << ensdefect << ' ' << enscount << endl;
+				/*found[first] = true;
+				found[second] = true;*/
+				if (second == tposmax+1)
+				{
+					ensdefect -= currprob;
+					//enscount -= 1;
+				}
+				else			// need to count twice for two bases
+				{
+					ensdefect -= (2.*currprob);
+					//enscount -= 2;
+				}
+			}
+			else if (second != tposmax+1 && (currprob >= threshold || ( (istoehold(first) || istoehold(second)) && currprob >= toethreshold )))
+			{
+				log << first << ' ' << second;
+				if (currprob < threshold)
+					log << '*';
+				log << endl;
+				if (workbench)
+					json << "\t\t{\"pair\":[" << first << "," << second << "]},\n";
+				
+				totalpairs++;
+			}
+
+			if (second != tposmax+1 && (currprob >= threshold || ( (istoehold(first) || istoehold(second)) && currprob >= toethreshold )))
+			{
+				if (isundesired_c(first, second) && first == lastfirst+1 && second == lastsecond-1)
+					counter++;			
+				else
+				{
+					if (counter == 1) // isolated base pair
+						clearpair(lastfirst, lastsecond);
+				
+					if (isundesired_c(first, second))
+						counter = 1;
+					else
+						counter = 0;
+				}
+						
+				if (counter == 2)
+					clearpair(first, second);
+				else if (counter > 3)
+					clearpair(lastfirst, lastsecond);
+				
+				lastfirst = first;
+				lastsecond = second;
+			}
+			
+			if (second == tposmax+1 && currprob < srinivas && !isundesired_c(first, second))
+			{
+				log << first << " -";
+				clearpair(first, first);
+			}
+			
+			infile.get();  // get rid of return character
+			//cout << char(infile.peek()) << endl;
+			if (infile.eof() || infile.peek() == '%')		// end of data block
+				break;
 		}		
 	}
-	
-	if (counter == 1) // in case the final undesired base pair was isolated
+
+	if (counter == 1)						// in case the final undesired base pair was isolated
 		clearpair(lastfirst, lastsecond);
 	
 	log << '-' << endl;
 	infile.close();
-	infile.open(fullpath("nupack/ms2.ocx-epairs"));
+	
+	if (intermode)
+		infile.open(fullpath("nupack/ms2.fpairs"));
+	else
+		infile.open(fullpath("nupack/ms2.cx-epairs"));
 	if (infile.fail())
 		throw 12;
+	
+	/*cout << endl;
+	for (int i = 0; i < tposmax; i++)
+		if (found[i] == false)
+			cout << i << ' ';
+	cout << endl;
+	
+	for (int i = 0; i < 1000; i++)
+		found[i] = false;*/
 	
 	lastfirst = tposmax+1;
 	lastsecond = tposmax+1;
@@ -2690,18 +3317,38 @@ int meta_analyze()
 			infile >> buffer;
 		while (!infile.eof() && atoi(buffer) != oposmax);
 		
-		infile >> first;
-		infile >> second;
-		
 		if (infile.eof())				// end of data
 			break;
-		if (first == oposmax+1)			// end of one-strand complexes; bridge complexes will appear after this point
-			continue;
-		
+						
 		//the first thing that's not the comment is the line containing oposmax
-		while (second != oposmax+1) // end of complex
+		while (1)
 		{
-			if (isundesired_o(first, second))
+			infile.get();								// get rid of return character(s)
+			if (infile.peek() == '\n')
+				infile.get();
+			//cout << char(infile.peek()) << endl;
+			if (infile.eof() || infile.peek() == '%')		// end of data block
+				break;
+			
+			infile >> first;
+			infile >> second;
+			infile >> currprob;
+			
+			if (second < first)
+				continue;					// ignore inverted pairs
+			
+			if (second != oposmax+1 /*&& isundesired_o(first, second)*/)
+				histogram[int(currprob*histosize)]++;
+			
+			if (/*!isundesired_o(first, second)*/second == oposmax+1)			// all base pairs are undesired, for now
+			{
+				//cout << first << ' ' << second << ' ' << currprob << ' ' << ensdefect << ' ' << enscount<< endl;
+				/*found[first] = true;
+				found[second] = true;
+				enscount -= 1;*/
+				ensdefect -= currprob;
+			}
+			else if (currprob >= threshold)
 			{
 				log << opostotpos(first) << ' ' << opostotpos(second) << endl;
 				if (workbench)
@@ -2711,38 +3358,61 @@ int meta_analyze()
 				totalpairs++;
 			}
 			
-			if (isundesired_o(first, second) && first == lastfirst+1 && second == lastsecond-1)
-				counter++;			
-			else
+			if (second != oposmax+1 && currprob >= threshold)
 			{
-				if (counter == 1) // isolated base pair
-					clearpair(opostotpos(lastfirst), opostotpos(lastsecond));
-				
-				if (isundesired_o(first, second))
-					counter = 1;
+				if (isundesired_o(first, second) && first == lastfirst+1 && second == lastsecond-1)
+					counter++;			
 				else
-					counter = 0;
+				{
+					if (counter == 1) // isolated base pair
+						clearpair(opostotpos(lastfirst), opostotpos(lastsecond));
+				
+					if (isundesired_o(first, second))
+						counter = 1;
+					else
+						counter = 0;
+				}
+			
+				if (counter == 2)
+					clearpair(opostotpos(first), opostotpos(second));
+				else if (counter > 3)
+					clearpair(opostotpos(lastfirst), opostotpos(lastsecond));
+			
+				lastfirst = first;
+				lastsecond = second;
 			}
 			
-			if (counter == 2)
-				clearpair(opostotpos(first), opostotpos(second));
-			else if (counter > 3)
-				clearpair(opostotpos(lastfirst), opostotpos(lastsecond));
-			
-			lastfirst = first;
-			lastsecond = second;
-			
-			infile.get(buffer, 512, '\n');  // get rid of third column
-			
-			infile >> first >> second;
-			//cout << first << ' ' << second << ' ' << isundesired_o(first, second) << endl;
+			if (second == oposmax+1 && currprob < srinivas && !isundesired_o(first, second))	// if it is desired to be unpaired
+			{
+				log << opostotpos(first) << " -";
+				clearpair(opostotpos(first), opostotpos(first));
+			}
 		}
 	}
 	
-	if (counter == 1) // in case the last undesired base pair was isolated
+	if (counter == 1 && lastsecond != oposmax+1 && currprob >= threshold) // in case the last undesired base pair was isolated
 		clearpair(opostotpos(lastfirst), opostotpos(lastsecond));
 	
-	cout << totalpairs << " undesired base pairs detected.  ";
+	/*for (int i = 0; i < oposmax; i++)
+		if (found[i] == false)
+			cout << i << ' ';
+	cout << endl;*/
+	
+	ensdefect /= (tposmax+oposmax);
+	ensdefect *= 100.;
+	
+	cout << totalpairs << " undesired bp detected. NED=" << ensdefect << "%. ";
+	//cout << "\n{";
+	log << endl << totalpairs << " undesired base pairs detected.\nNormalized ensemble defect: " << ensdefect << "%\nUndesired pair probability frequencies: ";
+	for (int i = 0; i < histosize+1; i++)
+	{
+		//cout << histogram[i] << ' ';
+		log  << histogram[i] << ' ';
+	}
+	//cout << "\b} ";
+	log << endl;
+	//cout << "(" << enscount << ") ";
+	
 	infile.close();
 	log.close();
 	
@@ -2754,7 +3424,10 @@ int meta_analyze()
 		json.close();
 	}
 	
-	return totalpairs;
+	score result;
+	result.subp = totalpairs;
+	result.ned = ensdefect;
+	return result;
 }
 
 bool isundesired_c(int first, int second)
@@ -2763,9 +3436,16 @@ bool isundesired_c(int first, int second)
 	for (i = 0; i < numstrands; i++)
 		totalbases += strandlength[i];
 	
-	if (second == totalbases+1) return false;
+	if (second == totalbases+1)					// if "first" represents an unpaired base, check if it is part of a desired base pair
+	{
+		for (i = 0; i < desiredbases.size(); i++)
+			if (first == desiredbases[i][0] || first == desiredbases[i][1])
+				return true;
+		
+		return false;
+	}
 	
-	for (i = 0; i < desiredsize; i++)
+	for (i = 0; i < desiredbases.size(); i++)			
 		if (first == desiredbases[i][0] && second == desiredbases[i][1])
 			return false;
 	
@@ -2781,15 +3461,38 @@ bool isimmutable(int tpos)
 {
 	int i;
 	
-	for (i = 0; i < desiredsize; i++)
+	for (i = 0; i < immutablebases.size(); i++)
 		if (tpos == immutablebases[i])
 			return true;
 	
 	return false;
 }
 
+bool istoehold(int tpos)
+{
+	int strand = 0;
+	while (tpos > strandlength[strand])
+	{
+		tpos -= strandlength[strand];
+		strand++;
+		//cout << endl << tpos << ' ' << strand;
+		
+		if (strand >= numstrands)
+			throw 124;
+	}
+	
+	if (offset[strand] > 0 && tpos <= toehold[strand])
+		return true;
+	
+	if (offset[strand] < 0 && tpos >= strandlength[strand] - toehold[strand] + 1)
+		return true;
+	
+	return false;
+}
+
 void clearpair(int first, int second)
 {
+	//cout << "Clearing " << first << " " << second << endl;
 	if (!isimmutable(first))
 		assigntosequence(first, N);
 	else if (!isimmutable(second))
@@ -2861,7 +3564,7 @@ int opostotpos(int opos)
 		strand++;															
 	}
 	
-	if (strand == numstrands)
+	if (strand == numstrands && counter != 1)		// oposmax+1 is still a valid index
 		throw 39;
 	
 	if (offset[strand] > 0)
@@ -2900,7 +3603,8 @@ void prevented()
 		
 		do			// for each base (tpos)
 		{
-			newbase = N;
+			//cout << basetochar(sequence[strand][pos]) << ' ';
+			newbase = X;
 			for (basetype = A; basetype < N; basetype++)
 			{
 				if (sequence[strand][pos] & basetype)
@@ -2908,24 +3612,27 @@ void prevented()
 				else
 					counter[basetype] = 0;
 				
-				if (counter[basetype] >= preventlimit[basetype] && !isimmutable(tpos))
+				if (counter[basetype] >= preventlimit[basetype] /*&& !isimmutable(tpos)*/)
 				{
 					log << tpos << basetochar(basetype) << ' ';
 					if (workbench)
 						json << "\t\t{\"range\":[" << tpos-preventlimit[basetype]+1 << "," << tpos << "], \"identity\":\"" << basetochar(basetype) << "\"},\n";
 					
-					newbase = base(newbase & ~basetype);
+					newbase = base(newbase | ~basetype);
 				}
+				
+				//cout << counter[basetype] << ' ';
 			}
+			//cout << basetochar(newbase) << ' ';
 			
 			//cout << endl << tpos << ' ' << pos << ": " << basetochar(sequence[strand][pos]) << ' ';
 			//for (basetype = X; basetype < N; basetype = base(basetype + 1))
 			//	cout << basetochar(basetype) << counter[basetype] /*<< '-' << basetochar(base(newbase & basetype))*/ << ' ';
 			//while (!_getche()) {}
 			
-			if (newbase == X)
+			if (newbase == N)
 				handlewarning(-2, tpos);
-			else if (newbase != N)		//assign the base
+			else if (newbase != X)		//assign the base
 			{
 				for (baseoffset = 0; baseoffset < preventlimit[~newbase]; baseoffset++)  // calculate baseoffset
 					if ( baseoffset >= tpos || getfromsequence(tpos - baseoffset) == N)	// first, look for an N to replace
@@ -2936,23 +3643,29 @@ void prevented()
 						if ( baseoffset >= tpos || !isimmutable(tpos - baseoffset) )
 							break;
 				
-				if (baseoffset != preventlimit[~newbase] || baseoffset >= tpos)
-				{
+				//cout << baseoffset;
+				
+				if (baseoffset == preventlimit[~newbase] || baseoffset >= tpos)	// if entire prevented sequence is immutable,
+				{																// need to reset counters so they don't massively trigger everything later
+					handlewarning(-3, tpos);
+					//cout << '*';
+					
 					for (basetype = A; basetype < N; basetype++)
-						if (newbase & basetype)
-						{
-							if (baseoffset == 0 && counter[basetype] == 0)
-								counter[basetype] = 1;					// recaulculate counters
-						}
-						else
-							if (counter[basetype] > baseoffset)
-									counter[basetype] = baseoffset;
+						if ( (~newbase & basetype) != 0 )
+							counter[basetype] = preventlimit[~newbase] - 1;
+				}
+				else
+				{
+					for (basetype = A; basetype < N; basetype++)						// recaulculate counters
+						if ( (newbase & basetype) != 0 && baseoffset == 0 && counter[basetype] == 0 )
+							counter[basetype] = 1;
+						else if ( (newbase & basetype) == 0 && baseoffset < counter[basetype] )
+							counter[basetype] = baseoffset;
 				
 					assigntosequence(tpos-baseoffset, newbase);
 				}
-				else
-					handlewarning(-3, tpos);
 			}
+			//cout << endl;
 						
 			pos++;
 			tpos++;
@@ -2978,6 +3691,10 @@ void assignseqtoblock()
 {
 	int tpos = 1;
 	int strandnum, blocknum, pos, numblocks = 0;
+	
+	for (int i = 0; i < blockcolor.size(); i++)
+		for (int j = 0; j < blockcolor[i].size(); j++)
+			blockcolor[i][j] = 0;
 	
 	log.open(fullpath(outfile_prefix, ".log", roundnum), fstream::app);
 	if (log.fail())
@@ -3008,12 +3725,15 @@ void assignseqtoblock()
 		
 			if (strandblocks[strandnum][blocknum] >= 0)						// if positive blockid
 				for (pos = 0; pos < blocklength[strandblocks[strandnum][blocknum]]; pos++)
-					block[strandblocks[strandnum][blocknum]][pos] = basecollide(block[strandblocks[strandnum][blocknum]][pos], getfromsequence(tpos+pos), strandblocks[strandnum][blocknum], pos);
+					block[strandblocks[strandnum][blocknum]][pos] 
+					= basecollide(block[strandblocks[strandnum][blocknum]][pos], getfromsequence(tpos+pos)
+								  , strandblocks[strandnum][blocknum], pos);
 		
 			else											// if negative blockid (complement)
 				for (pos = 0; pos < blocklength[-strandblocks[strandnum][blocknum]]; pos++)
 					block[ -strandblocks[strandnum][blocknum] ][ blocklength[-strandblocks[strandnum][blocknum]]-1-pos ]
-					= basecollide(block[ -strandblocks[strandnum][blocknum] ][ blocklength[-strandblocks[strandnum][blocknum]]-1-pos ], !getfromsequence(tpos+pos), -strandblocks[strandnum][blocknum], blocklength[-strandblocks[strandnum][blocknum]]-1-pos);
+					= basecollide(block[ -strandblocks[strandnum][blocknum] ][ blocklength[-strandblocks[strandnum][blocknum]]-1-pos ]
+								  , !getfromsequence(tpos+pos), -strandblocks[strandnum][blocknum], blocklength[-strandblocks[strandnum][blocknum]]-1-pos);
 		
 			log << "\nAfter:  block " << blocktoken[ abs(strandblocks[strandnum][blocknum]) ] << ": ";
 			for (pos = 0; pos < blocklength[ abs(strandblocks[strandnum][blocknum]) ]; pos++)
@@ -3029,7 +3749,7 @@ void assignseqtoblock()
 		long fpos = json.tellp();		// get rid of last comma
 		//cout << "fpos = " << fpos << " \n";
 		json.seekp(fpos-2);
-		json << "\n\t]\n}\n";
+		json << "\n\t],\n";
 		json.close();
 	}
 }
@@ -3053,30 +3773,41 @@ base basecollide(base first, base second, int pos1, int pos2)    //precedence: m
 			else
 			{
 				handlewarning(-5, pos1, pos2, first + 16*second);
+				blockcolor[pos1][pos2] = 5;
 				return first;
 			}
 		}
 		else
+		{
+			blockcolor[pos1][pos2] = 1;
 			return second;
+		}
 	}
 	else  // N or mixed base
 	{
 		if (second == A || second == C || second == G || second == T)
+		{
+			blockcolor[pos1][pos2] = 1;
 			return first;
+		}
 		else
 		{
 			if (base(first & second) == X)
 			{
 				handlewarning(-6, pos1, pos2, first + 16*second);
+				blockcolor[pos1][pos2] = 5;
 				return first;
 			}
 			else
+			{
+				blockcolor[pos1][pos2] = 1;
 				return base(first & second);
+			}
 		}
 	}
 }
 
-void outputblocks(int mode, int round /*= -1*/, int trial /*= -1*/)				// 0=.msq, 1=.dd, 2=.dd/rand, 3=.msq/copy
+void outputblocks(int mode, int round /*= -1*/, int trial /*= -1*/)				// 0=.msq, 1=.dd, 2=.dd/rand, 3=.msq/copy, 4=json
 {
 	int blocknum, pos, counter = 0, numblocks = 0;
 	
@@ -3096,38 +3827,58 @@ void outputblocks(int mode, int round /*= -1*/, int trial /*= -1*/)				// 0=.msq
 	}
 	else if (mode == 2)
 	{
-		outfile.open(fullpath(seqfile_prefix, ".dd", round, trial));
+		outfile.open(fullpath("random", ".dd", round, trial));
 		outfile << numblocks << endl;
 	}
 	else if (mode == 3)
 		outfile.open(fullpath(seqfile_prefix, ".msq", round, trial));
+	else if (mode == 4)
+	{
+		outfile.open(fullpath(outfile_prefix, ".mso"), fstream::app|fstream::out);
+		outfile << "\t\"blocks\":[ \n";
+	}
 	
 	if (outfile.fail())
 		throw 6;
 	
 	for (blocknum = 1; blocknum <= numblocks; blocknum++)
 	{
-		if (mode == 0 || mode == 3)
+		if (mode == 0 || mode == 3 || mode == 4)			// msq or mso
 		{
-			outfile << "domain " << blocktoken[blocknum] << " = ";
+			if (mode == 4)
+				outfile << "\t\t{\"name\":\"" << blocktoken[blocknum] << "\", \"sequence\":\"";
+			else
+				outfile << "domain " << blocktoken[blocknum] << " = ";
 			
-			for (pos = 0; block[blocknum][pos] != X; pos++)
+			for (pos = 0; pos < blocklength[blocknum]; pos++)
 			{
 				outfile << basetochar(block[blocknum][pos]);
+				
 				if (block[blocknum][pos] != A && block[blocknum][pos] != C && block[blocknum][pos] != G && block[blocknum][pos] != T)
 					counter++;
+			}
+			
+			if (mode == 4)
+			{
+				outfile << "\"}";
+				if (blocknum < numblocks)
+					outfile << ",";
 			}
 		}
 		else
 		{
 			base writebase, basemask = X;
-			for (pos = 0; block[blocknum][pos] != X; pos++)
+			for (pos = 0; pos < blocklength[blocknum]; pos++)
 			{
 				writebase = block[blocknum][pos];
+				
+				//if (mode == 2)								// all lowercase for random sequences
+				//	counter = 32;
+				// else
 				if (writebase != A && writebase != C && writebase != G && writebase != T)
 				{
-					counter = 32;							// if mixed base, make it upper case
-					basemask = base(basemask|writebase);	// take union of all maxed bases in domain
+					counter = 32;							// if mixed base, make it lower case
+					basemask = base(basemask|writebase);	// take union of all mixed bases in domain
 				}
 				else
 					counter = 0;
@@ -3151,10 +3902,13 @@ void outputblocks(int mode, int round /*= -1*/, int trial /*= -1*/)				// 0=.msq
 	}
 	
 	if (mode == 0)
-		cout << counter << " bases to design.";
+		cout << counter << " nt to design.";
+	else if (mode == 4)
+		// !!!!!!!!!!!
+		outfile << "\t]\n}\n";
 	
 	outfile.close();
-	}
+}
 
 /****************** MO SUBMISSION FUNCTIONS *********************/
 
@@ -3168,7 +3922,7 @@ char* outputMOpost()		// URL encoding
 		throw 7;
 	
 	ifstream infile;
-	infile.open(fullpath(infile_prefix, ".np"));
+	infile.open(fullpath(spec_filename/*, ".np"*/));
 	if (infile.fail())
 		throw 17;
 	
@@ -3196,7 +3950,7 @@ char* outputMOpost()		// URL encoding
 			outfile << "%2B";
 		else if (buffer == ',')
 			outfile << "%2C";
-		else if (buffer == '#')
+		else if (buffer == '#' || buffer == '!')	// change '!' to '#' to comment out Multisubjective lines
 			outfile << "%23";
 		else if (buffer == '\n')
 			outfile << "%0D%0A";
@@ -3238,7 +3992,7 @@ char* outputMOpost()		// URL encoding
 	outfile << "&design_job%5Bdangle_level%5D=";
 	if (!strcmp(dangles, "none"))
 		outfile << "0";
-	else if (!strcmp(dangles, "none"))
+	else if (!strcmp(dangles, "some"))
 		outfile << "1";
 	else if (!strcmp(dangles, "all"))
 		outfile << "2";
@@ -3343,6 +4097,14 @@ base randombase(base mask /*= N*/)
 	}
 }
 
+bool issinglebase(base input)
+{
+	if (input == A || input == C || input == G || input == T)
+		return true;
+	
+	return false;
+}
+
 base operator ~ (base input)		//BITWISE not
 {
 	base output = X;
@@ -3404,6 +4166,35 @@ void displaysplash()
 	cout << "Multisubjective requires NUPACK 3.0 and optionally cURL 7.21.6 or Node.js 0.6.12" << endl;
 	cout << endl;
 	// 5 lines left
+}
+
+void displayblocks()
+{	
+	int i, j;
+	
+	for (i = 0; i < favblockcolor.size(); i++)
+		for (j = 0; j < favblockcolor[i].size(); j++)
+		{
+			if (permblockcolor[i][j] != 0)
+				permblockcolor[i][j] = 4;
+			if (favblockcolor[i][j] != 0)
+				permblockcolor[i][j] = favblockcolor[i][j];
+		}
+	
+	cout << endl;
+	for (i = 0; i < blocktoken.size(); i++)
+		if (blocktoken[i][0] != '\0')
+		{
+			cout << blocktoken[i] << '\t';
+
+			for (j = 0; j < blocklength[i]; j++)
+				if (block[i][j] != X)
+				{
+					cout << "\033[3" << permblockcolor[i][j] << "m";				// ANSI escape code syntax for character color: \033 [ <code> m
+					cout << basetochar(favblock[i][j]);
+				}
+			cout << "\033[0m" << endl;
+		}
 }
 
 /*
@@ -3649,7 +4440,7 @@ void displaysubbox (int line, int type)
   		else if (line == 2) cout << "        ▒                                        ▒" << endl;
 		else if (line == 3) cout << " =====> ▒ 20. Multisubjective working directory: ▒" << endl;
 		else if (line == 4) cout << "        ▒ 21. NUPACK home directory:             ▒" << endl;
-		else if (line == 5) cout << "        ▒ 22. specification filename prefix:     ▒" << endl;
+		else if (line == 5) cout << "        ▒ 22. specification filename:            ▒" << endl;
   		else if (line == 6) cout << "        ▒ 23. sequence filename prefix:          ▒" << endl;
   		else if (line == 7) cout << "        ▒ 24. output filename prefix:            ▒" << endl;
   		else if (line == 8) cout << "        ▒                                        ▒" << endl;
@@ -3682,7 +4473,30 @@ void displaysubbox (int line, int type)
 /****************** ERROR HANDLING FUNCTIONS *********************/
 void handlesignal(int type)
 {
+	//static int progress = 0;
 	int errorlevel;
+	
+	/*if (type == SIGUSR1)
+	{
+		if (progress == 0)
+			printf("\b-");
+		else if (progress == 1)
+			printf("\b\\");
+		else if (progress == 2)
+			printf("\b|");
+		else if (progress == 3)
+			printf("\b/");
+		else
+			printf("\b*");
+		
+		progress++;
+		if (progress == 4)
+			progress = 0;
+		
+		fflush(stdout);
+		
+		return;
+	}*/
 	
 	if (type == SIGSEGV)
 		errorlevel = 100;
@@ -3780,7 +4594,7 @@ void handleerror(int errorlevel)
 		if (errorlevel == 241)
 			log << "\n\nExited on interrupt" << endl;
 		else if (errorlevel == 242)
-			log << "\n\nExited on hangup" << endl;
+			log << "\n\nExited on user hangup" << endl;
 		else if (errorlevel == 243)
 			log << "\n\nExited on termination" << endl;
 		else if (errorlevel == 244)
@@ -3800,7 +4614,7 @@ void handleerror(int errorlevel)
 		if (errorlevel == 241)
 			cerr << "\a\n\nMultisubjective interrupted";
 		else if (errorlevel == 242)
-			cerr << "\a\n\nMultisubjective hungup";
+			cerr << "\a\n\nMultisubjective hung up on by user";
 		else if (errorlevel == 243)
 			cerr << "\a\n\nMultisubjective terminated";
 		else if (errorlevel == 244)
@@ -3817,10 +4631,10 @@ void handleerror(int errorlevel)
 		case 1: case 40: case 95: 	
 			cerr << "Error opening sequence input file";
 			break;
-		case 17: case 20: case 23: 	
+		case 17: case 23: 	
 			cerr << "Error opening specification input file";
 			break;
-		case 11: case 12: 
+		case 11: case 12: case 137: case 138:
 			cerr << "Error opening NUPACK file";
 			break;
 		case 18: case 19:
@@ -3829,13 +4643,13 @@ void handleerror(int errorlevel)
 		case 70:
 			cerr << "Error opening configuration file";
 			break;
-		case 28:
+		case 28: case 121:
 			cerr << "Error creating directory";
 			break;
-		case 3: case 5:
+		case 3: /*case 5:*/ case 123:
 			cerr << "Error opening NUPACK file for output"; 
 			break;
-		case 4: case 62: case 63: case 64: case 72: case 73: case 74: case 80:	
+		case 4: case 62: case 63: case 64: case 72: case 73: case 74: case 80: case 140:
 			cerr << "Error opening log file for output"; 
 			break;
 		case 6: case 7: 	
@@ -3850,13 +4664,13 @@ void handleerror(int errorlevel)
 		case 2: case 110:
 			cerr << "Character is not a valid base";
 			break;
-		case 112: case 113:
+		/*case 112:*/ case 113:
 			cerr << "Invalid base in prevented sequence specification";
 			break;
 		case 10:
 			cerr << "Bad output mode";
 			break;
-		case 34: case 35: case 36: case 37: case 38: case 39:
+		case 34: case 35: case 36: case 37: case 38: case 39: case 124:
 			cerr << "Base position out of range";
 			break;
 		case 86: case 87:
@@ -3865,17 +4679,20 @@ void handleerror(int errorlevel)
 		case 90: case 91: case 114: case 115:
 			cerr << "Invalid value for material or dangles";
 			break;
-		case 21: case 24: case 29: case 88: case 89: case 108: case 109:
+		case 21: case 24: /*case 29:*/ case 88: case 89: case 108: case 109: case 125: case 126: case 127: case 132: case 141:
 			cerr << "Incorrect operator in specification file";
 			break;
-		case 60:
-			cerr << "Bad keyword in specification file";
-			break;
-		case 22: case 50: case 51: case 52: case 94:
+		case 22: /*case 50: case 51: case 52:*/ case 94: case 139:
 			cerr << "Valid integer value expected in specification file";
 			break;
 		case 92: case 93:
 			cerr << "Valid numerical value expected in specification file";
+			break;
+		case 128: case 129: case 130: case 131: case 142:
+			cerr << "Threshold out of range";
+			break;
+		case 133:
+			cerr << "Bad keyword in immutable mode specification";
 			break;
 		case 25: case 26: case 27: case 44: case 84: case 85:
 			cerr << "Malformed DU notation in specification file";
@@ -3889,7 +4706,7 @@ void handleerror(int errorlevel)
 		case 45:
 			cerr << "Buffer overflow parsing length string";
 			break;
-		case 81: case 82: case 83:
+		case 81: case 83:
 			cerr << "Buffer overflow reading file";
 			break;
 		case 107:
@@ -3901,7 +4718,7 @@ void handleerror(int errorlevel)
 		case 31:
 			cerr << "Strand length inconsistency";
 			break;
-		case 8: case 9: case 68: case 96:
+		/*case 8: case 9: case 68: case 96:
 			cerr << "Too many bases in strand";
 			break;
 		case 14:
@@ -3921,7 +4738,7 @@ void handleerror(int errorlevel)
 			break;
 		case 49: case 59: case 16: case 111:
 			cerr << "Too many strands";
-			break;
+			break;*/
 		case 41:
 			cerr << "Specification file has incorrect block length";
 			break;
@@ -3949,13 +4766,13 @@ void handleerror(int errorlevel)
 		case 57:
 			cerr << "Job not available locally; token missing in command line option";
 			break;
-		case 61:
+		case 61: case 122:
 			cerr << "NUPACK home directory incorrectly set";
 			break;
-		case 71:
+		/*case 71:
 			cerr << "Invalid prevented sequence code in command line";
-			break;
-		case 13: case 76:
+			break;*/
+		case 13: case 76: case 136:
 			cerr << "Home path not set";
 			break;
 		case 77:
@@ -3978,6 +4795,9 @@ void handleerror(int errorlevel)
 			break;
 		case 119: case 120:
 			cerr << "Program aborted";
+			break;
+		case 134: case 135:
+			cerr << "Error copying file";
 			break;
 		default:
 			cerr << "General error.  Salute!";

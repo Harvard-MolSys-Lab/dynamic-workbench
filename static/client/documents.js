@@ -92,6 +92,16 @@ Ext.define('App.Document', {
 	/**
 	 * Asynchonously loads the body of this document
 	 * @param {Object} opts Hash containing options to apply to the {@link Ext.Ajax#request} used to load the document
+	 * 
+	 * @param {Function} opts.success Callback to be executed on successful response
+	 * @param {String} opts.success.responseText Text of the response
+	 * @param {App.Document} opts.success.document Document object (`this`)
+	 * @param {XMLHttpRequest} opts.success.response Response object
+	 *
+	 * @param {Function} opts.failure Callback to be executed on an unsuccessful response
+	 * @param {String} opts.failure.responseText Text of the response
+	 * @param {App.Document} opts.failure.document Document object (`this`)
+	 * @param {XMLHttpRequest} opts.failure.response Response object	 
 	 */
 	loadBody : function(opts) {(function(options, me) {
 			Ext.applyIf(options, {

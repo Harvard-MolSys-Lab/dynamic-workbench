@@ -1822,13 +1822,6 @@ var DNA = module.exports.DNA = (function(_) {
 							});
 						}
 					}
-					// if(labels[n]) {
-					// links.push({
-					// source : n,
-					// target :
-					// })
-					// }
-
 					theta += dtheta;
 				}
 				n++;
@@ -2086,6 +2079,195 @@ var DNA = module.exports.DNA = (function(_) {
 			return {
 				nodes : nodes,
 				links : wc_links.concat(persistence_links).concat(strand_links),
+				strands : strands,
+			};
+		},
+
+		/**
+		 * Generates an object containing `nodes` and `links`, suitable for use with a D3 or Dagre layout. 
+		 * `generateAdjacency4` is best suited to cases where you can provide:
+		 *
+		 * 	-	A base-wise (expanded) dot-paren structure
+		 * 	-	A specification for the strands comprising the system
+		 * 	-	Identities of each segment comprising the system
+		 * 
+		 * @param  {String} struct 
+		 * Expanded (basewise) structure in dot-parenthesis notation. Each character of the string 
+		 * should correspond to a base in the structure or a strand break (+)
+		 * 
+		 * @param  {Array} strands 
+		 * Array of strand objects
+		 * 
+		 * @param  {Object} params  
+		 * Sets various parameters associated with the design
+		 * 
+		 * @param {Object} params.sequences  
+		 * Hash mapping segment names to their sequences
+		 * 
+		 * @param {Object} params.extraData  
+		 * Hash mapping strand names to additional data to be associated with bases in those strands. 
+		 * Each member may have the following values: 
+		 *
+		 * @param {Object[]} params.extraData.links 
+		 * An array of additional "link" objects to be created between bases in the strand
+		 * @param {Number} params.extraData.links.source
+		 * @param {Number} params.extraData.links.target
+		 * @param {String} params.extraData.links.type
+		 *
+		 * @param {Object} params.extraData.bases 
+		 * Hash mapping base indices to blocks of additional data. This can be used to attach additional 
+		 * attributes (e.g. immutable, conjugated, etc.) to certain bases in a strand. These attributes may
+		 * then be recognized by an implementation of {@link App.ui.StrandPreview} which consumes this
+		 * adjacency object.
+		 */
+		generateAdjacency4 : function(struct, strands, params) {
+			// var struct = "....(((...)))....";
+			params || ( params = {});
+			_.defaults(params, {
+				sequences : {},
+				extraData: {},
+
+				strandValue : 9,
+				hybridizationValue : 2,
+				persistenceValue : 18,
+				radius : 300,
+
+				persistenceLength: 2,
+				linkStrands: true,
+			});
+
+			struct = DNA.dotParenToBaseMap(struct);
+			struct = struct.map;
+
+			var nodes = [],
+
+			// Separate arrays for different link types so we ensure proper z-order when the structure is rendered
+			wc_links = [], strand_links = [], persistence_links = [], other_links = [],
+			
+			// Ensure we can look up complement sequences
+			sequences = DNA.hashComplements(params.sequences) || {},
+			extraData = params.extraData,
+			strandIndex = 0, node, n = 0, base = 0;
+			
+			// add extra links (e.g. for undesired interactions)
+			other_links = other_links.concat(extraData.links || []);
+
+			
+			var i = 0, // segment-wise counter (tracks position along structure)
+				j = 0; // base-wise counter (tracks position along structure)
+				
+			// for each strand
+			for (var s = 0; s < strands.length; s++) {
+				
+				var strand = strands[s], 
+				n = 0; // base-wise, per-strand counter
+				
+				// // grab extra links and per-base metadata
+				// strandData = extraData[strand.name] || {};
+
+				// // add extra links for this strand, adjusting the indices to be globally consistent
+				// other_links = other_links.concat(_.map(strandData.links || [], function(link) {
+				// 	link[0]+=j;
+				// 	link[1]+=j;
+				// 	return link;
+				// }))
+
+				// for each domain
+				for(var d = 0; d < strand.domains.length; d++) {
+					
+					var dom = strand.domains[d],
+					m = 0; // base-wise, per-domain counter
+					
+					// for each segment
+					for(var g = 0; g < dom.segments.length; g++) {
+						
+						var seg = dom.segments[g], 
+						name = seg.getIdentifier ? seg.getIdentifier() : (seg.identifier ? seg.identifier : seg.name),
+						id = DNA.parseIdentifier(name), 
+						seq = seg.sequence ? seg.sequence : sequences[name];
+						
+						// for each base
+						for(var k = 0; k < seq.length; k++) {
+							node = {
+								strand : strand.name,
+								domain : dom.name,
+								domain_role: dom.role,
+								segment : name,
+								segment_role : seg.role,
+								segment_identity : id.identity,
+								segment_polarity : id.polarity,
+								segment_length : seq.length,
+								base : seq[k],
+								
+								segment_index: k,
+								domain_index: m,
+								strand_index: n,
+							};
+							
+							// copy additional data onto the base
+							// if(strandData.bases && strandData.bases[n]) {
+							// 	_.extend(node,strandData.bases[n])
+							// }
+							if(extraData.bases && extraData.bases[j])  {
+								_.extend(node,extraData.bases[j]);
+							}
+
+							if(struct[j] && j > struct[j]) {
+								var link = {
+									source : struct[j],
+									target : j,
+									value : params.hybridizationValue,
+									type : 'wc'
+								};
+								wc_links.push(link);
+							}
+
+							nodes.push(node);
+							
+							if (params.linkStrands) {
+								if (n > 0 ) {
+									strand_links.push({
+										source : j,
+										target : j - 1,
+										type : 'strand',
+										value : params.strandValue,
+										
+										// segment: g > 0 ? seg.name : null,
+										// segment_identity : g > 0 ? id.identity : null,
+										// domain:  m > 0 ? dom.name : null,
+										// domain_role : m > 0 ? dom.role : null,
+
+										segment: seg ? seg.name : null,
+										segment_identity : id ? id.identity : null,
+										domain:  dom ? dom.name : null,
+										domain_role : dom ? dom.role : null,
+									});
+								}
+								
+								if(!!params.persistenceLength && n > params.persistenceLength) {
+									persistence_links.push({
+										source : j,
+										target : j - params.persistenceLength,
+										value : params.persistenceValue,
+										type : 'persistence',
+									});
+								}
+							}
+							n++;
+							m++;
+							j++;
+							
+						} // next base
+						i++;
+					} // next segment
+				} // next domain
+				i++;
+				
+			} // next strand
+
+			return {
+				nodes : nodes,
+				links : wc_links.concat(persistence_links).concat(strand_links).concat(other_links),
 				strands : strands,
 			};
 		},
@@ -2471,7 +2653,28 @@ var DNA = module.exports.DNA = (function(_) {
 			var o = DNA.parseDotParen(struct);
 			return DNA.printDUPlus(o);
 		},
-		
+
+		dotParenToBaseMap: function(struct) {
+			var map = {}, breaks = {}, stack = [], base = 0, complement;
+
+			for(var i=0; i<struct.length; i++) {
+				if(struct[i]=='(') {
+					stack.push(base);
+					base++;
+				} else if(struct[i]==')') {
+					complement = stack.pop();
+					map[base] = complement;
+					map[complement] = base;
+					base++;
+				} else if(struct[i]=='.') {
+					base++;
+				} else if(struct[i] =='+') {
+					breaks[base] = true;
+				}
+			}
+			return {map: map, breaks: breaks};
+		},
+
 		printDUPlus: function (loop) {
 			return _.map(loop, function(item) {
 				switch(item[0]) {
@@ -2633,21 +2836,28 @@ var DNA = module.exports.DNA = (function(_) {
 		 * Converts a CodeMirror-parsed NUPACK file into a structure specification.
 		 * @param {Array} lines Result of running CodeMirror#tokenize(string, 'nupack') on a structure specification
 		 * @return {Object} spec
-		 * @return {Object} spec.domains Hash mapping the (numerical) names of each segment to their sequence (or proto-sequence; may contain degenerate bases like N)
-		 * @return {Object} spec.strands Hash mapping strand names to {@link }
+		 * @return {Object} spec.domains Hash mapping the names of each segment to their sequence (or proto-sequence; may contain degenerate bases like N)
+		 * @return {Object} spec.strands Hash mapping strand names to strings specifying their contents
+		 * @return {Object} spec.complexes 
+		 * Hash mapping complex names to strings specifying their constituents. These strings use the NUPACK convention, such that they may be either be
+		 * lists of strands or lists of domains. It's up to the consumer of this data to figure out which.
+		 *
+		 * @return {String[]} spec.other
+		 * Array of other parsed lines not consumed by this code; useful for passing through e.g. multisubjective commands
 		 */
 		structureSpec : function(lines) {
-			var sequences = {}, strands = {}, structures = {};
+			var sequences = {}, strands = {}, structures = {}, complexes = {}, others = [];
 			_.each(lines, function(line) {
 				if (line.length > 0) {
 					
 					/* Handle structures
 					 * e.g.:
+					 * 		0         1  2 3
 					 * 		structure A1 = U16 D18(U19) U8
 					 * 		structure A2 = ...(((..+..)))
 					 */
 					if (line[0][1] == 'structure') {
-						var name = line[0][1], spec = _.select(line.slice(2), function(x) {
+						var name = line[1][1], spec = _.select(line.slice(3), function(x) {
 							return x[0] == 'nupack-huplus';
 						});
 						spec = _.pluck(spec, 1);
@@ -2683,7 +2893,18 @@ var DNA = module.exports.DNA = (function(_) {
 						if (spec[0][0] == 'number') {
 							var base = spec[1][1], times = parseInt(spec[0][1]), spec = '';
 							spec = Array(times+1).join(base);
-						} 
+						}
+						// e.g. `N65`
+						// note that each subsequent digit is a separate token 
+						else if (spec.length>1 && spec[1][0] == 'number') {
+							var base = spec[0][1], 
+
+							// select all subsequent tokens, combine together to make an integer
+							times = parseInt(_.pluck(spec.slice(1),1).join('')), spec = '';
+
+							// create string of repeated base
+							spec = Array(times+1).join(base);
+						}
 						// e.g. `GATCANY` ... 
 						else {
 							spec = _.pluck(spec, 1).join('');
@@ -2704,12 +2925,16 @@ var DNA = module.exports.DNA = (function(_) {
 						spec = _.pluck(spec, 1);
 						spec = spec.join(' ');
 
+						strands[name] = spec;
 					}
 
-					/* Handle NUPACK-style threading assignments
+					/* Handle NUPACK-style threading assignments for strands
 					 * e.g.:
 					 *     0      1 2...
 					 *     M1     : 1 2* 3 4
+					 *
+					 * And complexes
+					 * e.g.:
 					 *     M2.seq = 1 2* 3 4
 					 */
 					else if (line[0][0] == 'variable' && line[1] && (line[1][1] == ':' || line[1][1] == '=')) {
@@ -2717,17 +2942,31 @@ var DNA = module.exports.DNA = (function(_) {
 							return x[0] == 'string';
 						});
 						spec = _.pluck(spec, 1);
-						spec = spec.join(' ');
 
-						// e.g. `M2.seq` shoud -> `M2` 
-						if(name.indexOf('.seq') != -1) { name = name.replace('.seq','') }
-						strands[name] = spec;
+						// Handle complex-threading, e.g. `M2.seq`  
+						if(name.indexOf('.seq') != -1) { 
+							name = name.replace('.seq','')
+							spec = _.compact(spec) 
+							complexes[name] = spec;
+						} 
+						// Handle strand-threading
+						else {
+							spec = spec.join(' ');
+							strands[name] = spec;							
+						}
+					}
+
+					else {
+						others.push(line);
 					}
 				}
 			});
 			return {
 				domains : sequences,
 				strands : strands,
+				structures: structures,
+				complexes: complexes,
+				others: others,
 			};
 		},
 		defaultPolaritySpecifier : '*',
@@ -2741,6 +2980,9 @@ var DNA = module.exports.DNA = (function(_) {
 		 */
 		makeIdentifier : function(name, polarity) {
 			return name + ((polarity == -1) ? this.defaultPolaritySpecifier : '');
+		},
+		printIdentifier: function(id) {
+			return DNA.makeIdentifier(id.identity || id.name, id.polarity);
 		},
 		/**
 		 * Parses a string polarity identifier or number and produces a numerical

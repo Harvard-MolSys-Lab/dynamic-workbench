@@ -377,7 +377,7 @@ Ext.define('App.TaskRunner', {
 		 * Arguments to pass to the tool
 		 * 
 		 * @param {Function} [callback] 
-		 * Function to call upon completion
+		 * Function to call upon completion; see App.TaskRunner.Task#callback
 		 *
 		 * @param {Object} [scope=window] 
 		 * Scope in which to execute the callback
@@ -398,12 +398,20 @@ Ext.define('App.TaskRunner', {
 			}
 
 			if(Ext.ClassManager.get(['App.TaskRunner',serverTool].join('.'))) {
-				var startDate = new Date(), target = 'local', task = Ext.create('App.TaskRunner.' + serverTool, {
-					tool : serverTool,
-					startDate : startDate,
-					target : target,
-				});
-				Ext.apply(task,config);
+				var startDate = new Date(), 
+					target = 'local', 
+					// config = _.extend({
+					// 	tool : serverTool,
+					// 	startDate : startDate,
+					// 	target : target,
+					// }, config),
+					task = Ext.create('App.TaskRunner.' + serverTool, {
+						tool : serverTool,
+						startDate : startDate,
+						target : target,
+					});
+
+					_.extend(task, config);
 				
 				this.taskStore.add(task);
 				task.start(args, callback);
@@ -439,7 +447,7 @@ Ext.define('App.TaskRunner', {
  * Shortcut for {@link App.TaskRunner#run}
  */
 App.runTask = function() {
-	App.TaskRunner.run.apply(App.TaskRunner, arguments);
+	return App.TaskRunner.run.apply(App.TaskRunner, arguments);
 }
 /**
  * @class App.TaskRunner.Task
@@ -465,8 +473,24 @@ Ext.define('App.TaskRunner.Task', {
 	}],
 	/**
 	 * @cfg {String[]} openOnEnd
-	 * String of filenames. If a `node` property is specified, when the {@link App#filesTree files tree} is reloaded,
+	 * Array of filenames. If a `node` property is specified, when the {@link App#filesTree files tree} is reloaded,
 	 * looks for these filenames and opens them if they now exist.
+	 */
+	/**
+	 * @cfg {Object} loadOnEnd
+	 * Object specifying {@link App.Document documents} to be fetched after the task has finished and the tree has refreshed.
+	 *
+	 * @cfg {String[]} loadOnEnd.files
+	 * Array of filenames to be fetched
+	 *
+	 * @cfg {Function} loadOnEnd.callback
+	 * Callback to be executed and passed the loaded documents
+	 * 
+	 * @cfg {App.Document[]} loadOnEnd.callback.documents 
+	 * Array of fetched documents
+	 *
+	 * @cfg {Mixed} [loadOnEnd.scope] 
+	 * Scope in which to execute the callback
 	 */
 
 	/**
@@ -510,6 +534,7 @@ Ext.define('App.TaskRunner.Task', {
 		this.arguments = (args || {});
 		this.callback = (callback || this.callback);
 		this.onStart();
+
 		var req = Ext.Ajax.request({
 			url : this.endpoint,  //'/canvas/index.php/workspaces/save',
 			method : 'POST',
@@ -545,7 +570,7 @@ Ext.define('App.TaskRunner.Task', {
 	 * Text of the server's response
 	 * 
 	 * @param  {Object} arguments 
-	 * Original arguments passed to the task on #starte 
+	 * Original arguments passed to the task on #start 
 	 * 
 	 * @param  {Boolean} success 
 	 * true if the task completed successfully, false otherwise
@@ -566,11 +591,37 @@ Ext.define('App.TaskRunner.Task', {
 				 */
 				this.fireEvent('refresh',recs,operation,success);
 
+				if(this.loadOnEnd && success) {
+					this.loadFiles(this.loadOnEnd, recs);
+				}
+
 				if(this.openOnEnd && success) {
 					this.openFiles(this.openOnEnd,recs);
 				}
 			},this);
 		}
+	},
+
+	/**
+	 * Attempts to find records in `recs` with file names in `loadOnEnd.files`, and sends them to `loadOnEnd.callback`.
+	 * @param  {[type]} loadOnEnd [description]
+	 * @param  {[type]} recs [description]
+	 * @return {[type]} [description]
+	 */
+	loadFiles: function(loadOnEnd, recs) {
+		var filesToLoad = loadOnEnd.files || [], files = [];
+		for(var i = 0; i < filesToLoad.length; i++) {
+			var target = filesToLoad[i], child = null;
+			for(var j=0; (j<recs.length && !child); j++) {
+				if(recs[j].get('node') == target) {
+					child = recs[j];
+					break;
+				} 
+			}
+			files.push(child);
+		}
+
+		Ext.callback(loadOnEnd.callback, loadOnEnd.scope || this, [files]);
 	},
 
 	/**

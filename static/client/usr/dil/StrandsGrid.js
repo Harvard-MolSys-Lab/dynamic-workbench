@@ -104,9 +104,9 @@ Ext.define('App.usr.dil.StrandsGrid',{
 						var dom = spec[i];
 						for(var j = 0; j < dom.segments.length; j++) {
 							var seg = dom.segments[j],
-								seq = segmentMap[DNA.makeIdentifier(seg.identity, seg.polarity)];
+								seq = segmentMap[DNA.makeIdentifier(seg.identity, seg.polarity)] || '(?)';
 							out.push('<span class="sequence-segment" data-segment-identity="' + seg.identity + '" data-segment-polarity="' + seg.polarity + '">' + renderer(seq) + '</span>');
-							pos += seq.length;
+							// pos += seq.length;
 						}
 					}
 					return out.join('');
@@ -149,22 +149,23 @@ Ext.define('App.usr.dil.StrandsGrid',{
 				listeners: {
 					// Change content dynamically depending on which element triggered the show.
 					beforeshow: {
-						fn: function updateTipBody(tip) {
-							var segmentElement = Ext.get(tip.triggerElement).up('span.sequence-segment'),
-								identity = segmentElement.getAttribute('data-segment-identity'),
-								polarity = segmentElement.getAttribute('data-segment-polarity'),
-								index = parseInt(tip.triggerElement.getAttribute('data-base-index'))+1;
-							//tip.setTitle(DNA.makeIdentifier(identity, polarity));
-							//tip.update(index + ' nt');
-							tip.update('Segment: <b>'+DNA.makeIdentifier(identity, polarity) + '</b> / Base: ' + index);
-							//this.fireEvent('updateSegmentHighlight',identity);
-						},
+						fn: this.updateTipBody,
 						scope: this
 					}
 				}
 			});
 		}, this);
 
+	},
+	updateTipBody: function (tip) {
+		var segmentElement = Ext.get(tip.triggerElement).up('span.sequence-segment'),
+			identity = segmentElement.getAttribute('data-segment-identity'),
+			polarity = segmentElement.getAttribute('data-segment-polarity'),
+			index = parseInt(tip.triggerElement.getAttribute('data-base-index'))+1;
+		tip.update(this.getTipBody(identity,polarity,index));
+	},
+	getTipBody: function(identity, polarity, index) {
+		return 'Segment: <b>'+DNA.makeIdentifier(identity, polarity) + '</b> / Base: ' + index
 	},
 	getSegmentMap: function () {
 		return this.segmentStore.getSegmentMapWithComplements()

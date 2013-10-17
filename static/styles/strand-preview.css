@@ -16,6 +16,12 @@
 	stroke: #aaa;
 	stroke-linecap: round;
 }
+
+.link-undesired {
+	stroke-width: 3px;
+	stroke: #e00;
+}
+
 .tail {
 	stroke-width: 5px;
 	stroke: #aaa;
@@ -37,6 +43,23 @@ g.node > circle {
 	stroke-width: 0.15em;
 }
 
+
+/* Multisubjective */
+g.node.prevented > circle {
+	stroke: yellow !important;
+	stroke-width: 1em;
+}
+g.node.immutable > circle {
+	stroke: orange !important;
+	stroke-width: 1em;
+}
+g.node.changed > circle {
+	stroke: #e00 !important;
+	stroke-width: 1em;
+}
+
+
+/* Highlighting and interactivity */
 .node-highlight > circle {
 	stroke: yellow !important;
 	stroke-width: 3px;

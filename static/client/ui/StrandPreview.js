@@ -60,6 +60,12 @@ function StrandPreview() {
 				sequences: structure.sequences,
 				persistenceLength: false,
 			});
+		} else if(structure.dotParen && !structure.structure) {
+			return DNA.generateAdjacency4(structure.dotParen, structure.strands, {
+				extraData: structure.extraData || null,
+				sequences: structure.sequences,
+				persistenceLength: false,
+			});
 		} else {
 			return DNA.generateAdjacency2(structure, {
 				linkStrands : true,
@@ -136,7 +142,8 @@ function StrandPreview() {
 			
 			// Build nodeLayout; this is the arrangement of nodes and links
 			// which is fed to d3.
-			nodeLayout = buildNodeLayout(data);
+			nodeLayout = buildNodeLayout(structure);
+			// nodeLayout = buildNodeLayout(data);
 			
 			// Build pointLayout; this determines the (starting) 2D positions
 			// of each node. By default uses a planar graph layout
@@ -252,7 +259,14 @@ function StrandPreview() {
 			// Node Groups
 			nodeSel = panel.selectAll("g.node").data(nodes);
 			nodeSel.exit().remove();
-			nodeSel = nodeSel.enter().append('g').attr("class", "node").call(force.drag);
+			nodeSel = nodeSel.enter().append('g').attr("class", function(d) {
+				var cls = ["node"];
+				if(d.immutable) { cls.push('immutable') }
+				if(d.prevented) { cls.push('prevented') }
+				if(d.changed) { cls.push('changed') }
+				return cls.join(' ')
+
+			}).call(force.drag);
 	
 			// Node circle
 			if(showBubbles) {

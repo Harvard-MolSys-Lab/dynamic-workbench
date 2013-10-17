@@ -159,21 +159,23 @@ var types = [{
 	"iconCls" : "dd",
 	"name" : "Domain Design",
 	"description": "Domain Design (DD) files contain input for the stochastic, domain-based sequence designer DD.",
-}, {
+}, 
+{
 	"type" : ["nupack", "np"],
 	"trigger" : "nupackedit",
 	"iconCls" : "nupack",
 	"name" : "NUPACK Multi-objective Script",
 	"description": "NUPACK Multi-objective design scripts (NP) contain input files for the online NUPACK sequence designer.",
-}, {
-	"type" : "ms",
+}, 
+{
+	"type" : ["ms"],
 	"trigger" : "msedit",
 	"iconCls" : "ms",
 	"name" : "Multisubjective Design Script",
 	"description": "Multisubjective design scripts (MS) contain input files for the Multisubjective sequence designer",
 }, {
 	"type" : "mso",
-	"trigger" : "msview",
+	"trigger" : "txt",
 	"iconCls" : "ms",
 	"name" : "Multisubjective Output",
 	"description": "Multisubjective output (MSO) files contain the results of running the Multisubjective sequence designer.",
@@ -275,7 +277,10 @@ var types = [{
 // secondary : 'secondary',
 // };
 
-// var mimetypes = {	// 'svg' : 'image/svg+xml',	// 'pdf' : 'application/pdf',// };
+// var mimetypes = {
+	// 'svg' : 'image/svg+xml',
+	// 'pdf' : 'application/pdf',
+// };
 
 var triggers = {}, icons = {}, mimetypes = {}, descriptions = {}, actions = {}, fileTypes = {};
 

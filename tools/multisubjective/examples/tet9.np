@@ -1,0 +1,74 @@
+!threshold = .6
+!toethreshold = .6
+!intermolecular = on
+!immutable = auto
+
+!hairpin A1: -
+!hairpin A2: -
+!hairpin A3: -
+
+!hairpin B1: +
+!hairpin B2: +
+!hairpin B3: +
+
+!coop C1 = 53
+!coop C2 = 53
+!coop C3 = 53
+
+material = dna    
+temperature = 23
+trials = 10    
+dangles = full    
+sodium = .05    
+magnesium = 0.0125
+
+structure A1 = U16 D18(U19) U8
+structure A2 = U16 D18(U19) U8
+structure A3 = U16 D18(U19) U8
+
+structure B1 = U8 D18(U19) U16
+structure B2 = U8 D18(U19) U16
+structure B3 = U8 D18(U19) U16
+
+structure C1 = U8 D37 (U8 +)
+structure C2 = U8 D37 (U8 +)
+structure C3 = U8 D37 (U8 +)
+
+#`
+domain _1 = N8
+domain _2 = N8
+domain _3 = N8
+domain _4 = N8
+domain _5 = N8
+domain _6 = N8
+domain _7 = N8
+domain _8 = N8
+domain _9 = N8
+domain _10 = N8
+domain _11 = N8
+domain _12 = N8
+
+domain a = N16
+domain b = N16
+domain c = N16
+domain d = N16
+domain e = N16
+domain f = N16
+
+domain s = A
+domain x = CG
+domain y = AG
+domain z = GC
+#`
+
+A1.seq = _12* _7* x* _4* _2* y* _5* _3* s _2 _4 x _1
+A2.seq = _10* _8* y* _5* _3* z* _6* _1* s _3 _5 y _2
+A3.seq = _11* _9* z* _6* _1* x* _4* _2* s _1 _6 z _3
+
+B1.seq = _4 x _7 _12 s f* z* _12* _7* x* a*
+B2.seq = _5 y _8 _10 s d* x* _10* _8* y* b*
+B3.seq = _6 z _9 _11 s e* y* _11* _9* z* c*
+
+C1.seq = _10 x d s a x _7 x* a* s* d* x*
+C2.seq = _11 y e s b y _8 y* b* s* e* y*
+C3.seq = _12 z f s c z _9 z* c* s* f* z*

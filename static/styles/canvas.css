@@ -471,6 +471,10 @@ ul.dashboard-actions li a:hover {
 .folder-open {
 	background-image: url(/images/icons/fugue/folder-open.png) !important;
 }
+.folder-open-24 {
+	background-image: url(/images/icons/icons-24/folder-open.png) !important;
+}
+
 .notecard {
 	background-image: url(/images/icons/card_bg.jpeg);
 	background-repeat: repeat;

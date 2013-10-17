@@ -288,9 +288,9 @@ CodeMirror.defineMode("dd-sequence", function() {
 	};
 });
 
-CodeMirror.defineMode("nupack", function(config) {
+CodeMirror.defineMode("nupack", function(options,config) {
 	var sequenceMode = CodeMirror.getMode(config, 'sequence');
-	var ms = !! config && !! config.mode && !! config.mode.multisubjective;
+	var ms = !! config && (config.multisubjective || config.ms);
 	return {
 		startState: function() {
 			return {
@@ -307,7 +307,12 @@ CodeMirror.defineMode("nupack", function(config) {
 				if(stream.match('#`', true, true) || stream.match('#``', true, true)) {
 					stream.skipToEnd();
 					return 'builtin';
-				} else if(stream.eat('%') || stream.eat('#')) {
+				} 
+				else if (stream.match(/^(material|temperature|trials|sodium|magnesium|dangles|prevent)/,true)) {
+					state.value = 'parameter';
+					return 'keyword';
+				} 
+				else if(stream.eat('%') || stream.eat('#')) {
 					stream.skipToEnd();
 					return 'comment';
 				} else if(stream.match('structure', true, true)) {
@@ -321,103 +326,131 @@ CodeMirror.defineMode("nupack", function(config) {
 					return 'keyword';
 				} else {
 					if( !! ms) {
-						if(stream.match('hairpin', true, true)) {
+						if(stream.match('!hairpin', true, true)) {
 							state.value = 'ms-definition-left';
 							return 'keyword';
-						} else if(stream.match('coop', true, true)) {
+						} else if(stream.match('!coop', true, true)) {
 							state.value = 'ms-definition-left';
 							return 'keyword';
-						} else if(stream.match('bridge', true, true)) {
+						} else if(stream.match('!bridge', true, true)) {
 							state.value = 'ms-definition-left';
 							return 'keyword';
-						} else if(stream.match('static', true, true)) {
+						} else if(stream.match('!static', true, true)) {
 							state.value = 'ms-definition-key';
 							return 'keyword';
-						} else if(stream.match('length', true, true)) {
+						} else if(stream.match('!length', true, true)) {
 							state.value = 'sequence-definition-left';
 							return 'keyword';
+						} else if(stream.match('!',true,true)) {
+							stream.skipToEnd();
+							state.value = '';
+							return 'string';
 						}
 					}
 					state.value = 'structure-name';
 				}
 
-				// multisubjective
-			} else if(state.value == 'ms-definition-left') {
-				stream.eatWhile(/\S/);
-				state.value = 'ms-definition-assign';
-				return 'string';
-			} else if(state.value == 'ms-definition-assign') {
-				stream.eatWhile(/[\S:]/);
-				state.value = 'sequence-definition-right';
-				return 'operator';
-			} else if(state.value == 'ms-definition-right') {
-				state.value = '';
-				return '';
-			} else if(state.value == 'ms-definition-key') {
-				stream.eatWhile(/\S/);
-				state.value = '';
-				return 'string';
-				// structure (name) = (spec in HU+)
-			} else if(state.value == 'structure-definition-left') {
-				stream.eatWhile(/\S/);
-				state.value = 'structure-definition-assign';
-				return 'nupack-structure';
-			} else if(state.value == 'structure-definition-assign') {
-				stream.eatWhile(/[\S=]/);
-				state.value = 'structure-definition-right';
-				return 'operator';
-			} else if(state.value == 'structure-definition-right') {
-				//stream.eatWhile(/[HhUu\d]/);
-				// if(stream.eol()) {
-				// state.value='';
-				// return 'nupack-huplus'
-				// }
-				stream.skipToEnd();
-				state.value = '';
-				return 'nupack-huplus';
+				
+			} 
 
-				// sequence (name) = (spec)
-				// sequence (name) : (spec)
-				// domain (name) = (spec)
-				// domain (name) : (spec)
-			} else if(state.value == 'sequence-definition-left') {
-				stream.eatWhile(/\S/);
-				state.value = 'sequence-definition-assign';
-				return 'string';
-			} else if(state.value == 'sequence-definition-assign') {
-				stream.eatWhile(/[\S=]/);
-				state.value = 'sequence-definition-right';
-				return 'operator';
-			} else if(state.value == 'sequence-definition-right') {
-				var token = sequenceMode.token(stream);
-				if(stream.eol()) {
-					state.value = '';
+			
+			else {
+				switch (state.value) {
+					case 'parameter':
+						stream.skipToEnd();
+						state.value = '';
+						return 'string';
+
+					// multisubjective
+					case 'ms-definition-left': 
+						stream.eatWhile(/\S/);
+						state.value = 'ms-definition-assign';
+						return 'string';
+					case 'ms-definition-assign':
+						stream.eatSpace();
+
+						// stream.eatWhile(/[\S:]/);
+						if(stream.match(':',true,true))
+							state.value = 'ms-definition-right'
+						else if(stream.match("=",true,true))
+							state.value = 'ms-definition-right'
+						else {
+							stream.skipToEnd();
+							state.value = '';
+							return 'nupack-error'
+						}
+						
+						// state.value = 'sequence-definition-right';
+						return 'operator';
+					
+					case 'ms-definition-right':
+						state.value = '';
+						return '';
+					case 'ms-definition-key':
+						stream.eatWhile(/\S/);
+						state.value = '';
+						return 'string';
+						
+					
+
+					// structure (name) = (spec in HU+)
+					case 'structure-definition-left': 
+						stream.eatWhile(/\S/);
+						state.value = 'structure-definition-assign';
+						return 'nupack-structure';
+					case 'structure-definition-assign':
+						stream.eatWhile(/[\S=]/);
+						state.value = 'structure-definition-right';
+						return 'operator';
+					case 'structure-definition-right':
+						stream.skipToEnd();
+						state.value = '';
+						return 'nupack-huplus';
+
+
+					// sequence (name) = (spec)
+					// sequence (name) : (spec)
+					// domain (name) = (spec)
+					// domain (name) : (spec)
+					case 'sequence-definition-left':
+						stream.eatWhile(/\S/);
+						state.value = 'sequence-definition-assign';
+						return 'string';
+					case 'sequence-definition-assign':
+						stream.eatWhile(/[\S=]/);
+						state.value = 'sequence-definition-right';
+						return 'operator';
+					case 'sequence-definition-right':
+						var token = sequenceMode.token(stream);
+						if(stream.eol()) {
+							state.value = '';
+						}
+						return token;
+					case 'structure-name':
+						stream.eatWhile(/\S/);
+						state.value = 'structure-assign';
+						return 'variable';
+					case 'structure-assign':
+						if(stream.eat('=') || stream.eat(':')) {
+							state.value = 'structure-thread'
+							return 'operator';
+						} else if(stream.eat('<')) {
+							state.value = 'structure-objection';
+							return 'operator';
+						} else {
+							stream.skipToEnd();
+							state.value = '';
+							return 'nupack-error';
+						}
+					case 'structure-thread':
+						stream.skipToEnd();
+						state.value = '';
+						return 'string';
+					case 'structure-objection':
+						stream.skipToEnd();
+						state.value = '';
+						return 'qualifier';
 				}
-				return token;
-			} else if(state.value == 'structure-name') {
-				stream.eatWhile(/\S/);
-				state.value = 'structure-assign';
-				return 'variable';
-			} else if(state.value == 'structure-assign') {
-				if(stream.eat('=') || stream.eat(':')) {
-					state.value = 'structure-thread'
-					return 'operator';
-				} else if(stream.eat('<')) {
-					state.value = 'structure-objection';
-					return 'operator';
-				} else {
-					stream.skipToEnd();
-					state.value = '';
-					return 'nupack-error';
-				}
-			} else if(state.value == 'structure-thread') {
-				stream.skipToEnd();
-				state.value = '';
-				return 'string';
-			} else if(state.value == 'structure-objection') {
-				stream.skipToEnd();
-				state.value = '';
-				return 'qualifier';
 			}
 		}
 	};
@@ -566,9 +599,9 @@ CodeMirror.renderMode = function(mode, v) {
 
 CodeMirror.getModeRenderer = function(modespec, options) {
 	function esc(str) {
-		return str.replace(/[<&]/g, function(ch) {
+		return !!str ? str.replace(/[<&]/g, function(ch) {
 			return ch == "<" ? "&lt;" : "&amp;";
-		});
+		}) : '';
 	}
 
 	var mode = CodeMirror.getMode(CodeMirror.defaults, modespec);
@@ -580,6 +613,8 @@ CodeMirror.getModeRenderer = function(modespec, options) {
 			return text;
 	}
 	return function(string) {
+		string = string || '';
+
 		var accum = [],
 			col = 0;
 		callback = function(text, style) {

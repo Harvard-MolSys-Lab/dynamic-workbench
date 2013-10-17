@@ -40,6 +40,7 @@ function StrandPreview() {
 				'undesired' : '#a00',
 			};
 		var segmentColors = d3.scale.category20(),
+			strandColors = d3.scale.category20(),
 			baseColors = d3.scale.ordinal().domain(['A','T','C','G','N']).range(['blue','red','green','black','orange']);
 	
 	/* **********************
@@ -66,6 +67,10 @@ function StrandPreview() {
 				sequences: structure.sequences,
 				persistenceLength: false,
 			});
+		} else if(structure.strands && structure.dotParen && !structure.sequences) {
+			return DNA.generateAdjacency(structure.dotParen,structure.strands,{
+				linkStrands: true,
+			})
 		} else {
 			return DNA.generateAdjacency2(structure, {
 				linkStrands : true,
@@ -248,6 +253,8 @@ function StrandPreview() {
 								return segmentColors(d.segment_identity)
 						case 'domain':
 								return App.dynamic.Compiler.domainColors[d.domain_role] || null
+						case 'strand':
+								return strandColors(d.strand)
 						default:
 							return '';
 					}
@@ -454,6 +461,8 @@ function StrandPreview() {
 							return segmentColors(d.segment_identity)
 					case 'domain':
 							return App.dynamic.Compiler.domainColors[d.domain_role] || null
+					case 'strand':
+							return strandColors(d.strand)
 				}
 			})
 			.style("stroke", function(d) {
@@ -465,6 +474,8 @@ function StrandPreview() {
 					case 'domain':
 							return App.dynamic.Compiler.domainColors[d.domain_role] ? 
 								d3.rgb(App.dynamic.Compiler.domainColors[d.domain_role]).darker().toString() : null
+					case 'strand':
+							return d3.rgb(strandColors(d.strand)).darker().toString();
 				}
 			});
 		}
@@ -495,6 +506,8 @@ function StrandPreview() {
 							return segmentColors(d.segment_identity)
 					case 'domain':
 							return App.dynamic.Compiler.domainColors[d.domain_role] || null
+					case 'strand':
+							return strandColors(d.strand)
 					default:
 						// Hack. Illustrator appears to ignore these values if they're set in CSS on a class
 						return '#fff';
@@ -679,6 +692,12 @@ function StrandPreview() {
 		return chart;
 	};
 
+	chart.strandColors = function(_) {
+		if (!arguments.length) return strandColors;
+		strandColors = _;
+		return chart;
+	};
+
 	updateLinkDistances();
 	
 	return chart;
@@ -710,6 +729,7 @@ Ext.define('App.ui.StrandPreview', {
 	showIndexes : true,
 	showSegments : true,
 	segmentColors : null,
+	strandColors : null,
 
 	showToolbar: true,
 	setValue : function(structure, strands, sequences) {
@@ -755,6 +775,7 @@ Ext.define('App.ui.StrandPreview', {
 			.lineStrokeMode(this.lineStrokeMode)
 			.textFillMode(this.textFillMode);
 		if(!!this.segmentColors) this.chart.segmentColors(this.segmentColors)
+		if(!!this.strandColors) this.chart.strandColors(this.strandColors)
 		this.preview = this.chart(panel.data([this.data]));
 	},
 	updateChartProperties: function() {

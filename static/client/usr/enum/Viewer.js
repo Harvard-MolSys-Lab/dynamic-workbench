@@ -13,6 +13,7 @@ Ext.define('App.usr.enum.Viewer', {
 	fontSize: 1,
 	linkWidth: 2,
 	arrowThreshold: 0.25,
+	highlightLinkWidth : 2,
 
 	constructor : function() {
 		this.callParent(arguments);
@@ -21,25 +22,20 @@ Ext.define('App.usr.enum.Viewer', {
 		this.complexWindows = {};
 		this.previewPanels = {};
 
-		this.reactionPanel = Ext.create('App.usr.enum.ReactionViewer')
-		this.reactionWindow = Ext.create('Ext.window.Window',{
-			items: [ this.reactionPanel ],
-			layout: 'fit',
-			width: 700,
-			height: 200,
-			border: false, bodyBorder: false,
-		});
+		
+		this.currentScale = 1;
 	},
 	onLoad : function() {
 		this.afterrender();
-		this.reactionWindow.show();
+		// this.reactionWindow.show();
 	},
 	redraw: function (translate,scale) {
-		
-
+		var me = this;
+		this.currentScale = scale;
 		this.callParent(arguments);
 		this.node.selectAll('text.node-label').style('font-size',this.fontSize/scale+'em');
 		this.link.style('stroke-width',this.linkWidth/scale);
+		this.link.selectAll('link-reaction-reactant, link-reaction-product').style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
 		this.link.classed("link-reaction-noarrow", scale < this.arrowThreshold)
 		// this.legendg.attr("transform","translate("+ [(-translate[0]),(-translate[1])] +") scale("+ Math.min(1/scale,10) +")");
 	},
@@ -277,38 +273,41 @@ Ext.define('App.usr.enum.Viewer', {
 		
 		
 		function highlightLinks(d) {
-			var color = d3.scale.category20();
+			var incoming_color = d3.scale.ordinal().range(colorbrewer.BuPu[4]),
+				outgoing_color = d3.scale.ordinal().range(colorbrewer.OrRd[4]);
 
+			// blur all complexes, links
 			panel.selectAll("path.link-reaction").classed("link-reaction-blurred",true);
-			panel.selectAll("g.node").classed("node-blurred",true)
+			panel.selectAll("g.enum-node").classed("node-blurred",true)
 
-			panel.selectAll('g.node[name="'+d.name+'"]').classed("node-blurred",false);
+			// un-blur this complex
+			panel.selectAll('g.enum-node[name="'+d.name+'"]').classed("node-blurred",false);
 
 
 			// Select all paths that point out of this node
 			panel.selectAll("path.link-reaction.source-" + d.name).each(function(r, i) {
-				// panel.selectAll("path.link-reaction.target-" + r.target.name).classed("link-reaction-blurred",false);
-				panel.selectAll('g.node[name="'+r.target.name+'"]').classed("node-blurred",false);
+				panel.selectAll('g.enum-node[name="'+r.target.name+'"]').classed("node-blurred",false);
 
 			}).classed("link-reaction-blurred",false).classed("link-reaction-reactant",true).style("stroke",function(d) { 
-				return color(d.target.name); 
-			});
+				return outgoing_color(d.target.name); 
+			}).style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale);
+
 
 			// Select all paths that point into this node
 			panel.selectAll("path.link-reaction.target-" + d.name).each(function(r, i) {
-				// panel.selectAll("path.link-reaction.source-" + r.source.name).classed("link-reaction-blurred",false);
-				panel.selectAll('g.node[name="'+r.source.name+'"]').classed("node-blurred",false);
+				panel.selectAll('g.enum-node[name="'+r.source.name+'"]').classed("node-blurred",false);
 
 			}).classed("link-reaction-blurred",false).classed("link-reaction-product",true).style("stroke",function(d) { 
-				return color(d.source.name); 
-			});
+				return incoming_color(d.source.name); 
+			}).style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale);
 		}
 
 		function unhighlightLinks() {
 			panel.selectAll("path.link-reaction").classed("link-reaction-blurred",false)
-				.classed("link-reaction-reactant",false).classed("link-reaction-product",false).style("stroke",null);
+				.classed("link-reaction-reactant",false).classed("link-reaction-product",false).style("stroke",null)
+				.style('stroke-width',me.linkWidth/me.currentScale);
 
-			panel.selectAll("g.node").classed("node-blurred",false)
+			panel.selectAll("g.enum-node").classed("node-blurred",false)
 
 		}
 
@@ -338,10 +337,10 @@ Ext.define('App.usr.enum.Viewer', {
 		}
 
 		function buildNodes (nodeg,net,me) {
-			var nodeSel = nodeg.selectAll("g.node").data(net.nodes, nodeid);
+			var nodeSel = nodeg.selectAll("g.enum-node").data(net.nodes, nodeid);
 			nodeSel.exit().remove();
 			nodeSel.enter().append("g")
-				.attr('class', 'node')
+				.attr('class', 'enum-node')
 				.attr("transform", function(d) {
 				return "translate(" + d.x + "," + d.y + ")";
 			})
@@ -362,14 +361,16 @@ Ext.define('App.usr.enum.Viewer', {
 					me.renderPreview(d, el.node());
 					d3.event.stopPropagation();
 				} else if (d._type=='reaction') {
-					me.showReaction(d);
+					me.showReaction(d, this);
 				}
 			})
 
 			nodeSel.append('text').attr('class', 'node-label')
 			.attr("dx", function(d) {
 				return radius(d) + 5;
-			}).attr("dy", ".35em").text(function(d) {
+			})
+			.attr("dy", ".35em")
+			.text(function(d) {
 				if (d._type == 'complex') {
 					return d.name;
 				} else {
@@ -515,69 +516,83 @@ Ext.define('App.usr.enum.Viewer', {
 		
 
 	},
-	showReaction: function (d) {
+	showReaction: function (d, node) {
 		if(d._type=='reaction')	{
+			
 			var me = this,
 				reactants = _.map(d.reactants, function(r) { return me.complexMap[r] }),
 				products = _.map(d.reactants, function(r) { return me.complexMap[r] });
 
+			if(!this.reactionPanel) {
+				this.reactionPanel = Ext.create('App.usr.enum.ReactionViewer')
+				this.reactionWindow = Ext.create('Ext.window.Window',{
+					items: [ this.reactionPanel ],
+					layout: 'fit',
+					width: 700,
+					height: 200,
+					border: false, bodyBorder: false,
+				});
+			}
+			this.reactionWindow.show()
 			this.reactionPanel.setValue(d,reactants,products)
 		}
 	},
 	renderPreview: function(d,node) {
-		var data = !!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'],
-			panel = d3.select(node);
+		var structure = !!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'],
+			strands = !!d['strands'] || null,
+			panel = d3.select(node),
+			data = structure; //{ dotParen: structure, strands: strands };
 
 		this.previewPanels[d.name] = StrandPreview(panel).width(d.width).height(d.height)
 		this.complexWindows[d.name] = this.previewPanels[d.name] (panel.data([data]));
 	},
-	showWindow : function(d, node) {
-		if (!this.complexWindows[d.name]) {
-			var strands = d['strands'];
+	// showWindow : function(d, node) {
+	// 	if (!this.complexWindows[d.name]) {
+	// 		var strands = d['strands'];
 
-			// this.previewPanels[d.name] = Ext.create('App.usr.nodal.StrandPreview', {
-			// 	adjacencyMode : 1,
-			// 	cls : 'simple-header',
-			// 	title : strands.join(" + "),
-			// 	autoRender : true,
-			// 	value : '',
-			// });
-			this.previewPanels[d.name] = Ext.create('App.ui.StrandPreview', {
-				cls : 'simple-header',
-				title : strands.join(" + "),
-				autoRender : true,
-				value : '',
-				adjacencyMode: 2,
-			});
+	// 		// this.previewPanels[d.name] = Ext.create('App.usr.nodal.StrandPreview', {
+	// 		// 	adjacencyMode : 1,
+	// 		// 	cls : 'simple-header',
+	// 		// 	title : strands.join(" + "),
+	// 		// 	autoRender : true,
+	// 		// 	value : '',
+	// 		// });
+	// 		this.previewPanels[d.name] = Ext.create('App.ui.StrandPreview', {
+	// 			cls : 'simple-header',
+	// 			title : strands.join(" + "),
+	// 			autoRender : true,
+	// 			value : '',
+	// 			adjacencyMode: 2,
+	// 		});
 
-			this.complexWindows[d.name] = Ext.create('Ext.tip.ToolTip', {
-				target : node,
-				anchor : 'left',
-				constrainPosition : true,
-				items : [this.previewPanels[d.name]],
-				layout : 'fit',
-				autoHide : false,
-				closable : true,
-				closeAction : 'hide',
-				width : 200,
-				height : 200,
-				draggable : true,
-				title : "Complex: " + d.name,
-				resizable : true,
-				autoRender : true,
-			});
+	// 		this.complexWindows[d.name] = Ext.create('Ext.tip.ToolTip', {
+	// 			target : node,
+	// 			anchor : 'left',
+	// 			constrainPosition : true,
+	// 			items : [this.previewPanels[d.name]],
+	// 			layout : 'fit',
+	// 			autoHide : false,
+	// 			closable : true,
+	// 			closeAction : 'hide',
+	// 			width : 200,
+	// 			height : 200,
+	// 			draggable : true,
+	// 			title : "Complex: " + d.name,
+	// 			resizable : true,
+	// 			autoRender : true,
+	// 		});
 
-			this.complexWindows[d.name].show();
-			this.previewPanels[d.name].setTitle(strands.join(" + "))
-			this.previewPanels[d.name].setValue(!!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'], strands);
-		} else {
-			if (this.complexWindows[d.name].isVisible()) {
-				this.complexWindows[d.name].hide();
-			} else {
-				this.complexWindows[d.name].show();
-			}
-		}
-	}
+	// 		this.complexWindows[d.name].show();
+	// 		this.previewPanels[d.name].setTitle(strands.join(" + "))
+	// 		this.previewPanels[d.name].setValue(!!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'], strands);
+	// 	} else {
+	// 		if (this.complexWindows[d.name].isVisible()) {
+	// 			this.complexWindows[d.name].hide();
+	// 		} else {
+	// 			this.complexWindows[d.name].show();
+	// 		}
+	// 	}
+	// }
 });
 
 Ext.define('App.ui.PlusPanel', {

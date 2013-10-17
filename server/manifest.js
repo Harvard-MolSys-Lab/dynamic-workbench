@@ -27,7 +27,7 @@ var libs = ['jquery-1.5.1.min', 'underscore', 'string', 'color-field-1.0.0/color
 'valums-file-uploader/client/fileuploader', // 
 'jquery-animate-css-rotate-scale/jquery-css-transform', //
 'jquery-animate-css-rotate-scale/jquery-animate-css-rotate-scale', 'Ext.ux.StatusBar', //
-'protovis-3.2/protovis-d3.2','d3-v2/d3.v2','dagre-master/dagre','/extjs-boxselect/src/BoxSelect','object-browser/ObjectBrowser',//
+'protovis-3.2/protovis-d3.2','d3-v2/d3.v2','d3-v2/lib/colorbrewer/colorbrewer','dagre-master/dagre','/extjs-boxselect/src/BoxSelect','object-browser/ObjectBrowser',//
 //'ChemDoodleWeb/install/ChemDoodleWeb-libs-nojQuery',
 //'ChemDoodleWeb/install/ChemDoodleWeb',
 //'ChemDoodleWeb/src/ChemDoodleWeb-unpacked',

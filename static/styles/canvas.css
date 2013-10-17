@@ -627,10 +627,10 @@ ul.dashboard-actions li a:hover {
 	opacity: 0.3;
 }
 .link-reaction-reactant {
-	stroke-dasharray:5,2;
+	/*stroke-dasharray:5,2;*/
 }
 .link-reaction-product {
-	stroke-dasharray:2,2;
+	/*stroke-dasharray:2,2;*/
 }
 
 .node-blurred {

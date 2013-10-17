@@ -429,6 +429,40 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 	background-image: url(/images/icons/etc/box-nupack.png) !important;		
 }
 
+.load-dd {
+	background-image: url(/images/icons/etc/dd-open.png) !important
+}
+.load-dd-multiple {
+	background-image: url(/images/icons/etc/dd-open-multiple.png) !important
+}
+.random-bases {
+	background-image: url(/images/icons/etc/random-bases.png) !important
+}
+.load-npo {
+	background-image: url(/images/icons/etc/nupack.png) !important
+}
+.load-np-web {
+	background-image: url(/images/icons/etc/nupack-web.png) !important
+}
+.load-np-job {
+	background-image: url(/images/icons/etc/nupack-job-number.png) !important
+}
+.run-dd-1 {
+	background-image: url(/images/icons/etc/dd-1.png) !important
+}
+.run-dd-10 {
+	background-image: url(/images/icons/etc/dd-10.png) !important
+}
+.run-nupack-web {
+	background-image: url(/images/icons/etc/nupack-web.png) !important
+}
+.run-random-bases {
+	background-image: url(/images/icons/etc/random-bases-run.png) !important
+}
+.no-designer {
+	background-image: url(/images/icons/etc/no-designer.png) !important
+}
+
 .tweak-score-params {
 	background-image: url(/images/icons/fugue/ui-slider.png) !important;		
 }

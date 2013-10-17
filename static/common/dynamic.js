@@ -2033,43 +2033,70 @@ App.dynamic = module.exports = (function(_,DNA) {
 		/**
 		 * Formats the library as (NUPACK)[http://www.nupack.org/] multi-objective design script
 		 * @param {Object} options
-		 * @param {Boolean} [options.multisubjective = true] True to surround domains with comment-backtick blocks for Multisubjective
+		 * @param {Boolean} [options.multisubjective = false] True to export data for Multisubjective; note that this makes output no longer a valid NUPACK file
 		 * @param {Boolean} [options.forceDU = true] True to convert all structures to DU+
 		 * @param {Boolean} [options.segmentsInStructure = false] True to export the `(structure_name).seq =` followed by lists of segments, rather than lists of strands 
 		 */
 		toNupackOutput: function(options) {
-			options = options || {multisubjective: true,forceDU: true,segmentsInStructure: false};
+			options = options || { multisubjective: false, forceDU: true, segmentsInStructure: false };
 			
 			var library = this;
-
 			var out = [];
-			
-			// TODO: Add custom parameters
-			// material = dna
-			// temperature[C] = 23.0 # optional units: C (default) or K
-			// trials = 3
-			// sodium[M] = 1.0       # optional units: M (default), mM, uM, nM, pM
-			// dangles = some
-			
-			
-			// print domains (segments)
-			// e.g.: domain x = N7
-			
+
+			// helper functions
 			// stupid NUPACK doesn't allow numerical domain identifiers
 			function nupackifyIdentity(id) {
 				return 'd'+id;
 			}
+			function structureName(nodeName) {
+				return nodeName + '_structure';
+			}
+
 			
-			// Surround with backtics for Multisubjective
+			// add NUPACK metadata
+			// 		material = dna
+			// 		temperature[C] = 23.0 # optional units: C (default) or K
+			// 		trials = 3
+			// 		sodium[M] = 1.0       # optional units: M (default), mM, uM, nM, pM
+			// 		dangles = some
+			
+			out = out.concat(["material = dna", "temperature[C] = 23.0", "trials = 3", "sodium[M] = 1.0", "dangles = some"]);
+
+
+			// print multisubjective-specific metadata and structure info
+			if(options.multisubjective) {
+
+				// add Multisubjective metadata
+				out = out.concat(["!threshold = .6", "!toethreshold = .6", "!intermolecular = on", "!immutable = auto"]);
+				
+				// print Multisubjective structure specifications
+				// 		e.g.: !hairpin A1: -
+				// 		e.g.: !static A2
+				out.push(_.map(library.nodes,function(node) {
+					if(node.type == 'hairpin') {
+						return ['!hairpin',structureName(node.getName()),':',(node.getPolarity() < 0 ? '-' : '+')].join(' ');
+					} else if(node.type=='cooperative' || node.type=='coop') {
+						var len = _.max(_.map(node.getStrands(),function(strand) { return strand.getLength() }))
+						return ['!coop',structureName(node.getName()),'=',len].join(' ');
+					} else {
+						return ['!static',structureName(node.getName())].join(' ');
+					}
+				}).join('\n'));
+			}
+
+			// print domains (segments)
+			// 		e.g.: domain x = N7
+			
+			// surround with backtics for Multisubjective
 			if(!!options.multisubjective) out.push('#`');
 			out.push(_.map(library.segments,function(segment) {
 				return ['domain',nupackifyIdentity(segment.identity),'=',segment.getSequence()].join(' ');
 			}).join('\n'));
 			if(!!options.multisubjective) out.push('#`');
 
+
 			// print strands ("optional?")
-			// e.g.: strand J = gate_toehold1* gate_duplex1* gate_toehold2
-			
+			// 		e.g.: strand J = gate_toehold1* gate_duplex1* gate_toehold2
 			out.push(_.map(library.strands,function(strand) {
 				var segments = strand.getOrderedSegments();
 				
@@ -2078,48 +2105,36 @@ App.dynamic = module.exports = (function(_,DNA) {
 				})).join(' ');
 			}).join('\n'));
 			
+
 			// print structures
-			// e.g.: structure gate_full = D30(+D30(U6+))
-			// e.g.: structure haripin = Ux Hx Ux Ux
-			
+			// 		e.g.: structure gate_full = D30(+D30(U6+))
+			// 		e.g.: structure haripin = Ux Hx Ux Ux
 			out.push(_.map(library.nodes,function(node) {
 				
-				// var structs = _.map(node.getStrands(),function(strand) { 
-					// var struct = strand.getStructure();
-					// if(strand.getPolarity() == -1) {
-						// struct = struct.reverse();
-					// }
-					// return struct;
-				// });
 				
 				var concatamer = node.getStructure(), //Structure.join(structs), 
 				concatamer_struct;
 				
 				// Concatamer is automatically reversed by node if polarity == -1
-				// if(node.getPolarity() == -1) {
-					// concatamer = concatamer.reverse();
-				// }
 				if(!!options.multisubjective || !!options.forceDU) {
 					concatamer_struct = concatamer.toDUPlus();
 				} else {
 					concatamer_struct = concatamer.toDotParen();
 				}
-			
 				
-				
-				return ['structure',node.getName()+'_structure','=',concatamer_struct].join(' ');
+				return ['structure',structureName(node.getName()),'=',concatamer_struct].join(' ');
 			}).join('\n'));
 			
+
 			// thread sequences onto structures 
-			// e.g.: gate_full.seq = E G F
-			
+			// 		e.g.: gate_full.seq = E G F
 			if(!options.multisubjective) {
 				
 				out.push(_.map(library.nodes,function(node) {
 					var names = _.map(node.getStrands(),function(strand) {
 						return strand.getQualifiedName();
 					});
-					return [node.getName()+'_structure.seq','='].concat(names).join(' ');
+					return [structureName(node.getName())+'.seq','='].concat(names).join(' ');
 				}).join('\n'));
 			
 			} else {
@@ -2133,7 +2148,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 							return strand.getQualifiedName();
 						}
 					});
-					return [node.getName()+'_structure.seq','='].concat(names).join(' ');
+					return [structureName(node.getName())+'.seq','='].concat(names).join(' ');
 				}).join('\n'));
 				
 			}
@@ -2142,44 +2157,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			
 		},
 		toMSOutput: function() {
-			var library = this;
-
-			var out = [];
-			
-			// print lengths (segments)
-			// e.g.: length a = N7Y6N3
-			// Y specifies an immutable base
-			
-			function nupackifyIdentity(id) {
-				return 'd'+id;
-			}
-			
-			function structureName(nodeName) {
-				return nodeName + '_structure';
-			}
-			
-			out.push(_.map(library.segments,function(segment) {
-				return ['length',nupackifyIdentity(segment.identity),'=','N'+segment.getLength()].join(' ');
-			}).join('\n'));
-			
-			
-			// print structures
-			// e.g.: hairpin A1: -
-			// e.g.: static A2
-			
-			out.push(_.map(library.nodes,function(node) {
-				if(node.type == 'hairpin') {
-					return ['hairpin',structureName(node.getName()),':',(node.getPolarity() < 0 ? '-' : '+')].join(' ');
-				} else if(node.type=='cooperative' || node.type=='coop') {
-					var len = _.max(_.map(node.getStrands(),function(strand) { return strand.getLength() }))
-					return ['coop',structureName(node.getName()),'=',len].join(' ');
-				} else {
-					return ['static',structureName(node.getName())].join(' ');
-				}
-			}).join('\n'));
-			
-			
-			return out.join('\n\n');
+			return this.toNupackOutput({ multisubjective: true })
 		},
 		toPilOutput: function() {
 			

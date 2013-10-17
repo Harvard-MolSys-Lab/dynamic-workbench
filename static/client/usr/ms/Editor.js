@@ -86,7 +86,7 @@ Ext.define('App.usr.ms.Editor', {
 		Ext.apply(this, {
 			tbar: [{
 				xtype: 'buttongroup',
-				columns: 2,
+				columns: 3,
 				title: 'Design',
 				items: [{
 					xtype: 'splitbutton',
@@ -130,31 +130,37 @@ Ext.define('App.usr.ms.Editor', {
 						name: 'inputMenu',
 						defaults: { group: 'inputMode', checked: false },
 						items: [{
-							text: 'Load sequences from DD file', value: 'd',
+							text: 'Load sequences from DD file', value: 'd', iconCls: 'load-dd',
 						},{
-							text: 'Load sequences from multiple DD files', value: 'm'
+							text: 'Load sequences from multiple DD files', value: 'm', iconCls: 'load-dd-multiple',
 						},{
-							text: 'Fill with random bases', value: 'f', checked: true,
+							text: 'Fill with random bases', value: 'f', checked: true, iconCls: 'random-bases',
 						},{
-							text: 'Load sequences from NUPACK multiobjective file (.npo)', value: 'n'
+							text: 'Load sequences from NUPACK multiobjective file (.npo)', value: 'n', iconCls: 'load-npo',
 						},{
-							text: 'Autofill from last NUPACK web submission', value: 'a'
+							text: 'Autofill from last NUPACK web submission', value: 'a', iconCls: 'load-np-web',
 						},{
-							text: 'Load from NUPACK job number...', value: 'j'
+							text: 'Load from NUPACK job number...', value: 'j', iconCls: 'load-np-job',
 						}]
 					}
-				}),Ext.create('App.ui.ButtonPicker',{
+				}),{
+					xtype: 'button',
+					text: 'Advanced options',
+					iconCls: 'wrench',
+					handler: this.editExtraLines,
+					scope: this,
+				},Ext.create('App.ui.ButtonPicker',{
 					text: 'Iteration mode',
 					value: 'o',
 					menu: {
 						name: 'iterationMenu',
 						defaults: { group: 'iterationMode', checked: false },
 						items: [
-							{ text: "Run DD once", value: 'o', checked: true, iconCls: '' },
-							{ text: "Run DD 10 times", value: 'l' },
-							{ text: "Submit to NUPACK web server", value: 'w' },
-							{ text: "Make random mutations in a loop", value: 'r' },
-							{ text: "No designer (analysis only)", value: 'x' },
+							{ text: "Run DD once", value: 'o', checked: true, iconCls: 'run-dd-1' },
+							{ text: "Run DD 10 times", value: 'l', iconCls: 'run-dd-10' },
+							{ text: "Submit to NUPACK web server", value: 'w',  iconCls:'run-nupack-web' },
+							{ text: "Make random mutations in a loop", value: 'r',  iconCls:'run-random-bases' },
+							{ text: "No designer (analysis only)", value: 'x',  iconCls:'no-designer' },
 						]
 					}
 				})]
@@ -163,13 +169,35 @@ Ext.define('App.usr.ms.Editor', {
 				columns: 1,
 				title: 'Design',
 				items: [{
+					xtype: 'splitbutton',
 					text: 'Load results',
 					width: 64,
 					iconCls: 'folder-open-24',
 					scale: 'medium',
 					iconAlign: 'top',
 					rowspan: 2,
-					handler: function() { this.openMSO() },
+					menu: {
+						items:[{
+							text: 'Select file from which to load results',
+							canActivate: false,
+							iconCls: 'rename',
+						},{
+							/**
+							 * @property {Ext.form.field.Text} fileNameField
+							 */
+							xtype: 'textfield',
+							allowBlank: false,
+							iconCls: 'rename',
+							name: 'msoFileNameField',
+							indent: true,
+						},{
+							text: 'Load results',
+							iconCls: 'folder-open',
+							handler: function() { this.openMSO(this.msoFileNameField.getValue()) },
+							scope: this,
+						}]
+					},
+					handler: function() { this.openMSO(this.msoFileNameField.getValue()) },
 					scope: this,
 				}]
 			},'->',{
@@ -308,7 +336,7 @@ Ext.define('App.usr.ms.Editor', {
 
 		this.iterationMenu = this.down('[name=iterationMenu]');
 		this.inputMenu = this.down('[name=inputMenu]');
-
+		this.msoFileNameField = this.down('[name=msoFileNameField]');
 
 		this.highlightManager = Ext.create('App.usr.dil.HighlightManager',{
 			segmentStore: this.segmentStore,
@@ -335,7 +363,7 @@ Ext.define('App.usr.ms.Editor', {
 		this.loadLibrary(this.data)
 		// _.defer(_.bind(this.complexView.refresh, this.complexView));
 		_.defer(_.bind(this.refresh, this));
-
+		this.msoFileNameField.setValue(this.getMSOFileName())
 	},
 	refresh: function () {
 		// this.complexView.extraData = this.extraData;
@@ -437,6 +465,27 @@ Ext.define('App.usr.ms.Editor', {
 
 		console.log([segments,strands,complexes])
 
+	},
+	editExtraLines: function() {
+		var me = this, extraLinesText = _.map(this.extraLines || [], function(line) {
+			return _.pluck(line,1).join(' ');
+		}).join('\n');
+
+		if(!this.editExtraLinesWindow) {
+			this.editExtraLinesWindow = Ext.create('App.ui.EditorWindow',{
+				helpText: 'Enter extra data to be passed to Multisubjective',
+				mode: 'txt',//{ name: 'nupack', ms: true },
+				value: '',
+				buttonHandler: function(text) {
+					me.updateExtraLines(text);
+				},
+			});
+		}
+		this.editExtraLinesWindow.show();
+		this.editExtraLinesWindow.setValue(extraLinesText);
+	},
+	updateExtraLines: function (text) {
+		this.extraLines = CodeMirror.tokenize(text, {name: 'nupack', ms: true});
 	},
 	buildMS: function() {
 		var segmentIds = this.segmentStore.getRange(),
@@ -694,10 +743,13 @@ Ext.define('App.usr.ms.Editor', {
 		}
 		if(data) this.updateFromMSO(data);
 	},
+	getMSOFileName: function() {
+		var doc = this.document, basename = doc.getBasename(), ext = 'mso';
+		return App.Path.repostfix(basename,ext);
+	},
 	openMSO: function (path) {
-		var doc = this.document, basename = doc.getBasename(), ext = 'mso', sibling, siblingName;
-		path = path || basename; 
-		siblingName = App.Path.repostfix(path,ext)
+		var doc = this.document, sibling, siblingName;
+		siblingName = path || this.getMSOFileName();
 		sibling = doc.getSiblingByName(siblingName);
 		
 		if(sibling) {

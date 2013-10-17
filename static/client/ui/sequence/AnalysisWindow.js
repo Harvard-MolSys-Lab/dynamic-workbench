@@ -86,6 +86,10 @@ Ext.define('App.ui.sequence.AnalysisWindow',{
 		var val = codemirror.getValue();
 		return val;
 	},
+	setValue: function (value) {
+		var codemirror = this.down('codemirror');
+		codemirror.setValue(value);
+	},
 	getStrands: function() {
 		var val = this.getValue()
 		var strands = _.compact(val.split('\n'));

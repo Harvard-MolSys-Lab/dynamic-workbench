@@ -232,7 +232,6 @@ exports.start = function(req, res, params) {
 
 		} catch(e) {
 			if (typeof e.serialize != 'undefined') {
-				res.send(e.serialize());
 				utils.log({
 					level: "info",
 					source: "nodal",
@@ -240,9 +239,8 @@ exports.start = function(req, res, params) {
 					err: e,
 					user:req.user,
 				})
-				return;
+				return res.send(e.serialize());
 			}
-			sendError(res, JSON.stringify({message: 'Unable to deserialize input data.'}), 500);
 			utils.log({
 				level: "error",
 				source: "nodal",
@@ -250,6 +248,7 @@ exports.start = function(req, res, params) {
 				err: e,
 				data: data,
 			});
+			return sendError(res, JSON.stringify({message: 'Unable to deserialize input data.'}), 500);
 			//throw(e);
 		}	
 	}
@@ -265,22 +264,17 @@ exports.start = function(req, res, params) {
 				data: data,
 				user:req.user,
 			});
-
-			outputTarget('dil','DIL output complete.')(null,lib,input);
-
 		} catch(e) {
 			if (typeof e.serialize != 'undefined') {
-				res.send(e.serialize());
 				utils.log({
 					level: "info",
 					source: "nodal",
 					data: data,
 					err: e,
 					user:req.user,
-				})
-				return;
+				});
+				return res.send(e.serialize());
 			}
-			sendError(res, JSON.stringify({message: 'Unable to deserialize input data.'}), 500);
 			utils.log({
 				level: "error",
 				source: "nodal",
@@ -288,8 +282,9 @@ exports.start = function(req, res, params) {
 				err: e,
 				data: data,
 			});
-			//throw(e);
+			return sendError(res, JSON.stringify({message: 'Unable to deserialize input data.'}), 500);
 		}	
+		outputTarget('dil','DIL output complete.')(null,lib,input);
 	}
 
 	function nodalOutputAllTargets(lib,input) {
@@ -375,8 +370,7 @@ exports.start = function(req, res, params) {
 						inFileName : inFileName,
 						inFile : inFile,
 					});
-					sendError(res, 'Internal Server Error', 500)
-					return;
+					return sendError(res, 'Internal Server Error', 500);
 				} else {
 					cmd = getCommand(commands['nodal'], ['-i', quote(inFileName), '-d', quote(postfix(fullPath, 'domains')), '-n', quote(postfix(fullPath, 'nupack')), '-s', quote(postfix(fullPath, 'svg'))]);
 					winston.log("info", cmd);
@@ -389,9 +383,9 @@ exports.start = function(req, res, params) {
 							});
 						}
 						if(stderr) {
-							res.send("Build completed with errors. \n\n" + stderr);
+							return res.send("Build completed with errors. \n\n" + stderr + '\n\n' + stdout );
 						} else {
-							res.send(stdout + "\n Build completed.");
+							return res.send(stdout + "\n Build completed.");
 						}
 					})
 				}

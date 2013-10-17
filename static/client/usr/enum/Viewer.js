@@ -263,6 +263,13 @@ Ext.define('App.usr.enum.Viewer', {
 			'initial' : 'yellow',
 			'resting' : 'white',
 		};
+
+
+		// Construct Legend
+		me.legend = buildLegend(legendg,me);
+
+		init();
+
 		
 		function radius(d) {
 			return d._type == 'complex' ? d.strands.length * 50 : dr
@@ -351,7 +358,8 @@ Ext.define('App.usr.enum.Viewer', {
 			.on('mouseout', unhighlightLinks)
 			.on('dblclick', function(d) {
 				if (d._type == 'complex') {
-					me.renderPreview(d, this);
+					var el = d3.select(this).select('svg');
+					me.renderPreview(d, el.node());
 					d3.event.stopPropagation();
 				} else if (d._type=='reaction') {
 					me.showReaction(d);
@@ -397,6 +405,10 @@ Ext.define('App.usr.enum.Viewer', {
 					default: return d.size ? d.size + dr : dr + 1;
 				}
 			});
+
+			nodeSel.append("svg")
+			.attr("width", radius)
+			.attr("height", radius);
 
 			nodeSel.each(function(d) {
 			    var bbox = this.getBBox();
@@ -501,10 +513,6 @@ Ext.define('App.usr.enum.Viewer', {
 			
 		}	
 		
-		// Construct Legend
-		me.legend = buildLegend(legendg,me);
-
-		init();
 
 	},
 	showReaction: function (d) {

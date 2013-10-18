@@ -548,7 +548,7 @@ Ext.define('App.TaskRunner.Task', {
 				if(res.timedout == 0) {
 					this.log(Ext.String.format('Error running task on tool: "{0}". Timeout at {1} s ({2} ms)',this.name,(this.timeout / 1000),this.timeout));
 				} else {
-					this.log(Ext.String.format('Error running task on tool: "{0}". {1}',this.name,res.responseText));
+					this.log(Ext.String.format('Error running task on tool: "{0}".',this.name));
 				}
 			},
 			scope : this

@@ -364,7 +364,12 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 .document-export {
 	background-image: url(/images/icons/fugue/document-export.png) !important;	
 }
-
+.document-excel-csv, .document-csv {
+	background-image: url(/images/icons/fugue/document-excel-csv.png) !important;	
+}
+.document-excel, .excel {
+	background-image: url(/images/icons/fugue/document-excel.png) !important;	
+}
 
 .transform {
 	background-image: url(/images/icons/fugue/arrow-transition.png) !important;	
@@ -461,6 +466,10 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 }
 .no-designer {
 	background-image: url(/images/icons/etc/no-designer.png) !important
+}
+
+.document-fasta, .fasta {
+	background-image: url(/images/icons/etc/document-fasta.png);
 }
 
 .tweak-score-params {

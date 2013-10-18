@@ -317,10 +317,33 @@ Ext.define('App.usr.seq.Editor', {
 						scope: this,
 						tooltip: 'Generates an input file for DD or WebDD which can be used to mutate the selected domains.'
 					},{
-						text: 'NUPACK out to FASTA',
-						handler: this.nupackToFasta,
+						text: 'Convert:',
+						canActivate: false,
+					},{
+						text: 'To FASTA',
+						iconCls: 'fasta',
+						handler: function () { this.convertSelection('fasta'); },
 						scope: this,
-						tooltip: 'Convert NUPACK "M1 : ATCG..."-style labels to FASTA "M1> ATCG..."-style labels'
+					},{
+						text: 'To NUPACK',
+						iconCls: 'nupack',
+						handler: function () { this.convertSelection('nupack'); },
+						scope: this,
+					},{
+						text: 'To Excel/TSV',
+						iconCls: 'document-excel',
+						handler: function () { this.convertSelection('tsv'); },
+						scope: this,
+					},{
+						text: 'To CSV',
+						iconCls: 'document-csv',
+						handler: function () { this.convertSelection('csv'); },
+						scope: this,
+					},{
+						text: 'To Plain text',
+						iconCls: 'txt',
+						handler: function () { this.convertSelection(''); },
+						scope: this,
 					},'-',{
 						text: 'Thread sequences to strand',
 						handler: this.threadStrands,
@@ -871,6 +894,16 @@ Ext.define('App.usr.seq.Editor', {
 			out+=row+' 1 15\n';
 		});
 		return '# Save the following as an input file for DD:\n'+out;
+	},
+	convertSelection: function(format) {
+		var me = this;
+		this.replace(function(value) {
+			return me.convert(format, value);
+		});
+	},
+	convert: function(format,value) {
+		var sequences = DNA.parseNamedSequences(value);
+		return DNA.printSequences(sequences,format);
 	},
 	replace: function(regex,value) {
 		var sel = this.editor.codemirror.getSelection(), v;

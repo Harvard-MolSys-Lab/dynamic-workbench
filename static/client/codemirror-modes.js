@@ -164,7 +164,7 @@ CodeMirror.defineMode("sequence", function() {
 	return {
 		token: function(stream) {
 			if(stream.sol()) {
-				if(stream.match(/^[\w\s-]+:\s+/)) {
+				if(stream.match(/^[\w\s\-_]+[:=\t]\s?/)) {
 					return 'sequence-name';
 				}
 			}

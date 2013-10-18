@@ -1510,6 +1510,9 @@ var DNA = module.exports.DNA = (function(_) {
 				case 'csv':
 				case ',':
 					out += name + ',' + seq + '\n'; break;
+				default:
+				case '':
+					out += seq + '\n';
 			}
 			count++;
 		}

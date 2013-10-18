@@ -36,6 +36,12 @@ Ext.define('App.usr.ms.Editor', {
 	 */
 	showSaveButton:true,
 	
+	/**
+	 * @cfg
+	 * True to print multisubjective output in terms of strands (rather than domains).
+	 */
+	outputStrands: false,
+
 	dockedItems: [{
 		xtype: 'cite',
 		cite: {
@@ -466,17 +472,23 @@ Ext.define('App.usr.ms.Editor', {
 		console.log([segments,strands,complexes])
 
 	},
+	printExtraLines: function() {
+		return _.compact(_.map(this.extraLines || [], function(line) {
+			if(line.length==0) return '';
+			if(line.length==1 && line[0][1] == '#`') return '';
+			return _.pluck(_.compact(line),1).join(' ');
+		})).join('\n');
+	},
 	editExtraLines: function() {
-		var me = this, extraLinesText = _.map(this.extraLines || [], function(line) {
-			return _.pluck(line,1).join(' ');
-		}).join('\n');
+		var me = this, extraLinesText = me.printExtraLines();
 
 		if(!this.editExtraLinesWindow) {
 			this.editExtraLinesWindow = Ext.create('App.ui.EditorWindow',{
 				helpText: 'Enter extra data to be passed to Multisubjective',
 				mode: 'txt',//{ name: 'nupack', ms: true },
 				value: '',
-				buttonHandler: function(text) {
+				buttonHandler: function() {
+					var text = this.getValue();
 					me.updateExtraLines(text);
 				},
 			});
@@ -499,17 +511,11 @@ Ext.define('App.usr.ms.Editor', {
 			nodes = [],
 			output = [];
 
-
-		output = output.concat(_.map(this.extraLines, function(line) { 
-			if(line[0][1] != '#`') { 
-				return _.pluck(line,1).join(' '); 
-			} else { 
-				return ''; 
-			} 
-		}));
-		output.push('#`');
+		// Input extra parameters
+		output.push(this.printExtraLines());
 
 		// Build map of segment identities to sequences
+		output.push('#`');
 		for(var i = 0; i < segmentIds.length; i++) {
 			var rec = segmentIds[i],
 				seg = {
@@ -521,8 +527,7 @@ Ext.define('App.usr.ms.Editor', {
 
 			output.push('domain '+seg.identity+' = '+seg.sequence);
 		}
-
-		output.push('#`')
+		output.push('#`\n')
 
 
 		// Build objects for strands
@@ -548,8 +553,11 @@ Ext.define('App.usr.ms.Editor', {
 			strandMap[strandName] = strand;
 			strandSegments[strandName] = segmentString.join(' ')
 
-			output.push(strand.name+' = ' + strandSegments[strandName]);
+			if(this.outputStrands) {
+				output.push(strand.name+' = ' + strandSegments[strandName]);
+			}
 		}
+		output.push('\n')
 
 		// Build objects for complexes
 		for(var i = 0; i < complexRecs.length; i++) {
@@ -578,9 +586,12 @@ Ext.define('App.usr.ms.Editor', {
 			output.push(node.name+'.seq = ' + complexSpec)
 		}
 
+
 		return output.join('\n')
 	},
-
+	getSaveData: function() {
+		return this.buildMS();
+	},
 	updateFromMSO: function(data) {
 		// e.g.:
 		// 		"blocks":[ 
@@ -739,7 +750,8 @@ Ext.define('App.usr.ms.Editor', {
 			var data = JSON.parse(text);
 		} catch(e) {
 			App.msg('Unable to update Multisubjective view','Could not parse output from multisubjective.');
-			App.log(e);
+			console.log(e);
+			//App.log(e);
 		}
 		if(data) this.updateFromMSO(data);
 	},

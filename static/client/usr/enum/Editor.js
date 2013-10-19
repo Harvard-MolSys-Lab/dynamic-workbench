@@ -47,13 +47,13 @@ Ext.define('App.usr.enum.Editor', {
 		var tbar = this.extraTbarItems.concat([{
 			text: 'Run Enumerator',
 			iconCls: 'enum-icon',
-			handler: this.makeEnumHandler('pil'),
+			handler: this.makeEnumHandler('enjs'),
 			scope: this,
 			xtype: 'splitbutton',
 			menu: [{
 				text: 'ENJS',
 				handler: this.makeEnumHandler('enjs'),
-				iconCls: 'script',
+				iconCls: 'enum-icon',
 				scope: this,
 			},{
 				text: 'PIL',
@@ -108,11 +108,23 @@ Ext.define('App.usr.enum.Editor', {
 		}
 	},
 	runEnum: function(mode) {
+		var node = this.doc.getDocumentPath(),
+			resNode = App.path.addExt(App.path.removeExt(node,'enum')+'-enum',mode);
+
 		App.runTask('Enumerator', {
 			node: this.getDocumentPath(),
 			mode: mode,
 			condense: this.condense.checked
+		},function(success) {
+			if(success) 
+				Ext.msg('Enumerator','Reaction enumeration completed.');
+			else
+				Ext.msg('Enumerator','Reaction enumeration failed. Click for details.',{handler: 'console'});
+
+		},this,{
+			openOnEnd: [resNode]
 		});
+		Ext.msg('Enumerator','Reaction enumeration started.');
 	},
 	/**
 	 * Opens a {@link App.ui.SequenceThreader sequence threader}, allowing the 

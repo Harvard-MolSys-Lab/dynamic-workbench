@@ -15,7 +15,7 @@ Ext.define('App.ui.EditorWindow',{
 	helpIcon: 'help',
 	helpText: '',
 	mode: 'text',
-	buttonHandler: function(value) {
+	buttonHandler: function() {
 		
 	},
 	initComponent: function() {

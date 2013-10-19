@@ -349,19 +349,24 @@ ul.dashboard-actions li a:hover {
 .sequence-24, .seq-24 {
 	background-image: url(/images/icons/etc/sequence-24.png) !important;
 }
+.enum-icon {
+	background-image: url(/images/icons/etc/enum-document.png) !important;
+}
 .enumerate, .enum {
-	background-image: url(/images/icons/fugue/arrow-split.png) !important;
+	background-image: url(/images/icons/fugue/arrow-split.png) !important;	
+	/*background-image: url(/images/icons/fatcow/icons-16/routing_intersection_right.png) !important;*/
 }
 .enumerate-24, .enum-24 {
 	background-image: url(/images/icons/icons-24/arrow-split.png) !important;
+	/*background-image: url(/images/icons/fatcow/icons-32/routing_intersection_right.png) !important;*/
 }
-.enumerate-nodal {
+.enumerate-nodal, .enum-nodal {
 	background-image: url(/images/icons/etc/enum-nodal.png) !important;
 }
-.enumerate-secondary {
+.enumerate-secondary, .enum-secondary {
 	background-image: url(/images/icons/etc/enum-secondary.png) !important;
 }
-.enumerate-secondary-24 {
+.enumerate-secondary-24, .enum-secondary-24 {
 	background-image: url(/images/icons/etc/enum-secondary-24.png) !important;
 }
 
@@ -372,10 +377,12 @@ ul.dashboard-actions li a:hover {
 	background-image: url(/images/icons/icons-24/tick.png) !important;
 }
 .simulate {
-	background-image: url(/images/icons/fugue/system-monitor.png) !important;
+	/*background-image: url(/images/icons/fugue/system-monitor.png) !important;*/
+	background-image: url(/images/icons/fatcow/icons-16/chart_curve.png) !important;
 }
 .simulate-24 {
-	background-image: url(/images/icons/icons-24/system-monitor.png) !important;
+	/*background-image: url(/images/icons/icons-24/system-monitor.png) !important;*/
+	background-image: url(/images/icons/fatcow/icons-32/chart_curve.png) !important;
 }
 .calculator, .calculate {
 	background-image: url(/images/icons/fugue/calculator.png) !important;
@@ -616,7 +623,7 @@ ul.dashboard-actions li a:hover {
 /* Enumerator reaction graph */
 
 .link-reaction {
-	stroke: #aaa;
+	stroke: #ccc;
 	marker-mid: url(#reaction-arrow);
 }
 .link-reaction-noarrow {
@@ -646,36 +653,39 @@ ul.dashboard-actions li a:hover {
 	stroke: #fff;
 }
 .complex {
-	fill: green;
-	stroke: #fff;
+	fill: white;
+	stroke: #888;
+	stroke-width: 1em;
 }
 .complex-transient {
-	fill: #0a0;
-	stroke: #fff;
+	stroke-dasharray:1.5em;
 }
 .complex-resting {
-	fill: green;
-	stroke: #fff;
+	fill: #ffa;
 }
 .complex-initial {
-	fill: green;
-	stroke: yellow;
+	fill: #efb;
 }
 .resting-state {
-	fill: yellow;
+/*	fill: yellow;
 	stroke: #fff;
-}
+*/}
 .node-label {
 	fill: #111;
 	text-shadow:1px 1px 2px white;
 }
 path.hull {
-  fill: lightsteelblue;
+  fill: blue;
   fill-opacity: 0.3;
 }
 
 path.resting-state-hull {
 	fill: yellow;
+}
+.enum-reaction-well, .enum-strands-well {
+	border: solid 1px silver;
+	padding: 3px;
+	border-radius: 4px; 
 }
 
 

@@ -153,7 +153,7 @@ Ext.define('App.ui.Dashboard', {
 		        	}]
 		        },{
 		        	text: 'Enumerate',
-		        	iconCls: 'enumerate-24',
+		        	iconCls: 'enumerate-secondary-24',
 		        	handler: App.ui.Launcher.makeLauncher('enumedit'),
 		        	disabled: true,
 		        },{

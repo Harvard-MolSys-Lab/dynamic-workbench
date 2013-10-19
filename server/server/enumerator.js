@@ -63,9 +63,9 @@ exports.start = function(req, res, params) {
 				stderr : stderr,
 				stdout : stdout,
 			});
-			res.send("Task completed with errors. \n\n" + stderr + '\n'+ stdout);
+			res.send("Task completed with errors. \n\n" + stderr + '\n'+ stdout,200);
 		} else {
-			res.send(stdout);
+			res.send(stdout,200);
 		}
 	})
 };

@@ -36,7 +36,7 @@ exports.start = function(req, res, params) {
 	var args = ['--infile',fullPath,'-i','standard','--outfile',postfix(pre+'-enum',ext),'-o',mode];
 	
 	
-	winston.log('info',params['condense'])
+	// winston.log('info',params['condense'])
 	if(!!params['condense'] && params['condense'] != "false") {
 		args.push('-c')
 	}
@@ -49,7 +49,9 @@ exports.start = function(req, res, params) {
 	
 	proc.exec(cmd, {maxBuffer: maxBuffer},function(err, stdout, stderr) {
 		if (err) {
-			utils.log("error", "Node execution error. ", {
+			utils.log({
+				level: "error", 
+				message: "Enumerator execution error. ", 
 				source: 'enumerator',
 				cmd : cmd,
 				stderr : stderr,
@@ -58,14 +60,17 @@ exports.start = function(req, res, params) {
 			});
 		}
 		if (stderr) {
-			utils.log({level: "error", source: "enumerator", message: "Enumerator execution error. ", 
+			utils.log({
+				level: "error", 
+				source: "enumerator", 
+				message: "Enumerator execution error. ", 
 				cmd : cmd,
 				stderr : stderr,
 				stdout : stdout,
 			});
-			res.send("Task completed with errors. \n\n" + stderr + '\n'+ stdout,200);
+			return res.send("Task completed with errors. \n\n" + stderr + '\n'+ stdout,200);
 		} else {
-			res.send(stdout,200);
+			return res.send(stdout,200);
 		}
 	})
 };

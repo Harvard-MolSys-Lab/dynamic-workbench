@@ -155,7 +155,7 @@ Ext.define('App.ui.Dashboard', {
 		        	text: 'Enumerate',
 		        	iconCls: 'enumerate-secondary-24',
 		        	handler: App.ui.Launcher.makeLauncher('enumedit'),
-		        	disabled: true,
+		        	disabled: false,
 		        },{
 		        	text: 'Simulate',
 		        	iconCls: 'simulate-24',

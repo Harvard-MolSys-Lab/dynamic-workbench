@@ -11,7 +11,7 @@ Ext.define('App.usr.dil.DilEditor', {
 		app: 'App.ui.Application',
 		tip: 'App.ui.TipHelper',
 	},
-	requires: ['App.ui.D3Panel', 'App.usr.seq.Editor',  //
+	requires: ['App.ui.D3Panel', 'App.usr.seq.Editor', 'App.usr.dil.HighlightManager', 'App.usr.dil.EditComplexWindow', //
 	'App.usr.dd.SequenceWindow', 'App.ui.SequenceThreader', 'App.ui.AddDomainButton', 'App.ui.StrandPreviewViewMenu',
 	'App.usr.dil.SegmentStore','App.usr.dil.StrandStore','App.usr.dil.ComplexStore',
 	'App.usr.dil.SegmentsGrid','App.usr.dil.StrandsGrid','App.usr.dil.StrandPreviewGrid'],

@@ -6,7 +6,7 @@ var utils = require('utils'), //
 	_ = require('underscore'),
 	async = require('async'), //
 	winston = require('winston'), //
-	ansispan = require('ansispan'),
+	// ansispan = require('ansispan'),
 	glob = require('glob');
 
 // Utils abbreviations

@@ -43,6 +43,11 @@ Ext.define('App.usr.enum.Editor', {
 			name: 'condense',
 			checked: false,
 		});
+		this.maxComplexSize = Ext.create('Ext.form.field.Number',{
+			minValue: 1,
+			value: 10,
+			indent: true,
+		});
 		
 		var tbar = this.extraTbarItems.concat([{
 			text: 'Run Enumerator',
@@ -74,7 +79,10 @@ Ext.define('App.usr.enum.Editor', {
 				text: 'Graph (EPS)',
 				handler: this.makeEnumHandler('graph'),
 				scope: this,
-			},'-',this.condense]
+			},'-',this.condense,{ 
+				text: 'Maximum complex size: ',
+				canActivate: false,
+			},this.maxComplexSize]
 		}]);
 		
 		if(this.showEditButton) {
@@ -114,7 +122,8 @@ Ext.define('App.usr.enum.Editor', {
 		App.runTask('Enumerator', {
 			node: this.getDocumentPath(),
 			mode: mode,
-			condense: this.condense.checked
+			condense: this.condense.checked,
+			'max-complex-size': this.maxComplexSize.getValue(),
 		},function(success) {
 			if(success) 
 				Ext.msg('Enumerator','Reaction enumeration completed.');

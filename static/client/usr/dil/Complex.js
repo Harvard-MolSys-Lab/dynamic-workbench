@@ -25,6 +25,8 @@ Ext.define('App.usr.dil.Complex', {
 		name: 'structure'
 	}, {
 		name: 'extraData' // object
+	}, {
+		name: 'type',
 	} ],
 	idgen: 'sequential',
 	getDynaml: function(lib) {

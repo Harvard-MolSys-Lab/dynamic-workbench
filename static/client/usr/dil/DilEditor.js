@@ -546,6 +546,7 @@ Ext.define('App.usr.dil.DilEditor', {
 			return {
 				name: node.getName(),
 				polarity: node.getPolarity(),
+				type: node.type,
 				structure: node.getOrderedSegmentwiseStructure().toDotParen(),
 				strands: _.map(node.getStrands(), function(strand) {
 					return strand.getQualifiedName()
@@ -614,7 +615,8 @@ Ext.define('App.usr.dil.DilEditor', {
 				polarity: complex.get('polarity'),
 				strands: _.map(complexStrands, function(strand) {
 					return strandMap[strand]
-				})
+				}),
+				type: complex.get('type'),
 			};
 
 			nodes.push(node);

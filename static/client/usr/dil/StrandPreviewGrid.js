@@ -155,15 +155,17 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 		update || (update = false);
 		if(!this.chart || update) {
 			this.chart = StrandPreview().width(this.cellWidth - this.paddingWidth).height(this.cellHeight - this.paddingHeight)
-			.showBubbles(this.showBubbles)
-			.showBases(this.showBases)
-			.showIndexes(this.showIndexes)
-			.showSegments(this.showSegments)
-			.loopMode(this.loopMode)
-			.nodeStrokeMode(this.nodeStrokeMode)
-			.nodeFillMode(this.nodeFillMode)
-			.lineStrokeMode(this.lineStrokeMode)
-			.textFillMode(this.textFillMode);
+			.options(this);
+			// .showBubbles(this.showBubbles)
+			// .showBases(this.showBases)
+			// .showIndexes(this.showIndexes)
+			// .showSegments(this.showSegments)
+			// .loopMode(this.loopMode)
+			// .nodeStrokeMode(this.nodeStrokeMode)
+			// .nodeFillMode(this.nodeFillMode)
+			// .lineStrokeMode(this.lineStrokeMode)
+			// .textFillMode(this.textFillMode);
+
 			this.chart.segmentColors(this.getSegmentColorScale());
 
 			//if(!!this.segmentColors) this.chart.segmentColors(this.segmentColors)

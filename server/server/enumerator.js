@@ -17,7 +17,7 @@ var maxBuffer = 1000*1024;
 
 exports.name = 'Enumerator';
 exports.iconCls = 'enum-icon';
-exports.params = ['node','mode','condense']
+exports.params = ['node','mode','condense','max-complex-size']
 exports.start = function(req, res, params) {
 	var node = params['node'], fullPath = utils.userFilePath(node), cmd;
 
@@ -32,11 +32,13 @@ exports.start = function(req, res, params) {
 	var mode = params['mode'] || 'pil';
 	var ext = mode;
 	if (ext == 'enjs') { mode = 'json' }
-	
+
 	var args = ['--infile',fullPath,'-i','standard','--outfile',postfix(pre+'-enum',ext),'-o',mode];
 	
+	if(!!params['max-complex-size']) { 
+		args = args.concat(['--max-complex-size', params['max-complex-size']]) 
+	}
 	
-	// winston.log('info',params['condense'])
 	if(!!params['condense'] && params['condense'] != "false") {
 		args.push('-c')
 	}

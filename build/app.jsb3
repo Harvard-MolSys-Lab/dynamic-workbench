@@ -15,10 +15,6 @@
                 },
                 {
                     "path": "client/ui/",
-                    "name": "Application.js"
-                },
-                {
-                    "path": "client/ui/",
                     "name": "Launcher.js"
                 },
                 {
@@ -27,7 +23,15 @@
                 },
                 {
                     "path": "client/ui/",
+                    "name": "Application.js"
+                },
+                {
+                    "path": "client/ui/",
                     "name": "Attribution.js"
+                },
+                {
+                    "path": "client/ui/sequence/",
+                    "name": "AnalysisWindow.js"
                 },
                 {
                     "path": "client/ui/",
@@ -35,15 +39,15 @@
                 },
                 {
                     "path": "client/ui/nupack/",
-                    "name": "DesignWindow.js"
-                },
-                {
-                    "path": "client/ui/sequence/",
-                    "name": "AnalysisWindow.js"
+                    "name": "PartitionWindow.js"
                 },
                 {
                     "path": "client/ui/nupack/",
-                    "name": "PartitionWindow.js"
+                    "name": "DesignWindow.js"
+                },
+                {
+                    "path": "client/ui/",
+                    "name": "TipHelper.js"
                 },
                 {
                     "path": "client/usr/browser/",
@@ -51,7 +55,7 @@
                 },
                 {
                     "path": "client/ui/",
-                    "name": "FileUploader.js"
+                    "name": "D3Panel.js"
                 },
                 {
                     "path": "client/ui/",
@@ -63,23 +67,15 @@
                 },
                 {
                     "path": "client/ui/",
-                    "name": "TipHelper.js"
-                },
-                {
-                    "path": "client/ui/",
                     "name": "CodeMirror.js"
                 },
                 {
                     "path": "client/ui/",
-                    "name": "D3Panel.js"
+                    "name": "CompareMenu.js"
                 },
                 {
                     "path": "client/usr/seq/",
                     "name": "Stats.js"
-                },
-                {
-                    "path": "client/ui/",
-                    "name": "CompareMenu.js"
                 },
                 {
                     "path": "client/ui/",
@@ -90,16 +86,16 @@
                     "name": "SaveButton.js"
                 },
                 {
+                    "path": "client/ui/",
+                    "name": "FileUploader.js"
+                },
+                {
                     "path": "client/ui/mfold/",
                     "name": "QuikFoldWindow.js"
                 },
                 {
                     "path": "client/ui/",
                     "name": "NupackMenu.js"
-                },
-                {
-                    "path": "client/ui/vienna/",
-                    "name": "RNAfoldWindow.js"
                 },
                 {
                     "path": "client/ui/",
@@ -110,12 +106,12 @@
                     "name": "ScriptsPanel.js"
                 },
                 {
-                    "path": "client/ui/files/",
-                    "name": "FileUploader.js"
+                    "path": "client/ui/vienna/",
+                    "name": "RNAfoldWindow.js"
                 },
                 {
-                    "path": "client/ui/files/",
-                    "name": "DragDropManager.js"
+                    "path": "client/ui/",
+                    "name": "CreateMenu.js"
                 },
                 {
                     "path": "client/ui/",
@@ -126,8 +122,12 @@
                     "name": "StrandPreviewWindow.js"
                 },
                 {
-                    "path": "client/ui/",
-                    "name": "CreateMenu.js"
+                    "path": "client/ui/files/",
+                    "name": "FileUploader.js"
+                },
+                {
+                    "path": "client/ui/files/",
+                    "name": "DragDropManager.js"
                 },
                 {
                     "path": "client/ui/",
@@ -155,19 +155,7 @@
                 },
                 {
                     "path": "client/workspace/objects/",
-                    "name": "Object.js"
-                },
-                {
-                    "path": "client/workspace/objects/",
                     "name": "ObjectCollection.js"
-                },
-                {
-                    "path": "client/workspace/",
-                    "name": "Shim.js"
-                },
-                {
-                    "path": "client/workspace/tools/",
-                    "name": "BaseTool.js"
                 },
                 {
                     "path": "client/workspace/actions/",
@@ -175,7 +163,19 @@
                 },
                 {
                     "path": "client/workspace/tools/",
+                    "name": "BaseTool.js"
+                },
+                {
+                    "path": "client/workspace/tools/",
                     "name": "Highlightable.js"
+                },
+                {
+                    "path": "client/workspace/objects/",
+                    "name": "Object.js"
+                },
+                {
+                    "path": "client/workspace/",
+                    "name": "Shim.js"
                 },
                 {
                     "path": "client/workspace/tools/",
@@ -187,10 +187,6 @@
                 },
                 {
                     "path": "client/workspace/tools/",
-                    "name": "MathQuillTool.js"
-                },
-                {
-                    "path": "client/workspace/tools/",
                     "name": "AlohaTool.js"
                 },
                 {
@@ -198,24 +194,20 @@
                     "name": "Handle.js"
                 },
                 {
-                    "path": "client/workspace/objects/",
-                    "name": "Interpolators.js"
+                    "path": "client/workspace/tools/",
+                    "name": "MathQuillTool.js"
                 },
                 {
-                    "path": "client/workspace/",
-                    "name": "Proxy.js"
+                    "path": "client/workspace/objects/",
+                    "name": "Interpolators.js"
                 },
                 {
                     "path": "client/workspace/objects/",
                     "name": "Object2d.js"
                 },
                 {
-                    "path": "client/workspace/actions/",
-                    "name": "FormIdeaAction.js"
-                },
-                {
-                    "path": "client/workspace/actions/",
-                    "name": "CreateObjectAction.js"
+                    "path": "client/workspace/",
+                    "name": "Proxy.js"
                 },
                 {
                     "path": "client/workspace/actions/",
@@ -223,7 +215,7 @@
                 },
                 {
                     "path": "client/workspace/actions/",
-                    "name": "ChangePropertyAction.js"
+                    "name": "CreateObjectAction.js"
                 },
                 {
                     "path": "client/workspace/actions/",
@@ -235,11 +227,19 @@
                 },
                 {
                     "path": "client/workspace/actions/",
-                    "name": "ExpandAction.js"
+                    "name": "FormIdeaAction.js"
+                },
+                {
+                    "path": "client/workspace/actions/",
+                    "name": "ChangePropertyAction.js"
                 },
                 {
                     "path": "client/workspace/",
                     "name": "Label.js"
+                },
+                {
+                    "path": "client/workspace/actions/",
+                    "name": "ExpandAction.js"
                 },
                 {
                     "path": "client/workspace/actions/",
@@ -255,27 +255,15 @@
                 },
                 {
                     "path": "client/workspace/objects/",
-                    "name": "ElementObject.js"
-                },
-                {
-                    "path": "client/workspace/objects/",
-                    "name": "MathEquationObject.js"
-                },
-                {
-                    "path": "client/workspace/tools/",
-                    "name": "MathTool.js"
-                },
-                {
-                    "path": "client/workspace/objects/",
-                    "name": "RichTextObject.js"
-                },
-                {
-                    "path": "client/workspace/tools/",
-                    "name": "TextTool.js"
-                },
-                {
-                    "path": "client/workspace/objects/",
                     "name": "VectorObject.js"
+                },
+                {
+                    "path": "client/workspace/objects/",
+                    "name": "Rectangle.js"
+                },
+                {
+                    "path": "client/workspace/tools/",
+                    "name": "RectTool.js"
                 },
                 {
                     "path": "client/workspace/objects/",
@@ -287,30 +275,38 @@
                 },
                 {
                     "path": "client/workspace/objects/",
-                    "name": "Rectangle.js"
+                    "name": "ElementObject.js"
+                },
+                {
+                    "path": "client/workspace/objects/",
+                    "name": "RichTextObject.js"
                 },
                 {
                     "path": "client/workspace/tools/",
-                    "name": "RectTool.js"
+                    "name": "TextTool.js"
                 },
                 {
-                    "path": "client/usr/ms/",
-                    "name": "Editor.js"
+                    "path": "client/workspace/objects/",
+                    "name": "MathEquationObject.js"
                 },
                 {
-                    "path": "client/usr/viewer/",
-                    "name": "Viewer.js"
+                    "path": "client/workspace/tools/",
+                    "name": "MathTool.js"
                 },
                 {
                     "path": "client/ui/",
                     "name": "Dashboard.js"
                 },
                 {
+                    "path": "client/usr/ms/",
+                    "name": "Editor.js"
+                },
+                {
                     "path": "client/usr/nupack/",
                     "name": "Editor.js"
                 },
                 {
-                    "path": "client/usr/ms/",
+                    "path": "client/usr/viewer/",
                     "name": "Viewer.js"
                 },
                 {
@@ -322,20 +318,16 @@
                     "name": "Editor.js"
                 },
                 {
+                    "path": "client/usr/pepper/",
+                    "name": "Editor.js"
+                },
+                {
                     "path": "client/ui/",
                     "name": "TaskManager.js"
                 },
                 {
                     "path": "client/usr/nupack/",
                     "name": "Results.js"
-                },
-                {
-                    "path": "client/usr/pepper/",
-                    "name": "Editor.js"
-                },
-                {
-                    "path": "client/usr/canvas/",
-                    "name": "ObjectTree.js"
                 },
                 {
                     "path": "client/ui/",
@@ -354,36 +346,24 @@
                     "name": "LibraryWindow.js"
                 },
                 {
-                    "path": "client/usr/dd/",
-                    "name": "ScoreParametersWindow.js"
+                    "path": "client/usr/canvas/",
+                    "name": "ObjectTree.js"
                 },
                 {
                     "path": "client/ui/",
                     "name": "AddDomainButton.js"
                 },
                 {
-                    "path": "client/usr/canvas/",
-                    "name": "Palette.js"
-                },
-                {
                     "path": "client/ui/",
                     "name": "BoundObjectPanel.js"
                 },
                 {
-                    "path": "client/usr/canvas/",
-                    "name": "GeometryTab.js"
-                },
-                {
-                    "path": "client/usr/canvas/",
-                    "name": "MetaTab.js"
-                },
-                {
-                    "path": "client/usr/nodal/ws/objects/",
-                    "name": "Motifs.js"
-                },
-                {
                     "path": "client/workspace/actions/",
                     "name": "UnwrapObjectsAction.js"
+                },
+                {
+                    "path": "client/usr/dd/",
+                    "name": "ScoreParametersWindow.js"
                 },
                 {
                     "path": "client/workspace/objects/",
@@ -394,16 +374,24 @@
                     "name": "ConnectorTool.js"
                 },
                 {
+                    "path": "client/usr/canvas/",
+                    "name": "Palette.js"
+                },
+                {
                     "path": "client/usr/nodal/ws/objects/",
                     "name": "Exposure.js"
                 },
                 {
-                    "path": "client/ui/",
-                    "name": "ProtovisPanel.js"
+                    "path": "client/usr/canvas/",
+                    "name": "MetaTab.js"
                 },
                 {
-                    "path": "client/workspace/tools/",
-                    "name": "IdeaAdderTool.js"
+                    "path": "client/usr/canvas/",
+                    "name": "GeometryTab.js"
+                },
+                {
+                    "path": "client/usr/dil/",
+                    "name": "Segment.js"
                 },
                 {
                     "path": "client/usr/dil/",
@@ -415,39 +403,55 @@
                 },
                 {
                     "path": "client/ui/",
-                    "name": "SequenceWindow.js"
-                },
-                {
-                    "path": "client/usr/dil/",
-                    "name": "Segment.js"
+                    "name": "ProtovisPanel.js"
                 },
                 {
                     "path": "client/workspace/tools/",
-                    "name": "LineTool.js"
-                },
-                {
-                    "path": "client/workspace/tools/",
-                    "name": "EllipseTool.js"
-                },
-                {
-                    "path": "client/workspace/objects/",
-                    "name": "IdeaObject.js"
+                    "name": "IdeaAdderTool.js"
                 },
                 {
                     "path": "client/workspace/objects/",
                     "name": "Ellipse.js"
                 },
                 {
+                    "path": "client/workspace/objects/",
+                    "name": "IdeaObject.js"
+                },
+                {
                     "path": "client/workspace/",
                     "name": "ConnectionLabel.js"
+                },
+                {
+                    "path": "client/workspace/tools/",
+                    "name": "LineTool.js"
                 },
                 {
                     "path": "client/usr/nodal/",
                     "name": "MotifPreview.js"
                 },
                 {
+                    "path": "client/workspace/tools/",
+                    "name": "EllipseTool.js"
+                },
+                {
+                    "path": "client/usr/nodal/ws/objects/",
+                    "name": "NodePort.js"
+                },
+                {
+                    "path": "client/ui/",
+                    "name": "EditorWindow.js"
+                },
+                {
                     "path": "client/workspace/objects/",
                     "name": "SegmentedPath.js"
+                },
+                {
+                    "path": "client/workspace/idea/",
+                    "name": "BaseLayout.js"
+                },
+                {
+                    "path": "client/workspace/tools/",
+                    "name": "CodeMirrorTool.js"
                 },
                 {
                     "path": "client/workspace/objects/",
@@ -458,36 +462,20 @@
                     "name": "ChemDrawTool.js"
                 },
                 {
-                    "path": "client/workspace/tools/",
-                    "name": "CodeMirrorTool.js"
-                },
-                {
-                    "path": "client/workspace/idea/",
-                    "name": "BaseLayout.js"
-                },
-                {
-                    "path": "client/usr/nodal/ws/objects/",
-                    "name": "NodePort.js"
+                    "path": "client/workspace/objects/",
+                    "name": "CodeObject.js"
                 },
                 {
                     "path": "client/workspace/tools/",
                     "name": "VectorHandle.js"
                 },
                 {
-                    "path": "client/usr/dynaml/",
-                    "name": "Editor.js"
-                },
-                {
                     "path": "client/usr/js/",
                     "name": "Editor.js"
                 },
                 {
-                    "path": "client/usr/nodal/",
-                    "name": "MotifPalette.js"
-                },
-                {
-                    "path": "client/usr/canvas/",
-                    "name": "ObjectProperties.js"
+                    "path": "client/usr/dynaml/",
+                    "name": "Editor.js"
                 },
                 {
                     "path": "client/usr/canvas/",
@@ -507,6 +495,22 @@
                 },
                 {
                     "path": "client/usr/nodal/",
+                    "name": "PortInspector.js"
+                },
+                {
+                    "path": "client/usr/nodal/ws/objects/",
+                    "name": "Motifs.js"
+                },
+                {
+                    "path": "client/usr/nodal/",
+                    "name": "MotifPalette.js"
+                },
+                {
+                    "path": "client/usr/canvas/",
+                    "name": "ObjectProperties.js"
+                },
+                {
+                    "path": "client/usr/nodal/",
                     "name": "StrandPreview.js"
                 },
                 {
@@ -518,24 +522,8 @@
                     "name": "NodeInspector.js"
                 },
                 {
-                    "path": "client/usr/nodal/",
-                    "name": "PortInspector.js"
-                },
-                {
                     "path": "client/usr/dil/",
                     "name": "SegmentStore.js"
-                },
-                {
-                    "path": "client/usr/dd/",
-                    "name": "RulesWindow.js"
-                },
-                {
-                    "path": "client/usr/dd/",
-                    "name": "SequenceWindow.js"
-                },
-                {
-                    "path": "client/usr/dd/",
-                    "name": "DD.js"
                 },
                 {
                     "path": "client/usr/dil/",
@@ -550,6 +538,10 @@
                     "name": "StrandsGrid.js"
                 },
                 {
+                    "path": "client/usr/dd/",
+                    "name": "RulesWindow.js"
+                },
+                {
                     "path": "client/workspace/tools/",
                     "name": "IdeaTool.js"
                 },
@@ -559,11 +551,11 @@
                 },
                 {
                     "path": "client/usr/nodal/",
-                    "name": "BuildTab.js"
+                    "name": "HomeTab.js"
                 },
                 {
                     "path": "client/usr/nodal/",
-                    "name": "HomeTab.js"
+                    "name": "BuildTab.js"
                 },
                 {
                     "path": "client/usr/canvas/",
@@ -572,6 +564,46 @@
                 {
                     "path": "client/usr/nodal/",
                     "name": "CommandTab.js"
+                },
+                {
+                    "path": "client/ui/",
+                    "name": "SequenceWindow.js"
+                },
+                {
+                    "path": "client/usr/dd/",
+                    "name": "SequenceWindow.js"
+                },
+                {
+                    "path": "client/usr/dd/",
+                    "name": "DD.js"
+                },
+                {
+                    "path": "client/usr/nodal/ws/objects/",
+                    "name": "InputPort.js"
+                },
+                {
+                    "path": "client/usr/nodal/ws/objects/",
+                    "name": "NodeLayout.js"
+                },
+                {
+                    "path": "client/usr/nodal/ws/objects/",
+                    "name": "BridgePort.js"
+                },
+                {
+                    "path": "client/usr/nodal/ws/objects/",
+                    "name": "OutputPort.js"
+                },
+                {
+                    "path": "client/usr/nodal/ws/objects/",
+                    "name": "AbstractNode.js"
+                },
+                {
+                    "path": "client/usr/nodal/ws/objects/",
+                    "name": "Node.js"
+                },
+                {
+                    "path": "client/usr/nodal/ws/tools/",
+                    "name": "NodeTool.js"
                 },
                 {
                     "path": "client/usr/dil/",
@@ -588,38 +620,6 @@
                 {
                     "path": "client/usr/dil/",
                     "name": "DilEditor.js"
-                },
-                {
-                    "path": "client/workspace/tools/",
-                    "name": "ChemTool.js"
-                },
-                {
-                    "path": "client/usr/nodal/ws/objects/",
-                    "name": "OutputPort.js"
-                },
-                {
-                    "path": "client/usr/nodal/ws/objects/",
-                    "name": "NodeLayout.js"
-                },
-                {
-                    "path": "client/usr/nodal/ws/objects/",
-                    "name": "InputPort.js"
-                },
-                {
-                    "path": "client/usr/nodal/ws/objects/",
-                    "name": "BridgePort.js"
-                },
-                {
-                    "path": "client/usr/nodal/ws/objects/",
-                    "name": "AbstractNode.js"
-                },
-                {
-                    "path": "client/usr/nodal/ws/objects/",
-                    "name": "Node.js"
-                },
-                {
-                    "path": "client/usr/nodal/ws/tools/",
-                    "name": "NodeTool.js"
                 },
                 {
                     "path": "client/usr/dil/",
@@ -647,6 +647,14 @@
                 },
                 {
                     "path": "client/workspace/tools/",
+                    "name": "ChemTool.js"
+                },
+                {
+                    "path": "client/workspace/tools/",
+                    "name": "CodeTool.js"
+                },
+                {
+                    "path": "client/workspace/tools/",
                     "name": "VectorTool.js"
                 },
                 {
@@ -656,14 +664,6 @@
                 {
                     "path": "client/workspace/tools/",
                     "name": "PolygonTool.js"
-                },
-                {
-                    "path": "client/workspace/objects/",
-                    "name": "CodeObject.js"
-                },
-                {
-                    "path": "client/workspace/tools/",
-                    "name": "CodeTool.js"
                 },
                 {
                     "path": "client/usr/canvas/",

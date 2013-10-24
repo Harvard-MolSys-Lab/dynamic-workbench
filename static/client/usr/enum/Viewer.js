@@ -48,12 +48,13 @@ Ext.define('App.usr.enum.Viewer', {
 		// this.legendg.attr("transform","translate("+ [(-translate[0]),(-translate[1])] +") scale("+ Math.min(1/scale,10) +")");
 	},
 	initComponent: function() {
+		this.viewMenu = Ext.create('App.ui.StrandPreviewViewMenu',{ view:null });
 		Ext.apply(this,{
 			tbar: [{
-				text: 'View details',
+				text: 'Show details',
 				handler: this.viewDetails,
 				scope: this,
-			}]
+			},this.viewMenu]
 		})
 
 		this.callParent(arguments);
@@ -85,6 +86,7 @@ Ext.define('App.usr.enum.Viewer', {
 				this.sequenceRenderer = CodeMirror.modeRenderer('sequence');
 			}
 		}, this);
+		this.viewMenu.updateView = Ext.bind(this.updatePreviews,this);
 	
 	},
 	viewDetails: function() {
@@ -390,7 +392,12 @@ Ext.define('App.usr.enum.Viewer', {
 
 			}).classed("link-reaction-blurred",false).classed("link-reaction-reactant",true).style("stroke",function(d) { 
 				return outgoing_color(d.target.name); 
-			}).style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale);
+			})
+			.style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
+			.style("stroke-dasharray", "0,1000000")
+		    	.transition()
+				.ease("cubic-in")
+				.style("stroke-dasharray", function() { var l = 2*this.getTotalLength(); return l+','+l } );
 
 
 			// Select all paths that point into this node
@@ -399,7 +406,12 @@ Ext.define('App.usr.enum.Viewer', {
 
 			}).classed("link-reaction-blurred",false).classed("link-reaction-product",true).style("stroke",function(d) { 
 				return incoming_color(d.source.name); 
-			}).style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale);
+			})
+			.style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
+			.style("stroke-dasharray", "0,1000000")
+		    	.transition()
+				.ease("cubic-in")
+				.style("stroke-dasharray", function() { var l = this.getTotalLength(); return l+','+l } );
 		}
 
 		function unhighlightLinks() {
@@ -462,15 +474,6 @@ Ext.define('App.usr.enum.Viewer', {
 				cls.push("target-" + d.target.name);
 				return cls.join(' ');
 			})
-			// .attr("x1", function(d) {
-			// 	return d.source.x;
-			// }).attr("y1", function(d) {
-			// 	return d.source.y;
-			// }).attr("x2", function(d) {
-			// 	return d.target.x;
-			// }).attr("y2", function(d) {
-			// 	return d.target.y;
-			// })
 			.style("stroke-width", function(d) {
 				return d.size || 1;
 			}).style("fill","none")
@@ -508,12 +511,6 @@ Ext.define('App.usr.enum.Viewer', {
 			})
 			.attr('name',function (d) {
 				return d.name;
-				// switch (d._type) {
-				// 	case 'complex':
-				// 		return 'complex_'+d.name;
-				// 	case 'reaction':
-				// 		return d.name;
-				// }
 			})
 			.on('mouseover', highlightLinks)
 			.on('mouseout', unhighlightLinks)
@@ -727,10 +724,28 @@ Ext.define('App.usr.enum.Viewer', {
 		var structure = !!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'],
 			strands = d['strands'] || null,
 			panel = d3.select(node),
-			data = { dotParen: structure, strands: strands };
+			data = { dotParen: structure, strands: strands },
+			options = this.viewMenu.getOptions();
 
-		this.previewCharts[d.name] = StrandPreview(panel).width(d.width).height(d.height).segmentColors(this.getSegmentColorScale()).strandColors(this.getStrandColorScale())
+		this.previewCharts[d.name] = StrandPreview(panel).width(d.width).height(d.height)
+			.segmentColors(this.getSegmentColorScale())
+			.strandColors(this.getStrandColorScale())
+			.options(options);
 		this.previewPanels[d.name] = this.previewCharts[d.name] (panel.data([data]));
+		this.previewPanels[d.name]._node = panel;
+		this.previewPanels[d.name]._data = data;
+	},
+	updatePreviews: function(options) {
+		var data, panel, charts = _.clone(this.previewCharts);
+		for(var name in charts) {
+			panel = this.previewPanels[name]._node;
+			data = this.previewPanels[name]._data;
+			this.previewCharts[name] = this.previewCharts[name].options(options);
+			panel.selectAll('g').remove();
+			this.previewPanels[name] = this.previewCharts[name] (panel.data([data]))
+			this.previewPanels[name]._node = panel;
+			this.previewPanels[name]._data = data;
+		}
 	},
 	showPreviewWindow: function(d,node) {
 		function names(strands) {
@@ -795,58 +810,10 @@ Ext.define('App.usr.enum.Viewer', {
 	},
 	getStrandColorScale: function() {
 		if(!this.strandColors) {
-			this.strandColors = d3.scale.category20();
+			this.strandColors = d3.scale.ordinal().range(colorbrewer.Set3[12]); //d3.scale.category20b();
 		}
 		return this.strandColors;	
 	},
-
-	// showWindow : function(d, node) {
-	// 	if (!this.complexWindows[d.name]) {
-	// 		var strands = d['strands'];
-
-	// 		// this.previewPanels[d.name] = Ext.create('App.usr.nodal.StrandPreview', {
-	// 		// 	adjacencyMode : 1,
-	// 		// 	cls : 'simple-header',
-	// 		// 	title : strands.join(" + "),
-	// 		// 	autoRender : true,
-	// 		// 	value : '',
-	// 		// });
-	// 		this.previewPanels[d.name] = Ext.create('App.ui.StrandPreview', {
-	// 			cls : 'simple-header',
-	// 			title : strands.join(" + "),
-	// 			autoRender : true,
-	// 			value : '',
-	// 			adjacencyMode: 2,
-	// 		});
-
-	// 		this.complexWindows[d.name] = Ext.create('Ext.tip.ToolTip', {
-	// 			target : node,
-	// 			anchor : 'left',
-	// 			constrainPosition : true,
-	// 			items : [this.previewPanels[d.name]],
-	// 			layout : 'fit',
-	// 			autoHide : false,
-	// 			closable : true,
-	// 			closeAction : 'hide',
-	// 			width : 200,
-	// 			height : 200,
-	// 			draggable : true,
-	// 			title : "Complex: " + d.name,
-	// 			resizable : true,
-	// 			autoRender : true,
-	// 		});
-
-	// 		this.complexWindows[d.name].show();
-	// 		this.previewPanels[d.name].setTitle(strands.join(" + "))
-	// 		this.previewPanels[d.name].setValue(!!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'], strands);
-	// 	} else {
-	// 		if (this.complexWindows[d.name].isVisible()) {
-	// 			this.complexWindows[d.name].hide();
-	// 		} else {
-	// 			this.complexWindows[d.name].show();
-	// 		}
-	// 	}
-	// }
 });
 
 Ext.define('App.usr.enum.LegendPanel',{

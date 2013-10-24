@@ -10,7 +10,7 @@ Ext.define('App.usr.ms.Editor', {
 		app: 'App.ui.Application',
 		tip: 'App.ui.TipHelper',
 	},
-	requires: ['App.ui.D3Panel', 'App.usr.seq.Editor',  //
+	requires: ['App.ui.D3Panel', 'App.ui.ButtonPicker', 'App.usr.seq.Editor',  //
 	'App.usr.dd.SequenceWindow', 'App.ui.SequenceThreader', 'App.ui.AddDomainButton', 'App.ui.StrandPreviewViewMenu', 'App.ui.ButtonPicker',
 	'App.usr.dil.SegmentStore','App.usr.dil.StrandStore','App.usr.dil.ComplexStore',
 	'App.usr.dil.SegmentsGrid','App.usr.dil.StrandsGrid','App.usr.dil.StrandPreviewGrid'],

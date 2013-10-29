@@ -1,3 +1,5 @@
+
+
 function StrandPreview() {
 	/* **********************
 	 * Configuration
@@ -46,9 +48,9 @@ function StrandPreview() {
 				'persistence' : '',
 				'undesired' : '#a00',
 			};
-		var segmentColors = d3.scale.category20(),
-			strandColors = d3.scale.ordinal().range(colorbrewer.Set3[12]), //d3.scale.category20b(),
-			baseColors = d3.scale.ordinal().domain(['A','T','C','G','N']).range(['blue','red','green','black','orange']);
+		var segmentColors = StrandPreview.defaultSegmentColors(), //d3.scale.category20(),
+			strandColors = StrandPreview.defaultStrandColors(), //d3.scale.ordinal().range(colorbrewer.Set3[12]), //d3.scale.category20b(),
+			baseColors = StrandPreview.defaultBaseColors();
 	
 	/* **********************
 	 * Utility methods
@@ -807,16 +809,16 @@ function StrandPreview() {
 	};
 
 	chart.options = function(opts) {
-		if(opts.showBubbles) chart = chart.showBubbles(opts.showBubbles)
-		if(opts.showBases) chart = chart.showBases(opts.showBases)
-		if(opts.showIndexes) chart = chart.showIndexes(opts.showIndexes)
-		if(opts.showSegments) chart = chart.showSegments(opts.showSegments)
-		if(opts.showStrands) chart = chart.showStrands(opts.showStrands)
-		if(opts.loopMode) chart = chart.loopMode(opts.loopMode)
-		if(opts.nodeStrokeMode) chart = chart.nodeStrokeMode(opts.nodeStrokeMode)
-		if(opts.nodeFillMode) chart = chart.nodeFillMode(opts.nodeFillMode)
-		if(opts.lineStrokeMode) chart = chart.lineStrokeMode(opts.lineStrokeMode)
-		if(opts.textFillMode) chart = chart.textFillMode(opts.textFillMode);
+		if(opts.showBubbles    !== undefined) chart = chart.showBubbles(opts.showBubbles)
+		if(opts.showBases      !== undefined) chart = chart.showBases(opts.showBases)
+		if(opts.showIndexes    !== undefined) chart = chart.showIndexes(opts.showIndexes)
+		if(opts.showSegments   !== undefined) chart = chart.showSegments(opts.showSegments)
+		if(opts.showStrands    !== undefined) chart = chart.showStrands(opts.showStrands)
+		if(opts.loopMode       !== undefined) chart = chart.loopMode(opts.loopMode)
+		if(opts.nodeStrokeMode !== undefined) chart = chart.nodeStrokeMode(opts.nodeStrokeMode)
+		if(opts.nodeFillMode   !== undefined) chart = chart.nodeFillMode(opts.nodeFillMode)
+		if(opts.lineStrokeMode !== undefined) chart = chart.lineStrokeMode(opts.lineStrokeMode)
+		if(opts.textFillMode   !== undefined) chart = chart.textFillMode(opts.textFillMode);
 		return chart;
 	}
 
@@ -824,6 +826,16 @@ function StrandPreview() {
 	
 	return chart;
 }
+StrandPreview.defaultSegmentColors = function () {
+	return d3.scale.category20();
+}
+StrandPreview.defaultStrandColors = function () {
+	return d3.scale.ordinal().range(colorbrewer.Set1[9])
+}
+StrandPreview.defaultBaseColors = function () {
+	return d3.scale.ordinal().domain(['A','T','C','G','N']).range(['blue','red','green','black','orange']);
+}
+
 
 /**
  * Allows visualization of secondary structures

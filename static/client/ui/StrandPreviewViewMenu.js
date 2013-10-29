@@ -137,11 +137,7 @@ Ext.define('App.ui.StrandPreviewViewMenu',{
 	getComplexViewMode: function() {
 		return this.complexViewMode;
 	},
-	setComplexViewMode: function(mode) {
-		this.complexViewMode = mode;
-		var opts = this.buildOptions(mode);
-		this.updateView(opts);
-	},
+
 	changeBaseColor: function(color) {
 		this.updateView({'baseColor':color});
 	},
@@ -172,6 +168,11 @@ Ext.define('App.ui.StrandPreviewViewMenu',{
 		// 		break;
 		// }
 		this.setComplexViewMode(this.complexViewMode);
+	},
+	setComplexViewMode: function(mode) {
+		this.complexViewMode = mode;
+		var opts = this.buildOptions(mode);
+		this.updateView(opts);
 	},
 	getOptions: function() {
 		return this.buildOptions(this.getComplexViewMode());

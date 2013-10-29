@@ -2128,6 +2128,7 @@ var DNA = module.exports.DNA = (function(_) {
 										segment_identity : id ? id.identity : null,
 										domain:  dom ? dom.name : null,
 										domain_role : dom ? dom.role : null,
+										strand: strand ? strand.name : null,
 									});
 								}
 								
@@ -2320,6 +2321,7 @@ var DNA = module.exports.DNA = (function(_) {
 										segment_identity : id ? id.identity : null,
 										domain:  dom ? dom.name : null,
 										domain_role : dom ? dom.role : null,
+										strand: strand ? strand.name : null,
 									});
 								}
 								

@@ -490,6 +490,9 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 .tweak-score-params {
 	background-image: url(/images/icons/fugue/ui-slider.png) !important;		
 }
+.window-secondary, .secondary-window {
+	background-image: url(/images/icons/etc/secondary-window.png) !important
+}
 
 .error {
 	background-image: url(/images/icons/fugue/exclamation-red.png) !important;		

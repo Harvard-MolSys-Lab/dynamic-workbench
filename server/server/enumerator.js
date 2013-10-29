@@ -17,7 +17,7 @@ var maxBuffer = 1000*1024;
 
 exports.name = 'Enumerator';
 exports.iconCls = 'enum-icon';
-exports.params = ['node','mode','condense']
+exports.params = ['node','mode','condense','max-complex-size']
 exports.start = function(req, res, params) {
 	var node = params['node'], fullPath = utils.userFilePath(node), cmd;
 
@@ -32,11 +32,13 @@ exports.start = function(req, res, params) {
 	var mode = params['mode'] || 'pil';
 	var ext = mode;
 	if (ext == 'enjs') { mode = 'json' }
-	
+
 	var args = ['--infile',fullPath,'-i','standard','--outfile',postfix(pre+'-enum',ext),'-o',mode];
 	
+	if(!!params['max-complex-size']) { 
+		args = args.concat(['--max-complex-size', params['max-complex-size']]) 
+	}
 	
-	winston.log('info',params['condense'])
 	if(!!params['condense'] && params['condense'] != "false") {
 		args.push('-c')
 	}
@@ -49,7 +51,9 @@ exports.start = function(req, res, params) {
 	
 	proc.exec(cmd, {maxBuffer: maxBuffer},function(err, stdout, stderr) {
 		if (err) {
-			utils.log("error", "Node execution error. ", {
+			utils.log({
+				level: "error", 
+				message: "Enumerator execution error. ", 
 				source: 'enumerator',
 				cmd : cmd,
 				stderr : stderr,
@@ -58,14 +62,17 @@ exports.start = function(req, res, params) {
 			});
 		}
 		if (stderr) {
-			utils.log({level: "error", source: "enumerator", message: "Enumerator execution error. ", 
+			utils.log({
+				level: "error", 
+				source: "enumerator", 
+				message: "Enumerator execution error. ", 
 				cmd : cmd,
 				stderr : stderr,
 				stdout : stdout,
 			});
-			res.send("Task completed with errors. \n\n" + stderr + '\n'+ stdout,200);
+			return res.send("Task completed with errors. \n\n" + stderr + '\n'+ stdout,200);
 		} else {
-			res.send(stdout,200);
+			return res.send(stdout,200);
 		}
 	})
 };

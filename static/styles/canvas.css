@@ -643,7 +643,6 @@ ul.dashboard-actions li a:hover {
 .node-blurred {
 	opacity: 0.3;
 }
-
 .reaction-fast {
 	fill: #01c;
 	stroke: #fff;
@@ -652,10 +651,20 @@ ul.dashboard-actions li a:hover {
 	fill: #a00;
 	stroke: #fff;
 }
+
+.enum-selected > text {
+	font-weight: bold;
+	fill: red;
+}
+
+.enum-selected > rect.reaction-fast, .enum-selected > rect.reaction-slow {
+	stroke: red;
+}
+
 .complex {
 	fill: white;
 	stroke: #888;
-	stroke-width: 1em;
+	/*stroke-width: 1em;*/
 }
 .complex-transient {
 	stroke-dasharray:1.5em;
@@ -684,7 +693,8 @@ path.resting-state-hull {
 }
 .enum-reaction-well, .enum-strands-well {
 	border: solid 1px silver;
-	padding: 3px;
+	padding: 3px 5px;
+	display: inline-block;
 	border-radius: 4px; 
 }
 
@@ -797,6 +807,10 @@ path.resting-state-hull {
 .simple-header .x-panel-header {
 	background: none !important;
 	font-weight: normal !important;
+}
+
+.simple-toolbar {
+	background: none !important;	
 }
 
 .citation-bar > .x-panel-body {

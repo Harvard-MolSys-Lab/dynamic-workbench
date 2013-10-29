@@ -1,3 +1,5 @@
+
+
 function StrandPreview() {
 	/* **********************
 	 * Configuration
@@ -15,18 +17,25 @@ function StrandPreview() {
 			nodeStrokeMode = 'segment', // 'identity', 'segment', 'domain'
 			lineStrokeMode = 'default', // 'segment', 'domain', 'default'
 			textFillMode = 'default', // 'default', 'segment', 'domain', 'identity'
+			
+			// flags to show or hide parts of the visualization
 			showBubbles = true,
 			showBases = true,
 			showIndexes = true,
 			showSegments = true,
+			showStrands = true,
 
+			// font sizes, in em
 			segmentLabelFontSize = 1,
+			strandLabelFontSize = 1,
 			nodeBaseFontSize = baseWidth*.8,
 			nodeIndexFontSize = baseWidth*.8,
 
 			scaleSegmentLabels = true,
+			scaleStrandLabels = true,
 			minFontSize = 0.25,
 			segment_label_height = 2,
+			strand_label_height = 2,
 
 			arrowDistance = 60,
 			arrowScale = 20,
@@ -39,9 +48,9 @@ function StrandPreview() {
 				'persistence' : '',
 				'undesired' : '#a00',
 			};
-		var segmentColors = d3.scale.category20(),
-			strandColors = d3.scale.category20(),
-			baseColors = d3.scale.ordinal().domain(['A','T','C','G','N']).range(['blue','red','green','black','orange']);
+		var segmentColors = StrandPreview.defaultSegmentColors(), //d3.scale.category20(),
+			strandColors = StrandPreview.defaultStrandColors(), //d3.scale.ordinal().range(colorbrewer.Set3[12]), //d3.scale.category20b(),
+			baseColors = StrandPreview.defaultBaseColors();
 	
 	/* **********************
 	 * Utility methods
@@ -300,6 +309,12 @@ function StrandPreview() {
 				redrawNodeSegment(node_segment);
 			}
 
+			// Node strand name
+			if(showStrands) {
+				var node_strand = nodeSel.append('text').attr('class', 'node_strand');
+				redrawNodeStrand(node_strand);
+			}
+
 			if(tailNode) {
 				var tailSel = panel.selectAll("path.tail")
 					.data([tailNode]).enter().append('path').attr('class','tail');
@@ -316,13 +331,15 @@ function StrandPreview() {
 
 			var nodeBaseHidden = false,
 				nodeIndexHidden = false,
-				segmentLabelHidden = false;
+				segmentLabelHidden = false,
+				strandLabelHidden = false;
 
 			function redraw(redraw_scale,redraw_translate) {
 				panel.attr("transform",
 			      "translate(" + redraw_translate + ")"
 			      + " scale(" + redraw_scale + ")");
 
+				// Hide base and index labels when we zoom out too far
 				if(showBases && nodeBaseFontSize*redraw_scale < minFontSize && !nodeBaseHidden) {
 					panel.selectAll('text.node_base').style('display','none');
 					nodeBaseHidden = true;
@@ -338,33 +355,106 @@ function StrandPreview() {
 					nodeIndexHidden = false;
 				}
 
-				if(showSegments && scaleSegmentLabels && !segmentLabelHidden) {
-					var sel = panel.selectAll('text.node_segment');
-					sel.style('font-size',1/redraw_scale*segmentLabelFontSize+'em')
-					.attr('dx', function(d) {
-						if(d.segment_length) {
-							var phi = Math.atan2(segment_label_height,d.segment_length*baseWidth/2),
-							c = Math.sqrt(Math.pow(segment_label_height,2),Math.pow(d.segment_length*baseWidth/2,2));
-							return Math.cos(d.theta+Math.PI/2-phi)*c*redraw_scale*2+'em';
+				// If shown, scale segment labels with zoom
+				if(showSegments) {
+					if(!segmentLabelHidden) {
+						// if(segmentLabelFontSize*redraw_scale < minFontSize) {
+						// 	panel.selectAll('text.node_segment').style('display','none');
+						// 	segmentLabelHidden = true;
+						// }
+						if(scaleSegmentLabels) {
+							function nodeSegmentDx(d) {
+								if(d.segment_length) {
+									var phi = Math.atan2(segment_label_height,d.segment_length*baseWidth/2),
+									c = Math.sqrt(Math.pow(segment_label_height,2),Math.pow(d.segment_length*baseWidth/2,2));
+									return Math.cos(d.theta+Math.PI/2-phi)*c*redraw_scale*2+'em';
+								}
+								return Math.cos(d.theta+Math.PI/4)*2.5*redraw_scale*2+'em';
+							}
+							function nodeSegmentDy(d) {
+								if(d.segment_length) {
+									var phi = Math.atan2(segment_label_height,d.segment_length*baseWidth/2),
+									c = Math.sqrt(Math.pow(segment_label_height,2),Math.pow(d.segment_length*baseWidth/2,2));
+									return Math.sin(d.theta+Math.PI/2-phi)*c*redraw_scale*2+0.35+'em';
+								}
+								return Math.sin(d.theta+Math.PI/4)*2.5*redraw_scale*2+0.35+'em';
+							}
+
+							var sel = panel.selectAll('text.node_segment');
+							sel.style('font-size',1/redraw_scale*segmentLabelFontSize+'em')
+							.attr('dx', nodeSegmentDx).attr('dy', nodeSegmentDy);
 						}
-						return Math.cos(d.theta+Math.PI/4)*2.5*redraw_scale*2+'em';
-					}).attr('dy', function(d) {
-						if(d.segment_length) {
-							var phi = Math.atan2(segment_label_height,d.segment_length*baseWidth/2),
-							c = Math.sqrt(Math.pow(segment_label_height,2),Math.pow(d.segment_length*baseWidth/2,2));
-							return Math.sin(d.theta+Math.PI/2-phi)*c*redraw_scale*2+0.35+'em';
-						}
-						return Math.sin(d.theta+Math.PI/4)*2.5*redraw_scale*2+0.35+'em';
-					});
-				} else {
-					if(showSegments && segmentLabelFontSize*redraw_scale < minFontSize && !segmentLabelHidden) {
-						panel.selectAll('text.node_base').style('display','none');
-						segmentLabelHidden = true;
-					} else if(showSegments && segmentLabelFontSize*redraw_scale >= minFontSize && segmentLabelHidden) {
-						panel.selectAll('text.node_base').style('display','');
-						segmentLabelHidden = false;
-					} 
+					}
+					//  else if(segmentLabelFontSize*redraw_scale >= minFontSize && segmentLabelHidden) {
+					// 	panel.selectAll('text.node_segment').style('display','');
+					// 	segmentLabelHidden = false;
+					// }
 				}
+
+				if(showStrands) {
+					if(!strandLabelHidden) {
+						// if(strandLabelFontSize*redraw_scale < minFontSize) {
+						// 	panel.selectAll('text.node_strand').style('display','none');
+						// 	strandLabelHidden = true;
+						// }
+						if(scaleStrandLabels) {
+							function nodeStrandDx(d) {
+								// if(d.segment_length) {
+								// 	var phi = Math.atan2(segment_label_height,d.segment_length*baseWidth/2),
+								// 	c = Math.sqrt(Math.pow(segment_label_height,2),Math.pow(d.segment_length*baseWidth/2,2));
+								// 	return Math.cos(d.theta+Math.PI/2-phi)*c*redraw_scale*2+'em';
+								// }
+								return Math.cos(d.theta+Math.PI/4)*2.5*strand_label_height*redraw_scale*2+'em';
+							}
+							function nodeStrandDy(d) {
+								// if(d.segment_length) {
+								// 	var phi = Math.atan2(segment_label_height,d.segment_length*baseWidth/2),
+								// 	c = Math.sqrt(Math.pow(segment_label_height,2),Math.pow(d.segment_length*baseWidth/2,2));
+								// 	return Math.sin(d.theta+Math.PI/2-phi)*c*redraw_scale*2+0.35+'em';
+								// }
+								return Math.sin(d.theta+Math.PI/4)*2.5*strand_label_height*redraw_scale*2+0.35+'em';
+							}
+
+							var sel = panel.selectAll('text.node_strand');
+							sel.style('font-size',1/redraw_scale*strandLabelFontSize+'em')
+							.attr('dx', nodeStrandDx).attr('dy', nodeStrandDy);
+						}
+					} 
+					// else if(strandLabelHidden && strandLabelFontSize*redraw_scale >= minFontSize) {
+					// 	panel.selectAll('text.node_strand').style('display','');
+					// 	strandLabelHidden = false;
+					// }
+				}
+
+				// if(showSegments && scaleSegmentLabels && !segmentLabelHidden) {
+				// 	var sel = panel.selectAll('text.node_segment');
+				// 	sel.style('font-size',1/redraw_scale*segmentLabelFontSize+'em')
+				// 	.attr('dx', function(d) {
+				// 		if(d.segment_length) {
+				// 			var phi = Math.atan2(segment_label_height,d.segment_length*baseWidth/2),
+				// 			c = Math.sqrt(Math.pow(segment_label_height,2),Math.pow(d.segment_length*baseWidth/2,2));
+				// 			return Math.cos(d.theta+Math.PI/2-phi)*c*redraw_scale*2+'em';
+				// 		}
+				// 		return Math.cos(d.theta+Math.PI/4)*2.5*redraw_scale*2+'em';
+				// 	}).attr('dy', function(d) {
+				// 		if(d.segment_length) {
+				// 			var phi = Math.atan2(segment_label_height,d.segment_length*baseWidth/2),
+				// 			c = Math.sqrt(Math.pow(segment_label_height,2),Math.pow(d.segment_length*baseWidth/2,2));
+				// 			return Math.sin(d.theta+Math.PI/2-phi)*c*redraw_scale*2+0.35+'em';
+				// 		}
+				// 		return Math.sin(d.theta+Math.PI/4)*2.5*redraw_scale*2+0.35+'em';
+				// 	});
+				// } else {
+
+				// 	// Hide segment labels when we zoom out too far
+				// 	if(showSegments && segmentLabelFontSize*redraw_scale < minFontSize && !segmentLabelHidden) {
+				// 		panel.selectAll('text.node_base').style('display','none');
+				// 		segmentLabelHidden = true;
+				// 	} else if(showSegments && segmentLabelFontSize*redraw_scale >= minFontSize && segmentLabelHidden) {
+				// 		panel.selectAll('text.node_base').style('display','');
+				// 		segmentLabelHidden = false;
+				// 	} 
+				// }
 				
 
 			}
@@ -517,7 +607,7 @@ function StrandPreview() {
 				if(showBubbles) return "none"
 				else return "all"
 			});
-	}
+		}
 
 		function redrawNodeSegment(node_segment) {
 			node_segment
@@ -526,6 +616,16 @@ function StrandPreview() {
 				return d.segment_index == 0 ? d.segment : ''
 			}).attr('fill',function(d) {
 				return segmentColors(d.segment_identity);
+			});
+		}
+
+		function redrawNodeStrand(node_strand) {
+			node_strand
+			.attr('text-anchor','middle')
+			.text(function(d,i) {
+				return d.strand_index == 0 ? d.strand : ''
+			}).attr('fill',function(d) {
+				return strandColors(d.strand);
 			});
 		}
 
@@ -551,6 +651,10 @@ function StrandPreview() {
 				// Node segment name
 				if(showSegments) {
 					redrawNodeSegment(nodeSel.select("text.node_segment"));
+				}
+
+				if(showStrands) {
+					redrawNodeStrand(nodeSel.select("text.node_segment"));
 				}
 				
 			})
@@ -683,6 +787,11 @@ function StrandPreview() {
 		return chart;
 	};
 
+	chart.showStrands = function(_) {
+		if (!arguments.length) return showStrands;
+		showStrands = _;
+		return chart;
+	};
 
 	chart.loopMode = function(_) {
 		if (!arguments.length) return loopMode;
@@ -702,10 +811,34 @@ function StrandPreview() {
 		return chart;
 	};
 
+	chart.options = function(opts) {
+		if(opts.showBubbles    !== undefined) chart = chart.showBubbles(opts.showBubbles)
+		if(opts.showBases      !== undefined) chart = chart.showBases(opts.showBases)
+		if(opts.showIndexes    !== undefined) chart = chart.showIndexes(opts.showIndexes)
+		if(opts.showSegments   !== undefined) chart = chart.showSegments(opts.showSegments)
+		if(opts.showStrands    !== undefined) chart = chart.showStrands(opts.showStrands)
+		if(opts.loopMode       !== undefined) chart = chart.loopMode(opts.loopMode)
+		if(opts.nodeStrokeMode !== undefined) chart = chart.nodeStrokeMode(opts.nodeStrokeMode)
+		if(opts.nodeFillMode   !== undefined) chart = chart.nodeFillMode(opts.nodeFillMode)
+		if(opts.lineStrokeMode !== undefined) chart = chart.lineStrokeMode(opts.lineStrokeMode)
+		if(opts.textFillMode   !== undefined) chart = chart.textFillMode(opts.textFillMode);
+		return chart;
+	}
+
 	updateLinkDistances();
 	
 	return chart;
 }
+StrandPreview.defaultSegmentColors = function () {
+	return d3.scale.category20();
+}
+StrandPreview.defaultStrandColors = function () {
+	return d3.scale.ordinal().range(colorbrewer.Set1[9])
+}
+StrandPreview.defaultBaseColors = function () {
+	return d3.scale.ordinal().domain(['A','T','C','G','N']).range(['blue','red','green','black','orange']);
+}
+
 
 /**
  * Allows visualization of secondary structures
@@ -729,15 +862,19 @@ Ext.define('App.ui.StrandPreview', {
 	textFillMode: 'default',
 	showBubbles: true,
 	loopMode: 'linear',
+	
 	showBases : true,
 	showIndexes : true,
 	showSegments : true,
+	showStrands : true,
+	
 	segmentColors : null,
 	strandColors : null,
 	showToolbar: true,
+	simpleToolbar: true,
 	createTip: false,
 	tipDelegate: 'circle',
-	
+
 	setValue : function(structure, strands, sequences) {
 		if(structure && structure.structure && structure.strands) {
 			this.data = structure;
@@ -759,33 +896,30 @@ Ext.define('App.ui.StrandPreview', {
 			this.strands = strands;
 			this.sequences = sequences;
 		}
-		// if(structure) {
-			// this.buildVis();
-		// } else {
-			// this.force.nodes([]).links([])
-		// }
 		this.buildVis();
-		// this.restart();
 	},
 	buildVis : function() {
 		var panel = this.getCanvas();
 		panel.selectAll('g').remove();
 		this.chart = StrandPreview(panel).width(this.getWidth()).height(this.getHeight())
-			.showBubbles(this.showBubbles)
-			.showBases(this.showBases)
-			.showIndexes(this.showIndexes)
-			.showSegments(this.showSegments)
-			.loopMode(this.loopMode)
-			.nodeStrokeMode(this.nodeStrokeMode)
-			.nodeFillMode(this.nodeFillMode)
-			.lineStrokeMode(this.lineStrokeMode)
-			.textFillMode(this.textFillMode);
+			.options(this);
+			// .showBubbles(this.showBubbles)
+			// .showBases(this.showBases)
+			// .showIndexes(this.showIndexes)
+			// .showSegments(this.showSegments)
+			// .showStrands(this.showStrands)
+			// .loopMode(this.loopMode)
+			// .nodeStrokeMode(this.nodeStrokeMode)
+			// .nodeFillMode(this.nodeFillMode)
+			// .lineStrokeMode(this.lineStrokeMode)
+			// .textFillMode(this.textFillMode);
 		if(!!this.segmentColors) this.chart.segmentColors(this.segmentColors)
 		if(!!this.strandColors) this.chart.strandColors(this.strandColors)
 		this.preview = this.chart(panel.data([this.data]));
 	},
 	updateChartProperties: function() {
-		this.buildVis();
+		if(this.rendered)
+			this.buildVis();
 	},
 	highlight: function(criteria) {
 		this.preview.highlight(criteria);
@@ -795,33 +929,40 @@ Ext.define('App.ui.StrandPreview', {
 	},
 	initComponent : function() {
 		if(this.showToolbar) {
-			this.bbar = [{
-				iconCls:'dot-paren-icon',
-				handler: this.toDotParen,
-				scope: this,
-				tooltip: 'Show structure in dot-parenthesis notation'
-			},{
-				iconCls:'du-plus-icon',
-				handler: this.toDUPlus,
-				scope: this,
-				tooltip: 'Show structure in DU-plus (Zadeh) notation'
-			},{
-				iconCls: 'svg',
-				handler: this.toSVG,
-				scope: this,
-				tooltip: 'Show SVG code for structure'
-			},'->',
-			// {
-			// 	text: 'Interactive',
-			// 	enableToggle: true,
-			// 	toggleHandler: this.toggleForce,
-			// 	scope: this,
-			// },
-				Ext.create('App.ui.StrandPreviewViewMenu',{view: this})];
+			this.viewMenu = Ext.create('App.ui.StrandPreviewViewMenu',{view: this});
+			this.bbar = {
+				cls: this.simpleToolbar ? 'simple-toolbar' : '', 
+				items:[{
+					iconCls:'dot-paren-icon',
+					handler: this.toDotParen,
+					scope: this,
+					tooltip: 'Show structure in dot-parenthesis notation'
+				},{
+					iconCls:'du-plus-icon',
+					handler: this.toDUPlus,
+					scope: this,
+					tooltip: 'Show structure in DU-plus (Zadeh) notation'
+				},{
+					iconCls: 'svg',
+					handler: this.toSVG,
+					scope: this,
+					tooltip: 'Show SVG code for structure'
+				},'->',
+				// {
+				// 	text: 'Interactive',
+				// 	enableToggle: true,
+				// 	toggleHandler: this.toggleForce,
+				// 	scope: this,
+				// },
+				this.viewMenu]
+			};
 		}
 		this.callParent(arguments);
 
 		this.on('afterrender', function() {
+			if(this.viewOptions)
+				this.viewMenu.setOptions(this.viewOptions)
+
 			if(this.createTip) { 
 				this.tip = Ext.create('Ext.tip.ToolTip', {
 					target: this.getEl(),

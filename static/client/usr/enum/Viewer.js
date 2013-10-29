@@ -27,6 +27,9 @@ Ext.define('App.usr.enum.Viewer', {
 
 		this.complexWindows = {};
 		this.complexPanels = {};
+
+		this.reactionPanels = {};
+		this.reactionWindows = {};
 		
 		this.currentScale = 1;
 	},
@@ -49,9 +52,14 @@ Ext.define('App.usr.enum.Viewer', {
 	},
 	initComponent: function() {
 		this.viewMenu = Ext.create('App.ui.StrandPreviewViewMenu',{ view:null });
+		this.viewMenu.setOptions({
+			showIndexes: false,
+			showBases: false,
+		})
 		Ext.apply(this,{
 			tbar: [{
 				text: 'Show details',
+				iconCls: 'window-secondary',
 				handler: this.viewDetails,
 				scope: this,
 			},this.viewMenu]
@@ -96,9 +104,9 @@ Ext.define('App.usr.enum.Viewer', {
 				var node = elements[i], d = data[i];
 				switch(d._type) {
 					case 'complex':
-						this.showPreviewWindow(d,node)
+						this.showPreviewWindow(d,node);
 					case 'reaction':
-						this.showReaction(d,node)
+						this.showReaction(d,node);
 				}
 			}
 		}
@@ -367,6 +375,7 @@ Ext.define('App.usr.enum.Viewer', {
 		// me.legend = buildLegend(legendg,me);
 
 		init();
+		me.redraw([0,0],1);
 
 		
 		function radius(d) {
@@ -512,8 +521,8 @@ Ext.define('App.usr.enum.Viewer', {
 			.attr('name',function (d) {
 				return d.name;
 			})
-			.on('mouseover', highlightLinks)
-			.on('mouseout', unhighlightLinks)
+			.on('mouseenter', highlightLinks)
+			.on('mouseleave', unhighlightLinks)
 			.on('dblclick', function(d) {
 				if (d._type == 'complex') {
 					var el = d3.select(this).select('svg');
@@ -630,31 +639,7 @@ Ext.define('App.usr.enum.Viewer', {
 			me.rect.attr("height", svgBBox.height + 10);
 		}	
 	},
-	showReaction: function (d, node) {
-		if(d._type=='reaction')	{
-			
-			var me = this,
-				reactants = _.map(d.reactants, function(r) { return me.complexMap[r] }),
-				products = _.map(d.reactants, function(r) { return me.complexMap[r] });
-
-			if(!this.reactionPanel) {
-				this.reactionPanel = Ext.create('App.usr.enum.ReactionViewer')
-				this.reactionWindow = Ext.create('Ext.window.Window',{
-					items: [ this.reactionPanel ],
-					layout: 'fit',
-					width: 700,
-					height: 200,
-					border: false, bodyBorder: false,
-					title: this.getReactionDetails(d),
-					segmentColors: this.getSegmentColorScale(),
-					strandColors: this.getStrandColorScale(),
-				});
-			}
-			this.reactionWindow.show()
-			this.reactionPanel.setValue(d,reactants,products)
-			this.reactionPanel.setTitle(this.getReactionDetails(d))
-		}
-	},
+	
 	updateTipBody: function(tip) {
 		var targetEl = Ext.get(tip.triggerElement).up('g');
 		if(targetEl) { 
@@ -727,13 +712,15 @@ Ext.define('App.usr.enum.Viewer', {
 			data = { dotParen: structure, strands: strands },
 			options = this.viewMenu.getOptions();
 
-		this.previewCharts[d.name] = StrandPreview(panel).width(d.width).height(d.height)
-			.segmentColors(this.getSegmentColorScale())
-			.strandColors(this.getStrandColorScale())
-			.options(options);
-		this.previewPanels[d.name] = this.previewCharts[d.name] (panel.data([data]));
-		this.previewPanels[d.name]._node = panel;
-		this.previewPanels[d.name]._data = data;
+		if(!this.previewCharts[d.name]) {
+			this.previewCharts[d.name] = StrandPreview(panel).width(d.width).height(d.height)
+				.segmentColors(this.getSegmentColorScale())
+				.strandColors(this.getStrandColorScale())
+				.options(options);
+			this.previewPanels[d.name] = this.previewCharts[d.name] (panel.data([data]));
+			this.previewPanels[d.name]._node = panel;
+			this.previewPanels[d.name]._data = data;
+		}
 	},
 	updatePreviews: function(options) {
 		var data, panel, charts = _.clone(this.previewCharts);
@@ -747,6 +734,11 @@ Ext.define('App.usr.enum.Viewer', {
 			this.previewPanels[name]._data = data;
 		}
 	},
+	getViewOptions: function() {
+		var options = this.viewMenu.getOptions();
+		options.complexViewMode = this.viewMenu.getComplexViewMode();
+		return options;
+	},
 	showPreviewWindow: function(d,node) {
 		function names(strands) {
 			return _.map(strands,function(s) { return s.name }).join(" + ");
@@ -754,7 +746,9 @@ Ext.define('App.usr.enum.Viewer', {
 
 		var structure = !!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'],
 			strands = d['strands'] || null,
-			data = { dotParen: structure, strands: strands };
+			data = { dotParen: structure, strands: strands },
+			options = this.getViewOptions();
+
 
 		if (!this.complexWindows[d.name]) {
 			var strands = d['strands'];
@@ -766,6 +760,9 @@ Ext.define('App.usr.enum.Viewer', {
 				adjacencyMode: 2,
 				region: 'center',
 				border: true,
+				viewOptions: options,
+				segmentColors: this.getSegmentColorScale(),
+				strandColors: this.getStrandColorScale(),
 			});
 			this.complexWindows[d.name] = Ext.create('Ext.window.Window', {
 				// target : node,
@@ -800,6 +797,35 @@ Ext.define('App.usr.enum.Viewer', {
 			} else {
 				this.complexWindows[d.name].show();
 			}
+		}
+	},
+	showReaction: function (d, node) {
+		if(d._type=='reaction')	{
+			
+			var me = this,
+				reactants = _.map(d.reactants, function(r) { return me.complexMap[r] }),
+				products = _.map(d.reactants, function(r) { return me.complexMap[r] }),
+				name = d.name,
+				options = this.getViewOptions();
+
+			if(!this.reactionPanels[d.name]) {
+				this.reactionPanels[d.name] = Ext.create('App.usr.enum.ReactionViewer', { 
+					viewOptions: options,
+					segmentColors: this.getSegmentColorScale(),
+					strandColors: this.getStrandColorScale(),
+				})
+				this.reactionWindows[d.name] = Ext.create('Ext.window.Window',{
+					items: [ this.reactionPanels[d.name] ],
+					layout: 'fit',
+					width: 700,
+					height: 200,
+					border: false, bodyBorder: false,
+					title: this.getReactionDetails(d),
+				});
+			}
+			this.reactionWindows[d.name].show()
+			this.reactionPanels[d.name].setValue(d,reactants,products)
+			this.reactionPanels[d.name].setTitle(this.getReactionDetails(d));
 		}
 	},
 	getSegmentColorScale: function() {
@@ -931,9 +957,10 @@ Ext.define('App.usr.enum.ReactionViewer', {
 	requires : ['App.usr.nodal.StrandPreview'],
 	layout: 'hbox',
 	align: 'stretch',
-	border: false, bodyBorder: false,
+	border: false, bodyBorder: true,
 	
-	constructor : function() {
+	initComponent : function() {
+		this.viewOptions = this.viewOptions || {};
 		this.reactant1 = Ext.create('App.ui.StrandPreview',{
 			cls : 'simple-header',
 			title : ' ',
@@ -942,6 +969,9 @@ Ext.define('App.usr.enum.ReactionViewer', {
 			adjacencyMode: 2,
 			flex: 1,
 			border: false, bodyBorder: false,
+			viewOptions: this.viewOptions,
+			segmentColors: this.segmentColors,
+			strandColors: this.strandColors,
 		});
 		this.reactant_plus = Ext.create('App.ui.PlusPanel');
 		this.reactant2 = Ext.create('App.ui.StrandPreview',{
@@ -952,6 +982,9 @@ Ext.define('App.usr.enum.ReactionViewer', {
 			adjacencyMode: 2,
 			flex: 1,
 			border: false, bodyBorder: false,
+			viewOptions: this.viewOptions,
+			segmentColors: this.segmentColors,
+			strandColors: this.strandColors,
 		});
 
 		this.reaction_arrow = Ext.create('App.ui.ArrowPanel');
@@ -964,6 +997,9 @@ Ext.define('App.usr.enum.ReactionViewer', {
 			adjacencyMode: 2,
 			flex: 1,
 			border: false, bodyBorder: false,
+			viewOptions: this.viewOptions,
+			segmentColors: this.segmentColors,
+			strandColors: this.strandColors,
 		})
 		this.product_plus = Ext.create('App.ui.PlusPanel');
 		this.product2 = Ext.create('App.ui.StrandPreview',{
@@ -974,6 +1010,9 @@ Ext.define('App.usr.enum.ReactionViewer', {
 			adjacencyMode: 2,
 			flex: 1,
 			border: false, bodyBorder: false,
+			viewOptions: this.viewOptions,
+			segmentColors: this.segmentColors,
+			strandColors: this.strandColors,
 		})
 
 		Ext.apply(this,{

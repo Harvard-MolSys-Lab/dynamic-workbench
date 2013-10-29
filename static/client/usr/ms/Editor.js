@@ -136,11 +136,11 @@ Ext.define('App.usr.ms.Editor', {
 						name: 'inputMenu',
 						defaults: { group: 'inputMode', checked: false },
 						items: [{
+							text: 'Fill with bases from this design view', value: 'f', checked: true, iconCls: 'random-bases',
+						},{
 							text: 'Load sequences from DD file', value: 'd', iconCls: 'load-dd',
 						},{
 							text: 'Load sequences from multiple DD files', value: 'm', iconCls: 'load-dd-multiple',
-						},{
-							text: 'Fill with random bases', value: 'f', checked: true, iconCls: 'random-bases',
 						},{
 							text: 'Load sequences from NUPACK multiobjective file (.npo)', value: 'n', iconCls: 'load-npo',
 						},{
@@ -169,15 +169,20 @@ Ext.define('App.usr.ms.Editor', {
 							{ text: "No designer (analysis only)", value: 'x',  iconCls:'no-designer' },
 						]
 					}
-				})]
+				}),{
+					text: 'Revert design',
+					iconCls: 'ms-revert-design',
+					handler: this.revertDesign,
+					scope: this,
+				}]
 			},{
 				xtype: 'buttongroup',
-				columns: 1,
-				title: 'Design',
+				columns: 2,
+				title: 'Analysis',
 				items: [{
 					xtype: 'splitbutton',
-					text: 'Load results',
-					width: 64,
+					text: 'Load Analysis',
+					width: 100,
 					iconCls: 'folder-open-24',
 					scale: 'medium',
 					iconAlign: 'top',
@@ -204,6 +209,16 @@ Ext.define('App.usr.ms.Editor', {
 						}]
 					},
 					handler: function() { this.openMSO(this.msoFileNameField.getValue()) },
+					scope: this,
+				},{
+					text: 'Accept analysis',
+					iconCls: 'ms-accept-analysis',
+					handler: this.acceptAnalysis,
+					scope: this,
+				},{
+					text: 'Reject analysis',
+					iconCls: 'ms-reject-analysis',
+					handler: this.rejectAnalysis,
 					scope: this,
 				}]
 			},'->',{
@@ -364,6 +379,32 @@ Ext.define('App.usr.ms.Editor', {
 
 
 	},
+	acceptAnalysis: function() {
+		// save current view in the .ms file
+		this.saveFile();
+	},
+	rejectAnalysis: function() {
+		// reload from the design (.ms) file
+		this.loadFile();
+	},
+	revertDesign: function() {
+		var doc = this.document, sibling, siblingName, basename = doc.getBasename();
+		siblingName = App.path.addExt(basename, 'bak');
+		sibling = doc.getSiblingByName(siblingName);
+		if(sibling) {
+			sibling.loadBody({
+				success: function(responseText) {
+					this.data = responseText;
+					this.onLoad();
+				},
+				failure: function(responseText) {
+					App.msg('Could not load previous design','Error loading the file {1}',siblingName);
+				},
+				scope: this
+			})
+		}
+	},
+
 	onLoad: function() {
 		if(!this.data) this.data = '';
 		this.loadLibrary(this.data)
@@ -382,6 +423,11 @@ Ext.define('App.usr.ms.Editor', {
 			segmentStore = this.segmentStore,
 			segmentColors = d3.scale.category20();
 		
+		this.complexStore.removeAll();
+		this.strandStore.removeAll();
+		this.segmentStore.removeAll();
+
+
 		var library = DNA.structureSpec(CodeMirror.tokenize(data, {name: 'nupack', ms: true}));
 		this.extraLines = library.others;
 

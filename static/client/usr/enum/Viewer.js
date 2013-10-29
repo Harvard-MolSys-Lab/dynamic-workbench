@@ -55,6 +55,9 @@ Ext.define('App.usr.enum.Viewer', {
 		this.viewMenu.setOptions({
 			showIndexes: false,
 			showBases: false,
+			showBubbles: false,
+			showSegments: false,
+			complexViewMode: 'strand',
 		})
 		Ext.apply(this,{
 			tbar: [{
@@ -525,14 +528,20 @@ Ext.define('App.usr.enum.Viewer', {
 			.on('mouseleave', unhighlightLinks)
 			.on('dblclick', function(d) {
 				if (d._type == 'complex') {
-					var el = d3.select(this).select('svg');
-					me.renderPreview(d, el.node());
-					d3.event.stopPropagation();
+					me.showPreviewWindow(d,this);
 				} else if (d._type=='reaction') {
 					me.showReaction(d, this);
 				}
 			})
-			.on('click', selectNode)
+			// .on('click', selectNode)
+			.on('click',function(d) {
+				selectNode.call(this,d)
+				if (d._type == 'complex') {
+					var el = d3.select(this).select('svg');
+					me.renderPreview(d, el.node());
+					//d3.event.stopPropagation();
+				}
+			})
 
 			nodeSel.append('text').attr('class', 'node-label')
 			.attr("dx", function(d) {
@@ -641,33 +650,62 @@ Ext.define('App.usr.enum.Viewer', {
 	},
 	
 	updateTipBody: function(tip) {
+		var helpText = '(click to show/select | double-click to open window | drag to move)';
 		var targetEl = Ext.get(tip.triggerElement).up('g');
 		if(targetEl) { 
 			targetEl = d3.select(targetEl.dom);
 			if(targetEl.classed('enum-node')) {
 				var data = targetEl.datum()
-				tip.update(this.getNodeDetails(data));
+				tip.update(this.getNodeDetails(data)+
+					'<br />'+helpText);
 			} else {
 				return false;
 			}
 		}
 	},
-	getReactionDetails: function(data) {
-		var out = '';
+	getReactionDetails: function(data,breakLines) {
+		breakLines =  breakLines || false;
+
+		var out = [];
 		var arity;
+		var type;
 		switch(data.reactants.length) {
 			case 1: arity = 'Unimolecular'; break;
 			case 2: arity = 'Bimolecular'; break;
 			case 3: arity = 'Trimolecular'; break;
 			default: arity = 'High order'; break;
 		}
-		out += '<b>'+arity+'</b> Reaction ';
-		out += _.map(data.reactants,function(r) { return '<b>'+r+'</b>' }).join(' + ');
-		out += ' &rarr; '
-		out += _.map(data.products,function(r) { return '<b>'+r+'</b>' }).join(' + ');
+		if(data.reactants.length > data.products.length) {
+			type = 'Association';
+		}
+		else if(data.reactants.length < data.products.length) {
+			type = 'Dissociation';
+		}
+		else {
+			type = 'Rearrangement';
+		}
+		out.push('<b>'+arity+' '+type+'</b> Reaction ');
+		out.push(
+			'<span class="enum-reaction-well">'+
+			_.map(data.reactants,function(r) { return '<b>'+r+'</b>' }).join(' + ') +
+			' &rarr; ' +
+			_.map(data.products,function(r) { return '<b>'+r+'</b>' }).join(' + ')+
+			'</span>'
+		)
 		
-		if(data.fast) { out+=' (<b>Fast</b>)'; }
-		if(data.slow) { out+=' (<b>Slow</b>)'; }
+		if(data.fast) { out.push(' (<b>Fast</b>)'); }
+		if(data.slow) { out.push(' (<b>Slow</b>)'); }
+
+		if(breakLines) return out.join('<br />')
+		else return out.join('')
+	},
+	getComplexDetails: function (data) {
+		var out = '';
+		out += 'Complex <b>'+data.name+'</b><br />';
+		out += '<span class="enum-strands-well">'+_.map(data.strands,function(s) {return '<b>'+s.name+'</b>';}).join(' + ')+'</span><br />'
+		if(data.initial) { out+='<b>Initial Complex</b><br />'; }
+		if(data.resting) { out+='<b>Resting State</b><br />'; }
+		if(data['transient']) { out+='<b>Transient</b><br />'; }
 		return out;
 	},
 	getNodeDetails: function (data) {
@@ -678,29 +716,10 @@ Ext.define('App.usr.enum.Viewer', {
 		var out = '';
 		switch(data._type) {
 			case 'complex':
-				out += 'Complex <b>'+data.name+'</b><br />';
-				out += '<div class="enum-strands-well">'+_.map(data.strands,function(s) {return '<b>'+s.name+'</b>';}).join(' + ')+'</div>'
-				if(data.initial) { out+='<b>Initial Complex</b><br />'; }
-				if(data.resting) { out+='<b>Resting State</b><br />'; }
-				if(data['transient']) { out+='<b>Transient</b><br />'; }
+				out = this.getComplexDetails(data);
 				break;
 			case 'reaction':
-				var arity;
-				switch(data.reactants.length) {
-					case 1: arity = 'Unimolecular'; break;
-					case 2: arity = 'Bimolecular'; break;
-					case 3: arity = 'Trimolecular'; break;
-					default: arity = 'High order'; break;
-				}
-				out += '<b>'+arity+'</b> Reaction<br />';
-				out += '<div class="enum-reaction-well">'
-				out += _.map(data.reactants,function(r) { return '<b>'+r+'</b>' }).join(' + ');
-				out += ' &rarr; '
-				out += _.map(data.products,function(r) { return '<b>'+r+'</b>' }).join(' + ');
-				out += '</div><br />'
-
-				if(data.fast) { out+='<b>Fast</b><br />'; }
-				if(data.slow) { out+='<b>Slow</b><br />'; }
+				out = this.getReactionDetails(data,true)
 				break;
 		}
 		return out;
@@ -804,7 +823,7 @@ Ext.define('App.usr.enum.Viewer', {
 			
 			var me = this,
 				reactants = _.map(d.reactants, function(r) { return me.complexMap[r] }),
-				products = _.map(d.reactants, function(r) { return me.complexMap[r] }),
+				products = _.map(d.products, function(r) { return me.complexMap[r] }),
 				name = d.name,
 				options = this.getViewOptions();
 
@@ -819,6 +838,7 @@ Ext.define('App.usr.enum.Viewer', {
 					layout: 'fit',
 					width: 700,
 					height: 200,
+					closeAction: 'hide',
 					border: false, bodyBorder: false,
 					title: this.getReactionDetails(d),
 				});
@@ -1054,7 +1074,7 @@ Ext.define('App.usr.enum.ReactionViewer', {
 		else { this.reactant2.show(); this.reactant_plus.show(); }
 
 		for(var i=0; i<Math.min(productViews.length,products.length); i++) {
-			var d = reactants[i],
+			var d = products[i],
 				structure = !!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'],
 				strands = d['strands'];		
 

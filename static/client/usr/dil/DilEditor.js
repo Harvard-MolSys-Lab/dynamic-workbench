@@ -96,8 +96,9 @@ Ext.define('App.usr.dil.DilEditor', {
 				//disabled: true,
 			}, {
 				xtype: 'buttongroup',
-				columns: 1,
+				columns: 2,
 				title: 'Thermodynamics',
+				// width: 80,
 				items: [{
 					xtype: 'splitbutton',
 					text: 'Predict',
@@ -120,6 +121,16 @@ Ext.define('App.usr.dil.DilEditor', {
 						text: 'Predict structures with Mfold',
 						iconCls: 'mfold',
 					}]
+				},{
+					text: 'MFE Structures',
+					iconCls: 'secondary-mfe',
+					handler: this.buildThermMFE,
+					scope: this,
+				},{
+					text: 'Pairwise',
+					iconCls: 'secondary-pairwise',
+					handler: this.buildThermPairwise,
+					scope: this,
 				}],
 				//disabled: true,
 			}, {
@@ -631,7 +642,38 @@ Ext.define('App.usr.dil.DilEditor', {
 	getStrandSequences: function() {
 		return this.strandStore.getSequences();
 	},
-	buildTherm: function (mode) {
+	buildThermMFE: function () {
+		
+		var predefined_complexes = [];
+		var complexes = this.complexStore.getRange();
+		predefined_complexes = _.compact(_.map(complexes, function (complex) {
+			var strands = complex.get('strands')
+			if (strands.length > 1) return strands.join('+');
+			else return null;
+		}));
+		var options = {
+			'max_complex_size':1,
+			'predefined_complexes':predefined_complexes.join('\n')
+		}
+
+		this.buildTherm('nupack',options);
+	},
+	buildThermPairwise: function () {
+		
+		// var predefined_complexes = [];
+		// var complexes = this.complexStore.getRange();
+		// predefined_complexes = _.map(complexes, function (complex) {
+		// 	return complex.get('strands').join('+')
+		// });
+		var options = {
+			'max_complex_size':2,
+			// 'predefined_complexes':predefined_complexes.join('\n')
+		}
+
+		this.buildTherm('nupack',options);
+	},
+
+	buildTherm: function (mode,options) {
 		//var library = this.buildLibrary();
 		var sequences = this.getStrandSequences(), win;
 		mode = mode || 'nupack';
@@ -645,6 +687,7 @@ Ext.define('App.usr.dil.DilEditor', {
 			default:
 				win = Ext.create('App.ui.nupack.PartitionWindow');
 		}
+		if (options) win.setOptions(options);
 		win.show();
 		win.setValue(DNA.printSequences(sequences,':'));
 	},

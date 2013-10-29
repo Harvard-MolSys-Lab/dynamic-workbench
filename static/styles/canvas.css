@@ -808,6 +808,10 @@ path.resting-state-hull {
 	font-weight: normal !important;
 }
 
+.simple-toolbar {
+	background: none !important;	
+}
+
 .citation-bar > .x-panel-body {
 	font-size: smaller;
 }

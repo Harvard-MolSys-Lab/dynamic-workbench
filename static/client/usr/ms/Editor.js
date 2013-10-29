@@ -702,8 +702,25 @@ Ext.define('App.usr.ms.Editor', {
 		// 			{"range":[2,5], "identity":"A"},
 		// 		]
 		var prevented = _.reduce(data['prevented'], function(memo, p) {
+			var seq = (p.range[1] - p.range[0]) + p.identity;
+			p.seq = seq;
+
 			for(var i = p.range[0]; i < p.range[1]; i++) {
-				memo[i] = p;
+				if(!memo[i]) memo[i] = [];
+
+				memo[i].push({
+					seq: seq,
+					index: i - p.range[0] + 1,
+					length: p.range[1] - p.range[0],
+				});
+
+				if(p.changed && p.changed[i]) {
+					if(!changes[i]) {
+						changes[i] = {}
+					}
+					changes[i].base = p.changed[i];
+					changes[i].reason = 'prevented ' + seq
+				}
 			}
 			return memo;
 		}, {});
@@ -745,35 +762,44 @@ Ext.define('App.usr.ms.Editor', {
 				// j = absolute base index
 				// k = complex-wise base index
 
-
-				// add extra links to represent undesired interactions
-				if (undesired[j]) {
-					var l = {
-						source : j - offset,
-						target : undesired[j].target - offset,
-						type : 'undesired'
-					}
-					if (undesired[j].changed) {
-						l.changed = undesired[j].changed;
-					}
-					complexData.links.push(l);
-				}
-
 				// add extra data for particular bases to indicate if they're immutable 
 				// or were changed as part of a prevented sequence.
-				if (immutable[j] || prevented[j] || changes[j]) {
+				if (immutable[j] || prevented[j] || changes[j] || undesired[j]) {
 					complexData.bases[k] = {}
 				}
 				if(immutable[j]) {
 					complexData.bases[k].immutable = true;
 				}
 				if(prevented[j]) {
-					complexData.bases[k].prevented = prevented[j].identity;
+					complexData.bases[k].prevented = prevented[j];
+					// {
+					// 	seq: prevented[j].seq,
+					// 	index: j - prevented[j].range[0] + 1,
+					// 	length: prevented[j].range[1] - prevented[j].range[0],
+					// }
 				}
 				if(changes[j]) {
 					complexData.bases[k].changed = changes[j];	
 				}
 
+				// encode undesired interactions
+				if (undesired[j]) {
+					// add extra links to represent undesired interactions
+					// omit intramolecular undesired interactions
+					if(undesired[j].target <= s.range[1]) {
+						var l = {
+							source : j - offset,
+							target : undesired[j].target - offset,
+							type : 'undesired'
+						}
+						if (undesired[j].changed) {
+							l.changed = undesired[j].changed;
+						}
+						complexData.links.push(l);
+					} else {
+						complexData.bases[k].undesired = true
+					}
+				}
 			}
 
 			// associate the complexData with this strand

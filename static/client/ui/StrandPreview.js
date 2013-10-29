@@ -851,7 +851,12 @@ Ext.define('App.ui.StrandPreview', {
 	getTipBody: function (data) {
 		var out = '<b>'+this.sequenceRenderer(data.base)+'</b> | <b>'+data.strand+'</b> / <b>'+data.segment+'</b> / '+data.segment_index+'<br />';
 		if(data.immutable) { out+='<b>Immutable</b><br />'; }
-		if(data.prevented) { out+='<b>Prevented</b> ('+this.sequenceRenderer(data.prevented)+')<br />'; }
+		if(data.prevented) { 
+			out+=_.map(data.prevented,function(p) {
+				return '<b>Prevented</b> '+this.sequenceRenderer(p.seq)+' ('+p.index+'/'+p.length+') <br />';
+			},this).join('')
+			
+		}
 		if(data.changed) { out+='<b>Changed</b> ('+data.changed.reason+')'; }
 		return out;
 	},

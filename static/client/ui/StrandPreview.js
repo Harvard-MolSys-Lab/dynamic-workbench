@@ -513,6 +513,9 @@ function StrandPreview() {
 						// Hack. Illustrator appears to ignore these values if they're set in CSS on a class
 						return '#fff';
 				}
+			}).attr("pointer-events",function() { 
+				if(showBubbles) return "none"
+				else return "all"
 			});
 	}
 

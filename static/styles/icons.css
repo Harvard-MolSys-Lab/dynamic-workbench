@@ -467,6 +467,21 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 .no-designer {
 	background-image: url(/images/icons/etc/no-designer.png) !important
 }
+.ms-accept-analysis {
+	background-image: url(/images/icons/etc/ms-accept-analysis.png) !important	
+}
+.ms-reject-analysis {
+	background-image: url(/images/icons/etc/ms-accept-analysis.png) !important	
+}
+.ms-revert-design {
+	background-image: url(/images/icons/etc/ms-revert-design.png) !important	
+}
+.ms-load-analysis {
+	background-image: url(/images/icons/etc/ms-load-analysis.png) !important	
+}
+.ms-load-analysis-24 {
+	background-image: url(/images/icons/etc/ms-load-analysis-24.png) !important	
+}
 
 .document-fasta, .fasta {
 	background-image: url(/images/icons/etc/document-fasta.png);

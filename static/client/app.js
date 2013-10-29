@@ -180,6 +180,14 @@ App.Path = App.path = {
 			return name;
 		}
 	},
+	removeExt: function(oldPath) {
+		if(App.path.basename(oldPath).indexOf('.')!=-1) {
+			oldPath = oldPath.split('.');
+			oldPath.pop();
+			return oldPath.join('.')
+		}
+		return oldPath;
+	},
 	/**
 	 * Determines whether the given filename represents a folder
 	 */

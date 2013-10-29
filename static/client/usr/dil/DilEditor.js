@@ -11,7 +11,7 @@ Ext.define('App.usr.dil.DilEditor', {
 		app: 'App.ui.Application',
 		tip: 'App.ui.TipHelper',
 	},
-	requires: ['App.ui.D3Panel', 'App.usr.seq.Editor',  //
+	requires: ['App.ui.D3Panel', 'App.usr.seq.Editor', 'App.usr.dil.HighlightManager', 'App.usr.dil.EditComplexWindow', //
 	'App.usr.dd.SequenceWindow', 'App.ui.SequenceThreader', 'App.ui.AddDomainButton', 'App.ui.StrandPreviewViewMenu',
 	'App.usr.dil.SegmentStore','App.usr.dil.StrandStore','App.usr.dil.ComplexStore',
 	'App.usr.dil.SegmentsGrid','App.usr.dil.StrandsGrid','App.usr.dil.StrandPreviewGrid'],
@@ -546,6 +546,7 @@ Ext.define('App.usr.dil.DilEditor', {
 			return {
 				name: node.getName(),
 				polarity: node.getPolarity(),
+				type: node.type,
 				structure: node.getOrderedSegmentwiseStructure().toDotParen(),
 				strands: _.map(node.getStrands(), function(strand) {
 					return strand.getQualifiedName()
@@ -614,7 +615,8 @@ Ext.define('App.usr.dil.DilEditor', {
 				polarity: complex.get('polarity'),
 				strands: _.map(complexStrands, function(strand) {
 					return strandMap[strand]
-				})
+				}),
+				type: complex.get('type'),
 			};
 
 			nodes.push(node);

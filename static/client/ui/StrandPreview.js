@@ -61,16 +61,17 @@ function StrandPreview() {
 				sequences: structure.sequences,
 				persistenceLength: false,
 			});
-		} else if(structure.dotParen && !structure.structure) {
+		} else if(structure.dotParen && structure.strands && structure.sequences && !structure.structure) {
 			return DNA.generateAdjacency4(structure.dotParen, structure.strands, {
 				extraData: structure.extraData || null,
 				sequences: structure.sequences,
 				persistenceLength: false,
 			});
 		} else if(structure.strands && structure.dotParen && !structure.sequences) {
-			return DNA.generateAdjacency(structure.dotParen,structure.strands,{
-				linkStrands: true,
-			})
+			return DNA.generateAdjacency4(structure.dotParen, structure.strands, {
+				extraData: structure.extraData || null,
+				persistenceLength: false,
+			});
 		} else {
 			return DNA.generateAdjacency2(structure, {
 				linkStrands : true,
@@ -730,8 +731,10 @@ Ext.define('App.ui.StrandPreview', {
 	showSegments : true,
 	segmentColors : null,
 	strandColors : null,
-
 	showToolbar: true,
+	createTip: false,
+	tipDelegate: 'circle',
+	
 	setValue : function(structure, strands, sequences) {
 		if(structure && structure.structure && structure.strands) {
 			this.data = structure;
@@ -814,6 +817,43 @@ Ext.define('App.ui.StrandPreview', {
 				Ext.create('App.ui.StrandPreviewViewMenu',{view: this})];
 		}
 		this.callParent(arguments);
+
+		this.on('afterrender', function() {
+			if(this.createTip) { 
+				this.tip = Ext.create('Ext.tip.ToolTip', {
+					target: this.getEl(),
+					delegate: this.tipDelegate,
+					trackMouse: true,
+					showDelay: false,
+					renderTo: Ext.getBody(),
+					listeners: {
+						// Change content dynamically depending on which element triggered the show.
+						beforeshow: {
+							fn: this.updateTipBody,
+							scope: this
+						}
+					}
+				});
+
+				this.sequenceRenderer = CodeMirror.modeRenderer('sequence');
+			}
+		}, this);
+
+	},
+	updateTipBody: function(tip) {
+		var targetEl = Ext.get(tip.triggerElement).up('g');
+		if(targetEl) { 
+			targetEl = d3.select(targetEl.dom);
+			var data = targetEl.datum()
+			tip.update(this.getTipBody(data));
+		}
+	},
+	getTipBody: function (data) {
+		var out = '<b>'+this.sequenceRenderer(data.base)+'</b> | <b>'+data.strand+'</b> / <b>'+data.segment+'</b> / '+data.segment_index+'<br />';
+		if(data.immutable) { out+='<b>Immutable</b><br />'; }
+		if(data.prevented) { out+='<b>Prevented</b> ('+this.sequenceRenderer(data.prevented)+')<br />'; }
+		if(data.changed) { out+='<b>Changed</b> ('+data.changed.reason+')'; }
+		return out;
 	},
 	toggleForce: function() {
 		if(!this.forceEnabled) {

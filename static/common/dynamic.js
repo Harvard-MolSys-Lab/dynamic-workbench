@@ -3868,7 +3868,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 					domains: 'A[a:t v:c b w:c]i+ B[x:c c y:c d]o- C[z:c e w*:c b* v*:c]o-'
 				},
 			],
-			
+			// ------------------------------------------------------------------------------------------
 			// Version 1
 			[{
 				"name": "m0",

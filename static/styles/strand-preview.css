@@ -45,17 +45,21 @@ g.node > circle {
 
 
 /* Multisubjective */
-g.node.prevented > circle {
-	stroke: yellow !important;
-	stroke-width: 1em;
-}
+
 g.node.immutable > circle {
+	/*stroke: orange !important;
+	stroke-width: 1em;*/
+	opacity: 0.2;
+}
+g.node.prevented > circle {
 	stroke: orange !important;
 	stroke-width: 1em;
+	opacity: 1.0;
 }
 g.node.changed > circle {
 	stroke: #e00 !important;
 	stroke-width: 1em;
+	opacity: 1.0;
 }
 
 

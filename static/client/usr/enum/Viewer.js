@@ -9,11 +9,14 @@ Ext.define('App.usr.enum.Viewer', {
 	},
 	editorType : 'Enumerator',
 	autoRender : false,
-
+	iconCls: 'enum-icon',
 	fontSize: 1,
 	linkWidth: 2,
 	arrowThreshold: 0.25,
 	highlightLinkWidth : 2,
+
+	createTip: true,
+	tipDelegate: 'rect',
 
 	constructor : function() {
 		this.callParent(arguments);
@@ -34,10 +37,35 @@ Ext.define('App.usr.enum.Viewer', {
 		this.currentScale = scale;
 		this.callParent(arguments);
 		this.node.selectAll('text.node-label').style('font-size',this.fontSize/scale+'em');
+		this.node.selectAll('rect.complex').style('stroke-width',this.linkWidth/scale);
 		this.link.style('stroke-width',this.linkWidth/scale);
 		this.link.selectAll('link-reaction-reactant, link-reaction-product').style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
 		this.link.classed("link-reaction-noarrow", scale < this.arrowThreshold)
 		// this.legendg.attr("transform","translate("+ [(-translate[0]),(-translate[1])] +") scale("+ Math.min(1/scale,10) +")");
+	},
+	initComponent: function() {
+		this.callParent(arguments);
+		this.on('afterrender', function() {
+			if(this.createTip) { 
+				this.tip = Ext.create('Ext.tip.ToolTip', {
+					target: this.getEl(),
+					delegate: this.tipDelegate,
+					trackMouse: true,
+					showDelay: false,
+					renderTo: Ext.getBody(),
+					listeners: {
+						// Change content dynamically depending on which element triggered the show.
+						beforeshow: {
+							fn: this.updateTipBody,
+							scope: this
+						}
+					}
+				});
+
+				this.sequenceRenderer = CodeMirror.modeRenderer('sequence');
+			}
+		}, this);
+	
 	},
 	loadData: function() {
 		var data = this.data = JSON.parse(this.data);
@@ -47,7 +75,29 @@ Ext.define('App.usr.enum.Viewer', {
 			return memo;
 		}, {});
 
+		// Grab reaction data
 		var reactions = this.reactions = data['reactions'];
+
+		// Map domain names to specifications
+		var domains = data['domains'], domainMap = {};
+		for(var i=0; i<domains.length; i++) {
+			var domain = domains[i];
+			domainMap[domain.name] = {
+				sequence: Array(domain.length+1).join('N'),
+				name: domain.name,
+			};
+		}
+
+		// Map strand names to specifications
+		var strands = data['strands'], strandMap = {};
+		for(var i =0; i<strands.length; i++) {
+			var strand = strands[i];
+			strand.domains = _.map(strand.domains, function(dom) { return domainMap[dom] });
+			strand.domains = [strand.domains];
+			strandMap[strand.name] = strand;
+		}
+
+
 
 		var complexes;
 		if (data['transient_complexes']) {
@@ -89,6 +139,7 @@ Ext.define('App.usr.enum.Viewer', {
 				x.group = null;
 			}
 			x._index = i;
+			x.strands = _.map(x.strands,function(strand) { return strandMap[strand]; })
 			return x
 		});
 		var complexMap = this.complexMap = _.reduce(complexData, function(memo, x, i) {
@@ -246,18 +297,18 @@ Ext.define('App.usr.enum.Viewer', {
 			'reaction' : '',
 			'reaction-fast' : '#01c',
 			'reaction-slow' : '#a00',
-			'transient' : '#0a0',
-			'complex' : 'green',
-			'resting' : 'green',
-			'initial' : 'green',
+			'transient' : '#fff',
+			'complex' : '#fff',
+			'resting' : '#fff',
+			'initial' : '#fff',
 		};
 		strokes = {
 			'reaction-fast' : '#fff',
 			'reaction-slow' : '#fff',
-			'transient' : '#fff',
-			'complex' : '#fff',
+			'transient' : '#ddd',
+			'complex' : '#ddd',
 			'initial' : 'yellow',
-			'resting' : 'white',
+			'resting' : '#ddd',
 		};
 
 
@@ -511,10 +562,7 @@ Ext.define('App.usr.enum.Viewer', {
 			panel.attr("height", svgBBox.height + 10);
 			me.rect.attr("width", svgBBox.width + 10);
 			me.rect.attr("height", svgBBox.height + 10);
-			
 		}	
-		
-
 	},
 	showReaction: function (d, node) {
 		if(d._type=='reaction')	{
@@ -531,21 +579,83 @@ Ext.define('App.usr.enum.Viewer', {
 					width: 700,
 					height: 200,
 					border: false, bodyBorder: false,
+					segmentColors: this.getSegmentColorScale(),
+					strandColors: this.getStrandColorScale(),
 				});
 			}
 			this.reactionWindow.show()
 			this.reactionPanel.setValue(d,reactants,products)
 		}
 	},
+	updateTipBody: function(tip) {
+		var targetEl = Ext.get(tip.triggerElement).up('g');
+		if(targetEl) { 
+			targetEl = d3.select(targetEl.dom);
+			if(targetEl.classed('enum-node')) {
+				var data = targetEl.datum()
+				tip.update(this.getTipBody(data));
+			} else {
+				return false;
+			}
+		}
+	},
+	getTipBody: function (data) {
+		// var out = '<b>'+this.sequenceRenderer(data.base)+'</b> | <b>'+data.strand+'</b> / <b>'+data.segment+'</b> / '+data.segment_index+'<br />';
+		// if(data.immutable) { out+='<b>Immutable</b><br />'; }
+		// if(data.prevented) { out+='<b>Prevented</b> ('+this.sequenceRenderer(data.prevented)+')<br />'; }
+		// if(data.changed) { out+='<b>Changed</b> ('+data.changed.reason+')'; }
+		var out = '';
+		switch(data._type) {
+			case 'complex':
+				out += 'Complex <b>'+data.name+'</b><br />';
+				out += '<div class="enum-strands-well">'+_.map(data.strands,function(s) {return '<b>'+s.name+'</b>';}).join(' + ')+'</div>'
+				if(data.initial) { out+='<b>Initial Complex</b><br />'; }
+				if(data.resting) { out+='<b>Resting State</b><br />'; }
+				if(data['transient']) { out+='<b>Transient</b><br />'; }
+				break;
+			case 'reaction':
+				var arity;
+				switch(data.reactants.length) {
+					case 1: arity = 'Unimolecular'; break;
+					case 2: arity = 'Bimolecular'; break;
+					case 3: arity = 'Trimolecular'; break;
+					default: arity = 'High order'; break;
+				}
+				out += '<b>'+arity+'</b> Reaction<br />';
+				out += '<div class="enum-reaction-well">'
+				out += _.map(data.reactants,function(r) { return '<b>'+r+'</b>' }).join(' + ');
+				out += ' &rarr; '
+				out += _.map(data.products,function(r) { return '<b>'+r+'</b>' }).join(' + ');
+				out += '</div><br />'
+
+				if(data.fast) { out+='<b>Fast</b><br />'; }
+				if(data.slow) { out+='<b>Slow</b><br />'; }
+				break;
+		}
+		return out;
+	},
 	renderPreview: function(d,node) {
 		var structure = !!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'],
-			strands = !!d['strands'] || null,
+			strands = d['strands'] || null,
 			panel = d3.select(node),
-			data = structure; //{ dotParen: structure, strands: strands };
+			data = { dotParen: structure, strands: strands };
 
-		this.previewPanels[d.name] = StrandPreview(panel).width(d.width).height(d.height)
+		this.previewPanels[d.name] = StrandPreview(panel).width(d.width).height(d.height).segmentColors(this.getSegmentColorScale()).strandColors(this.getStrandColorScale())
 		this.complexWindows[d.name] = this.previewPanels[d.name] (panel.data([data]));
 	},
+	getSegmentColorScale: function() {
+		if(!this.segmentColors) {
+			this.segmentColors = d3.scale.category20();
+		}
+		return this.segmentColors;
+	},
+	getStrandColorScale: function() {
+		if(!this.strandColors) {
+			this.strandColors = d3.scale.category20();
+		}
+		return this.strandColors;	
+	},
+
 	// showWindow : function(d, node) {
 	// 	if (!this.complexWindows[d.name]) {
 	// 		var strands = d['strands'];
@@ -731,8 +841,8 @@ Ext.define('App.usr.enum.ReactionViewer', {
 				structure = !!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'],
 				strands = d['strands'];
 
-			reactantViews[i].setValue(structure,strands);
-			reactantViews[i].setTitle(strands.join('+'));
+			reactantViews[i].setValue({dotParen: structure,strands: strands});
+			reactantViews[i].setTitle(_.map(strands,function(s) {return s.name;}).join(' + '));
 
 		}
 		if(reactants.length<2) { this.reactant2.hide(); this.reactant_plus.hide(); }
@@ -743,11 +853,23 @@ Ext.define('App.usr.enum.ReactionViewer', {
 				structure = !!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'],
 				strands = d['strands'];		
 
-			productViews[i].setValue(structure,strands);
-			productViews[i].setTitle(strands.join('+'));
+			productViews[i].setValue({dotParen: structure,strands: strands});
+			productViews[i].setTitle(_.map(strands,function(s) {return s.name;}).join('+'));
 		}
 
 		if(products.length<2) { this.product2.hide(); this.product_plus.hide(); }
 		else { this.product2.show(); this.product_plus.show(); }
-	}
+	},
+	getSegmentColorScale: function() {
+		if(!this.segmentColors) {
+			this.segmentColors = d3.scale.category20();
+		}
+		return this.segmentColors;
+	},
+	getStrandColorScale: function() {
+		if(!this.strandColors) {
+			this.strandColors = d3.scale.category20();
+		}
+		return this.strandColors;	
+	},
 });

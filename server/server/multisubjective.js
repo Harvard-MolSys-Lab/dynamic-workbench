@@ -6,7 +6,7 @@ var utils = require('utils'), //
 	_ = require('underscore'),
 	async = require('async'), //
 	winston = require('winston'), //
-	ansispan = require('ansispan'),
+	// ansispan = require('ansispan'),
 	glob = require('glob');
 
 // Utils abbreviations
@@ -25,7 +25,7 @@ var sendError = utils.sendError,
 		},
 	},
 
-	maxBuffer = 1000 * 1024;
+	maxBuffer = 5000 * 1024;
 
 // http://stackoverflow.com/questions/11293857/fastest-way-to-copy-file-in-node-js/11295106#11295106
 function copyFile(source, target, cb) {

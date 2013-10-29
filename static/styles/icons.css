@@ -527,6 +527,12 @@ background-image: url(/images/icons/fugue/document-attribute-r.png) !important;
 .secondary {
 	background-image: url(/images/icons/etc/secondary.png) !important;
 }
+.secondary-mfe {
+	background-image: url(/images/icons/etc/secondary-mfe.png) !important;
+}
+.secondary-pairwise, .secondary-mfe-pairwise {
+	background-image: url(/images/icons/etc/secondary-mfe-pairwise.png) !important;
+}
 .pepper, .sys {
 	background-image: url(/images/icons/etc/Capsicum-2-icon.png) !important;
 }

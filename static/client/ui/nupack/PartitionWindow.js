@@ -1,4 +1,4 @@
-/**
+/*
  * Shows a window allowing submission of sequences to the NUPACK web server for Partition function and MFE structure calculation.
  */
 Ext.define('App.ui.nupack.PartitionWindow',{
@@ -80,6 +80,7 @@ Ext.define('App.ui.nupack.PartitionWindow',{
 				fieldLabel : 'Temperature (°C)',
 			}, {
 				name: 'partition_job[max_complex_size]',
+				ref: 'max_complex_size',
 				xtype: 'numberfield',
 				value: 1,
 				fieldLabel : 'Max Complex Size',
@@ -144,6 +145,12 @@ Ext.define('App.ui.nupack.PartitionWindow',{
 				xtype: 'hidden',
 				value: '',
 			},{
+				// name: 'partition_job[predefined_complexes]',
+				ref: 'predefined_complexes', // add because Ext.ComponentQuery doesn't like names with []
+				xtype: 'textarea',
+				fieldLabel: 'Additional Complexes',
+				value: '',
+			},{
 				name: 'partition_job[email_address]',
 				fieldLabel: 'Email'
 			},{
@@ -202,30 +209,55 @@ Ext.define('App.ui.nupack.PartitionWindow',{
 			}
 		}));
 		
+		// allows splitting sequences into ranges
 		if(end_index == null) {
 			partition_sequence = partition_sequence.slice(start_index);
 		} else {
 			partition_sequence = partition_sequence.slice(start_index,end_index);
 		}
-		
-		return _.reduce(partition_sequence,function(memo,strand,i) {
-				memo['partition_sequence['+i+'][name]'] = strand.name;
-				memo['partition_sequence['+i+'][concentration]'] = strand.concentration;
-				memo['partition_sequence['+i+'][scale]'] = strand.scale;
-				memo['partition_sequence['+i+'][contents]'] = strand.contents;
-				return memo;
-			},{
-				'partition_job[min_melt_temperature]':'',
-				'partition_job[is_melt]':0,
-				'partition_job[melt_temperature_increment]':'',
-				'partition_job[max_melt_temperature]':'',
-				'partition_job[num_sequences]':partition_sequence.length,
-				'partition_job[pseudoknots]':0,
-				'partition_job[predefined_complexes]':'',
-				'partition_job[filter_min_fraction_of_max]':'',
-				'partition_job[filter_max_number]':'',
-			});
 
+		// build output data
+		var strand_indices = {};
+		var memo = {
+			'partition_job[min_melt_temperature]':'',
+			'partition_job[is_melt]':0,
+			'partition_job[melt_temperature_increment]':'',
+			'partition_job[max_melt_temperature]':'',
+			'partition_job[num_sequences]':partition_sequence.length,
+			'partition_job[pseudoknots]':0,
+			'partition_job[predefined_complexes]':'',
+			'partition_job[filter_min_fraction_of_max]':'',
+			'partition_job[filter_max_number]':'',
+		};
+
+		for(var i = 0; i < partition_sequence.length; i++) {
+			var strand = partition_sequence[i];
+			memo['partition_sequence['+i+'][name]'] = strand.name;
+			memo['partition_sequence['+i+'][concentration]'] = strand.concentration;
+			memo['partition_sequence['+i+'][scale]'] = strand.scale;
+			memo['partition_sequence['+i+'][contents]'] = strand.contents;
+			strand_indices[strand.name] = i+1;
+		}
+
+		// specify additional complexes
+	var predefined_complexes = (this.down('[ref=predefined_complexes]').getValue() || '').split('\n'),
+			additionalComplexes = [];
+		for(var i = 0; i < predefined_complexes.length; i++) {
+			var complexString = predefined_complexes[i].split('+'),
+				complex = [], strandName;
+			for(var j=0;j<complexString.length;j++) {
+				strandName = complexString[j].trim();
+				if(strand_indices[strandName] !== undefined) {
+					complex.push(strand_indices[strandName])
+				}
+			}
+			if(complex.length > 0) {
+				additionalComplexes.push(complex.join(' '))
+			}
+		}
+		memo['partition_job[predefined_complexes]'] = additionalComplexes.join('\n');
+
+		return memo;
 	}
 })
 

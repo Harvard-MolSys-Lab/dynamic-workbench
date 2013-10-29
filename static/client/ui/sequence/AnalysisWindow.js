@@ -98,5 +98,13 @@ Ext.define('App.ui.sequence.AnalysisWindow',{
 	updateStrands: function(strands) {
 		var strandsField = this.down('codemirror');
 		strandsField.setValue(strands);
-	}
+	},
+	setOptions: function(options) {
+		for(var name in options) {
+			var cmp = this.down('[ref="'+name+'"]');
+			if(cmp && cmp.setValue) {
+				cmp.setValue(options[name])
+			}
+		}
+	},
 })

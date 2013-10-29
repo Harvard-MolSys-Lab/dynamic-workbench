@@ -740,8 +740,8 @@ Ext.define('App.usr.enum.Viewer', {
 		for(var name in charts) {
 			panel = this.previewPanels[name]._node;
 			data = this.previewPanels[name]._data;
-			this.previewCharts[name] = this.previewCharts[name].options(options);
 			panel.selectAll('g').remove();
+			this.previewCharts[name] = this.previewCharts[name].options(options);
 			this.previewPanels[name] = this.previewCharts[name] (panel.data([data]))
 			this.previewPanels[name]._node = panel;
 			this.previewPanels[name]._data = data;
@@ -804,13 +804,13 @@ Ext.define('App.usr.enum.Viewer', {
 	},
 	getSegmentColorScale: function() {
 		if(!this.segmentColors) {
-			this.segmentColors = d3.scale.category20();
+			this.segmentColors = StrandPreview.defaultSegmentColors();
 		}
 		return this.segmentColors;
 	},
 	getStrandColorScale: function() {
 		if(!this.strandColors) {
-			this.strandColors = d3.scale.ordinal().range(colorbrewer.Set3[12]); //d3.scale.category20b();
+			this.strandColors = StrandPreview.defaultStrandColors(); //d3.scale.ordinal().range(colorbrewer.Set3[12]); //d3.scale.category20b();
 		}
 		return this.strandColors;	
 	},

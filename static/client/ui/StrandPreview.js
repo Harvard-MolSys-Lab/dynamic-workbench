@@ -868,9 +868,10 @@ Ext.define('App.ui.StrandPreview', {
 	segmentColors : null,
 	strandColors : null,
 	showToolbar: true,
+	simpleToolbar: true,
 	createTip: false,
 	tipDelegate: 'circle',
-	
+
 	setValue : function(structure, strands, sequences) {
 		if(structure && structure.structure && structure.strands) {
 			this.data = structure;
@@ -892,13 +893,7 @@ Ext.define('App.ui.StrandPreview', {
 			this.strands = strands;
 			this.sequences = sequences;
 		}
-		// if(structure) {
-			// this.buildVis();
-		// } else {
-			// this.force.nodes([]).links([])
-		// }
 		this.buildVis();
-		// this.restart();
 	},
 	buildVis : function() {
 		var panel = this.getCanvas();
@@ -920,7 +915,8 @@ Ext.define('App.ui.StrandPreview', {
 		this.preview = this.chart(panel.data([this.data]));
 	},
 	updateChartProperties: function() {
-		this.buildVis();
+		if(this.rendered)
+			this.buildVis();
 	},
 	highlight: function(criteria) {
 		this.preview.highlight(criteria);
@@ -930,33 +926,40 @@ Ext.define('App.ui.StrandPreview', {
 	},
 	initComponent : function() {
 		if(this.showToolbar) {
-			this.bbar = [{
-				iconCls:'dot-paren-icon',
-				handler: this.toDotParen,
-				scope: this,
-				tooltip: 'Show structure in dot-parenthesis notation'
-			},{
-				iconCls:'du-plus-icon',
-				handler: this.toDUPlus,
-				scope: this,
-				tooltip: 'Show structure in DU-plus (Zadeh) notation'
-			},{
-				iconCls: 'svg',
-				handler: this.toSVG,
-				scope: this,
-				tooltip: 'Show SVG code for structure'
-			},'->',
-			// {
-			// 	text: 'Interactive',
-			// 	enableToggle: true,
-			// 	toggleHandler: this.toggleForce,
-			// 	scope: this,
-			// },
-				Ext.create('App.ui.StrandPreviewViewMenu',{view: this})];
+			this.viewMenu = Ext.create('App.ui.StrandPreviewViewMenu',{view: this});
+			this.bbar = {
+				cls: this.simpleToolbar ? 'simple-toolbar' : '', 
+				items:[{
+					iconCls:'dot-paren-icon',
+					handler: this.toDotParen,
+					scope: this,
+					tooltip: 'Show structure in dot-parenthesis notation'
+				},{
+					iconCls:'du-plus-icon',
+					handler: this.toDUPlus,
+					scope: this,
+					tooltip: 'Show structure in DU-plus (Zadeh) notation'
+				},{
+					iconCls: 'svg',
+					handler: this.toSVG,
+					scope: this,
+					tooltip: 'Show SVG code for structure'
+				},'->',
+				// {
+				// 	text: 'Interactive',
+				// 	enableToggle: true,
+				// 	toggleHandler: this.toggleForce,
+				// 	scope: this,
+				// },
+				this.viewMenu]
+			};
 		}
 		this.callParent(arguments);
 
 		this.on('afterrender', function() {
+			if(this.viewOptions)
+				this.viewMenu.setOptions(this.viewOptions)
+
 			if(this.createTip) { 
 				this.tip = Ext.create('Ext.tip.ToolTip', {
 					target: this.getEl(),

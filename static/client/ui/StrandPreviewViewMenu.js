@@ -142,37 +142,30 @@ Ext.define('App.ui.StrandPreviewViewMenu',{
 		this.updateView({'baseColor':color});
 	},
 	updateView: function(opts) {
-		Ext.apply(this.view,opts);
-		this.view.updateChartProperties();
+		if(this.view) {
+			Ext.apply(this.view,opts);
+			this.view.updateChartProperties();
+		}
 	},
 	setComplexViewBubbles: function(showBubbles) {
 		this.setComplexViewShow('bubbles',showBubbles);
 	},
 	setComplexViewShow: function(property,show) {
-		// var opts = {}
-		// switch(property) {
-		// 	case 'bubbles':
-		// 		opts.showBubbles = show;
-		// 		break;
-		// 	case 'bases':
-		// 		opts.showBases = show;
-		// 		break;
-		// 	case 'indexes':
-		// 		opts.showIndexes = show;
-		// 		break;
-		// 	case 'segments':
-		// 		opts.showSegments = show;
-		// 		break;
-		// 	case 'strands':
-		// 		opts.showStrands = show;
-		// 		break;
-		// }
 		this.setComplexViewMode(this.complexViewMode);
 	},
 	setComplexViewMode: function(mode) {
 		this.complexViewMode = mode;
 		var opts = this.buildOptions(mode);
 		this.updateView(opts);
+	},
+	setOptions: function(opts) {
+		opts = opts || {};
+		if(opts.showBubbles  !== undefined) this.showBubbles.setChecked(opts.showBubbles);
+		if(opts.showIndexes  !== undefined) this.showIndexes.setChecked(opts.showIndexes);
+		if(opts.showBases    !== undefined) this.showBases.setChecked(opts.showBases);
+		if(opts.showSegments !== undefined) this.showSegments.setChecked(opts.showSegments);
+		if(opts.showStrands  !== undefined) this.showStrands.setChecked(opts.showStrands);
+		if(opts.complexViewMode) this.setComplexViewMode(opts.complexViewMode)
 	},
 	getOptions: function() {
 		return this.buildOptions(this.getComplexViewMode());

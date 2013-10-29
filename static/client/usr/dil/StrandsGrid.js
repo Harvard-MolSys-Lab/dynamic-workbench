@@ -5,7 +5,7 @@
 Ext.define('App.usr.dil.StrandsGrid',{
 	extend: 'Ext.grid.Panel',
 	alias: 'widget.strandsgrid',
-	requires: ['App.usr.dil.StrandStore'],
+	requires: ['App.usr.dil.StrandStore', 'App.usr.seq.Editor'],
 	mixins: {
 		tip: 'App.ui.TipHelper'
 	},
@@ -74,8 +74,39 @@ Ext.define('App.usr.dil.StrandsGrid',{
 				handler: this.doDeleteStrand,
 				scope: this,
 				tooltip: "Click to delete the selected strand(s)."
+			},'-',{
+				text: 'Export',
+				iconCls: 'document-export',
+				tooltip: 'Generate various input and output formats, or transform the strands for output',
+				menu: {
+					items:[{
+						text: 'To FASTA',
+						iconCls: 'fasta',
+						handler: function () { this.exportData('fasta'); },
+						scope: this,
+					},{
+						text: 'To NUPACK',
+						iconCls: 'nupack',
+						handler: function () { this.exportData('nupack'); },
+						scope: this,
+					},{
+						text: 'To Excel/TSV',
+						iconCls: 'document-excel',
+						handler: function () { this.exportData('tsv'); },
+						scope: this,
+					},{
+						text: 'To CSV',
+						iconCls: 'document-csv',
+						handler: function () { this.exportData('csv'); },
+						scope: this,
+					},{
+						text: 'To Plain text',
+						iconCls: 'txt',
+						handler: function () { this.exportData(''); },
+						scope: this,
+					}],
+				}
 			}],
-
 			columns: [{
 				text: 'Name',
 				dataIndex: 'name',
@@ -212,4 +243,26 @@ Ext.define('App.usr.dil.StrandsGrid',{
 	doDeleteStrand: function() {
 		return this.deleteStrand();
 	},
+	exportData: function(mode) {
+		var sequences = this.store.getSequences(),
+			data = DNA.printSequences(sequences,mode);
+
+		this.showExportWindow(data);
+	},
+	showExportWindow: function(data) {
+		if(!this.exportWindow) {
+			this.exportView = Ext.create('App.usr.seq.Editor');
+			this.exportWindow = Ext.create('Ext.window.Window',{
+				title: 'Export Sequences',
+				iconCls: 'export',
+				items: [this.exportView],
+				layout: 'fit', 
+				border: false, bodyBorder: false,
+				width: 500,
+				height: 400,
+			})
+		}
+		this.exportWindow.show();
+		this.exportView.setValue(data);
+	}
 });

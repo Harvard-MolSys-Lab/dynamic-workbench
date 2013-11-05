@@ -37,19 +37,7 @@ Ext.define('App.usr.enum.Viewer', {
 		this.afterrender();
 		// this.reactionWindow.show();
 	},
-	redraw: function (translate,scale) {
-		var me = this;
-		this.currentScale = scale;
-		this.callParent(arguments);
-		this.node.selectAll('text.node-label').style('font-size',this.fontSize/scale+'em');
-		this.node.selectAll('rect.complex').style('stroke-width',this.linkWidth/scale);
-		this.node.selectAll('rect.reaction').style('stroke-width',this.linkWidth/scale);
-		
-		this.link.style('stroke-width',this.linkWidth/scale);
-		this.link.selectAll('link-reaction-reactant, link-reaction-product').style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
-		this.link.classed("link-reaction-noarrow", scale < this.arrowThreshold)
-		// this.legendg.attr("transform","translate("+ [(-translate[0]),(-translate[1])] +") scale("+ Math.min(1/scale,10) +")");
-	},
+	
 	initComponent: function() {
 		this.viewMenu = Ext.create('App.ui.StrandPreviewViewMenu',{ view:null });
 		this.viewMenu.setOptions({
@@ -65,6 +53,15 @@ Ext.define('App.usr.enum.Viewer', {
 				iconCls: 'window-secondary',
 				handler: this.viewDetails,
 				scope: this,
+			},{
+				text: 'Export',
+				iconCls: 'document-export',
+				menu: [{
+					text: 'To SVG',
+					iconCls: 'svg',
+					handler: this.toSVG,
+					scope: this,
+				}]
 			},this.viewMenu]
 		})
 
@@ -99,6 +96,27 @@ Ext.define('App.usr.enum.Viewer', {
 		}, this);
 		this.viewMenu.updateView = Ext.bind(this.updatePreviews,this);
 	
+	},
+	toSVG: function (btn) {
+		this.svgWindow = Ext.create('App.ui.SVGEditorWindow',{
+			stylesUrl: 'styles/enumerator.css',
+			title: 'SVG',
+		});
+		this.svgWindow.show()
+		this.svgWindow.setValue(this.getCanvasMarkup())
+	},
+	redraw: function (translate,scale) {
+		var me = this;
+		this.currentScale = scale;
+		this.callParent(arguments);
+		this.node.selectAll('text.node-label').style('font-size',this.fontSize/scale+'em');
+		this.node.selectAll('rect.complex').style('stroke-width',this.linkWidth/scale);
+		this.node.selectAll('rect.reaction').style('stroke-width',this.linkWidth/scale);
+		
+		this.link.style('stroke-width',this.linkWidth/scale);
+		this.link.selectAll('link-reaction-reactant, link-reaction-product').style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
+		this.link.classed("link-reaction-noarrow", scale < this.arrowThreshold)
+		// this.legendg.attr("transform","translate("+ [(-translate[0]),(-translate[1])] +") scale("+ Math.min(1/scale,10) +")");
 	},
 	viewDetails: function() {
 		var elements = this.getSelection(), data = !!elements ? elements.data() : [];

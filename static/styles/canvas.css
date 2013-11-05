@@ -620,69 +620,7 @@ ul.dashboard-actions li a:hover {
 }
 
 
-/* Enumerator reaction graph */
 
-.link-reaction {
-	stroke: #ccc;
-	marker-mid: url(#reaction-arrow);
-}
-.link-reaction-noarrow {
-	marker-mid: none;
-}
-
-.link-reaction-blurred {
-	opacity: 0.3;
-}
-.link-reaction-reactant {
-	/*stroke-dasharray:5,2;*/
-}
-.link-reaction-product {
-	/*stroke-dasharray:2,2;*/
-}
-
-.node-blurred {
-	opacity: 0.3;
-}
-.reaction-fast {
-	fill: #01c;
-	stroke: #fff;
-}
-.reaction-slow {
-	fill: #a00;
-	stroke: #fff;
-}
-
-.enum-selected > text {
-	font-weight: bold;
-	fill: red;
-}
-
-.enum-selected > rect.reaction-fast, .enum-selected > rect.reaction-slow {
-	stroke: red;
-}
-
-.complex {
-	fill: white;
-	stroke: #888;
-	/*stroke-width: 1em;*/
-}
-.complex-transient {
-	stroke-dasharray:1.5em;
-}
-.complex-resting {
-	fill: #ffa;
-}
-.complex-initial {
-	fill: #efb;
-}
-.resting-state {
-/*	fill: yellow;
-	stroke: #fff;
-*/}
-.node-label {
-	fill: #111;
-	text-shadow:1px 1px 2px white;
-}
 path.hull {
   fill: blue;
   fill-opacity: 0.3;

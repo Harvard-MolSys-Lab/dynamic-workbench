@@ -1050,33 +1050,41 @@ Ext.define('App.ui.StrandPreview', {
 		var value = DNA.dotParenToDU(this.getStructure());
 		this.showWindow('DU+',value,btn);
 	},
-	toSVG: function(btn) {
-		if(!this.svgStyles) {
-			Ext.Ajax.request({
-			    url: 'styles/strand-preview.css',
-			    success: function(response){
-			        this.svgStyles = response.responseText;
-			        this.doDisplaySVGWindow()
-			    },
-			    scope: this,
-			});
-		} else {
-			this.doDisplaySVGWindow();
-		}
-	},
-	doDisplaySVGWindow: function() {
-		var value = '<?xml version="1.0" encoding="UTF-8" ?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">'+this.getCanvasMarkup();
-
-		// Sorry Cthulhu... http://www.codinghorror.com/blog/2009/11/parsing-html-the-cthulhu-way.html
-		value = value.replace(/<svg(\b[^>]*)>/g,'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" $1><style type="text/css"><![CDATA[' + this.svgStyles + ']]></style>');
-
-		this.svgWindow = Ext.create('App.ui.StrandPreviewTextWindow',{
+	toSVG: function (btn) {
+		this.svgWindow = Ext.create('App.ui.SVGEditorWindow',{
+			stylesUrl: 'styles/strand-preview.css',
 			title: 'SVG',
 		});
-		this.svgWindow.show();
-		this.svgWindow.setValue(value);
-		//this.showWindow('SVG',value,btn);
+		this.svgWindow.show()
+		this.svgWindow.setValue(this.getCanvasMarkup())
 	},
+	// toSVG: function(btn) {
+	// 	if(!this.svgStyles) {
+	// 		Ext.Ajax.request({
+	// 		    url: 'styles/strand-preview.css',
+	// 		    success: function(response){
+	// 		        this.svgStyles = response.responseText;
+	// 		        this.doDisplaySVGWindow()
+	// 		    },
+	// 		    scope: this,
+	// 		});
+	// 	} else {
+	// 		this.doDisplaySVGWindow();
+	// 	}
+	// },
+	// doDisplaySVGWindow: function() {
+	// 	var value = '<?xml version="1.0" encoding="UTF-8" ?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">'+this.getCanvasMarkup();
+
+	// 	// Sorry Cthulhu... http://www.codinghorror.com/blog/2009/11/parsing-html-the-cthulhu-way.html
+	// 	value = value.replace(/<svg(\b[^>]*)>/g,'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" $1><style type="text/css"><![CDATA[' + this.svgStyles + ']]></style>');
+
+	// 	this.svgWindow = Ext.create('App.ui.StrandPreviewTextWindow',{
+	// 		title: 'SVG',
+	// 	});
+	// 	this.svgWindow.show();
+	// 	this.svgWindow.setValue(value);
+	// 	//this.showWindow('SVG',value,btn);
+	// },
 });
 
 Ext.define('App.ui.StrandPreviewTextWindow',{

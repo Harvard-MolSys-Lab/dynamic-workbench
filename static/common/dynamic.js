@@ -2049,7 +2049,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 				return 'd'+id;
 			}
 			function structureName(nodeName) {
-				return nodeName + '_structure';
+				return nodeName; // + '_structure';
 			}
 
 			
@@ -2060,7 +2060,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 			// 		sodium[M] = 1.0       # optional units: M (default), mM, uM, nM, pM
 			// 		dangles = some
 			
-			out = out.concat(["material = dna", "temperature[C] = 23.0", "trials = 3", "sodium[M] = 1.0", "dangles = some"]);
+			out = out.push(["material = dna", 
+				"temperature[C] = 23.0", 
+				"trials = 3", 
+				"sodium[M] = 1.0", 
+				"dangles = some"].join('\n'));
 
 
 			// print multisubjective-specific metadata and structure info

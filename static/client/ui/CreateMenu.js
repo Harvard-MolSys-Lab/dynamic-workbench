@@ -179,6 +179,10 @@ Ext.define('App.ui.CreateMenu', {
 				iconCls: 'pil',
 				type: 'pil',
 			},'-',{
+				text: 'Multisubjective Sequence Design',
+				iconCls: 'ms',
+				type: 'ms',
+			},{
 				text: 'NUPACK Multi-objective script',
 				iconCls: 'nupack',
 				type: 'np',
@@ -186,15 +190,17 @@ Ext.define('App.ui.CreateMenu', {
 				text: 'Sequence',
 				iconCls: 'seq',
 				type: 'seq',
-			},{
-				text: 'Primary Structure',
-				iconCls: 'line',
-				type: 'primary',
-			},{
-				text: 'Secondary Structure',
-				iconCls: 'polyline',
-				type: 'secondary',
-			},'-',{
+			},
+			// {
+			// 	text: 'Primary Structure',
+			// 	iconCls: 'line',
+			// 	type: 'primary',
+			// },{
+			// 	text: 'Secondary Structure',
+			// 	iconCls: 'polyline',
+			// 	type: 'secondary',
+			// },
+			'-',{
 				text: 'Chemical Reaction Network',
 				iconCls: 'crn',
 				type: 'crn',

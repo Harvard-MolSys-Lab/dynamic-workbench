@@ -198,7 +198,12 @@ Ext.define('App.ui.Dashboard', {
 		        		},{
 		        			text: 'Multisubjective',
 		        			iconCls: 'ms-icon',
-		        			handler: App.ui.Launcher.makeLauncher('msedit')
+		        			menu: Ext.create('App.ui.CreateMenu',{
+			        			smartCreate: true,
+			        			defaultType: 'ms',
+			        			autoCreateMenu: false,
+			        		}),
+		        			// handler: App.ui.Launcher.makeLauncher('msedit')
 		        		},{
 		        			text: 'Spurious C',
 		        			iconCls: 'spuriousC spurious',

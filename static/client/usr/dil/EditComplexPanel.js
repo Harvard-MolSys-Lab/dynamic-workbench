@@ -126,7 +126,11 @@ Ext.define('App.usr.dil.EditComplexPanel', {
 	updateView: function() {
 		var me = this;
 		if(!!this.segmentColors) this.strandPreview.segmentColors = this.segmentColors;
-		this.strandPreview.setValue(this.complexData);
+		try { 
+			this.strandPreview.setValue(this.complexData);
+		} catch (e) { 
+			// swallow error from invalid structure 
+		}
 		this.segmentsField.setValue(_.map(this.complexData.strands, function(strand) {
 			return me.buildStrandGlyph(strand);
 		}).join(' + ') || '(click to edit)');	

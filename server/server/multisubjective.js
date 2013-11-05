@@ -97,7 +97,8 @@ exports.start = function(req, res, params) {
 
 	switch (action) {
 		case 'clean':
-			var pattern = path.join(working_dir, pre) + '{-*.{dd,msq,},.mso,.log},' + path.join(working_dir, 'candidate') + '{-*.{dd,msq},.mso}';
+			var pattern = '{' + path.join(working_dir, pre) + '{-*.{dd,msq,},.mso,.log}' + ',' 
+				+ path.join(working_dir, 'candidate') + '{-*.{dd,msq},.mso}' + '}';
 			utils.log({
 				level: 'info',
 				source: 'ms',

@@ -147,8 +147,8 @@ Ext.define('App.ui.FilesTree', {
 						                	desc = App.Files.getTypeDesc(ext);
 						                
 						                if(desc || title) {
-							                tip.setTitle(title+'&nbsp;&nbsp;');
-							                tip.update(desc);
+							                if(title) tip.setTitle(title+'&nbsp;&nbsp;');
+							                tip.update(desc || title);
 						                } else {
 						                	return false;
 						                }

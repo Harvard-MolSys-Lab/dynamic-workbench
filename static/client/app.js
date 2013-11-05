@@ -326,6 +326,7 @@ Ext.define('App.Files',{
 		return this.getDescription(ext);
 	},
 	getTypeDesc: function(ext) {
+		if(ext == '') { return 'Folders contain other files'; }
 		return this.getDescription(ext);
 	},
 	getName: function(ext) {

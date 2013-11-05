@@ -240,13 +240,13 @@ var types = [{
 	"iconCls" : "package",
 	"trigger" : "package",
 	"name" : "Package",
-	"description": "",
+	"description": "Packages are folders that contain specific types of files. Double-click a package to open the entire package in an application.",
 }, {
 	"type" : "app",
 	"iconCls" : "app",
 	"trigger" : "app",
 	"name" : "Application",
-	"description": "",
+	"description": "Application bundles are folders that contain code for new Workbench applications. Double-click to start the application.",
 }];
 
 // var triggers = {

@@ -2060,7 +2060,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			// 		sodium[M] = 1.0       # optional units: M (default), mM, uM, nM, pM
 			// 		dangles = some
 			
-			out = out.push(["material = dna", 
+			out.push(["material = dna", 
 				"temperature[C] = 23.0", 
 				"trials = 3", 
 				"sodium[M] = 1.0", 

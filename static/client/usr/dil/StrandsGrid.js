@@ -112,6 +112,9 @@ Ext.define('App.usr.dil.StrandsGrid',{
 				dataIndex: 'name',
 				allowBlank: false,
 				width: 90,
+				editor: {
+	                allowBlank: false
+	            }
 			}, {
 				text: 'Sequence',
 				dataIndex: 'sequence',

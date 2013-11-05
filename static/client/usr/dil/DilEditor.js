@@ -547,6 +547,7 @@ Ext.define('App.usr.dil.DilEditor', {
 			strandStore.add(_.map(node.getStrands() || [], function(strand) {
 				return {
 					name: strand.getQualifiedName(),
+					prefix: node.getName()+'_',
 					sequence: strand.getSequence(),
 					complex: strand.getNode().getName(),
 					spec: strand.printDomains( /* omitLengths */ true),
@@ -595,7 +596,8 @@ Ext.define('App.usr.dil.DilEditor', {
 		// Build objects for strands
 		for(var i = 0; i < strandRecs.length; i++) {
 			var rec = strandRecs[i],
-				strand, doms = _.clone(rec.getParsedSpec());
+				strand, doms = _.clone(rec.getParsedSpec()),
+				name;
 
 			// Update domain objects (built from spec) with sequence info
 			for(var j = 0; j < doms.length; j++) {
@@ -606,12 +608,16 @@ Ext.define('App.usr.dil.DilEditor', {
 				}
 			}
 
+			// remove prefix from name
+			name = rec.get('name').replace(new RegExp('^'+rec.get('prefix')),'')
+
 			strand = {
-				name: rec.get('name'),
+				name: name,//rec.get('name'),
 				domains: doms
 			};
 			strands.push(strand);
-			strandMap[strand.name] = strand;
+			//strandMap[strand.name] = strand;
+			strandMap[rec.get('name')] = strand;
 		}
 
 		// Build objects for nodes

@@ -9,6 +9,8 @@ Ext.define('App.usr.dil.Strand', {
 	}, {
 		name: 'name'
 	}, {
+		name: 'prefix'		
+	},{
 		name: 'polarity',
 		type: 'int'
 	}, {

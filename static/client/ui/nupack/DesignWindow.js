@@ -4,13 +4,15 @@
 Ext.define('App.ui.nupack.DesignWindow',{
 	extend:'Ext.window.Window',
 	width: 400,
-	height: 400,
+	height: 500,
 	layout: 'fit',
 	title: "NUPACK Multiobjective Designer",
 	plain: true,
 	bodyBorder: false,
 	border: false,
+	iconCls: 'nupack-icon',
 	closeAction: 'hide',
+	cite: 'zadeh_etal_2011',
 	minimize : function() {
 		this.toggleCollapse();
 	},
@@ -34,7 +36,7 @@ Ext.define('App.ui.nupack.DesignWindow',{
 				},{
 					split: true,
 					region: 'south',
-					height: 200,
+					height: 270,
 					xtype:'form',
 					frame: true,
 					defaults: {
@@ -146,8 +148,13 @@ Ext.define('App.ui.nupack.DesignWindow',{
 						name: 'preview_token',
 						value:'',
 						xtype:'hidden',
-					}]
+					}],
+					dockedItems: [{
+						xtype: 'cite',
+						cite: this.cite,
+					}],
 			}],
+			
 			buttons: [{
 				text: 'Design',
 				handler: this.doSubmit,

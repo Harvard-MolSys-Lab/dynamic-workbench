@@ -8,8 +8,10 @@ Ext.define('App.ui.mfold.QuikFoldWindow',{
 	url: 'http://mfold.rna.albany.edu/cgi-bin/DINAMelt/quikfold.cgi',
 	cite: 'markham_zuker_2005',
 	iconCls: 'mfold',
+	height: 550,
 	getForm: function() {
 		return {
+			height: 350,
 			items: [{
 				fieldLabel: 'Name',
 				name	  : 'name',

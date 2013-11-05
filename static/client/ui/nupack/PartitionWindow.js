@@ -7,9 +7,10 @@ Ext.define('App.ui.nupack.PartitionWindow',{
 	url: 'http://www.nupack.org/partition/new',
 	cite: 'zadeh_etal_2011',
 	iconCls: 'nupack-icon',
-	height: 500,
+	height: 600,
 	getForm: function() {
 		return {
+			height: 370,
 			items: [{
 				fieldLabel: 'Nucleic Acid',
 				name      : 'partition_job[nucleic_acid_type]',

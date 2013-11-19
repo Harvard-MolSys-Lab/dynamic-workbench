@@ -17,7 +17,7 @@ Ext.define('App.usr.browser.Browser', {
 		 * URL to open in this tab
 		 */
 		Ext.apply(this, {
-			html: '<iframe src="'+this.url+'" style="width:100%;height:100%;border:none;"></iframe>'
+			html: '<iframe src="'+this.url+'" style="width:100%;height:100%;border:none;position:absolute;" height="100%"></iframe>'
 		});
 		this.callParent(arguments);
 	}

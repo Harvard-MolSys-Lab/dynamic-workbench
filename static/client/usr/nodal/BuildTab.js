@@ -165,6 +165,23 @@ Ext.define('App.usr.nodal.BuildTab', {
 						iconCls: 'simulate',
 						iconAlign: 'left'
 					}]
+				},{
+					xtype: 'buttongroup',
+					title: 'Image',
+					columns: 1,
+					disabled: false,
+					defaults: {
+						// cellCls: 'table-cell-padded',
+					},
+					items: [{
+						text: 'SVG',
+						iconCls: 'svg',
+						rowspan: 2,
+						iconAlign: 'top',
+						scale: 'medium',
+						handler: this.toSVG,
+						scope: this,
+					}]
 				}]
 //			}]
 		}
@@ -181,6 +198,10 @@ Ext.define('App.usr.nodal.BuildTab', {
 		this.sequenceMenu.on('click',this.doUpdateMenus,this);
 		this.serializeMenu.on('click',this.doUpdateMenus,this);
 	},
+	toSVG: function () {
+		this.ribbon.canvas.toSVG()
+	},
+
 	init: function() {
 		this.updateMenus(true);
 	},

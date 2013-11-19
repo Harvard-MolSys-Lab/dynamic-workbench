@@ -11,12 +11,15 @@ Ext.define('App.usr.dil.EditComplexPanel', {
 	layout: 'border',
 	border: false,
 	bodyBorder: false,
+	viewOptions: null,
 	initComponent: function() {
+		this.viewOptions = this.viewOptions || {};
 		Ext.apply(this, {
 			items: [{
 				xtype: 'strandpreview',
 				name: 'strandPreview',
 				region: 'center',
+				viewOptions: this.viewOptions,
 			}, {
 				xtype: 'form',
 				name: 'formPanel',

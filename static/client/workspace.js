@@ -814,6 +814,14 @@ Ext.define('Workspace', {
 	getContainerEl: function() {
 		return this.containerEl;
 	},
+	getCanvasMarkup : function() {
+		var el = this.element.down('svg').dom;
+		if(el) {
+			return $('<div>').append($(el).clone()).html(); 
+		}
+		// var html = this.element.getHTML();
+		// return html.replace(/<div\s+id="[\w-]+"\s+class="x-clear"\s+role="presentation"><\/div>/g,'');
+	},
 	/**
 	 * doAction
 	 * Performs the passed {@link Workspace.actions.Action} on this Workspace

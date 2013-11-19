@@ -875,6 +875,11 @@ Ext.define('App.ui.StrandPreview', {
 	createTip: false,
 	tipDelegate: 'circle',
 
+	/**
+	 * @cfg {Object} viewOptions
+	 */
+
+
 	setValue : function(structure, strands, sequences) {
 		if(structure && structure.structure && structure.strands) {
 			this.data = structure;

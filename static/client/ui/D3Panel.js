@@ -6,6 +6,12 @@ Ext.define('App.ui.D3Panel', {
 	alias : 'widget.d3panel',
 	extend : 'Ext.panel.Panel',
 	/**
+	 * @cfg noSelect {Boolean}
+	 * true to automatically prevent text selection in the view with cross-browser
+	 * CSS rules (applies the class `no-select` to the SVG element)
+	 */
+	noSelect: true,
+	/**
 	 * @cfg pan {Boolean}
 	 * true to automatically allow panning of the display (defaults to true)
 	 */
@@ -95,8 +101,8 @@ Ext.define('App.ui.D3Panel', {
 		
 		if(this.rect) {
 			this.rect
-			.attr('width', this.getBodyWidth() - this.visPadding)
-			.attr('height', this.getBodyHeight() - this.visPadding)
+			.attr('width', this.getBodyWidth()*this.scale - this.visPadding)
+			.attr('height', this.getBodyHeight()*this.scale - this.visPadding)
 		}
 	},
 	/**
@@ -142,7 +148,10 @@ Ext.define('App.ui.D3Panel', {
 		 * by calling {@link #getCanvas}.
 		 */
 		if (!this.vis) {
-			this.vis = this.svg = d3.select(this.body.dom).append("svg").style('position', 'absolute').attr("pointer-events", "all");
+			this.vis = this.svg = d3.select(this.body.dom).append("svg")
+			.style('position', 'absolute')
+			.attr("pointer-events", "all")
+			.classed('no-select',this.noSelect);
 			
 			if (this.autoSize) {
 				this.doAutoSize();
@@ -152,9 +161,13 @@ Ext.define('App.ui.D3Panel', {
 			}
 			if (this.pan || this.zoom) {
 				var me = this;
+				this.scale = 1;
+				this.translate = [0,0]
 				function redraw() {
 					//me.vis.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")");
 					me.redraw(d3.event.translate,d3.event.scale);
+					me.scale = d3.event.scale;
+					me.translate = _.clone(d3.event.translate);
 				}
 				
 				this.vis = this.vis.append('svg:g').call(d3.behavior.zoom().on("zoom", redraw)).append('svg:g');

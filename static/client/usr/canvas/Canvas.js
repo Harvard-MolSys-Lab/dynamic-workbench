@@ -266,5 +266,14 @@ Ext.define('App.usr.canvas.Canvas', {
 	 */
 	zoomWorkspace: function(s,v) {
 		this.workspace.zoomTo(v);
-	}
+	},
+
+	toSVG: function (btn) {
+		this.svgWindow = Ext.create('App.ui.SVGEditorWindow',{
+			// stylesUrl: 'styles/strand-preview.css',
+			title: 'SVG',
+		});
+		this.svgWindow.show()
+		this.svgWindow.setValue(this.workspace.getCanvasMarkup())
+	},
 });

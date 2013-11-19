@@ -68,6 +68,12 @@ Ext.define('App.usr.nodal.MotifEditor',{
 					complex: this.complex,
 					border: false,
 					bodyBorder: false,
+					viewOptions: {
+						showBubbles: false,
+						showIndexes: false,
+						showBases: false,
+						complexViewMode: 'domain'
+					}
 				},{
 					region: 'east',
 					xtype: 'motifpreview',

@@ -17,6 +17,7 @@ function MotifPreview() {
 				.attr('stroke-width',4);
 
 			panel.append('text').text(spec.name)
+				.attr("fill","black")
 				.attr('font-size','2em')
 				.attr('text-anchor','middle')
 				.attr('dy','.35em')
@@ -69,6 +70,8 @@ function MotifPreview() {
 						case 'output': default: return 'circle';
 					}
 				}));
+			
+			// polarity
 			domainSel.append('text')
 				.text(function (d) {
 					var x = d.polarity;
@@ -76,14 +79,20 @@ function MotifPreview() {
 					if(x == 1) { return '+' }
 					else { return '±' } 
 				})
-				.attr('dy','.35em')
+				.attr("fill","black")
+				.style('font-size','.5em')
+				.attr('dy','.25em')
 				.attr('text-anchor','middle');
+
+			// label
 			domainSel.append('text')
 				.text(function (d) {
 					return d.name;
 				})
+				.attr("fill","black")
 				.attr('transform',function(d) { return "translate("+d.lx+","+d.ly+")"; })
-				.attr('dy','.35em')
+				.style('font-size','.5em')
+				.attr('dy','.25em')
 				.attr('text-anchor','middle');
 
 			// var shapes = [];

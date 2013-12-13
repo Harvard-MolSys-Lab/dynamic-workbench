@@ -578,7 +578,8 @@ Ext.define('App.usr.enum.Viewer', {
 			.attr("class", function(d) {
 				switch (d._type) {
 					case 'complex':
-						return 'complex ' + (d.resting ? 'complex-resting' : 'complex-transient');
+						return 'complex ' + (d.resting ? 'complex-resting' : 'complex-transient') + 
+							' ' + (d.initial ? 'complex-initial': '');
 					case 'reaction':
 						return 'reaction ' + (d.fast ? 'reaction-fast' : 'reaction-slow');
 					default:

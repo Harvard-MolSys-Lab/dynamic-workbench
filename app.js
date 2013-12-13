@@ -18,7 +18,6 @@ fm = require('./server/file-manager'), tools = require('./server/server-tools'),
 
 
 app.configure('production',function() {
-	app.set('invite', 'yinlab-workbench');
 	app.set('env','production');
 });
 
@@ -27,7 +26,7 @@ app.configure('debug',function() {
 })
 
 app.configure(function() {
-	app.set('invite', 'yinlab-workbench');
+	app.set('invite', ['yinlab-workbench','mpp']);
 	app.set('views', __dirname + '/views');
 	app.set('baseRoute', '/');
 	app.use(express.bodyParser());

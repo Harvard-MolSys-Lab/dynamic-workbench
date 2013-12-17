@@ -155,6 +155,10 @@ Ext.define('App.ui.CreateMenu', {
 			return false;
 		}
 		var items = [{
+				text: '<b>Behavioral Design</b>',
+				canActivate: false,
+				plain: true,
+			},{
 				text: 'Nodal System',
 				iconCls: 'nodal',
 				type: 'nodal',
@@ -163,10 +167,6 @@ Ext.define('App.ui.CreateMenu', {
 				iconCls: 'dynaml',
 				type: 'dynaml',
 			},{
-				text: 'DyNAMiC Intermediate (DIL)',
-				iconCls: 'dil',
-				type: 'dil',
-			},'-',{
 				text: 'Pepper System',
 				iconCls: 'pepper',
 				type: 'sys',
@@ -174,11 +174,26 @@ Ext.define('App.ui.CreateMenu', {
 				text: 'Pepper Component',
 				iconCls: 'comp',
 				type: 'comp',
+			},
+			'-',
+			{
+				text: '<b>Domain-level Design</b>',
+				canActivate: false,
+				plain: true,
+			},{
+				text: 'Domain-Level System—DyNAMiC Intermediate (DIL)',
+				iconCls: 'dil',
+				type: 'dil',
 			},{
 				text: 'Pepper Intermediate (PIL)',
 				iconCls: 'pil',
 				type: 'pil',
-			},'-',{
+			},
+			'-',{
+				text: '<b>Sequence Design</b>',
+				canActivate: false,
+				plain: true,
+			},{
 				text: 'Multisubjective Sequence Design',
 				iconCls: 'ms',
 				type: 'ms',
@@ -201,15 +216,28 @@ Ext.define('App.ui.CreateMenu', {
 			// 	type: 'secondary',
 			// },
 			'-',{
-				text: 'Chemical Reaction Network',
-				iconCls: 'crn',
-				type: 'crn',
-				disabled: true,
+				text: '<b>Simulation and Testing</b>',
+				canActivate: false,
+				plain: true,
+			},{
+				text: 'Reaction Enumeration',
+				iconCls: 'document-enum',
+				type: 'enum',
 			},{
 				text: 'SBML File',
 				iconCls: 'document-sbml',
 				type: 'sbml',
-			},'-',{
+			},{
+				text: 'Chemical Reaction Network',
+				iconCls: 'crn',
+				type: 'crn',
+				disabled: true,
+			},
+			'-',{
+				text: '<b>Writing</b>',
+				canActivate: false,
+				plain: true,
+			},{
 				text: 'Workspace',
 				iconCls: 'whiteboard',
 				type: 'workspace',
@@ -222,14 +250,6 @@ Ext.define('App.ui.CreateMenu', {
 				iconCls: 'xml',
 				type: 'xml',
 			},{
-				text: 'Javascript File',
-				iconCls: 'js',
-				type: 'js',
-			},{
-				text: 'CoffeeScript File',
-				iconCls: 'coffee',
-				type: 'coffee',
-			},{
 				text: 'Text File',
 				iconCls: 'txt',
 				type: 'txt',
@@ -241,7 +261,21 @@ Ext.define('App.ui.CreateMenu', {
 				text: 'Markdown Document',
 				iconCls: 'md',
 				type: 'md',
-			},'-',{
+			},
+			'-',{
+				text: '<b>Code</b>',
+				canActivate: false,
+				plain: true,
+			},{
+				text: 'Javascript File',
+				iconCls: 'js',
+				type: 'js',
+			},{
+				text: 'CoffeeScript File',
+				iconCls: 'coffee',
+				type: 'coffee',
+			},
+			'-',{
 				text: 'Folder',
 				iconCls: 'folder',
 				type: 'folder'
@@ -250,7 +284,7 @@ Ext.define('App.ui.CreateMenu', {
 		return {
 
 			items: _.map(items,function(item) {
-				if(_.isObject(item)) {
+				if(_.isObject(item) && item.canActivate !== false) {
 					item.tooltip = {
 						title: App.Files.getTypeName(item.type),
 						text: App.Files.getTypeDescription(item.type) || '&nbsp;',

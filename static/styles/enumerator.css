@@ -43,6 +43,15 @@ svg {
 	stroke: red;
 }
 
+.enum-hull {
+	full: yellow;
+	stroke: gray;
+}
+
+.enum-hidden {
+	display: none
+}
+
 .complex {
 	fill: white;
 	stroke: #888;

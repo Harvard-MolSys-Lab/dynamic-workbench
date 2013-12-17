@@ -62,7 +62,14 @@ Ext.define('App.usr.enum.Viewer', {
 					handler: this.toSVG,
 					scope: this,
 				}]
-			},this.viewMenu]
+			},this.viewMenu,{
+				text: 'Show Condensed',
+				enableToggle: true,
+				toggleHandler: function(btn,state) {
+					this.showCondensed(state);
+				},
+				scope: this,
+			}]
 		})
 
 		this.callParent(arguments);
@@ -166,8 +173,6 @@ Ext.define('App.usr.enum.Viewer', {
 			strandMap[strand.name] = strand;
 		}
 
-
-
 		var complexes;
 		if (data['transient_complexes']) {
 			complexes = _.map(data['resting_complexes'], function(x) {
@@ -184,11 +189,13 @@ Ext.define('App.usr.enum.Viewer', {
 			})
 		}
 
+		var resting_states = this.restingStates = data['resting_states'];
+
 		// Map complexes to their containing resting state
 		var restingStateMap = this.restingStateMap = {};
-		if (data['resting_states']) {
-			for (var i = 0; i < data['resting_states'].length; i++) {
-				var resting_state = data['resting_states'][i];
+		if (resting_states) {
+			for (var i = 0; i < resting_states.length; i++) {
+				var resting_state = resting_states[i];
 				for (var j = 0; j < resting_state.complexes.length; j++) {
 					restingStateMap[resting_state.complexes[j]] = resting_state.name;
 				}
@@ -242,6 +249,17 @@ Ext.define('App.usr.enum.Viewer', {
 			}	
 			return x
 		});
+
+		var condensedReactionMap = this.condensedReactionMap = {};
+		var condensedReactionData = this.condensedReactionData = _.map(reactions, function (x, i) {
+			x._type = 'reaction';
+			x.name = 'reaction_condensed' + i;
+			x.condensed = true;
+			x.fast = !(x.reactants.length > 1);
+			x.slow = !x.fast;
+
+			condensedReactionMap[x.name] = x;
+		})
 	},
 	buildVis : function() {
 		/* ****
@@ -359,9 +377,10 @@ Ext.define('App.usr.enum.Viewer', {
 					.style('stroke', line_stroke)
 					.style('fill', line_stroke);
 			
+		var hullg = this.hullg = panel.append("g");
 		var linkg = this.linkg = panel.append("g");
   		var nodeg = this.nodeg = panel.append("g");
-		// var legendg = this.legendg = panel.append("g");
+  		// var legendg = this.legendg = panel.append("g");
 
 		var dr = 50,      // default point radius
     		cr = 100, 	 // default complex point radius
@@ -450,8 +469,27 @@ Ext.define('App.usr.enum.Viewer', {
 				.style('stroke-width',me.linkWidth/me.currentScale);
 
 			panel.selectAll("g.enum-node").classed("node-blurred",false)
-
 		}
+
+		function showFull() {
+			panel.selectAll(".reaction-internal").classed("enum-hidden",false)
+			panel.selectAll(".reaction-full").classed("enum-hidden",true)
+			panel.selectAll(".reaction-condensed").classed("enum-hidden",false)
+			panel.selectAll(".complex-transient").classed("enum-hidden",false)
+		}
+
+		function showCondensed() {
+			panel.selectAll(".reaction-internal").classed("enum-hidden",true)
+			panel.selectAll(".reaction-full").classed("enum-hidden",false)
+			panel.selectAll(".reaction-condensed").classed("enum-hidden",true)
+			panel.selectAll(".complex-transient").classed("enum-hidden",true)
+		}
+
+		me.showCondensed = function toggleCondensed(condense) {
+			if(condense) return showCondensed()
+			else return showFull();
+		}
+
 
 		function selectNode(d) {
 			panel.selectAll(".enum-node.enum-selected").classed("enum-selected",false);
@@ -502,6 +540,7 @@ Ext.define('App.usr.enum.Viewer', {
 				var cls = ["link-reaction"]
 				cls.push("source-" + d.source.name);
 				cls.push("target-" + d.target.name);
+				cls.push("link-full");
 				return cls.join(' ');
 			})
 			.style("stroke-width", function(d) {
@@ -576,18 +615,25 @@ Ext.define('App.usr.enum.Viewer', {
 
 			nodeSel.append('rect')
 			.attr("class", function(d) {
+				var cls = [];
 				switch (d._type) {
 					case 'complex':
-						return 'complex ' + (d.resting ? 'complex-resting' : 'complex-transient') + 
-							' ' + (d.initial ? 'complex-initial': '');
+						cls.push('complex');
+						cls.push(d.resting ? 'complex-resting' : 'complex-transient');
+						cls.push(d.initial ? 'complex-initial': '');
+						break;
 					case 'reaction':
-						return 'reaction ' + (d.fast ? 'reaction-fast' : 'reaction-slow');
+						cls.push('reaction');
+						cls.push(d.fast ? 'reaction-fast' : 'reaction-slow');
+						cls.push(d.outgoing ? "reaction-outgoing" :"reaction-internal")
+						break;
 					default:
 						if (d.size != 0) {
 							return 'resting-state';
 						}
 						return '';
 				}
+				return cls.join(' ');
 			})
 			.attr("width", radius)
 			.attr("height", radius)
@@ -621,6 +667,93 @@ Ext.define('App.usr.enum.Viewer', {
 			  });
 
 			return nodeSel;
+		}
+
+		function buildHulls(hullg,me) {
+			me.restingStates = _.map(function (d) {
+				var complexPoints = []; 
+				for(var i=0; i<d.complexes.length; i++) {
+					var c = me.complexMap[d.complexes[i]];
+					complexPoints = complexPoints.concat([
+						[c.dagre.x-c.dagre.width/2-hullPadding,c.dagre.y-c.dagre.height/2-hullPadding],
+						[c.dagre.x+c.dagre.width/2+hullPadding,c.dagre.y-c.dagre.height/2-hullPadding],
+						[c.dagre.x-c.dagre.width/2-hullPadding,c.dagre.y+c.dagre.height/2+hullPadding],
+						[c.dagre.x+c.dagre.width/2+hullPadding,c.dagre.y+c.dagre.height/2+hullPadding],
+					]);
+				}
+				d.boundary = d3.geom.hull(complexPoints);
+				var polygon = d3.geom.polygon(d.boundary);
+				d.x = polygon.centroid[0];
+				d.y = polygon.centroid[1];
+
+				return d;
+			});
+
+			var hullSell = hullg.selectAll('path.enum-hull').data(me.restingStates)
+			var hullPadding = 5;
+
+			hullSell.exit().remove();
+			hullSell.enter().append("path")
+				.attr('class', 'enum-hull')
+				.attr('d',function(d) {
+					return "M" + d.boundary.join("L") + "Z";
+				});
+
+			return hullSell;
+		}
+
+		function buildCondensed(hullg, me) {
+			me.hull = buildHulls(hullg, me);
+
+			// create condensed reaction node data
+			me.condensedReactionData = _.map(me.condensedReactionData, function (r) {
+
+				// determine reaction position by taking centroid of reactants and products
+				var rp = r.reactants.concat(r.products),
+					points = _.map(rp, function(s) { return [s.x,s.y]; }),
+					hull = d3.geom.hull(points),
+					polygon = d3.geom.polygon(hull),
+					centroid = polygon.centroid;
+
+				r.x = centroid[0];
+				r.y = centroid[1];
+
+				
+
+				return r;
+			});
+
+			// create links between condensed reactions and resting states
+			var links = [];
+			var links = _.flatten(_.map(me.condensedReactionData, function(reaction) {
+				return _.map(reaction.reactants, function(reactant) {
+					var l = {
+						'source' : restingStateMap[reactant],
+						'target' : reaction,
+					};
+					l.dagre = {
+						points: [[l.source.x,l.source.y],[l.target.x,l.target.y]]
+					};
+					complexMap[reactant].edges.push(l);
+					reaction.edges.push(l);
+					return l; 
+				}).concat(_.map(reaction.products, function(product) {
+					var l = {
+						'source' : reaction,
+						'target' : restingStateMap[product]
+					};
+					l.dagre = {
+						points: [[l.source.x,l.source.y],[l.target.x,l.target.y]]
+					};
+					reaction.edges.push(l);
+					complexMap[product].edges.push(l);
+					return l;
+				}))
+			}), /* true to flatten only one level */true);
+
+			// build selection of links
+			// TODO: indicate to buildLinks that these should be handled differently
+			me.condensedLink = buildLinks(linkg,{net: links},me)
 		}
 
 		function init() {
@@ -659,6 +792,7 @@ Ext.define('App.usr.enum.Viewer', {
 			    	return spline(l); 
 			    });
 
+			buildCondensed(me.hullg, me);
 
 			var svgBBox = panel.node().getBBox();
 			panel.attr("width", svgBBox.width + 10);

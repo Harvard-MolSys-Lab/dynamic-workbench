@@ -42,6 +42,10 @@
 	padding-bottom: 1px;
 	text-align: center
 }
+.dashboard-getting-started {
+	margin: 10px auto !important;
+	width: 600px;
+}
 .dashboard .hero {
 	font-size: 1.7em;
 	margin: 1em 0pt;

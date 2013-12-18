@@ -24,6 +24,15 @@ Ext.define('App.ui.Dashboard', {
 		});
 		this.callParent();
 	},
+	toggleAboutText: function () {
+		Ext.get('workbench-about').setVisibilityMode(Ext.dom.Element.DISPLAY).toggle();
+		var t = Ext.get('workbench-about-trigger');
+		if(t.getHTML() == 'More') {
+			t.setHTML('Less')
+		} else {
+			t.setHTML('More')
+		}
+	},
 	/**
 	 * Perform custom personization actions upon initialization of the dashboard. 
 	 */
@@ -39,39 +48,71 @@ Ext.define('App.ui.Dashboard', {
 				}
 			}
 		}
-			Ext.get('fp-citations').update(App.ui.Attribution.printAllCitations())
+		Ext.get('fp-citations').update(App.ui.Attribution.printAllCitations())
+		Ext.get('workbench-about-trigger').on('click',this.toggleAboutText,this)
+
 		var quickstart = Ext.create('Ext.panel.Panel',{
 			renderTo: Ext.get('dashboard-quickstart'),
-			width: 260,
-			height: 270,
+			// width: 500,
+			// height: 270,
 			baseCls:'x-plain',
 			layout: {
 	            type: 'table',
-	            columns: 3
+	            columns: 6
 	        },
-	        defaults: {xtype: 'button', scale: 'medium', iconAlign: 'top', width: 70, height: 50},
+	        defaults: {
+	        	xtype: 'button', scale: 'medium', iconAlign: 'top', 
+	        	// width: 130, 
+	        	// height: 50
+	        },
 	        items: [
-	        	// Row 0.5
+	        	// Row 0
+	        	{
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        },
 		        {
 		        	xtype: 'panel',
 		        	baseCls: 'x-plain',
 		        	height: 15,
-		        	html: '<h3>Design</h3>'
-		        },{
+		        	html: '<h3>Behavioral Tier</h3>'
+		        },
+		        {
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        },
+		        {
 		        	xtype: 'panel',
 		        	baseCls: 'x-plain',
 		        	height: 15,
-		        	html: '<h3>Testing</h3>',
-		        	colspan: 2,
-		        	width: 165,
-		        	style: 'text-align: center',
+		        	html: '<h3>Domain Tier</h3>'
 		        },
-	        
-	        
+		        {
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        },
+		        {
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 15,
+		        	html: '<h3>Sequence Tier</h3>'
+		        },
+
+		        
+
 	        	// Row 1
 		        {
-		        	text: 'Behaviors',
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 15,
+		        	html: '<h3>Design...</h3>'
+		        }, {
+		        	text: 'Behavioral Systems',
 		        	iconCls: 'behavior-24',
+		        	width: 130,
 		        	menu: [{
 		        		text: 'Nodal',
 		        		iconCls: 'nodal',
@@ -91,51 +132,16 @@ Ext.define('App.ui.Dashboard', {
 		        		handler: App.ui.Launcher.makeLauncher('crn'),
 		        	}]
 		        },{
-		        	text: 'Enumerate',
-		        	iconCls: 'enumerate-24',
-		        	disabled: true,
-		        },{
-		        	text: 'Verify',
-		        	iconCls: 'verify-24',
-		        	disabled: true,
-		        },	
-		        
-		        // Row 1.5
-		        {
-		        	xtype: 'panel',
-		        	baseCls: 'x-plain',
-		        	height: 30,
-		        	cls:'overflowing',
-		        	cellCls: 'overflowing-top',
-		        	layout: {
-				        type: 'hbox',
-				        align: 'middle'
-				    },
-		        	items: [{
+		        		width: 30,
 		        		xtype: 'label',
-		        		html: '&nbsp;&nbsp;&nbsp;&darr;&nbsp;&nbsp;&nbsp;',
-		        	},{
-		        		xtype: 'button',
-		        		iconCls: 'domains',
-		        		text: 'Domain Design',
-		        	}]
+		        		html: '&nbsp;&nbsp;&nbsp;&rarr;&nbsp;&nbsp;&nbsp;',
+		        	
 		        },{
-		        	xtype: 'panel',
-		        	baseCls: 'x-plain',
-		        	height: 30,
-		        },{
-		        	xtype: 'panel',
-		        	baseCls: 'x-plain',
-		        	height: 30,
-		        },
-		        
-		        
-	        	// Row 2
-		        {
-		        	text: 'Domains',
+		        	text: 'Domain-level Systems',
+		        	width: 130,
 		        	iconCls: 'domains-24',
 		        	menu: [{
-		        		text: 'Strand editor',
+		        		text: 'Domain-level System Editor (DIL)',
 		        		handler: App.ui.Launcher.makeLauncher('strandedit'),
 		        		iconCls: 'domains',
 		        		menu: Ext.create('App.ui.CreateMenu',{
@@ -152,78 +158,13 @@ Ext.define('App.ui.Dashboard', {
 		        		iconCls: 'secondary',
 		        	}]
 		        },{
-		        	text: 'Enumerate',
-		        	iconCls: 'enumerate-secondary-24',
-		        	handler: App.ui.Launcher.makeLauncher('enumedit'),
-		        	disabled: false,
-		        },{
-		        	text: 'Simulate',
-		        	iconCls: 'simulate-24',
-		        	menu: [{
-		        		text: 'SBML',
-		        		iconCls: 'sbml',
-		        		handler: App.ui.Launcher.makeLauncher('sbml'),
-		        	}]
-		        },
-		        
-		        // Row 2.5
-		        {
-		        	xtype: 'panel',
-		        	baseCls: 'x-plain',
-		        	height: 30,
-		        	cls:'overflowing',
-		        	cellCls: 'overflowing-top',
-		        	layout: {
-				        type: 'hbox',
-				        align: 'middle'
-				    },
-		        	items: [{
+		        		width: 30,
 		        		xtype: 'label',
-		        		html: '&nbsp;&nbsp;&nbsp;&darr;&nbsp;&nbsp;&nbsp;',
-		        	},{
-		        		xtype: 'button',
-		        		text: 'Sequence Design',
-		        		iconCls: 'sequence',
-		        		menu: [{
-		        			text: 'Web DD',
-		        			iconCls: 'dd',
-		        			handler: App.ui.Launcher.makeLauncher('dd')
-		        		}, {
-		        			text: 'NUPACK Multi-objective designer',
-		        			iconCls: 'nupack-icon',
-		        			handler: function() {
-								var win = Ext.create('App.ui.nupack.DesignWindow');
-								win.show();
-							}
-		        		},{
-		        			text: 'Multisubjective',
-		        			iconCls: 'ms-icon',
-		        			menu: Ext.create('App.ui.CreateMenu',{
-			        			smartCreate: true,
-			        			defaultType: 'ms',
-			        			autoCreateMenu: false,
-			        		}),
-		        			// handler: App.ui.Launcher.makeLauncher('msedit')
-		        		},{
-		        			text: 'Spurious C',
-		        			iconCls: 'spuriousC spurious',
-		        			disabled: true,
-		        		}]
-		        	}]
+		        		html: '&nbsp;&nbsp;&nbsp;&rarr;&nbsp;&nbsp;&nbsp;',
+		        	
 		        },{
-		        	xtype: 'panel',
-		        	baseCls: 'x-plain',
-		        	height: 30,
-		        },{
-		        	xtype: 'panel',
-		        	baseCls: 'x-plain',
-		        	height: 30,
-		        },
-		        
-		        
-	        	// Row 3
-	        	{
 		        	text: 'Sequences',
+		        	width: 130,
 		        	iconCls: 'sequence-24',
 		        	menu: [{
 		        		text: 'Sequence editor',
@@ -257,16 +198,358 @@ Ext.define('App.ui.Dashboard', {
 							}
 						}]
 					}]
+		        },
+
+		        // Row 1.5
+		        {
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        },
+		        {
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        },
+		        // Behav
+		        {
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	width: 30,
+		        	cls:'overflowing',
+		        	cellCls: 'overflowing-top',
+		        	layout: {
+				        type: 'vbox',
+				        align: 'middle'
+				    },
+		        	items: [{
+		        		xtype: 'button',
+		        		iconCls: 'domains',
+		        		text: 'Domain Design',
+		        	}]
+		        },
+		        {
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        },
+		        // Seq
+		        {
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	width: 30,
+		        	cls:'overflowing',
+		        	cellCls: 'overflowing-top',
+		        	layout: {
+				        type: 'vbox',
+				        align: 'middle'
+				    },
+		        	items: [{
+		        		xtype: 'button',
+		        		text: 'Sequence Design',
+		        		iconCls: 'sequence',
+		        		menu: [{
+		        			text: 'Web DD',
+		        			iconCls: 'dd',
+		        			handler: App.ui.Launcher.makeLauncher('dd')
+		        		}, {
+		        			text: 'NUPACK Multi-objective designer',
+		        			iconCls: 'nupack-icon',
+		        			handler: function() {
+								var win = Ext.create('App.ui.nupack.DesignWindow');
+								win.show();
+							}
+		        		},{
+		        			text: 'Multisubjective',
+		        			iconCls: 'ms-icon',
+		        			menu: Ext.create('App.ui.CreateMenu',{
+			        			smartCreate: true,
+			        			defaultType: 'ms',
+			        			autoCreateMenu: false,
+			        		}),
+		        			// handler: App.ui.Launcher.makeLauncher('msedit')
+		        		},{
+		        			text: 'Spurious C',
+		        			iconCls: 'spuriousC spurious',
+		        			disabled: true,
+		        		}]
+		        	}]
+		        },
+		        {
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        }, 
+
+		        
+		        // Row 2
+		        {
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 15,
+		        	html: '<h3>Test...</h3>',
+		        	colspan: 1,
+		        	// width: 165,
+		        	style: 'text-align: center',
 		        },{
-		        	text: 'Simulate',
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        },{
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        },{
+		        	text: 'Enumerate / Simulate',
+		        	width: 130,
+		        	iconCls: 'enumerate-secondary-24',
+		        	handler: App.ui.Launcher.makeLauncher('enumedit'),
+		        	disabled: false,
+		        },{
+		        	xtype: 'panel',
+		        	baseCls: 'x-plain',
+		        	height: 30,
+		        },{
+		        	text: 'Thermodynamics',
+		        	width: 130,
 		        	iconCls: 'simulate-24',
-		        	colspan: 2,
-		        	width: 165,
-		        	disabled: true,
-		        	
+		        	menu: [{
+		        		text: 'SBML',
+		        		iconCls: 'sbml',
+		        		handler: App.ui.Launcher.makeLauncher('sbml'),
+		        	}]
 		        },
 	        ]
 
 		})
+
+		// var quickstart = Ext.create('Ext.panel.Panel',{
+		// 	renderTo: Ext.get('dashboard-quickstart'),
+		// 	width: 260,
+		// 	height: 270,
+		// 	baseCls:'x-plain',
+		// 	layout: {
+	 //            type: 'table',
+	 //            columns: 3
+	 //        },
+	 //        defaults: {xtype: 'button', scale: 'medium', iconAlign: 'top', width: 70, height: 50},
+	 //        items: [
+	 //        	// Row 0.5
+		//         {
+		//         	xtype: 'panel',
+		//         	baseCls: 'x-plain',
+		//         	height: 15,
+		//         	html: '<h3>Design</h3>'
+		//         },{
+		//         	xtype: 'panel',
+		//         	baseCls: 'x-plain',
+		//         	height: 15,
+		//         	html: '<h3>Testing</h3>',
+		//         	colspan: 2,
+		//         	width: 165,
+		//         	style: 'text-align: center',
+		//         },
+	        
+	        
+	 //        	// Row 1
+		//         {
+		//         	text: 'Behaviors',
+		//         	iconCls: 'behavior-24',
+		//         	menu: [{
+		//         		text: 'Nodal',
+		//         		iconCls: 'nodal',
+		//         		menu: Ext.create('App.ui.CreateMenu',{
+		//         			smartCreate: true,
+		//         			defaultType: 'nodal',
+		//         			autoCreateMenu: false,
+		//         		})
+		//         	},{
+		//         		text: 'Pepper',
+		//         		iconCls: 'pepper',
+		//         		handler: App.ui.Launcher.makeLauncher('pepper'),
+		//         	},{
+		//         		text: 'Chemical Reaction Network (CRN)',
+		//         		iconCls: 'crn',
+		//         		disabled: true,
+		//         		handler: App.ui.Launcher.makeLauncher('crn'),
+		//         	}]
+		//         },{
+		//         	text: 'Enumerate',
+		//         	iconCls: 'enumerate-24',
+		//         	disabled: true,
+		//         },{
+		//         	text: 'Verify',
+		//         	iconCls: 'verify-24',
+		//         	disabled: true,
+		//         },	
+		        
+		//         // Row 1.5
+		//         {
+		//         	xtype: 'panel',
+		//         	baseCls: 'x-plain',
+		//         	height: 30,
+		//         	cls:'overflowing',
+		//         	cellCls: 'overflowing-top',
+		//         	layout: {
+		// 		        type: 'hbox',
+		// 		        align: 'middle'
+		// 		    },
+		//         	items: [{
+		//         		xtype: 'label',
+		//         		html: '&nbsp;&nbsp;&nbsp;&darr;&nbsp;&nbsp;&nbsp;',
+		//         	},{
+		//         		xtype: 'button',
+		//         		iconCls: 'domains',
+		//         		text: 'Domain Design',
+		//         	}]
+		//         },{
+		//         	xtype: 'panel',
+		//         	baseCls: 'x-plain',
+		//         	height: 30,
+		//         },{
+		//         	xtype: 'panel',
+		//         	baseCls: 'x-plain',
+		//         	height: 30,
+		//         },
+		        
+		        
+	 //        	// Row 2
+		//         {
+		//         	text: 'Domains',
+		//         	iconCls: 'domains-24',
+		//         	menu: [{
+		//         		text: 'Strand editor',
+		//         		handler: App.ui.Launcher.makeLauncher('strandedit'),
+		//         		iconCls: 'domains',
+		//         		menu: Ext.create('App.ui.CreateMenu',{
+		//         			smartCreate: true,
+		//         			defaultType: 'dil',
+		//         			autoCreateMenu: false,
+		//         		})
+		//         	},{
+		//         		text: 'Pepper Intermediate Language (PIL)',
+		//         		handler: App.ui.Launcher.makeLauncher('pepper'),
+		//         		iconCls: 'pil',
+		//         	},{
+		//         		text: 'Secondary Structure design',
+		//         		iconCls: 'secondary',
+		//         	}]
+		//         },{
+		//         	text: 'Enumerate',
+		//         	iconCls: 'enumerate-secondary-24',
+		//         	handler: App.ui.Launcher.makeLauncher('enumedit'),
+		//         	disabled: false,
+		//         },{
+		//         	text: 'Simulate',
+		//         	iconCls: 'simulate-24',
+		//         	menu: [{
+		//         		text: 'SBML',
+		//         		iconCls: 'sbml',
+		//         		handler: App.ui.Launcher.makeLauncher('sbml'),
+		//         	}]
+		//         },
+		        
+		//         // Row 2.5
+		//         {
+		//         	xtype: 'panel',
+		//         	baseCls: 'x-plain',
+		//         	height: 30,
+		//         	cls:'overflowing',
+		//         	cellCls: 'overflowing-top',
+		//         	layout: {
+		// 		        type: 'hbox',
+		// 		        align: 'middle'
+		// 		    },
+		//         	items: [{
+		//         		xtype: 'label',
+		//         		html: '&nbsp;&nbsp;&nbsp;&darr;&nbsp;&nbsp;&nbsp;',
+		//         	},{
+		//         		xtype: 'button',
+		//         		text: 'Sequence Design',
+		//         		iconCls: 'sequence',
+		//         		menu: [{
+		//         			text: 'Web DD',
+		//         			iconCls: 'dd',
+		//         			handler: App.ui.Launcher.makeLauncher('dd')
+		//         		}, {
+		//         			text: 'NUPACK Multi-objective designer',
+		//         			iconCls: 'nupack-icon',
+		//         			handler: function() {
+		// 						var win = Ext.create('App.ui.nupack.DesignWindow');
+		// 						win.show();
+		// 					}
+		//         		},{
+		//         			text: 'Multisubjective',
+		//         			iconCls: 'ms-icon',
+		//         			menu: Ext.create('App.ui.CreateMenu',{
+		// 	        			smartCreate: true,
+		// 	        			defaultType: 'ms',
+		// 	        			autoCreateMenu: false,
+		// 	        		}),
+		//         			// handler: App.ui.Launcher.makeLauncher('msedit')
+		//         		},{
+		//         			text: 'Spurious C',
+		//         			iconCls: 'spuriousC spurious',
+		//         			disabled: true,
+		//         		}]
+		//         	}]
+		//         },{
+		//         	xtype: 'panel',
+		//         	baseCls: 'x-plain',
+		//         	height: 30,
+		//         },{
+		//         	xtype: 'panel',
+		//         	baseCls: 'x-plain',
+		//         	height: 30,
+		//         },
+		        
+		        
+	 //        	// Row 3
+	 //        	{
+		//         	text: 'Sequences',
+		//         	iconCls: 'sequence-24',
+		//         	menu: [{
+		//         		text: 'Sequence editor',
+		//         		iconCls: 'sequence',
+		//         		handler : App.ui.Launcher.makeLauncher('sequence'),
+		//         	},{
+		// 				text : 'NUPACK',
+		// 				iconCls : 'nupack-icon',
+		// 				handler : App.ui.Launcher.makeLauncher('nupack'),
+		// 				menu : Ext.create('App.ui.NupackMenu'),
+		// 			}, {
+		// 				text: 'Mfold',
+		// 				iconCls: 'mfold-icon',
+		// 				menu: [{
+		// 					text: 'QuikFold',
+		// 					iconCls: 'mfold-icon',
+		// 					handler: function() {
+		// 						var win = Ext.create('App.ui.mfold.QuikFoldWindow');
+		// 						win.show();
+		// 					}
+		// 				}]
+		// 			},{
+		// 				text: 'Vienna RNA',
+		// 				iconCls: 'tbi',
+		// 				menu: [{
+		// 					text: 'RNAfold Server',
+		// 					iconCls: 'tbi',
+		// 					handler: function() {
+		// 						var win = Ext.create('App.ui.vienna.RNAfoldWindow');
+		// 						win.show();
+		// 					}
+		// 				}]
+		// 			}]
+		//         },{
+		//         	text: 'Simulate',
+		//         	iconCls: 'simulate-24',
+		//         	colspan: 2,
+		//         	width: 165,
+		//         	disabled: true,
+		        	
+		//         },
+	 //        ]
+
+		// })
 	}
 });

@@ -1001,6 +1001,11 @@ path.resting-state-hull {
 	border-color:#a3bae9;
 }
 
+.complexes-empty {
+	padding: 10px;
+	color: gray;
+}
+
 .strand-glyph-well {
 	border: solid 1px silver;
 	padding: 5px 7px;

@@ -43,14 +43,15 @@ Ext.define('App.usr.dil.EditComplexPanel', {
 					"create a complex with multiple copies of that strand. ",
 					// floating: true,
 					// autoRender: true,
-				},
-				 {
+				}, {
 					fieldLabel: 'Strand Order',
 					xtype: 'displayfield',
 					name: 'segmentsField',
-					cls: 'strand-glyph-well',
+					fieldCls: Ext.baseCSSPrefix + 'form-display-field' + ' strand-glyph-well',
+					// 'baseBodyCls': 'strand-glyph-well',
 					minHeight: 20,
-					tooltip: "Click to edit the order in which strands will appear in the complex. If you do not enter a strand\'s name here, it will not appear in the complex."
+					tooltip: "Click to edit the order in which strands will appear in the complex. Separate strand names with + signs." + 
+					"If you do not enter a strand\'s name here, it will not appear in the complex."
 				}, {
 					fieldLabel: 'Structure',
 					xtype: 'textarea',
@@ -100,6 +101,8 @@ Ext.define('App.usr.dil.EditComplexPanel', {
 		},this,{buffer: 100});
 
 		this.mixins.tip.init.call(this,[]);
+
+		this.strandManager.strandStore.on('update',this.updateSegmentsView, this);
 	},
 
 	/**

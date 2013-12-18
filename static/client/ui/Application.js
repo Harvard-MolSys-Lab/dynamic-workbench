@@ -33,10 +33,16 @@ Ext.define('App.ui.Application', {
 	 * Message to display when the application pane is masked while loading a file
 	 */
 	savingMsg : 'Saving File...',
+
+	unsaved: false,
+	getId: function () {
+		return this.id;
+	},
 	/**
 	 * @constructor
 	 */
 	constructor : function(config) {
+		this.id = App.ui.Launcher.getId();
 		this.bindDocument( config ? (config.document ? config.document : null) : null, true);
 	},
 	requestDocument: function(callback,scope) {
@@ -116,7 +122,7 @@ Ext.define('App.ui.Application', {
 	updateTitle : function() {
 		var title = this.editorType;
 		if(this.doc) {
-			title = this.doc.getBasename() + ' (' + title + ')';
+			title = this.doc.getBasename() + ' (' + title + ')' + (this.unsaved ? '*' : '');
 		}
 		try {
 			this.setTitle(title);
@@ -224,6 +230,8 @@ Ext.define('App.ui.Application', {
 			iconCls : 'save',
 		});
 		Ext.msg('File', '<strong>{0}</strong> saved to server.', this.document.get('text'));
+
+		this.markSaved();
 	},
 	/**
 	 * Internal callback from {@link #save} to inform the user of failed save
@@ -250,4 +258,15 @@ Ext.define('App.ui.Application', {
 	getSaveData : function() {
 		return '';
 	},
+
+	markUnsaved: function () {
+		this.unsaved = true;
+		App.ui.Launcher.markUnsaved(this);
+		this.updateTitle();
+	},
+	markSaved: function () {
+		this.unsaved = false;
+		App.ui.Launcher.markSaved(this);
+		this.updateTitle();
+	}
 });

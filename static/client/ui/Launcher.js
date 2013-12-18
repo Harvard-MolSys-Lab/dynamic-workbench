@@ -108,7 +108,7 @@ Ext.define('App.ui.Launcher', {
 					}));
 				} catch(e) {
 					App.msg('Application failed to load','An error occurred loading application {0}, see console for details. ',{params: [rootTrigger]});
-					console.log('Failed to launch application with trigger ' + trigger+'. Error details: '+e, {
+					console.log('Failed to launch application with trigger ' + trigger+'. Error details: ',e, {
 						iconCls : 'application',
 						level: 'error',
 						silent : true

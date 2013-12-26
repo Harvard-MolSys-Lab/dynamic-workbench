@@ -195,44 +195,60 @@ def output_json(enumerator, filename, output_condensed = False):
 		}
 	
 	def serializeReaction(reaction):
-		temp_reactants = []
-		for reactant in reaction.reactants:
-			temp_reactants.append(reactant.name)
-		temp_products = []
-		for product in reaction.products:
-			temp_products.append(product.name)
+		# temp_reactants = []
+		# for reactant in reaction.reactants:
+		# 	temp_reactants.append(reactant.name)
+		# temp_products = []
+		# for product in reaction.products:
+		# 	temp_products.append(product.name)
+		reactants = map(str,reaction.reactants)
+		products = map(str,reaction.products)
 		return {
 			"name":reaction.name,
-			"reactants":temp_reactants,
-			"products":temp_products
+			"reactants": reactants,  #temp_reactants,
+			"products": products #temp_products
 		}
 	
 	def serializeDomain(domain):
-		temp_domain = {}
-		temp_domain['name'] = domain.name
-		temp_domain['length'] = domain.length
-		temp_domain['is_complement'] = domain.is_complement
+		temp_domain = {
+			"name": domain.name,
+			"length": domain.length,
+			"is_complement": domain.is_complement
+		}
+
+		# temp_domain = {}
+		# temp_domain['name'] = domain.name
+		# temp_domain['length'] = domain.length
+		# temp_domain['is_complement'] = domain.is_complement
 		if domain.sequence != None:
 			temp_domain['sequence'] = domain.sequence
 		return temp_domain
 		
 	def serializeStrand(strand):
-		temp_strand = {}
-		temp_strand['name'] = strand.name
-		temp_domains = []
-		for domain in strand.domains:
-			temp_domains.append(domain.name)
-		temp_strand['domains'] = temp_domains
-		return temp_strand
+		return {
+			"name": strand.name,
+			"domains": [domain.name for domain in strand.domains]
+		}
+		# temp_strand = {}
+		# temp_strand['name'] = strand.name
+		# temp_domains = []
+		# for domain in strand.domains:
+		# 	temp_domains.append(domain.name)
+		# temp_strand['domains'] = temp_domains
+		# return temp_strand
 		
 	def serializeRestingState(resting_state):
-		temp_resting_state = {}
-		temp_complexes = []
-		for complex in resting_state.complexes:
-			temp_complexes.append(complex.name)
-		temp_resting_state['name'] = resting_state.name
-		temp_resting_state['complexes'] = temp_complexes
-		return temp_resting_state
+		return {
+			"name": str(resting_state),
+			"complexes": [complex.name for complex in resting_state.complexes]
+		}
+		# temp_resting_state = {}
+		# temp_complexes = []
+		# for complex in resting_state.complexes:
+		# 	temp_complexes.append(complex.name)
+		# temp_resting_state['name'] = resting_state.name
+		# temp_resting_state['complexes'] = temp_complexes
+		# return temp_resting_state
 		
 	object_out = {}
 	

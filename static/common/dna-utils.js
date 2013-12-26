@@ -14,6 +14,9 @@ if(typeof module.exports == 'undefined') {
  * `require('static/lib/dna-utils').DNA`.
  */
 var DNA = module.exports.DNA = (function(_) {
+	// ------------------------------------------------------------------------
+	// Geometry
+
 	function sum(list) {
 		return _.reduce(list,function(x,y) { return x+y; },0);
 	}
@@ -110,6 +113,8 @@ var DNA = module.exports.DNA = (function(_) {
 			
 	
 	
+	//-------------------------------------------------------------------------
+	// Sequences and Alignment
 	
 	//Written by Paul Stothard, University of Alberta, Canada
 
@@ -704,6 +709,53 @@ var DNA = module.exports.DNA = (function(_) {
 		return sequence;
 	}
 
+	function pairwiseAlign(newDnaOne, newDnaTwo, matchScore, mismatchScore, gapPenalty, beginGapPenalty, endGapPenalty) {
+		matchScore || ( matchScore = 2);
+		mismatchScore || ( mismatchScore = -1);
+		gapPenalty || ( gapPenalty = -2);
+		beginGapPenalty || ( beginGapPenalty = 0);
+		endGapPenalty || ( endGapPenalty = 0);
+
+		//can use one or both.
+		//can compare scores (should be identical)
+		var useLinearSpace = true;
+		var useQuadraticSpace = false;
+
+		var matrix = new Identity();
+		matrix.setMatch(matchScore);
+		matrix.setMismatch(mismatchScore);
+
+		var scoreSet = new ScoreSet();
+		scoreSet.setScoreSetParam(matrix, gapPenalty, beginGapPenalty, endGapPenalty);
+
+		var alignment;
+
+		if (useLinearSpace) {
+			alignment = new AlignPairLinear();
+			alignment.setAlignParam(newDnaOne, newDnaTwo, scoreSet);
+			alignment.align();
+
+			return {
+				sequences : [alignment.getAlignedM(), alignment.getAlignedN()],
+				score : alignment.score
+			};
+		}
+
+		if (useQuadraticSpace) {
+			alignment = new AlignPairQuad();
+			alignment.initializeMatrix(newDnaOne, newDnaTwo, scoreSet);
+			alignment.fillMatrix();
+			//alignment.dumpMatrix();
+			alignment.align();
+
+			return {
+				sequences : [alignment.getAlignedM(), alignment.getAlignedN()],
+				score : alignment.score
+			};
+		}
+	}
+
+
 	/**
 	 * Returns the Watson-Crick complement of a sequence of DNA
 	 * @param {String} sequence
@@ -908,469 +960,12 @@ var DNA = module.exports.DNA = (function(_) {
 	 * Secondary structure layout
 	 */
 	
-	var debug = true;
-	var baseLength = breakWidth = 20, stemWidth = 1.5*baseLength, duplexWidth = stemWidth + baseLength,
-		pi2 = 2*Math.PI,
-		piHalf = Math.PI/2;
-	var phi = Math.PI/4;
-							
-	function getBounds(list) {
-		var xmin = list[0][0], xmax = list[0][0], ymin = list[0][1], ymax = list[0][1];
-		
-		for(var i=0;i<list.length;i++) {
-			if(list[i][0] < xmin) { xmin = list[i][0] }
-			if(list[i][0] > xmax) { xmax = list[i][0] }
-			
-			if(list[i][1] < ymin) { ymin = list[i][1] }
-			if(list[i][1] > ymax) { ymax = list[i][1] }
-		}
-		return [[xmin,xmax],[ymin,ymax]]
-	}
-	
-	function getScale(bounds,scale,maintainAspect) {
-		var xscale = 1, yscale = 1, 
-			width = bounds[0][1]-bounds[0][0], height = bounds[1][1] - bounds[1][0];
-		if(maintainAspect) {
-			xscale = yscale = Math.min(scale[0]/width,scale[1]/height);
-			// if(scale[0] < scale[1]) {
-			// 	xscale = yscale = scale[0]/width;
-			// } else if (scale[0] >= scale[1]) {
-			// 	xscale = yscale = scale[1]/height; 
-			// }
-		
-		} else {						
-			xscale = scale[0]/width;
-			yscale = scale[1]/height;
-		}
-		return [xscale, yscale];
-	}
-
-	function getOffset(bounds,scale,zoom) {
-		zoom || (zoom = 1);
-		var width = (bounds[0][1]-bounds[0][0])*zoom, height = (bounds[1][1] - bounds[1][0])*zoom,
-			cWidth = scale[0], cHeight = scale[1];
-		return [cWidth/2-width/2, cHeight/2-height/2];
-	}
-	
-	function arrangeLayout(list,options) {
-		options || (options = {});
-		_.defaults(options,{
-			center: true,
-			alignCenter: true,
-			scale: false,
-			offsets: false,
-			maintainAspect: true,
-		});
-		
-		var bounds = getBounds(list),
-			dx, dy,	
-			width = bounds[0][1]-bounds[0][0],
-			height= bounds[1][1]-bounds[1][0],
-			scale, xscale = 1, yscale = 1;
-		if(options.scale) {			
-			scale = getScale(bounds,options.scale,options.maintainAspect);
-			xscale = scale[0], yscale = scale[1];
-		}
-		
-		if(options.center) {
-			dx = bounds[0][0];
-			dy = bounds[1][0];
-		}
-		if(options.alignCenter && options.scale) {
-			dx += options.scale[0]/2-width/2;
-			dy += options.scale[1]/2-height/2;
-		}
-		if(options.offsets) {
-			dx -= options.offsets[0]
-			dy -= options.offsets[1]
-		}
-		
-		return {
-			scale: [xscale,yscale],
-			offsets: [dx,dy],
-			bounds: bounds,
-			pairs: _.map(list,function(pair) {
-				pair[0] -= dx; pair[1] -= dy;
-				pair[0] *= xscale; pair[1] *= yscale; 
-				
-				return pair;
-			})
-		}
-	}
-	
-		
-	function drawLoop(struct,start,theta,space,mode) {
-		mode || (mode = 'circular');
-		
-		if(debug) {
-			console.group('Loop : '+coords(start)+' '+deg(theta)+'° = '+DNA.printDUPlus(struct));
-		}
-		
-		var out = [];
-		
-		if(mode == 'circular') {
-			
-			// Contribution of each chunk to the circumference
-			var dcirc = _.map(struct,function(chunk) {
-				switch(chunk[0]) {
-					case 'H': case 'D': return duplexWidth;
-					case '.': case 'U': return baseLength * chunk[1];
-					case '+': return breakWidth;
-				}
-			});
-			
-			// Total loop circumference
-			var loopCirc = sum(dcirc) + space;
-			
-			// Loop radius
-			var loopRadius = loopCirc / pi2;
-			
-			// Center, starting point
-			var center = start.addPolar(theta,loopRadius),
-				cx = center.x, cy = center.y,
-				x, y;
-				
-			theta += Math.PI;
-			theta += (.5 * space / loopCirc) * pi2;
-			
-			x = Math.cos(theta) * loopRadius + cx;
-			y = Math.sin(theta) * loopRadius + cy;
-			
-			for(var i = 0; i<struct.length; i++) {
-				var chunk = struct[i],
-					dtheta = dcirc[i] / loopCirc * pi2; 
-				
-				switch(chunk[0]) {
-					case 'H':
-					case 'D':
-						// center of duplex should be at theta + dtheta/2
-						var theta_duplexCenter = theta + dtheta/2, 
-							duplexCenter = center.addPolar(theta_duplexCenter,loopRadius);
-							
-						// 
-						var theta_firstBase = theta_duplexCenter - (dtheta * 0.5 * stemWidth/duplexWidth), 
-							//theta_lastBase = theta + dtheta - (dtheta * baseLength/(duplexWidth)),
-							
-							firstBase = center.addPolar(theta_firstBase,loopRadius),
-							//lastBase = center.addPolar(theta_lastBase,loopRadius);
-							
-						out = out.concat(drawDuplex(chunk,theta_duplexCenter,firstBase,'linear'))
-						break;
-					case '.':							
-					case 'U':
-						out = out.concat(drawArc(chunk[1],Point.create(cx,cy),theta,dtheta,loopRadius));
-						break;
-					case '+':
-						break;
-				}
-				theta += dtheta;
-				x = Math.cos(theta) * loopRadius + cx;
-				y = Math.sin(theta) * loopRadius + cy;
-			}
-
-		} else if(mode == 'first') {
-			if (struct.length == 2) {
-				var theta_line, len, firstBase;
-				switch(struct[0][0] + struct[1][0]) {
-					case '.D':
-					case 'UD':
-					case '.H':
-					case 'UH':
-						theta_line = theta + phi; 
-						len = struct[0][1];
-						firstBase = start.addPolar(theta_line+Math.PI,baseLength*len);
-
-						out = out.concat(drawLine(len,firstBase,theta_line));
-						out = out.concat(drawDuplex(struct[1],theta,start,'linear'));
-						break;
-					default:
-						if(debug) {
-							console.groupEnd();
-						}
-						return drawLoop(struct,start,theta,space,'circular');
-				}
-			} else if(struct.length == 3) {
-				switch(struct[0][0] + struct[1][0] + struct[2][0]) {
-					case '.D.':
-					case 'UDU':
-					case '.H.':
-					case 'UHU':
-						// Draw unpaired (line)
-						var theta_line = theta + phi, len = struct[0][1],
-						firstBase = start.addPolar(theta_line+Math.PI,baseLength*len);
-						out = out.concat(drawLine(len,firstBase,theta_line));
-
-						out = out.concat(drawDuplex(struct[1],theta,start,'linear'));
-
-						theta_line = theta-phi+Math.PI; len = struct[2][1];
-						firstBase = start.addPolar(theta+piHalf,stemWidth).addPolar(theta_line,baseLength);
-						out = out.concat(drawLine(len,firstBase,theta_line));
-						break;
-					default:
-						if(debug) {
-							console.groupEnd();
-						}
-						return drawLoop(struct,start,theta,space,'circular');
-				}
-			} else {
-				if(debug) {
-					console.groupEnd();
-				}
-				return drawLoop(struct,start,theta,space,'circular');
-			}
-		} else if(mode == 'linear') {
-			var theta_line, len, firstBase;
-			if (struct.length == 2) {
-				switch(struct[0][0] + struct[1][0]) {
-
-					case '.+':
-					case 'U+':
-						theta_line = theta-phi; 
-						len = struct[0][1];
-						firstBase = start.addPolar(theta-piHalf,stemWidth/2).addPolar(theta_line,baseLength);
-						out = out.concat(drawLine(len,firstBase,theta_line));
-						break;
-					case '+.':
-					case '+U':
-						theta_line = theta+phi; 
-						len = struct[1][1];
-						firstBase = start.addPolar(theta+piHalf,stemWidth/2).addPolar(theta_line,baseLength);
-						out = out.concat(drawLine(len,firstBase,theta_line));
-						break;
-					case 'D.':
-					case 'DU':
-					case 'H.':
-					case 'HU':
-						out = out.concat(drawDuplex(struct[0],theta,start,mode));//start.addPolar(theta+piHalf,stemWidth/2)));
-
-						theta_line = theta-phi+Math.PI; len = struct[1][1];
-						firstBase = start.addPolar(theta+piHalf,stemWidth);
-						out = out.concat(drawLine(len,firstBase,theta_line));
-						break;
-
-					default:
-						if(debug) {
-							console.groupEnd();
-						}
-						return drawLoop(struct,start,theta,space,'circular');
-				}
-			} else if(struct.length == 3) {
-				switch(struct[0][0] + struct[1][0] + struct[2][0]) {
-					case '.+D':
-					case 'U+D':
-					case '.+H':
-					case 'U+H':
-						// Draw unpaired (line)
-						theta_line = theta-phi; 
-						len = struct[0][1];
-						firstBase = start.addPolar(theta-piHalf,stemWidth/2).addPolar(theta_line,baseLength);
-						out = out.concat(drawLine(len,firstBase,theta_line));
-
-						// Draw duplex
-						start = start.addPolar(theta,breakWidth);
-						out = out.concat(drawDuplex(struct[2],theta,start,mode));
-						break;
-
-					case 'D.+':
-					case 'DU+':
-					case 'H.+':
-					case 'HU+':
-						// Skip strand break
-						start = start.addPolar(theta,breakWidth).addPolar(theta-piHalf,stemWidth/2);
-
-						// Draw duplex
-						out = out.concat(drawDuplex(struct[0],theta,start,mode));
-						
-						// Draw unpaired (line)
-						theta_line = theta+Math.PI-phi; 
-						len = struct[1][1];
-						firstBase = start.addPolar(theta+piHalf,stemWidth).addPolar(theta_line,baseLength);
-						out = out.concat(drawLine(len,firstBase,theta_line));
-
-						break;
-
-					case '+.D':
-					case '+UD':
-					case '+.H':
-					case '+UH':
-						// Draw unpaired (line)
-						theta_line = theta+phi; 
-						len = struct[0][1];
-						firstBase = start.addPolar(theta-piHalf,stemWidth/2).addPolar(theta_line,baseLength);
-						out = out.concat(drawLine(len,firstBase,theta_line));
-
-						// Draw duplex
-						start = start.addPolar(theta,breakWidth);
-						out = out.concat(drawDuplex(struct[2],theta,start,mode));
-						break;
-
-					case 'D+.':
-					case 'D+U':
-					case 'H+.':
-					case 'H+U':
-						// Skip strand break
-						start = start.addPolar(theta,breakWidth).addPolar(theta-piHalf,stemWidth/2);
-
-						// Draw duplex
-						out = out.concat(drawDuplex(struct[0],theta,start,mode));
-						
-						// Draw unpaired (line)
-						theta_line = theta+piHalf-phi; 
-						len = struct[2][1];
-						firstBase = start.addPolar(theta+piHalf,stemWidth).addPolar(theta+Math.PI,breakWidth).addPolar(theta_line,baseLength);
-						out = out.concat(drawLine(len,firstBase,theta_line));
-
-						break;
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-					default:
-						if(debug) {
-							console.groupEnd();
-						}
-						return drawLoop(struct,start,theta,space,'circular');
-				}
-			} else {
-				if(debug) {
-					console.groupEnd();
-				}
-				return drawLoop(struct,start,theta,space,'circular');
-			}
-		}
-		
-		if(debug) {
-			console.groupEnd();
-		}
-		
-		return out;
-		
-	}
 
-	function drawLine(len,start,theta) {
-		var x = start.x, y = start.y, 
-			dx = Math.cos(theta)*baseLength,
-			dy = Math.sin(theta)*baseLength,
-			theta_normal = theta-piHalf,
-			out = [];
-
-		if(debug) {						
-			console.log('Line : '+coords(start)+' '+deg(theta)+'° + len: '+len);					
-		}
-		
-		for(var i = 0; i<len; i++) {
-			out.push([x,y,theta_normal]);
-			x += dx; y += dy;
-		}
-		return out;
-	}
-
-	function drawArc(len,center,theta,sweep,radius) {
-		var dtheta = sweep / len,
-			cx = center.x, cy = center.y, x, y, out = [];
-			
-		if(debug) {						
-			console.log('Arc : '+coords(center)+' '+deg(theta)+'° + '+deg(sweep)+' (dtheta='+dtheta+'°), r: '+radius+' len: '+len);					
-		}
-		
-		theta += dtheta/2;
-		for(var i = 0; i<len; i++) {
-			x = Math.cos(theta) * radius + cx,
-			y = Math.sin(theta) * radius + cy;
-			out.push([x,y,theta]);
-			theta += dtheta;						
-		}
-		return out;
-	}
-	
-	function drawDuplex(chunk,theta,firstBase,loopMode) {
-		if(debug) {
-			console.group('Duplex : '+coords(firstBase)+' '+deg(theta)+'° = '+chunk);
-		}
-		
-		//theta -= (Math.PI / 2)
-		
-		var len = chunk[1],
-			// cx = center.x,
-			// cy = center.y,
-			x0 = x = firstBase.x, 
-			y0 = y = firstBase.y,
-			x1, y1,
-			dx = Math.cos(theta) * baseLength,
-			dy = Math.sin(theta) * baseLength,
-			theta_normal = theta - (Math.PI/2),
-			out;
-		
-		// Draw first side of duplex
-		out = [[firstBase.x,firstBase.y,theta_normal]];
-		for(var i = 1; i<len; i++) {					
-			x += dx
-			y += dy;
-			out.push([x,y,theta_normal]);
-		}
-		
-		x1 = x;
-		y1 = y;
-
-		// Draw loop
-		theta_normal = theta + (Math.PI/2);
-		x = x1 + Math.cos(theta_normal) * (stemWidth/2);
-		y = y1 + Math.sin(theta_normal) * (stemWidth/2);
-		out = out.concat(drawLoop(chunk[2],Point.create(x,y),theta,duplexWidth,loopMode))
-									
-		// Draw second side of duplex				
-		x = x1 + Math.cos(theta_normal) * stemWidth;
-		y = y1 + Math.sin(theta_normal) * stemWidth;
-
-		out.push([x,y,theta_normal]);
-		
-		for(var i = 1; i<len; i++) {					
-			x -= dx
-			y -= dy;
-			out.push([x,y,theta_normal]);
-		}
-										
-		if(debug) {
-			console.groupEnd();
-		}
-		
-		return out;			
-	}
-	
-	function layoutStructure(structure,options) {
-		var theta = 0, //Math.PI/2,
-			x = 0, y = 0;
-		if(options && options.arrangeLayout!==false) {
-			options.arrangeLayout = true;
-		}
-
-		if(structure.length==0) { return []; }
-		
-		var loopMode = options ? options.loopMode : null;
-		if(loopMode && loopMode == 'linear') { loopMode = 'first'; } 
-		var points = drawLoop(structure,Point.create(x,y),theta,breakWidth,loopMode);
-		if(points.length > 0 && options && !options.arrangeLayout) {
-			return arrangeLayout(points,options).pairs;
-		} else {
-			return points;
-		}	
-	}
-
-	/*
-	 * NUPACK
-	 */
-
-	function stripNupackHeaders(string) {
-		var arr = string.split('\n');
-		while (arr[0] && arr[0][0] == '%') {
-			arr.shift();
-		}
-		return arr.join('\n');
-		//return string.substr(string.indexOf('\n\n% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %\n'));
-	};
-
-	function nupackBlocks(string) {
-		return _.each(string.split('% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %'), function(i) {
-		});
-	};
+	//-------------------------------------------------------------------------
+	// Sequence Generation
 
 	/*
 	 * Degenerate bases
@@ -1414,7 +1009,48 @@ var DNA = module.exports.DNA = (function(_) {
 		memo += key + key.toLowerCase();
 		return memo;
 	},''));
+
+	function matchDegenerate(deg,base) {
+		return degenerateRegexes[deg].test(base)
+	}
+
+	function populateDegenerate(spec,options) {
+		var degenerateMap; options || (options = {}); 
+		if(options.rna) { 
+			degenerateMap = degenerateRna;
+		} else {
+			degenerateMap = degenerateDna
+		}
+		return _.map(spec.split(''),function (x) {
+			return chooseDegenerate(x,degenerateMap);
+		}).join('');
+	}
+
+	function chooseDegenerate(base,degenerateMap)  {
+		var x = degenerateMap[base];
+		return x[Math.floor(Math.random() * x.length)];
+	}
+
+	//-------------------------------------------------------------------------
+	// Parsing and Export
 	
+	/*
+	 * NUPACK
+	 */
+
+	function stripNupackHeaders(string) {
+		var arr = string.split('\n');
+		while (arr[0] && arr[0][0] == '%') {
+			arr.shift();
+		}
+		return arr.join('\n');
+		//return string.substr(string.indexOf('\n\n% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %\n'));
+	};
+
+	function nupackBlocks(string) {
+		return _.each(string.split('% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %'), function(i) {
+		});
+	};
 
 	function parseNamedSequences(string) {
 		var lines = string.split('\n'), name, seq, pair, out = {};
@@ -1536,29 +1172,1259 @@ var DNA = module.exports.DNA = (function(_) {
 		
 	}
 
+	//--------------------------------------------------------------------
+	// Sequence group handling
 
-	function matchDegenerate(deg,base) {
-		return degenerateRegexes[deg].test(base)
-	}
-
-	function populateDegenerate(spec,options) {
-		var degenerateMap; options || (options = {}); 
-		if(options.rna) { 
-			degenerateMap = degenerateRna;
+	/**
+	 * Accepts a set of domains and a strand specification, and produces a sequence to represent the strand
+	 * 
+	 * @param {Object} segments
+	 * Hash mapping segment names to sequences, e.g. `{ 'd1': 'ATACG', 'd2':'GCTTA', ... }`
+	 * 
+	 * @param {String/Array} strand
+	 * String strand spec (e.g. `d1 d2* d3 d4*`, `d1 d2' d3' d4`, etc.), or array of 
+	 * {@link #getIdentifier identifier} objects (e.g. `[{identity: 'd1', polarity: -1}, ...]`)
+	 * 
+	 * @param {Boolean} [concat=true]
+	 * True to return a concatenated string, false to return an array of sequences in order
+	 * 
+	 * @returns {String} The complete sequence
+	 */
+	function threadSegments(segments, strand, concat) {
+		concat = (concat == undefined) ? true : concat;
+		var strandList = _.isArray(strand) ? _.map(strand,function(x) {
+			if(_.isObject(x)) {
+				return x;
+			} else if(_.isNumber(x)) {
+				return { identity: Math.abs(x), polarity: sign(x) }
+			} else {
+				return DNA.parseIdentifier(x);
+			}
+		}) : parseStrandSpec(strand, ' '), sequence = [], id;
+		if (_.isArray(segments)) {
+			for (var i = 0; i < strandList.length; i++) {
+				id = strandList[i];
+				if (segments[parseInt(id.identity) - 1]) {
+					if (id.polarity > 0) {
+						sequence.push( segments[parseInt(id.identity) - 1] );
+					} else {
+						sequence.push( reverseComplement(segments[parseInt(id.identity) - 1]) );
+					}
+				} else {
+					throw Error('Threading error: Undefined segment '+id);
+				}
+			}
 		} else {
-			degenerateMap = degenerateDna
+			for (var i = 0; i < strandList.length; i++) {
+				id = strandList[i];
+				
+				if (segments[id.identity]) {
+					if (id.polarity == 1) {
+						sequence.push( segments[id.identity] );
+					} else {
+						sequence.push( reverseComplement(segments[id.identity]) );
+					}
+				}
+			}
 		}
-		return _.map(spec.split(''),function (x) {
-			return chooseDegenerate(x,degenerateMap);
-		}).join('');
+		if (concat)
+			return sequence.join('');
+		else
+			return sequence;
+	}
+	function unthreadSegments(sequence, strand) {
+
 	}
 
-	function chooseDegenerate(base,degenerateMap)  {
-		var x = degenerateMap[base];
-		return x[Math.floor(Math.random() * x.length)];
+	/**
+	 * Given a hash mapping names to sequences, e.g.:
+	 * 
+	 *     {
+	 * 	       'a': 'AAATACG',
+	 *         'b': 'TTAAAGAAC',
+	 *         ...
+	 *     }
+	 * 
+	 * Returns an augmented hash which also includes the sequences of the
+	 * reverse complements; e.g.:
+	 * 
+	 *     {
+	 * 	       'a': 'AAATACG',
+	 *         'a*': 'CGTATTT',
+	 *         'b': 'TTAAAGAAC',
+	 *         'b*': 'GTTCTTTAA',
+	 *         ...
+	 *     }
+	 * 
+	 * @param {Object} sequences
+	 * @return {Object} sequencesWithComplement
+	 */
+	function hashComplements(sequences) {
+		sequences = _.clone(sequences);
+		for(var key in sequences) {
+			if(_.has(sequences,key)) {
+				var id = DNA.makeIdentifier(key,-1);
+				if(!sequences[id]) {
+					sequences[id] = DNA.reverseComplement(sequences[key]);
+				}
+			}
+		}
+		return sequences;
 	}
+
+	// Layout
 	
+	var layout = (function() {
+		var debug = true;
+		var baseLength = breakWidth = 20, stemWidth = 1.5*baseLength, duplexWidth = stemWidth + baseLength,
+			pi2 = 2*Math.PI,
+			piHalf = Math.PI/2;
+		var phi = Math.PI/4;
+								
+		function getBounds(list) {
+			var xmin = list[0][0], xmax = list[0][0], ymin = list[0][1], ymax = list[0][1];
+			
+			for(var i=0;i<list.length;i++) {
+				if(list[i][0] < xmin) { xmin = list[i][0] }
+				if(list[i][0] > xmax) { xmax = list[i][0] }
+				
+				if(list[i][1] < ymin) { ymin = list[i][1] }
+				if(list[i][1] > ymax) { ymax = list[i][1] }
+			}
+			return [[xmin,xmax],[ymin,ymax]]
+		}
+		
+		function getScale(bounds,scale,maintainAspect) {
+			var xscale = 1, yscale = 1, 
+				width = bounds[0][1]-bounds[0][0], height = bounds[1][1] - bounds[1][0];
+			if(maintainAspect) {
+				xscale = yscale = Math.min(scale[0]/width,scale[1]/height);
+				// if(scale[0] < scale[1]) {
+				// 	xscale = yscale = scale[0]/width;
+				// } else if (scale[0] >= scale[1]) {
+				// 	xscale = yscale = scale[1]/height; 
+				// }
+			
+			} else {						
+				xscale = scale[0]/width;
+				yscale = scale[1]/height;
+			}
+			return [xscale, yscale];
+		}
+
+		function getOffset(bounds,scale,zoom) {
+			zoom || (zoom = 1);
+			var width = (bounds[0][1]-bounds[0][0])*zoom, height = (bounds[1][1] - bounds[1][0])*zoom,
+				cWidth = scale[0], cHeight = scale[1];
+			return [cWidth/2-width/2, cHeight/2-height/2];
+		}
+		
+		function arrangeLayout(list,options) {
+			options || (options = {});
+			_.defaults(options,{
+				center: true,
+				alignCenter: true,
+				scale: false,
+				offsets: false,
+				maintainAspect: true,
+			});
+			
+			var bounds = getBounds(list),
+				dx, dy,	
+				width = bounds[0][1]-bounds[0][0],
+				height= bounds[1][1]-bounds[1][0],
+				scale, xscale = 1, yscale = 1;
+			if(options.scale) {			
+				scale = getScale(bounds,options.scale,options.maintainAspect);
+				xscale = scale[0], yscale = scale[1];
+			}
+			
+			if(options.center) {
+				dx = bounds[0][0];
+				dy = bounds[1][0];
+			}
+			if(options.alignCenter && options.scale) {
+				dx += options.scale[0]/2-width/2;
+				dy += options.scale[1]/2-height/2;
+			}
+			if(options.offsets) {
+				dx -= options.offsets[0]
+				dy -= options.offsets[1]
+			}
+			
+			return {
+				scale: [xscale,yscale],
+				offsets: [dx,dy],
+				bounds: bounds,
+				pairs: _.map(list,function(pair) {
+					pair[0] -= dx; pair[1] -= dy;
+					pair[0] *= xscale; pair[1] *= yscale; 
+					
+					return pair;
+				})
+			}
+		}
+		
+			
+		function drawLoop(struct,start,theta,space,mode) {
+			mode || (mode = 'circular');
+			if(mode != 'circular' && (struct.length != 2 && struct.length != 3)) {
+				mode = 'circular';
+			}
+			
+			if(debug) {
+				console.group('Loop : ('+mode+') '+coords(start)+' '+deg(theta)+'° = '+DNA.printDUPlus(struct));
+			}
+			
+			var out = [];
+			
+			if(mode == 'first') {
+				if (struct.length == 2) {
+					var theta_line, len, firstBase;
+					switch(struct[0][0] + struct[1][0]) {
+
+						//  \__
+						//   __ 
+						//  
+						case '.D':
+						case 'UD':
+						case '.H':
+						case 'UH':
+							theta_line = theta + phi; 
+							len = struct[0][1];
+							firstBase = start.addPolar(theta_line+Math.PI,baseLength*len);
+
+							out = out.concat(drawLine(len,firstBase,theta_line));
+							out = out.concat(drawDuplex(struct[1],theta,start,'linear'));
+							break;
+						default:
+							if(debug) {
+								console.groupEnd();
+							}
+							return drawLoop(struct,start,theta,space,'circular');
+					}
+				} else if(struct.length == 3) {
+					switch(struct[0][0] + struct[1][0] + struct[2][0]) {
+						
+						//  \__
+						//   __ 
+						//  /
+						//  
+						case '.D.':
+						case 'UDU':
+						case '.H.':
+						case 'UHU':
+							// Draw unpaired (line)
+							var theta_line = theta + phi, len = struct[0][1],
+							firstBase = start.addPolar(theta_line+Math.PI,baseLength*len);
+							out = out.concat(drawLine(len,firstBase,theta_line));
+
+							out = out.concat(drawDuplex(struct[1],theta,start,'linear'));
+
+							theta_line = theta-phi+Math.PI; len = struct[2][1];
+							firstBase = start.addPolar(theta+piHalf,stemWidth).addPolar(theta_line,baseLength);
+							out = out.concat(drawLine(len,firstBase,theta_line));
+							break;
+						default:
+							if(debug) {
+								console.groupEnd();
+							}
+							return drawLoop(struct,start,theta,space,'circular');
+					}
+				}
+			} else if(mode == 'linear') {
+				var theta_line, len, firstBase;
+				if (struct.length == 2) {
+					switch(struct[0][0] + struct[1][0]) {
+
+						//  ??
+						//  
+						case '.+':
+						case 'U+':
+							theta_line = theta-phi; 
+							len = struct[0][1];
+							firstBase = start.addPolar(theta-piHalf,stemWidth/2).addPolar(theta_line,baseLength);
+							out = out.concat(drawLine(len,firstBase,theta_line));
+							break;
+						
+						//  ??
+						//  
+						case '+.':
+						case '+U':
+							theta_line = theta+phi; 
+							len = struct[1][1];
+							firstBase = start.addPolar(theta+piHalf,stemWidth/2).addPolar(theta_line,baseLength);
+							out = out.concat(drawLine(len,firstBase,theta_line));
+							break;
+
+						//  ??
+						//  
+						case 'D.':
+						case 'DU':
+						case 'H.':
+						case 'HU':
+							out = out.concat(drawDuplex(struct[0],theta,start,mode));//start.addPolar(theta+piHalf,stemWidth/2)));
+
+							theta_line = theta-phi+Math.PI; len = struct[1][1];
+							firstBase = start.addPolar(theta+piHalf,stemWidth);
+							out = out.concat(drawLine(len,firstBase,theta_line));
+							break;
+
+						default:
+							if(debug) {
+								console.groupEnd();
+							}
+							return drawLoop(struct,start,theta,space,'circular');
+					}
+				} else if(struct.length == 3) {
+					switch(struct[0][0] + struct[1][0] + struct[2][0]) {
+						
+						//  ??
+						//  
+						case '.+D':
+						case 'U+D':
+						case '.+H':
+						case 'U+H':
+							// Draw unpaired (line)
+							theta_line = theta-phi; 
+							len = struct[0][1];
+							firstBase = start.addPolar(theta-piHalf,stemWidth/2).addPolar(theta_line,baseLength);
+							out = out.concat(drawLine(len,firstBase,theta_line));
+
+							// Draw duplex
+							start = start.addPolar(theta,breakWidth);
+							out = out.concat(drawDuplex(struct[2],theta,start,mode));
+							break;
+
+						//  ??
+						//  
+						case 'D.+':
+						case 'DU+':
+						case 'H.+':
+						case 'HU+':
+							// Skip strand break
+							start = start.addPolar(theta,breakWidth).addPolar(theta-piHalf,stemWidth/2);
+
+							// Draw duplex
+							out = out.concat(drawDuplex(struct[0],theta,start,mode));
+							
+							// Draw unpaired (line)
+							theta_line = theta+Math.PI-phi; 
+							len = struct[1][1];
+							firstBase = start.addPolar(theta+piHalf,stemWidth).addPolar(theta_line,baseLength);
+							out = out.concat(drawLine(len,firstBase,theta_line));
+
+							break;
+
+						//  ??
+						//  
+						case '+.D':
+						case '+UD':
+						case '+.H':
+						case '+UH':
+							// Draw unpaired (line)
+							theta_line = theta+phi; 
+							len = struct[0][1];
+							firstBase = start.addPolar(theta-piHalf,stemWidth/2).addPolar(theta_line,baseLength);
+							out = out.concat(drawLine(len,firstBase,theta_line));
+
+							// Draw duplex
+							start = start.addPolar(theta,breakWidth);
+							out = out.concat(drawDuplex(struct[2],theta,start,mode));
+							break;
+
+						//  ??
+						//  
+						case 'D+.':
+						case 'D+U':
+						case 'H+.':
+						case 'H+U':
+							// Skip strand break
+							start = start.addPolar(theta,breakWidth).addPolar(theta-piHalf,stemWidth/2);
+
+							// Draw duplex
+							out = out.concat(drawDuplex(struct[0],theta,start,mode));
+							
+							// Draw unpaired (line)
+							theta_line = theta+piHalf-phi; 
+							len = struct[2][1];
+							firstBase = start.addPolar(theta+piHalf,stemWidth).addPolar(theta+Math.PI,breakWidth).addPolar(theta_line,baseLength);
+							out = out.concat(drawLine(len,firstBase,theta_line));
+
+							break;
+
+
+						default:
+							if(debug) {
+								console.groupEnd();
+							}
+							return drawLoop(struct,start,theta,space,'circular');
+					}
+				}
+			} else if(mode == 'circular') {
+				
+				// Contribution of each chunk to the circumference
+				var dcirc = _.map(struct,function(chunk) {
+					switch(chunk[0]) {
+						case 'H': case 'D': return duplexWidth;
+						case '.': case 'U': return baseLength * chunk[1];
+						case '+': return breakWidth;
+					}
+				});
+				
+				// Total loop circumference
+				var loopCirc = sum(dcirc) + space;
+				
+				// Loop radius
+				var loopRadius = loopCirc / pi2;
+				
+				// Center, starting point
+				var center = start.addPolar(theta,loopRadius),
+					cx = center.x, cy = center.y,
+					x, y;
+					
+				theta += Math.PI;
+				theta += (.5 * space / loopCirc) * pi2;
+				
+				x = Math.cos(theta) * loopRadius + cx;
+				y = Math.sin(theta) * loopRadius + cy;
+				
+				for(var i = 0; i<struct.length; i++) {
+					var chunk = struct[i],
+						dtheta = dcirc[i] / loopCirc * pi2; 
+					
+					switch(chunk[0]) {
+						case 'H':
+						case 'D':
+							// center of duplex should be at theta + dtheta/2
+							var theta_duplexCenter = theta + dtheta/2, 
+								duplexCenter = center.addPolar(theta_duplexCenter,loopRadius);
+								
+							// 
+							var theta_firstBase = theta_duplexCenter - (dtheta * 0.5 * stemWidth/duplexWidth), 
+								//theta_lastBase = theta + dtheta - (dtheta * baseLength/(duplexWidth)),
+								
+								firstBase = center.addPolar(theta_firstBase,loopRadius),
+								//lastBase = center.addPolar(theta_lastBase,loopRadius);
+								
+							out = out.concat(drawDuplex(chunk,theta_duplexCenter,firstBase,'linear'))
+							break;
+						case '.':							
+						case 'U':
+							out = out.concat(drawArc(chunk[1],Point.create(cx,cy),theta,dtheta,loopRadius));
+							break;
+						case '+':
+							break;
+					}
+					theta += dtheta;
+					x = Math.cos(theta) * loopRadius + cx;
+					y = Math.sin(theta) * loopRadius + cy;
+				}
+
+			}
+			
+			if(debug) {
+				console.groupEnd();
+			}
+			
+			return out;
+			
+		}
+
+		function drawLine(len,start,theta) {
+			var x = start.x, y = start.y, 
+				dx = Math.cos(theta)*baseLength,
+				dy = Math.sin(theta)*baseLength,
+				theta_normal = theta-piHalf,
+				out = [];
+
+			if(debug) {						
+				console.log('Line : '+coords(start)+' '+deg(theta)+'° + len: '+len);					
+			}
+			
+			for(var i = 0; i<len; i++) {
+				out.push([x,y,theta_normal]);
+				x += dx; y += dy;
+			}
+			return out;
+		}
+
+		function drawArc(len,center,theta,sweep,radius) {
+			var dtheta = sweep / len,
+				cx = center.x, cy = center.y, x, y, out = [];
+				
+			if(debug) {						
+				console.log('Arc : '+coords(center)+' '+deg(theta)+'° + '+deg(sweep)+' (dtheta='+dtheta+'°), r: '+radius+' len: '+len);					
+			}
+			
+			theta += dtheta/2;
+			for(var i = 0; i<len; i++) {
+				x = Math.cos(theta) * radius + cx,
+				y = Math.sin(theta) * radius + cy;
+				out.push([x,y,theta]);
+				theta += dtheta;						
+			}
+			return out;
+		}
+		
+		function drawDuplex(chunk,theta,firstBase,loopMode) {
+			if(debug) {
+				console.group('Duplex : '+coords(firstBase)+' '+deg(theta)+'° = '+DNA.printDUPlus([chunk]));
+			}
+			
+			//theta -= (Math.PI / 2)
+			
+			var len = chunk[1],
+				// cx = center.x,
+				// cy = center.y,
+				x0 = x = firstBase.x, 
+				y0 = y = firstBase.y,
+				x1, y1,
+				dx = Math.cos(theta) * baseLength,
+				dy = Math.sin(theta) * baseLength,
+				theta_normal = theta - (Math.PI/2),
+				out;
+			
+			// Draw first side of duplex
+			out = [[firstBase.x,firstBase.y,theta_normal]];
+			for(var i = 1; i<len; i++) {					
+				x += dx
+				y += dy;
+				out.push([x,y,theta_normal]);
+			}
+			
+			x1 = x;
+			y1 = y;
+
+			// Draw loop
+			theta_normal = theta + (Math.PI/2);
+			x = x1 + Math.cos(theta_normal) * (stemWidth/2);
+			y = y1 + Math.sin(theta_normal) * (stemWidth/2);
+			out = out.concat(drawLoop(chunk[2],Point.create(x,y),theta,duplexWidth,loopMode))
+										
+			// Draw second side of duplex				
+			x = x1 + Math.cos(theta_normal) * stemWidth;
+			y = y1 + Math.sin(theta_normal) * stemWidth;
+
+			out.push([x,y,theta_normal]);
+			
+			for(var i = 1; i<len; i++) {					
+				x -= dx
+				y -= dy;
+				out.push([x,y,theta_normal]);
+			}
+											
+			if(debug) {
+				console.groupEnd();
+			}
+			
+			return out;			
+		}
+		
+		function layoutStructure(structure,options) {
+			var theta = 0, //Math.PI/2,
+				x = 0, y = 0;
+			if(options && options.arrangeLayout!==false) {
+				options.arrangeLayout = true;
+			}
+
+			if(structure.length==0) { return []; }
+			
+			var loopMode = 'circular'; //options ? options.loopMode : null;
+			if(loopMode && loopMode == 'linear') { loopMode = 'first'; } 
+			var points = drawLoop(structure,Point.create(x,y),theta,breakWidth,loopMode);
+			if(points.length > 0 && options && !options.arrangeLayout) {
+				return arrangeLayout(points,options).pairs;
+			} else {
+				return points;
+			}	
+		}
+
+		return {
+			getScale: getScale,
+			getOffset: getOffset,
+			getBounds: getBounds,
+			arrangeLayout: arrangeLayout,
+			layoutStructure: layoutStructure
+		};
+
+	})();
+
+	//--------------------------------------------------------------------
+	// Specification parsing and printing
+
+	/**
+	 * Converts a CodeMirror-parsed NUPACK file into a structure specification.
+	 * @param {Array} lines Result of running CodeMirror#tokenize(string, 'nupack') on a structure specification
+	 * @return {Object} spec
+	 * @return {Object} spec.domains Hash mapping the names of each segment to their sequence (or proto-sequence; may contain degenerate bases like N)
+	 * @return {Object} spec.strands Hash mapping strand names to strings specifying their contents
+	 * @return {Object} spec.complexes 
+	 * Hash mapping complex names to strings specifying their constituents. These strings use the NUPACK convention, such that they may be either be
+	 * lists of strands or lists of domains. It's up to the consumer of this data to figure out which.
+	 *
+	 * @return {String[]} spec.other
+	 * Array of other parsed lines not consumed by this code; useful for passing through e.g. multisubjective commands
+	 */
+	function structureSpec(lines) {
+		var sequences = {}, strands = {}, structures = {}, complexes = {}, others = [];
+		_.each(lines, function(line) {
+			if (line.length > 0) {
+				
+				/* Handle structures
+				 * e.g.:
+				 * 		0         1  2 3
+				 * 		structure A1 = U16 D18(U19) U8
+				 * 		structure A2 = ...(((..+..)))
+				 */
+				if (line[0][1] == 'structure') {
+					var name = line[1][1], spec = _.select(line.slice(3), function(x) {
+						return x[0] == 'nupack-huplus';
+					});
+					spec = _.pluck(spec, 1);
+					spec = spec.join('');
+
+					structures[name] = spec;
+				} 
+
+				/* Handle segment/sequences 
+				 * e.g.:
+				 *     0        1 2 3...
+				 *     sequence a = 7N
+				 *     sequence a = ATCGNA
+				 *     domain   a = GYRBA
+				 */
+				else if (line[0][1] == 'sequence' || line[0][1] == 'domain' || line[0][1] == 'segment') {
+					/*
+					 *	e.g:
+					 *	
+					 *	line = [
+					 *		["keyword", "sequence"],
+					 *		["string", "1"],
+					 *		["operator", ":"],
+					 *		["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], 
+					 *		["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"]
+					 *	]
+					 */
+					var name = line[1][1], spec = _.select(line.slice(3), function(x) {
+						return (x[0] == 'number' || (x[0].indexOf('sequence') != -1));
+					});
+
+					// e.g. `6N`
+					if (spec[0][0] == 'number') {
+						var base = spec[1][1], times = parseInt(spec[0][1]), spec = '';
+						spec = Array(times+1).join(base);
+					}
+					// e.g. `N65`
+					// note that each subsequent digit is a separate token 
+					else if (spec.length>1 && spec[1][0] == 'number') {
+						var base = spec[0][1], 
+
+						// select all subsequent tokens, combine together to make an integer
+						times = parseInt(_.pluck(spec.slice(1),1).join('')), spec = '';
+
+						// create string of repeated base
+						spec = Array(times+1).join(base);
+					}
+					// e.g. `GATCANY` ... 
+					else {
+						spec = _.pluck(spec, 1).join('');
+					}
+					sequences[name] = spec;
+
+					
+				} 
+				/* Handle Pepper-style threading assignments
+				 * e.g.:
+				 *     0      1  2 3...
+				 *     strand m1 = a b c*
+				 */
+				else if (line[0][1] == 'strand') {
+					var name = line[1][1], spec = _.select(line.slice(3), function(x) {
+						return x[0] == 'string';
+					});
+					spec = _.pluck(spec, 1);
+					spec = spec.join(' ');
+
+					strands[name] = spec;
+				}
+
+				/* Handle NUPACK-style threading assignments for strands
+				 * e.g.:
+				 *     0      1 2...
+				 *     M1     : 1 2* 3 4
+				 *
+				 * And complexes
+				 * e.g.:
+				 *     M2.seq = 1 2* 3 4
+				 */
+				else if (line[0][0] == 'variable' && line[1] && (line[1][1] == ':' || line[1][1] == '=')) {
+					var name = line[0][1], spec = _.select(line.slice(2), function(x) {
+						return x[0] == 'string';
+					});
+					spec = _.pluck(spec, 1);
+
+					// Handle complex-threading, e.g. `M2.seq`  
+					if(name.indexOf('.seq') != -1) { 
+						name = name.replace('.seq','')
+						spec = _.compact(spec) 
+						complexes[name] = spec;
+					} 
+					// Handle strand-threading
+					else {
+						spec = spec.join(' ');
+						strands[name] = spec;							
+					}
+				}
+
+				else {
+					others.push(line);
+				}
+			}
+		});
+		return {
+			domains : sequences,
+			strands : strands,
+			structures: structures,
+			complexes: complexes,
+			others: others,
+		};
+	}
+
+	function expandStrands(strands) {
+		/*
+		 * strands = [{
+		 * 		name: 'S1',
+		 * 		domains: [{
+		 * 			name: 'd1',
+		 * 			segments: ['1*', '2', '2*']
+		 * 		}, ... ]
+		 * }, ...]
+		 * 
+		 * or
+		 * 
+		 * strands = [[
+		 *		{
+		 * 			name: 'd1',
+		 * 			segments: ['1*', '2', ... ]
+		 * 		}, ...
+		 * ], ...]
+		 * 
+		 * or 
+		 * 
+		 * strands = [[['1*', '2', ...], ... ], ... ]
+		 */
+		return _.map(strands,function(s,i) {
+			if(_.isArray(s)) {
+				s = { name: 'S'+i, domains: s }
+			} else {
+				s = _.clone(s);
+			}
+			s.domains = _.map(s.domains,function(d,j) {
+				if(_.isArray(d)) {
+					d = { name: 'd'+j, segments: d, role: null }
+				} else {
+					d = _.clone(d);
+				}
+				d.segments = _.map(d.segments,function(g,k) {
+					if(_.isString(g)) {
+						g = { name: g, role: null };
+					} else if(_.isNumber(g)) {
+						g = { name: ''+g, role: null };
+					} else {
+						g = _.clone(g);
+					}
+						if(g.name && !g.identity) {
+						var id = DNA.parseIdentifier(g.name);
+						g.identity = id.identity; g.polarity = id.polarity;						
+						} else if(g.identity && g.polarity && !g.name) {
+							g.name = DNA.makeIdentifier(g.identity, g.polarity);
+						}
+					
+					return g;
+				})
+				return d;
+			});
+			return s;
+		});
+	}
+
+	function normalizeSystem(strands) {
+		// var list = [];
+		// _.each(strands, function(strand) {
+		// list.push(parseStrandSpec(strand));
+		// });
+		var list = _.map(strands, parseStrandSpec);
+
+		var uniq = absUnique(_.flatten(list)).sort(function(a, b) {
+			return a - b;
+		}), mapping = mapUnique(uniq, 1), out = [];
+		_.each(list, function(strand) {
+			var s = [];
+			_.each(strand, function(el) {
+				s.push(sign(el) * mapping[Math.abs(el)]);
+			});
+			out.push(s);
+		});
+		return out;
+	}
+	function encodeStrand(strand) {
+		return _.map(strand, function(el) {
+			return Math.abs(el) + (sign(el) < 0 ? '*' : '');
+		}).join(' ');
+	}
+
+	/**
+	 * Forms an identifier string consisting of a name and an optional
+	 * polarity specifier
+	 * @param {String} name,
+	 * @param {Number} polarity
+	 * @return {String} identifier
+	 */
+	function makeIdentifier(name, polarity) {
+		return name + ((polarity == -1) ? this.defaultPolaritySpecifier : '');
+	}
+
+	function printIdentifier(id) {
+		return DNA.makeIdentifier(id.identity || id.name, id.polarity);
+	}
+	/**
+	 * Parses a string polarity identifier or number and produces a numerical
+	 * polarity
+	 *
+	 *     parsePolarity("+") // => 1
+	 *     parsePolarity("-") // => -1
+	 *     parsePolarity(1) // => 1
+	 *     parsePolarity(-5) // => -1
+	 *
+	 * @param {String/Number} polarityString Polarity representation
+	 * @returns {Number} polarity Numerical polarity (1 for 5' -> 3', -1 for 3' -> 5')
+	 */
+	function parsePolarity(polarityString) {
+		if (_.isNumber(polarityString)) {
+			return this.signum(polarityString);
+		}
+
+		if (polarityString == "-") {
+			return -1;
+		} else if (polarityString == "+") {
+			return 1;
+		}
+		return 0;
+	}
+	/**
+	 * Gets the polarity of a given identifier string. Strings ending with `*` or
+	 * `'` are assumed to have negative (3' to 5') polarity; other strings are 
+	 * assumed to have positive (5' to 3' polarity)
+	 * @param {String} identifier
+	 * @return {Number} polarity 1 for 5' -> 3', -1 for 3' -> 5'
+	 */
+	function getPolarity(identifier) {
+		return identifier ? ((identifier[identifier.length - 1] == '*' || identifier[identifier.length - 1] == "'") ? -1 : 1) : 0;
+	}
+	/**
+	 * Parses an identifier (a segment identity + an optional polarity specifier)
+	 * to an object containing the `identity` and `polarity`. Examples:
+	 *
+	 * 		DNA.parseIdentifier('5*') // -> { identity: '5', polarity: -1 }
+	 * 		DNA.parseIdentifier('hi') // -> { identity: 'hi', polarity: 1 }
+	 * 		DNA.parseIdentifier('17') // -> { identity: '17', polarity: 1 }
+	 * 		DNA.parseIdentifier("a'") // -> { identity: 'a', polarity: -1 }
+	 * 		
+	 * @return {Object} spec
+	 * @return {Object} spec.identity
+	 * @return {Object} spec.polarity
+	 */
+	function parseIdentifier(identifier) {
+		identifier = identifier.trim();
+		return {
+			identity : this.normalizeIdentity(identifier),
+			polarity : this.getPolarity(identifier),
+			// identifier : identifier,
+		}
+	}
+	/**
+	 * Strips the polarity indicator (* or ') from an identifier. In
+	 * other words, gets the identity portion of an identifier.
+	 * @param {String} identifier
+	 * @returns {String} identity
+	 */
+	function normalizeIdentity(identifier) {
+		if (this.getPolarity(identifier) == -1) {
+			return identifier.substring(0, identifier.length - 1);
+		}
+		return identifier;
+	}
+
+	//-------------------------------------------------------------------------	
 	// Exports
+	// 
+
+	/**
+	 * @param {String} structure 
+	 * Structure, in dot-paren
+	 * 
+	 * @param {Array} strands
+	 * A parsed {@link #expandStrands strand spec}
+	 * 
+	 * @param {Object} segments
+	 * A name to sequence mapping
+	 */
+	function expandStructure(structure,strands,sequences,uneven) {
+		uneven || (uneven = false);
+
+		strands = _.map(strands,function(strand) {
+			return _.comprehend(strand.domains, function(dom) {
+				return dom.segments;
+			});
+		});
+		
+		var structure = _.map(structure.split('+'),function(strandStructure) {
+			return _.filter(strandStructure.split(''),function(ch) { return !!ch && (ch != ' '); });
+		}), 
+		newStructure = [];
+
+		if(uneven) {
+			
+			var adjacency = {}, stack = [];
+
+			for(var i=0; i<structure.length; i++) {
+				var struct = structure[i];
+				for(var j=0; j<struct.length; j++) {
+					if(struct[j] == '(') {
+						stack.push([i,j]);
+					}
+					if(struct[j] == ')') {
+						var pos = stack.pop();
+						if(!adjacency[pos[0]]) adjacency[pos[0]] = {};
+						adjacency[pos[0]][pos[1]] = [i,j];
+						if(!adjacency[i]) adjacency[i] = {};
+						adjacency[i][j] = pos;
+					}
+				}
+			}
+
+			// for each strand
+			for(var i = 0; i<strands.length; i++) {
+				var strandStruct = structure[i], strand = strands[i], newStrandStruct = [];
+								
+				for(var j=0; j<strand.length; j++) {
+					var segmentId = (strand[j].identity ? strand[j].identity : DNA.parseIdentifier(strand[j].name).identity),
+						segmentSeq = sequences[segmentId],
+						complementPos = adjacency[i] ? adjacency[i][j] : null,
+						complement, complementId, complementSeq;
+
+					if(complementPos && strands[complementPos[0]] && strands[complementPos[0]][complementPos[1]]) {
+						complement = strands[complementPos[0]][complementPos[1]];
+						complementId = (complement.identity ? complement.identity : DNA.parseIdentifier(complement.name).identity),
+						complementSeq = sequences[complementId];
+					}
+
+					ch = strandStruct[j];
+					if(complementSeq) {
+						if(ch == '(' && segmentSeq.length > complementSeq.length) {
+							newStrandStruct.push(Array(segmentSeq.length-complementSeq.length+1).join('.') +
+								Array(complementSeq.length+1).join(ch)
+							);	
+						} else if(ch == ')' && segmentSeq.length > complementSeq.length) {
+							newStrandStruct.push(Array(complementSeq.length+1).join(ch) + 
+								Array(segmentSeq.length-complementSeq.length+1).join('.')
+							);
+						} else {
+							newStrandStruct.push(Array(segmentSeq.length+1).join(ch));
+						}
+					} else {
+						newStrandStruct.push(Array(segmentSeq.length+1).join(ch));
+					}
+				}
+				newStructure.push(newStrandStruct.join(''));
+			}
+
+		} else {
+		
+			// for each strand
+			for(var i = 0; i<strands.length; i++) {
+				var strandStruct = structure[i], strand = strands[i], newStrandStruct = [];
+								
+				for(var j=0; j<strand.length; j++) {
+					var segmentId = (strand[j].identity ? strand[j].identity : DNA.parseIdentifier(strand[j].name).identity),
+						segmentSeq = sequences[segmentId],
+						ch = strandStruct[j];
+					
+					newStrandStruct.push(Array(segmentSeq.length+1).join(ch));
+				}
+				
+				newStructure.push(newStrandStruct.join(''));
+			}
+		
+		}
+		return newStructure.join('+');			
+	}
+
+	function DUtoDotParen(struct) {
+		var regex = /([+HhDdUu])(\d*)s?(.*)/;
+		//			 (1) ch    (2) d  (3) rest
+
+		function resolve(struct, stack) {
+			if (!stack) {
+				stack = [];
+			}
+
+			struct = struct.trim();
+
+			var lst = struct.match(regex);
+			if (!lst || lst.length != 4) {
+				return {
+					rest: '',
+					stack: stack,
+				};
+			}
+			var ch = lst[1], d = parseInt(lst[2]), rest = lst[3];
+
+			// e.g. struct = "H6( U5 + H2 (U3) )", "H", "6", "( U5 + H2 (U3) )"]
+			// => ["H6( U5 + H2 (U3) )", "H", "6", "( U5 + H2 (U3) )"]
+			//		0					  1	   2	3
+			//							  ch   d  rest
+
+			switch(ch) {
+				case 'D':
+				case 'H':
+					rest = rest.trim();
+					if (rest[0] == '(') {
+						stack.push(d);
+						var o = parse(rest, stack);
+						o.dp = Array(d + 1).join('(') + o.dp + Array(d + 1).join(')');
+						return o;
+					} else {
+						var o = resolve(rest, stack);
+						o.dp = Array(d + 1).join('(') + o.dp + Array(d + 1).join(')');
+						return o;
+					}
+
+				case 'U':
+					return {
+						rest : rest,
+						dp : Array(d + 1).join('.'),
+						stack : stack
+					};
+				case '+':
+					return {
+						rest : rest,
+						dp : '+',
+						stack : stack
+					};
+			}
+		}
+
+		function parse(struct, stack) {
+			var rest = struct, out = [];
+			do {
+				rest = rest.trim();
+				if (rest[0] == ')') {
+					var d = stack.pop(), rest = rest.substr(1);
+
+					return {
+						rest : rest,
+						dp : out.join(''),
+						stack : stack
+					}
+				}
+				var o = resolve(rest, stack);
+				stack = o.stack;
+				rest = o.rest;
+				out.push(o.dp);
+			} while(rest != '')
+
+			return {
+				rest : rest,
+				dp : out.join(''),
+				stack : stack
+			};
+		}
+
+		var o = parse(struct, []);
+		return o.dp;
+	}
+
+	function validateDotParen(struct,str,strict) {
+		str || (str = false);
+		strict || (strict = false);
+		var open_paren_count = 0, close_paren_count = 0, //
+		last = '', count = 0, list = [];
+		struct += '\n';
+		for(var i=0; i<struct.length;i++) {
+			var ch = struct[i];
+			if (ch === ' ') {
+				continue;
+			}
+			if(strict && !(/[\.\(\)\+\s]/).test(ch)) {
+				if(str) {
+					return "Unrecognized character '" +ch+ "' at position "+i;
+				} else {
+					return false;
+				}
+			}
+			if (ch == last) {
+				count++;
+			} else {
+				if (count != 0) {
+					if(last == '(') open_paren_count+=count;
+					if(last == ')') close_paren_count+=count;
+					if(close_paren_count > open_paren_count) {
+						if(str) {
+							return "Unopened parenthesis: number of closing parentheses exceeds number of open parentheses at position "+i+" by "+(close_paren_count - open_paren_count)+".";
+						}
+						return false;
+					}
+				}
+				last = ch;
+				count = 1;
+			}
+		}
+		
+		if(str && (open_paren_count != close_paren_count)) {
+			return "Unclosed parenthesis: "+(open_paren_count-close_paren_count)+" parentheses left unclosed at end of structure.";
+		}
+		return (open_paren_count == close_paren_count);
+	}
+
+	function parseDotParen(struct) {
+		var open_paren_count = 0, close_paren_count = 0, //
+		last = '', count = 0, list = [];
+
+		// Concatenate a null element so the loop will run one extra time to push the last item on the stack
+		_.each(struct.split('').concat(null), function(ch) {
+			if (ch === ' ') {
+				return;
+			}
+			if (ch == last) {
+				count++;
+			} else {
+				if (count != 0) {
+					list.push([last, count]);
+					if(last == '(') open_paren_count+=count
+					if(last == ')') close_paren_count+=count
+				}
+				last = ch;
+				count = 1;
+			}
+		});
+		
+		if(open_paren_count != close_paren_count) {
+			throw Error("Structure parsing error: In dot-paren structure '" +struct+ "', unmatched parentheses: "+open_paren_count+" open, "+close_paren_count+" close parenthesis");
+		}
+		
+
+		function resolve(list) {
+			var out = [];
+			while(list.length > 0) {
+				out = out.concat(resolve_loop(list,0));					
+			}
+			return out;
+		}
+
+		function resolve_loop(struct_list, stack) {
+			var inner = [], hd;
+			do {
+				hd = struct_list.shift();
+				while(struct_list.length > 0 && hd[0] !='(' && hd[0] !=')') {
+					inner.push(hd)
+					hd = struct_list.shift()
+				} 
+				if(hd) {	
+					if (hd[0] == ')') {
+						var left = stack, right = hd;
+						if (left > right[1]) {
+							/*
+							There's a bulge to the right, so consume (right) paired bases
+							for this duplex, return (left - right) paired bases to the
+							left-side stack.
+							*/
+							stack = left - right[1];
+							//stack = left = right[1];
+							inner = [['D', right[1], inner]];
+						} else if (right[1] > left) {
+							/* There's a bulge to the left, so consume (left) paired bases
+							for this duplex, return (right - left) paired bases to the
+							structure for the outer resolve_loop to handle
+							*/
+							struct_list.unshift([')', right[1] - left]);
+							// right[1] = left;
+							
+							
+							// we'll be done with this loop, and the remaining (right-left) 
+							// bases will be dealt with by 
+							stack = 0; // right[1] - left;
+							
+							
+							inner = [['D', left, inner]];
+						} else {
+							stack = 0;
+							inner = [['D', right[1], inner]];
+							
+						}
+	
+					} else if (hd[0] == '(') {
+						inner = inner.concat(resolve_loop(struct_list, hd[1]));
+					} else {
+						inner = inner.concat([hd]);
+					}
+				}
+			} while (stack > 0 && struct_list.length > 0)
+			if((stack > 0) && (struct_list.length == 0)) {
+				throw Error();
+			}
+			return inner
+		}
+		return resolve(list, []);
+	}
+
+	function dotParenToDU(struct) {
+		var o = DNA.parseDotParen(struct);
+		return DNA.printDUPlus(o);
+	}
+
+	function dotParenToBaseMap(struct) {
+		var map = {}, breaks = {}, stack = [], base = 0, complement;
+
+		for(var i=0; i<struct.length; i++) {
+			if(struct[i]=='(') {
+				stack.push(base);
+				base++;
+			} else if(struct[i]==')') {
+				complement = stack.pop();
+				map[base] = complement;
+				map[complement] = base;
+				base++;
+			} else if(struct[i]=='.') {
+				base++;
+			} else if(struct[i] =='+') {
+				breaks[base] = true;
+			}
+		}
+		return {map: map, breaks: breaks};
+	}
+
+	function printDUPlus (loop) {
+		return _.map(loop, function(item) {
+			switch(item[0]) {
+				case 'U':
+				case '.':
+					return 'U' + item[1];
+				case '+':
+					return '+';
+				case 'H':
+				case 'D':
+					if (item[2] && item[2].length > 0) {
+						return 'D' + item[1] + '(' + DNA.printDUPlus(item[2]) + ')'
+					}
+			}
+		}).join(' ');
+	}
+
+	//-------------------------------------------------------------------------	
+	// Exports
+	// 
 	return {
 		mapUnique : mapUnique,
 		absUnique : absUnique,
@@ -1584,51 +2450,7 @@ var DNA = module.exports.DNA = (function(_) {
 
 		//Written by Paul Stothard, University of Alberta, Canada
 		// good defaults for last few args: 2, -1, -2, 0, 0
-		pairwiseAlign : function(newDnaOne, newDnaTwo, matchScore, mismatchScore, gapPenalty, beginGapPenalty, endGapPenalty) {
-			matchScore || ( matchScore = 2);
-			mismatchScore || ( mismatchScore = -1);
-			gapPenalty || ( gapPenalty = -2);
-			beginGapPenalty || ( beginGapPenalty = 0);
-			endGapPenalty || ( endGapPenalty = 0);
-
-			//can use one or both.
-			//can compare scores (should be identical)
-			var useLinearSpace = true;
-			var useQuadraticSpace = false;
-
-			var matrix = new Identity();
-			matrix.setMatch(matchScore);
-			matrix.setMismatch(mismatchScore);
-
-			var scoreSet = new ScoreSet();
-			scoreSet.setScoreSetParam(matrix, gapPenalty, beginGapPenalty, endGapPenalty);
-
-			var alignment;
-
-			if (useLinearSpace) {
-				alignment = new AlignPairLinear();
-				alignment.setAlignParam(newDnaOne, newDnaTwo, scoreSet);
-				alignment.align();
-
-				return {
-					sequences : [alignment.getAlignedM(), alignment.getAlignedN()],
-					score : alignment.score
-				};
-			}
-
-			if (useQuadraticSpace) {
-				alignment = new AlignPairQuad();
-				alignment.initializeMatrix(newDnaOne, newDnaTwo, scoreSet);
-				alignment.fillMatrix();
-				//alignment.dumpMatrix();
-				alignment.align();
-
-				return {
-					sequences : [alignment.getAlignedM(), alignment.getAlignedN()],
-					score : alignment.score
-				};
-			}
-		},
+		pairwiseAlign : pairwiseAlign,
 		sequenceStats : function(sequence) {
 			/* arrayOFItems are regular expressions. A number included with each regular expression serves
 			 * as an adjustment for the percentage calculation. Any additional text will appear next to the
@@ -2353,785 +3175,42 @@ var DNA = module.exports.DNA = (function(_) {
 			};
 		},
 		
-		/**
-		 * @param {String} structure 
-		 * Structure, in dot-paren
-		 * 
-		 * @param {Array} strands
-		 * A parsed {@link #expandStrands strand spec}
-		 * 
-		 * @param {Object} segments
-		 * A name to sequence mapping
-		 */
-		expandStructure: function(structure,strands,sequences,uneven) {
-			uneven || (uneven = false);
-
-			strands = _.map(strands,function(strand) {
-				return _.comprehend(strand.domains, function(dom) {
-					return dom.segments;
-				});
-			});
-			
-			var structure = _.map(structure.split('+'),function(strandStructure) {
-				return _.filter(strandStructure.split(''),function(ch) { return !!ch && (ch != ' '); });
-			}), 
-			newStructure = [];
-
-			if(uneven) {
-				
-				var adjacency = {}, stack = [];
-
-				for(var i=0; i<structure.length; i++) {
-					var struct = structure[i];
-					for(var j=0; j<struct.length; j++) {
-						if(struct[j] == '(') {
-							stack.push([i,j]);
-						}
-						if(struct[j] == ')') {
-							var pos = stack.pop();
-							if(!adjacency[pos[0]]) adjacency[pos[0]] = {};
-							adjacency[pos[0]][pos[1]] = [i,j];
-							if(!adjacency[i]) adjacency[i] = {};
-							adjacency[i][j] = pos;
-						}
-					}
-				}
-
-				// for each strand
-				for(var i = 0; i<strands.length; i++) {
-					var strandStruct = structure[i], strand = strands[i], newStrandStruct = [];
-									
-					for(var j=0; j<strand.length; j++) {
-						var segmentId = (strand[j].identity ? strand[j].identity : DNA.parseIdentifier(strand[j].name).identity),
-							segmentSeq = sequences[segmentId],
-							complementPos = adjacency[i] ? adjacency[i][j] : null,
-							complement, complementId, complementSeq;
-
-						if(complementPos && strands[complementPos[0]] && strands[complementPos[0]][complementPos[1]]) {
-							complement = strands[complementPos[0]][complementPos[1]];
-							complementId = (complement.identity ? complement.identity : DNA.parseIdentifier(complement.name).identity),
-							complementSeq = sequences[complementId];
-						}
-
-						ch = strandStruct[j];
-						if(complementSeq) {
-							if(ch == '(' && segmentSeq.length > complementSeq.length) {
-								newStrandStruct.push(Array(segmentSeq.length-complementSeq.length+1).join('.') +
-									Array(complementSeq.length+1).join(ch)
-								);	
-							} else if(ch == ')' && segmentSeq.length > complementSeq.length) {
-								newStrandStruct.push(Array(complementSeq.length+1).join(ch) + 
-									Array(segmentSeq.length-complementSeq.length+1).join('.')
-								);
-							} else {
-								newStrandStruct.push(Array(segmentSeq.length+1).join(ch));
-							}
-						} else {
-							newStrandStruct.push(Array(segmentSeq.length+1).join(ch));
-						}
-					}
-					newStructure.push(newStrandStruct.join(''));
-				}
-
-			} else {
-			
-				// for each strand
-				for(var i = 0; i<strands.length; i++) {
-					var strandStruct = structure[i], strand = strands[i], newStrandStruct = [];
-									
-					for(var j=0; j<strand.length; j++) {
-						var segmentId = (strand[j].identity ? strand[j].identity : DNA.parseIdentifier(strand[j].name).identity),
-							segmentSeq = sequences[segmentId],
-							ch = strandStruct[j];
-						
-						newStrandStruct.push(Array(segmentSeq.length+1).join(ch));
-					}
-					
-					newStructure.push(newStrandStruct.join(''));
-				}
-			
-			}
-			return newStructure.join('+');			
-		},
+		// Structure
+		expandStructure: expandStructure ,
+		expandStrands: expandStrands ,
+		DUtoDotParen : DUtoDotParen,
+		validateDotParen : validateDotParen ,
+		parseDotParen : parseDotParen ,
+		dotParenToDU : dotParenToDU ,
+		dotParenToBaseMap: dotParenToBaseMap ,
+		printDUPlus: printDUPlus, 
 		
-		expandStrands: function(strands) {
-			/*
-			 * strands = [{
-			 * 		name: 'S1',
-			 * 		domains: [{
-			 * 			name: 'd1',
-			 * 			segments: ['1*', '2', '2*']
-			 * 		}, ... ]
-			 * }, ...]
-			 * 
-			 * or
-			 * 
-			 * strands = [[
-			 *		{
-			 * 			name: 'd1',
-			 * 			segments: ['1*', '2', ... ]
-			 * 		}, ...
-			 * ], ...]
-			 * 
-			 * or 
-			 * 
-			 * strands = [[['1*', '2', ...], ... ], ... ]
-			 */
-			return _.map(strands,function(s,i) {
-				if(_.isArray(s)) {
-					s = { name: 'S'+i, domains: s }
-				} else {
-					s = _.clone(s);
-				}
-				s.domains = _.map(s.domains,function(d,j) {
-					if(_.isArray(d)) {
-						d = { name: 'd'+j, segments: d, role: null }
-					} else {
-						d = _.clone(d);
-					}
-					d.segments = _.map(d.segments,function(g,k) {
-						if(_.isString(g)) {
-							g = { name: g, role: null };
-						} else if(_.isNumber(g)) {
-							g = { name: ''+g, role: null };
-						} else {
-							g = _.clone(g);
-						}
- 						if(g.name && !g.identity) {
-							var id = DNA.parseIdentifier(g.name);
-							g.identity = id.identity; g.polarity = id.polarity;						
- 						} else if(g.identity && g.polarity && !g.name) {
- 							g.name = DNA.makeIdentifier(g.identity, g.polarity);
- 						}
-						
-						return g;
-					})
-					return d;
-				});
-				return s;
-			});
-		},
-
-		DUtoDotParen : function(struct) {
-			var regex = /([+HhDdUu])(\d*)s?(.*)/;
-			//			 (1) ch    (2) d  (3) rest
-
-			function resolve(struct, stack) {
-				if (!stack) {
-					stack = [];
-				}
-
-				struct = struct.trim();
-
-				var lst = struct.match(regex);
-				if (!lst || lst.length != 4) {
-					return {
-						rest: '',
-						stack: stack,
-					};
-				}
-				var ch = lst[1], d = parseInt(lst[2]), rest = lst[3];
-
-				// e.g. struct = "H6( U5 + H2 (U3) )", "H", "6", "( U5 + H2 (U3) )"]
-				// => ["H6( U5 + H2 (U3) )", "H", "6", "( U5 + H2 (U3) )"]
-				//		0					  1	   2	3
-				//							  ch   d  rest
-
-				switch(ch) {
-					case 'D':
-					case 'H':
-						rest = rest.trim();
-						if (rest[0] == '(') {
-							stack.push(d);
-							var o = parse(rest, stack);
-							o.dp = Array(d + 1).join('(') + o.dp + Array(d + 1).join(')');
-							return o;
-						} else {
-							var o = resolve(rest, stack);
-							o.dp = Array(d + 1).join('(') + o.dp + Array(d + 1).join(')');
-							return o;
-						}
-
-					case 'U':
-						return {
-							rest : rest,
-							dp : Array(d + 1).join('.'),
-							stack : stack
-						};
-					case '+':
-						return {
-							rest : rest,
-							dp : '+',
-							stack : stack
-						};
-				}
-			}
-
-			function parse(struct, stack) {
-				var rest = struct, out = [];
-				do {
-					rest = rest.trim();
-					if (rest[0] == ')') {
-						var d = stack.pop(), rest = rest.substr(1);
-
-						return {
-							rest : rest,
-							dp : out.join(''),
-							stack : stack
-						}
-					}
-					var o = resolve(rest, stack);
-					stack = o.stack;
-					rest = o.rest;
-					out.push(o.dp);
-				} while(rest != '')
-
-				return {
-					rest : rest,
-					dp : out.join(''),
-					stack : stack
-				};
-			}
-
-			var o = parse(struct, []);
-			return o.dp;
-		},
+		// Layout
+		layout: layout,
+		getScale: layout.getScale,
+		getOffset: layout.getOffset,
+		getBounds: layout.getBounds,
+		arrangeLayout: layout.arrangeLayout,
+		layoutStructure: layout.layoutStructure,
 		
-		validateDotParen : function(struct,str,strict) {
-			str || (str = false);
-			strict || (strict = false);
-			var open_paren_count = 0, close_paren_count = 0, //
-			last = '', count = 0, list = [];
-			struct += '\n';
-			for(var i=0; i<struct.length;i++) {
-				var ch = struct[i];
-				if (ch === ' ') {
-					continue;
-				}
-				if(strict && !(/[\.\(\)\+\s]/).test(ch)) {
-					if(str) {
-						return "Unrecognized character '" +ch+ "' at position "+i;
-					} else {
-						return false;
-					}
-				}
-				if (ch == last) {
-					count++;
-				} else {
-					if (count != 0) {
-						if(last == '(') open_paren_count+=count;
-						if(last == ')') close_paren_count+=count;
-						if(close_paren_count > open_paren_count) {
-							if(str) {
-								return "Unopened parenthesis: number of closing parentheses exceeds number of open parentheses at position "+i+" by "+(close_paren_count - open_paren_count)+".";
-							}
-							return false;
-						}
-					}
-					last = ch;
-					count = 1;
-				}
-			}
-			
-			if(str && (open_paren_count != close_paren_count)) {
-				return "Unclosed parenthesis: "+(open_paren_count-close_paren_count)+" parentheses left unclosed at end of structure.";
-			}
-			return (open_paren_count == close_paren_count);
-		},
 
-		parseDotParen : function(struct) {
-			var open_paren_count = 0, close_paren_count = 0, //
-			last = '', count = 0, list = [];
-
-			// Concatenate a null element so the loop will run one extra time to push the last item on the stack
-			_.each(struct.split('').concat(null), function(ch) {
-				if (ch === ' ') {
-					return;
-				}
-				if (ch == last) {
-					count++;
-				} else {
-					if (count != 0) {
-						list.push([last, count]);
-						if(last == '(') open_paren_count+=count
-						if(last == ')') close_paren_count+=count
-					}
-					last = ch;
-					count = 1;
-				}
-			});
-			
-			if(open_paren_count != close_paren_count) {
-				throw Error("Structure parsing error: In dot-paren structure '" +struct+ "', unmatched parentheses: "+open_paren_count+" open, "+close_paren_count+" close parenthesis");
-			}
-			
-
-			function resolve(list) {
-				var out = [];
-				while(list.length > 0) {
-					out = out.concat(resolve_loop(list,0));					
-				}
-				return out;
-			}
-
-			function resolve_loop(struct_list, stack) {
-				var inner = [], hd;
-				do {
-					hd = struct_list.shift();
-					while(struct_list.length > 0 && hd[0] !='(' && hd[0] !=')') {
-						inner.push(hd)
-						hd = struct_list.shift()
-					} 
-					if(hd) {	
-						if (hd[0] == ')') {
-							var left = stack, right = hd;
-							if (left > right[1]) {
-								/*
-								There's a bulge to the right, so consume (right) paired bases
-								for this duplex, return (left - right) paired bases to the
-								left-side stack.
-								*/
-								stack = left - right[1];
-								//stack = left = right[1];
-								inner = [['D', right[1], inner]];
-							} else if (right[1] > left) {
-								/* There's a bulge to the left, so consume (left) paired bases
-								for this duplex, return (right - left) paired bases to the
-								structure for the outer resolve_loop to handle
-								*/
-								struct_list.unshift([')', right[1] - left]);
-								// right[1] = left;
-								
-								
-								// we'll be done with this loop, and the remaining (right-left) 
-								// bases will be dealt with by 
-								stack = 0; // right[1] - left;
-								
-								
-								inner = [['D', left, inner]];
-							} else {
-								stack = 0;
-								inner = [['D', right[1], inner]];
-								
-							}
+		normalizeSystem : normalizeSystem,
+		encodeStrand : encodeStrand,
 		
-						} else if (hd[0] == '(') {
-							inner = inner.concat(resolve_loop(struct_list, hd[1]));
-						} else {
-							inner = inner.concat([hd]);
-						}
-					}
-				} while (stack > 0 && struct_list.length > 0)
-				if((stack > 0) && (struct_list.length == 0)) {
-					throw Error();
-				}
-				return inner
-			}
-			return resolve(list, []);
-		},
+		// Sequence Group Handling
+		threadSegments : threadSegments,
+		unthreadSegments : unthreadSegments, 
+		hashComplements: hashComplements ,
 		
-		dotParenToDU : function(struct) {
-			var o = DNA.parseDotParen(struct);
-			return DNA.printDUPlus(o);
-		},
-
-		dotParenToBaseMap: function(struct) {
-			var map = {}, breaks = {}, stack = [], base = 0, complement;
-
-			for(var i=0; i<struct.length; i++) {
-				if(struct[i]=='(') {
-					stack.push(base);
-					base++;
-				} else if(struct[i]==')') {
-					complement = stack.pop();
-					map[base] = complement;
-					map[complement] = base;
-					base++;
-				} else if(struct[i]=='.') {
-					base++;
-				} else if(struct[i] =='+') {
-					breaks[base] = true;
-				}
-			}
-			return {map: map, breaks: breaks};
-		},
-
-		printDUPlus: function (loop) {
-			return _.map(loop, function(item) {
-				switch(item[0]) {
-					case 'U':
-					case '.':
-						return 'U' + item[1];
-					case '+':
-						return '+';
-					case 'H':
-					case 'D':
-						if (item[2] && item[2].length > 0) {
-							return 'D' + item[1] + '(' + DNA.printDUPlus(item[2]) + ')'
-						}
-				}
-			}).join(' ');
-		},
-		
-		getScale: getScale,
-		getOffset: getOffset,
-		getBounds: getBounds,
-		arrangeLayout: arrangeLayout,
-		
-		layoutStructure: layoutStructure,
-		
-		normalizeSystem : function(strands) {
-			// var list = [];
-			// _.each(strands, function(strand) {
-			// list.push(parseStrandSpec(strand));
-			// });
-			var list = _.map(strands, parseStrandSpec);
-
-			var uniq = absUnique(_.flatten(list)).sort(function(a, b) {
-				return a - b;
-			}), mapping = mapUnique(uniq, 1), out = [];
-			_.each(list, function(strand) {
-				var s = [];
-				_.each(strand, function(el) {
-					s.push(sign(el) * mapping[Math.abs(el)]);
-				});
-				out.push(s);
-			});
-			return out;
-		},
-		encodeStrand : function(strand) {
-			return _.map(strand, function(el) {
-				return Math.abs(el) + (sign(el) < 0 ? '*' : '');
-			}).join(' ');
-		},
-		/**
-		 * Accepts a set of domains and a strand specification, and produces a sequence to represent the strand
-		 * 
-		 * @param {Object} segments
-		 * Hash mapping segment names to sequences, e.g. `{ 'd1': 'ATACG', 'd2':'GCTTA', ... }`
-		 * 
-		 * @param {String/Array} strand
-		 * String strand spec (e.g. `d1 d2* d3 d4*`, `d1 d2' d3' d4`, etc.), or array of 
-		 * {@link #getIdentifier identifier} objects (e.g. `[{identity: 'd1', polarity: -1}, ...]`)
-		 * 
-		 * @param {Boolean} [concat=true]
-		 * True to return a concatenated string, false to return an array of sequences in order
-		 * 
-		 * @returns {String} The complete sequence
-		 */
-		threadSegments : function(segments, strand, concat) {
-			concat = (concat == undefined) ? true : concat;
-			var strandList = _.isArray(strand) ? _.map(strand,function(x) {
-				if(_.isObject(x)) {
-					return x;
-				} else if(_.isNumber(x)) {
-					return { identity: Math.abs(x), polarity: sign(x) }
-				} else {
-					return DNA.parseIdentifier(x);
-				}
-			}) : parseStrandSpec(strand, ' '), sequence = [], id;
-			if (_.isArray(segments)) {
-				for (var i = 0; i < strandList.length; i++) {
-					id = strandList[i];
-					if (segments[parseInt(id.identity) - 1]) {
-						if (id.polarity > 0) {
-							sequence.push( segments[parseInt(id.identity) - 1] );
-						} else {
-							sequence.push( reverseComplement(segments[parseInt(id.identity) - 1]) );
-						}
-					} else {
-						throw Error('Threading error: Undefined segment '+id);
-					}
-				}
-			} else {
-				for (var i = 0; i < strandList.length; i++) {
-					id = strandList[i];
-					
-					if (segments[id.identity]) {
-						if (id.polarity == 1) {
-							sequence.push( segments[id.identity] );
-						} else {
-							sequence.push( reverseComplement(segments[id.identity]) );
-						}
-					}
-				}
-			}
-			if (concat)
-				return sequence.join('');
-			else
-				return sequence;
-		},
-		unthreadSegments : function(sequence, strand) {
-
-		},
-		/**
-		 * @param {String} sequences
-		 * @param {String} mode
-		 * 	-	`'nupack'` : `"sequence a = NNNNNN"`
-		 *  -	`'msq' : `"sequence a = NNNNNN"`
-		 *  -	'fasta' : `">a \n NNNNNNN"`
-		 *  -	`'colon' or `':'` : `"a : NNNNNNN"`
-		 *  -	`'equals' or '=' : `"a = NNNNNNN"`
-		 * 
-		 */
-		parseSequences: function(sequences, mode, options) {
-			
-		},
-		/**
-		 * Given a hash mapping names to sequences, e.g.:
-		 * 
-		 *     {
-		 * 	       'a': 'AAATACG',
-		 *         'b': 'TTAAAGAAC',
-		 *         ...
-		 *     }
-		 * 
-		 * Returns an augmented hash which also includes the sequences of the
-		 * reverse complements; e.g.:
-		 * 
-		 *     {
-		 * 	       'a': 'AAATACG',
-		 *         'a*': 'CGTATTT',
-		 *         'b': 'TTAAAGAAC',
-		 *         'b*': 'GTTCTTTAA',
-		 *         ...
-		 *     }
-		 * 
-		 * @param {Object} sequences
-		 * @return {Object} sequencesWithComplement
-		 */
-		hashComplements: function(sequences) {
-			sequences = _.clone(sequences);
-			for(var key in sequences) {
-				if(_.has(sequences,key)) {
-					var id = DNA.makeIdentifier(key,-1);
-					if(!sequences[id]) {
-						sequences[id] = DNA.reverseComplement(sequences[key]);
-					}
-				}
-			}
-			return sequences;
-		},
-		
-		/**
-		 * Converts a CodeMirror-parsed NUPACK file into a structure specification.
-		 * @param {Array} lines Result of running CodeMirror#tokenize(string, 'nupack') on a structure specification
-		 * @return {Object} spec
-		 * @return {Object} spec.domains Hash mapping the names of each segment to their sequence (or proto-sequence; may contain degenerate bases like N)
-		 * @return {Object} spec.strands Hash mapping strand names to strings specifying their contents
-		 * @return {Object} spec.complexes 
-		 * Hash mapping complex names to strings specifying their constituents. These strings use the NUPACK convention, such that they may be either be
-		 * lists of strands or lists of domains. It's up to the consumer of this data to figure out which.
-		 *
-		 * @return {String[]} spec.other
-		 * Array of other parsed lines not consumed by this code; useful for passing through e.g. multisubjective commands
-		 */
-		structureSpec : function(lines) {
-			var sequences = {}, strands = {}, structures = {}, complexes = {}, others = [];
-			_.each(lines, function(line) {
-				if (line.length > 0) {
-					
-					/* Handle structures
-					 * e.g.:
-					 * 		0         1  2 3
-					 * 		structure A1 = U16 D18(U19) U8
-					 * 		structure A2 = ...(((..+..)))
-					 */
-					if (line[0][1] == 'structure') {
-						var name = line[1][1], spec = _.select(line.slice(3), function(x) {
-							return x[0] == 'nupack-huplus';
-						});
-						spec = _.pluck(spec, 1);
-						spec = spec.join('');
-
-						structures[name] = spec;
-					} 
-
-					/* Handle segment/sequences 
-					 * e.g.:
-					 *     0        1 2 3...
-					 *     sequence a = 7N
-					 *     sequence a = ATCGNA
-					 *     domain   a = GYRBA
-					 */
-					else if (line[0][1] == 'sequence' || line[0][1] == 'domain' || line[0][1] == 'segment') {
-						/*
-						 *	e.g:
-						 *	
-						 *	line = [
-						 *		["keyword", "sequence"],
-						 *		["string", "1"],
-						 *		["operator", ":"],
-						 *		["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], 
-						 *		["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"], ["sequence-n", "N"]
-						 *	]
-						 */
-						var name = line[1][1], spec = _.select(line.slice(3), function(x) {
-							return (x[0] == 'number' || (x[0].indexOf('sequence') != -1));
-						});
-
-						// e.g. `6N`
-						if (spec[0][0] == 'number') {
-							var base = spec[1][1], times = parseInt(spec[0][1]), spec = '';
-							spec = Array(times+1).join(base);
-						}
-						// e.g. `N65`
-						// note that each subsequent digit is a separate token 
-						else if (spec.length>1 && spec[1][0] == 'number') {
-							var base = spec[0][1], 
-
-							// select all subsequent tokens, combine together to make an integer
-							times = parseInt(_.pluck(spec.slice(1),1).join('')), spec = '';
-
-							// create string of repeated base
-							spec = Array(times+1).join(base);
-						}
-						// e.g. `GATCANY` ... 
-						else {
-							spec = _.pluck(spec, 1).join('');
-						}
-						sequences[name] = spec;
-
-						
-					} 
-					/* Handle Pepper-style threading assignments
-					 * e.g.:
-					 *     0      1  2 3...
-					 *     strand m1 = a b c*
-					 */
-					else if (line[0][1] == 'strand') {
-						var name = line[1][1], spec = _.select(line.slice(3), function(x) {
-							return x[0] == 'string';
-						});
-						spec = _.pluck(spec, 1);
-						spec = spec.join(' ');
-
-						strands[name] = spec;
-					}
-
-					/* Handle NUPACK-style threading assignments for strands
-					 * e.g.:
-					 *     0      1 2...
-					 *     M1     : 1 2* 3 4
-					 *
-					 * And complexes
-					 * e.g.:
-					 *     M2.seq = 1 2* 3 4
-					 */
-					else if (line[0][0] == 'variable' && line[1] && (line[1][1] == ':' || line[1][1] == '=')) {
-						var name = line[0][1], spec = _.select(line.slice(2), function(x) {
-							return x[0] == 'string';
-						});
-						spec = _.pluck(spec, 1);
-
-						// Handle complex-threading, e.g. `M2.seq`  
-						if(name.indexOf('.seq') != -1) { 
-							name = name.replace('.seq','')
-							spec = _.compact(spec) 
-							complexes[name] = spec;
-						} 
-						// Handle strand-threading
-						else {
-							spec = spec.join(' ');
-							strands[name] = spec;							
-						}
-					}
-
-					else {
-						others.push(line);
-					}
-				}
-			});
-			return {
-				domains : sequences,
-				strands : strands,
-				structures: structures,
-				complexes: complexes,
-				others: others,
-			};
-		},
+		structureSpec : structureSpec,
 		defaultPolaritySpecifier : '*',
 
-		/**
-		 * Forms an identifier string consisting of a name and an optional
-		 * polarity specifier
-		 * @param {String} name,
-		 * @param {Number} polarity
-		 * @return {String} identifier
-		 */
-		makeIdentifier : function(name, polarity) {
-			return name + ((polarity == -1) ? this.defaultPolaritySpecifier : '');
-		},
-		printIdentifier: function(id) {
-			return DNA.makeIdentifier(id.identity || id.name, id.polarity);
-		},
-		/**
-		 * Parses a string polarity identifier or number and produces a numerical
-		 * polarity
-		 *
-		 *     parsePolarity("+") // => 1
-		 *     parsePolarity("-") // => -1
-		 *     parsePolarity(1) // => 1
-		 *     parsePolarity(-5) // => -1
-		 *
-		 * @param {String/Number} polarityString Polarity representation
-		 * @returns {Number} polarity Numerical polarity (1 for 5' -> 3', -1 for 3' -> 5')
-		 */
-		parsePolarity : function(polarityString) {
-			if (_.isNumber(polarityString)) {
-				return this.signum(polarityString);
-			}
-
-			if (polarityString == "-") {
-				return -1;
-			} else if (polarityString == "+") {
-				return 1;
-			}
-			return 0;
-		},
-		/**
-		 * Gets the polarity of a given identifier string. Strings ending with `*` or
-		 * `'` are assumed to have negative (3' to 5') polarity; other strings are 
-		 * assumed to have positive (5' to 3' polarity)
-		 * @param {String} identifier
-		 * @return {Number} polarity 1 for 5' -> 3', -1 for 3' -> 5'
-		 */
-		getPolarity : function(identifier) {
-			return identifier ? ((identifier[identifier.length - 1] == '*' || identifier[identifier.length - 1] == "'") ? -1 : 1) : 0;
-		},
-		/**
-		 * Parses an identifier (a segment identity + an optional polarity specifier)
-		 * to an object containing the `identity` and `polarity`. Examples:
-		 *
-		 * 		DNA.parseIdentifier('5*') // -> { identity: '5', polarity: -1 }
-		 * 		DNA.parseIdentifier('hi') // -> { identity: 'hi', polarity: 1 }
-		 * 		DNA.parseIdentifier('17') // -> { identity: '17', polarity: 1 }
-		 * 		DNA.parseIdentifier("a'") // -> { identity: 'a', polarity: -1 }
-		 * 		
-		 * @return {Object} spec
-		 * @return {Object} spec.identity
-		 * @return {Object} spec.polarity
-		 */
-		parseIdentifier : function(identifier) {
-			identifier = identifier.trim();
-			return {
-				identity : this.normalizeIdentity(identifier),
-				polarity : this.getPolarity(identifier),
-				// identifier : identifier,
-			}
-		},
-		/**
-		 * Strips the polarity indicator (* or ') from an identifier. In
-		 * other words, gets the identity portion of an identifier.
-		 * @param {String} identifier
-		 * @returns {String} identity
-		 */
-		normalizeIdentity : function(identifier) {
-			if (this.getPolarity(identifier) == -1) {
-				return identifier.substring(0, identifier.length - 1);
-			}
-			return identifier;
-		},
+		makeIdentifier : makeIdentifier ,
+		printIdentifier: printIdentifier ,
+		parsePolarity : parsePolarity,
+		getPolarity : getPolarity ,
+		parseIdentifier : parseIdentifier ,
+		normalizeIdentity : normalizeIdentity ,
 		/**
 		 * Converts an array of objects to an Object keyed by the provided
 		 * `property` of the objects.

@@ -52,21 +52,21 @@ svg {
 	display: none
 }
 
-.complex {
+.complex > rect {
 	fill: white;
 	stroke: #888;
 	/*stroke-width: 1em;*/
 }
-.complex-transient {
+.complex-transient > rect {
 	stroke-dasharray:1.5em;
 }
-.complex-resting {
+.complex-resting > rect {
 	fill: #ffa;
 }
-.complex-initial {
+.complex-initial > rect {
 	fill: #efb;
 }
-.resting-state {
+.resting-state > rect {
 /*	fill: yellow;
 	stroke: #fff;
 */}

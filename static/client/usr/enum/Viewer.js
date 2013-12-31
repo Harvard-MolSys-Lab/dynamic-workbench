@@ -46,7 +46,18 @@ Ext.define('App.usr.enum.Viewer', {
 			showBubbles: false,
 			showSegments: false,
 			complexViewMode: 'strand',
-		})
+		});
+		this.legendWindow = Ext.create('Ext.window.Window',{
+			items: [Ext.create('App.usr.enum.LegendPanel')],
+			layout: 'fit',
+			width: 300, 
+			height: 200,
+			x: 100, 
+			y: 100,
+			title: 'Legend',
+			constrain: true,
+			// floating: true
+		});
 		Ext.apply(this,{
 			tbar: [{
 				text: 'Show details',
@@ -69,20 +80,15 @@ Ext.define('App.usr.enum.Viewer', {
 					this.showCondensed(state);
 				},
 				scope: this,
-			}]
+			}],
+			items: [this.legendWindow]
 		})
 
 		this.callParent(arguments);
 		this.on('afterrender', function() {
-			this.legendWindow = Ext.create('Ext.window.Window',{
-				items: [Ext.create('App.usr.enum.LegendPanel')],
-				layout: 'fit',
-				width: 300, height: 200,
-				title: 'Legend',
-				renderTo: this.getEl(),
-				constrain: true,
-			});
-			this.legendWindow.showAt(200,300); //.showAt(this.getEl().getX(),this.getEl().getY());
+			
+			// this.legendWindow.showAt(0,500); //.showAt(this.getEl().getX(),this.getEl().getY());
+			// this.legendWindow.show();
 
 			if(this.createTip) { 
 				this.tip = Ext.create('Ext.tip.ToolTip', {
@@ -363,12 +369,12 @@ Ext.define('App.usr.enum.Viewer', {
 		var condensedNodeg = this.condensedNodeg = panel.append("g");
 		
 		var linkg = this.linkg = panel.append("g");
-  		var nodeg = this.nodeg = panel.append("g");
-  		// var legendg = this.legendg = panel.append("g");
+		var nodeg = this.nodeg = panel.append("g");
+		// var legendg = this.legendg = panel.append("g");
 
 		var dr = 50,      // default point radius
-    		cr = 100, 	 // default complex point radius
-    		off = 15;    // cluster hull offset
+			cr = 100, 	 // default complex point radius
+			off = 15;    // cluster hull offset
 		var dist = 50,
 			nodePadding = 0; //5;
 		
@@ -416,23 +422,7 @@ Ext.define('App.usr.enum.Viewer', {
 			.classed("link-reaction-noarrow",false)
 			.attr("pointer-events","stroke");
 
-			linkSel.call(d3.behavior.drag()
-		        .origin(function(l) { 
-		        	var k = 0, // index of point with lowest distance
-		        		dist = 0;
-		        	for(var i=0; i<l.dagre.points.length; i++) {
-		        		if(Math.sqrt( (l.dagre.points[i].x - d3.event.x)^2 + 
-		        			(l.dagre.points[i].y - d3.event.y)^2 ) < dist || i == 0) {
-
-		        			dist = Math.sqrt( (l.dagre.points[i].x - d3.event.x)^2 + (l.dagre.points[i].y - d3.event.y)^2 )
-		        			k = i;
-		        		}
-		        	}
-		        	l._dragPoint = k;
-		        	return l.dagre.points[k]; 
-		        })
-		        .on("drag", dragLink));
-
+			addLinkInteractions(linkSel);
 
 			return linkSel;
 		}
@@ -441,48 +431,8 @@ Ext.define('App.usr.enum.Viewer', {
 			var nodeSel = nodeg.selectAll("g.enum-node").data(net.nodes, nodeid);
 			nodeSel.exit().remove();
 			nodeSel.enter().append("g")
-				.attr('class', 'enum-node')
-				.attr("transform", function(d) {
-				return "translate(" + d.x + "," + d.y + ")";
-			})
-			.attr('name',function (d) {
-				return d.name;
-			})
-			.on('mouseenter', highlightLinks)
-			.on('mouseleave', unhighlightLinks)
-			.on('dblclick', function(d) {
-				if (d._type == 'complex') {
-					me.showComplexPreviewWindow(d,this);
-				} else if (d._type=='reaction') {
-					me.showReactionPreviewWindow(d, this);
-				}
-			})
-			// .on('click', selectNode)
-			.on('click',function(d) {
-				selectNode.call(this,d)
-				if (d._type == 'complex') {
-					var el = d3.select(this).select('svg');
-					me.renderPreview(d, el.node());
-					//d3.event.stopPropagation();
-				}
-			})
-
-			nodeSel.append('text').attr('class', 'node-label')
-			.attr("dx", function(d) {
-				return radius(d) + 5;
-			})
-			.attr("dy", ".35em")
-			.text(function(d) {
-				if (d._type == 'complex') {
-					return d.name;
-				} else {
-					return '';
-				}
-			});
-
-			nodeSel.append('rect')
 			.attr("class", function(d) {
-				var cls = [];
+				var cls = ['enum-node'];
 				switch (d._type) {
 					case 'complex':
 						cls.push('complex');
@@ -501,7 +451,30 @@ Ext.define('App.usr.enum.Viewer', {
 						return '';
 				}
 				return cls.join(' ');
+			})		
+			.attr("transform", function(d) {
+				return "translate(" + d.x + "," + d.y + ")";
 			})
+			.attr('name',function (d) {
+				return d.name;
+			})
+
+			// Add label
+			nodeSel.append('text').attr('class', 'node-label')
+			.attr("dx", function(d) {
+				return radius(d) + 5;
+			})
+			.attr("dy", ".35em")
+			.text(function(d) {
+				if (d._type == 'complex') {
+					return d.name;
+				} else {
+					return '';
+				}
+			});
+
+			// Add rectangle
+			nodeSel.append('rect')
 			.attr("width", radius)
 			.attr("height", radius)
 			.attr("rx", function(d) {
@@ -517,24 +490,69 @@ Ext.define('App.usr.enum.Viewer', {
 				}
 			});
 
+			// Add sub-drawing for structure
 			nodeSel.append("svg")
 			.attr("width", radius)
 			.attr("height", radius);
 
-			nodeSel.call(d3.behavior.drag()
-		        .origin(function(d) { return d.dagre; })
-		        .on("drag", dragNode));
-
-
 			nodeSel.each(function(d) {
-			    var bbox = this.getBBox();
-			    d.bbox = bbox;
-			    d.width = bbox.width + (2 * nodePadding);
-			    d.height = bbox.height + (2 * nodePadding);
+				var bbox = this.getBBox();
+				d.bbox = bbox;
+				d.width = bbox.width + (2 * nodePadding);
+				d.height = bbox.height + (2 * nodePadding);
 			  });
+
+			// Add interactivity 
+			addNodeInteractions(nodeSel);
 
 			return nodeSel;
 		}
+
+		function addLinkInteractions (linkSel) {
+			linkSel.call(d3.behavior.drag()
+				.origin(function(l) { 
+					var k = 0, // index of point with lowest distance
+						dist = 0;
+					for(var i=0; i<l.dagre.points.length; i++) {
+						if(Math.sqrt( (l.dagre.points[i].x - d3.event.x)^2 + 
+							(l.dagre.points[i].y - d3.event.y)^2 ) < dist || i == 0) {
+
+							dist = Math.sqrt( (l.dagre.points[i].x - d3.event.x)^2 + (l.dagre.points[i].y - d3.event.y)^2 )
+							k = i;
+						}
+					}
+					l._dragPoint = k;
+					return l.dagre.points[k]; 
+				})
+				.on("drag", dragLink));
+		}
+
+		function addNodeInteractions (nodeSel) {
+			nodeSel.on('mouseenter', highlightLinks)
+			.on('mouseleave', unhighlightLinks)
+			.on('dblclick', function(d) {
+				if (d._type == 'complex') {
+					me.showComplexPreviewWindow(d,this);
+				} else if (d._type=='reaction') {
+					me.showReactionPreviewWindow(d, this);
+				}
+			})
+			// .on('click', selectNode)
+			.on('click',function(d) {
+				selectNode.call(this,d)
+				if (d._type == 'complex') {
+					var el = d3.select(this).select('svg');
+					me.renderPreview(d, el.node());
+					//d3.event.stopPropagation();
+				}
+			})
+
+			nodeSel.call(d3.behavior.drag()
+				.origin(function(d) { return d.dagre; })
+				.on("drag", dragNode));
+		}
+
+		
 
 		function buildHulls(hullg,me) {
 			me.restingStates = _.map(me.restingStates,function (d) {
@@ -668,23 +686,23 @@ Ext.define('App.usr.enum.Viewer', {
 			}), /* true to flatten only one level */true);
 	
 			// build selection of (reaction) nodes
-		    me.condensedNode = buildNodes(condensedNodeg,{nodes: me.condensedReactionData}, me);
-		    me.condensedNode.datum(function(d) { 
-		    	d.dagre.width = d.width;
-		    	d.dagre.height = d.height;
-		    	return d;
-		    })
-		    me.condensedNode.attr("transform", function(d) { 
-				return 'translate('+ (d.dagre.x - d.dagre.width/2) +','+ (d.dagre.y - d.dagre.height/2) +')'; 
+			me.condensedNode = buildNodes(condensedNodeg,{nodes: me.condensedReactionData}, me);
+			me.condensedNode.datum(function(d) { 
+				d.dagre.width = d.width;
+				d.dagre.height = d.height;
+				return d;
 			})
+			// me.condensedNode.attr("transform", function(d) { 
+			// 	return 'translate('+ (d.dagre.x - d.dagre.width/2) +','+ (d.dagre.y - d.dagre.height/2) +')'; 
+			// })
 
 			// build selection of links
 			// TODO: indicate to buildLinks that these should be handled differently
 			me.condensedLink = buildLinks(condensedLinkg,{links: links},me)
 
-			me.condensedLink.attr("d", function(l) { 
-		    	return spline(l); 
-		    });
+			// me.condensedLink.attr("d", function(l) { 
+			// 	return spline(l); 
+			// });
 		}
 
 		function init() {
@@ -698,6 +716,7 @@ Ext.define('App.usr.enum.Viewer', {
 			me.link = buildLinks(linkg,net,me)
 			me.node = buildNodes(nodeg,net,me)
 
+			// Run directed graph layout algorithm
 			dagre.layout()
 				.nodeSep(50)
 				.edgeSep(10)
@@ -707,24 +726,31 @@ Ext.define('App.usr.enum.Viewer', {
 				.debugLevel(1)
 				.run();
 
-			// Ensure that we have at least two points between source and target
-			me.link.each(updateLink);
+			// Build graph of condensed reactions
+			buildCondensed(me.hullg, me.condensedLinkg, me.condensedNodeg, me);
 
-			me.node.attr("transform", function(d) { 
+			// Build new selection containing all nodes and links
+			me.allLink = panel.selectAll("path.link-reaction")
+			me.allNode = panel.selectAll("g.enum-node")
+
+			// Set node positioning
+			me.allNode.attr("transform", function(d) { 
 				return 'translate('+ (d.dagre.x - d.dagre.width/2) +','+ (d.dagre.y - d.dagre.height/2) +')'; 
 			});
 
-			me.link
-			// Set the id. of the SVG element to have access to it later
-			    .attr('id', function(e) { 
-			    	return e.dagre.id; 
-			    })
-			    .attr("d", function(l) { 
-			    	return spline(l); 
-			    });
+			// Set link positioning
+			me.allLink
+				// Ensure that we have at least two points between source and target
+				.each(updateLink)
+				// Set the id. of the SVG element to have access to it later
+				.attr('id', function(e) { 
+					return e.dagre.id; 
+				})
+				.attr("d", function(l) { 
+					return spline(l); 
+				});
 
-			buildCondensed(me.hullg, me.condensedLinkg, me.condensedNodeg, me);
-
+			// Stretch bounding box
 			var svgBBox = panel.node().getBBox();
 			panel.attr("width", svgBBox.width + 10);
 			panel.attr("height", svgBBox.height + 10);
@@ -737,14 +763,15 @@ Ext.define('App.usr.enum.Viewer', {
 		 */
 
 		function highlightLinks(d) {
+			// Generate color scale for incoming/outgoing links
 			var incoming_color = d3.scale.ordinal().range(_.reverse(colorbrewer.BuPu[4])),
 				outgoing_color = d3.scale.ordinal().range(_.reverse(colorbrewer.OrRd[4]));
 
-			// blur all complexes, links
+			// Blur all complexes, links
 			panel.selectAll("path.link-reaction").classed("link-reaction-blurred",true);
 			panel.selectAll("g.enum-node").classed("node-blurred",true)
 
-			// un-blur this complex
+			// Un-blur this complex
 			panel.selectAll('g.enum-node[name="'+d.name+'"]').classed("node-blurred",false);
 
 
@@ -756,8 +783,10 @@ Ext.define('App.usr.enum.Viewer', {
 				return outgoing_color(d.target.name); 
 			})
 			.style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
+
+			// Animate link drawing
 			.style("stroke-dasharray", "0,1000000")
-		    	.transition()
+				.transition()
 				.ease("cubic-in")
 				.style("stroke-dasharray", function() { var l = 2*this.getTotalLength(); return l+','+l } );
 
@@ -770,10 +799,12 @@ Ext.define('App.usr.enum.Viewer', {
 				return incoming_color(d.source.name); 
 			})
 			.style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
+
+			// Animate link drawing
 			.style("stroke-dasharray", "0,1000000")
-		    	.transition()
+				.transition()
 				.ease("cubic-in")
-				.style("stroke-dasharray", function() { var l = this.getTotalLength(); return l+','+l } );
+				.style("stroke-dasharray", function() { var l = 2*this.getTotalLength(); return l+','+l } );
 		}
 
 		function unhighlightLinks() {
@@ -807,9 +838,19 @@ Ext.define('App.usr.enum.Viewer', {
 			me.nodeg.selectAll(".reaction").classed("enum-hidden",true)
 		}
 
-		me.showCondensed = function toggleCondensed(condense) {
-			if(condense) return showCondensed()
+		me.showCondensed = function toggleCondensed(show) {
+			if(show) return showCondensed()
 			else return showFull();
+		}
+
+		// me.showCondensed = function toggleCondensed(show) {
+		// 	if(show) return showCondensed()
+		// 	else return hideCondensed();
+		// }
+
+		me.showFull = function toggleCondensed(show) {
+			if(show) return showFull()
+			else return hideFull();
 		}
 
 
@@ -822,8 +863,8 @@ Ext.define('App.usr.enum.Viewer', {
 			d.x = d.dagre.x = d3.event.x, 
 			d.y = d.dagre.y = d3.event.y;
 			d3.select(this).attr("transform",'translate('+ (d.dagre.x - d.dagre.width/2) +','+ (d.dagre.y - d.dagre.height/2) +')');
-			me.link.filter(function(l) { return l.source === d; }).each(updateLink).attr("d",spline)
-			me.link.filter(function(l) { return l.target === d; }).each(updateLink).attr("d",spline);
+			me.allLink.filter(function(l) { return l.source === d; }).each(updateLink).attr("d",spline)
+			me.allLink.filter(function(l) { return l.target === d; }).each(updateLink).attr("d",spline);
 		}
 
 
@@ -836,22 +877,7 @@ Ext.define('App.usr.enum.Viewer', {
 		}
 
 		function updateLink(l) {
-			// var points = l.dagre.points;
-			// if (!points.length) {
-			// 	var s = l.source.dagre;
-			// 	var t = l.target.dagre;
-			// 	points.push({
-			// 		x: Math.abs(s.x - t.x) / 2,
-			// 		y: Math.abs(s.y + t.y) / 2
-			// 	});
-			// }
 
-			// if (points.length === 1) {
-			// 	points.push({
-			// 		x: points[0].x,
-			// 		y: points[0].y
-			// 	});
-			// }
 		}
 	},
 	
@@ -860,8 +886,8 @@ Ext.define('App.usr.enum.Viewer', {
 		this.currentScale = scale;
 		this.callParent(arguments);
 		this.node.selectAll('text.node-label').style('font-size',this.fontSize/scale+'em');
-		this.node.selectAll('rect.complex').style('stroke-width',this.linkWidth/scale);
-		this.node.selectAll('rect.reaction').style('stroke-width',this.linkWidth/scale);
+		this.node.selectAll('.complex > rect').style('stroke-width',this.linkWidth/scale);
+		this.node.selectAll('.reaction > rect').style('stroke-width',this.linkWidth/scale);
 		
 		this.link.style('stroke-width',this.linkWidth/scale);
 		this.link.selectAll('link-reaction-reactant, link-reaction-product').style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
@@ -1282,13 +1308,13 @@ Ext.define('App.usr.enum.ReactionViewer', {
 
 		Ext.apply(this,{
 			layout: {
-		    	type: 'hbox',
-		    	align: 'stretch'
-		    },
-		    defaults: {
-		    	bodyBorder: false,
-		    	border: false,
-		    },
+				type: 'hbox',
+				align: 'stretch'
+			},
+			defaults: {
+				bodyBorder: false,
+				border: false,
+			},
 			items: [
 				this.reactant1,
 				this.reactant_plus,

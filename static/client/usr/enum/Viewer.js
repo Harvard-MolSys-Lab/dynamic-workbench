@@ -17,6 +17,9 @@ Ext.define('App.usr.enum.Viewer', {
 
 	createTip: true,
 	tipDelegate: 'rect',
+	
+	autoShowFull: true,
+	autoShowCondensed: false,
 
 	constructor : function() {
 		this.callParent(arguments);
@@ -56,6 +59,7 @@ Ext.define('App.usr.enum.Viewer', {
 			y: 100,
 			title: 'Legend',
 			constrain: true,
+			autoShow: true,
 			// floating: true
 		});
 		Ext.apply(this,{
@@ -74,7 +78,17 @@ Ext.define('App.usr.enum.Viewer', {
 					scope: this,
 				}]
 			},this.viewMenu,{
+				text: 'Show Full',
+				iconCls: 'enum-full',
+				enableToggle: true,
+				pressed: true,
+				toggleHandler: function(btn,state) {
+					this.showFull(state);
+				},
+				scope: this,
+			},{
 				text: 'Show Condensed',
+				iconCls: 'enum-compress',
 				enableToggle: true,
 				toggleHandler: function(btn,state) {
 					this.showCondensed(state);
@@ -89,6 +103,9 @@ Ext.define('App.usr.enum.Viewer', {
 			
 			// this.legendWindow.showAt(0,500); //.showAt(this.getEl().getX(),this.getEl().getY());
 			// this.legendWindow.show();
+			
+			// this.showFull(true);
+			// this.showCondensed(false);
 
 			if(this.createTip) { 
 				this.tip = Ext.create('Ext.tip.ToolTip', {
@@ -105,11 +122,12 @@ Ext.define('App.usr.enum.Viewer', {
 						}
 					}
 				});
-
 				this.sequenceRenderer = CodeMirror.modeRenderer('sequence');
 			}
 		}, this);
 		this.viewMenu.updateView = Ext.bind(this.updatePreviews,this);
+
+		
 	
 	},
 	
@@ -399,6 +417,9 @@ Ext.define('App.usr.enum.Viewer', {
 			'initial' : 'yellow',
 			'resting' : '#ddd',
 		};
+
+		me.showCondensed = showCondensed;
+		me.showFull = showFull;
 
 		// Most of the work happens in init(), defined below
 		init();
@@ -756,6 +777,11 @@ Ext.define('App.usr.enum.Viewer', {
 			panel.attr("height", svgBBox.height + 10);
 			me.rect.attr("width", svgBBox.width + 10);
 			me.rect.attr("height", svgBBox.height + 10);
+
+			// Show full and condensed
+			me.showFull(me.autoShowFull);
+			me.showCondensed(me.autoShowCondensed);
+
 		}	
 
 		/* -------------------------------------------------------------------
@@ -815,43 +841,38 @@ Ext.define('App.usr.enum.Viewer', {
 			panel.selectAll("g.enum-node").classed("node-blurred",false)
 		}
 
-		function showFull() {
+		function showFull(show) {
 			// panel.selectAll(".reaction-internal").classed("enum-hidden",false)
 			// panel.selectAll(".reaction-full").classed("enum-hidden",true)
 			// panel.selectAll(".reaction-condensed").classed("enum-hidden",false)
-			
-			me.condensedLinkg.classed("enum-hidden",true)
-			me.condensedNodeg.classed("enum-hidden",true)
-			me.link.classed("enum-hidden",false)
-			me.nodeg.selectAll(".complex-transient").classed("enum-hidden",false)
-			me.nodeg.selectAll(".reaction").classed("enum-hidden",false)
+
+			me.link.classed("enum-hidden",!show)
+			me.nodeg.selectAll(".complex-transient").classed("enum-hidden",!show)
+			me.nodeg.selectAll(".reaction").classed("enum-hidden",!show)
 		}
 
-		function showCondensed() {
+		function showCondensed(show) {
 			// panel.selectAll(".reaction-internal").classed("enum-hidden",true)
 			// panel.selectAll(".reaction-full").classed("enum-hidden",false)
 			// panel.selectAll(".reaction-condensed").classed("enum-hidden",true)
-			me.condensedLinkg.classed("enum-hidden",false)
-			me.condensedNodeg.classed("enum-hidden",false)
-			me.link.classed("enum-hidden",true)
-			me.nodeg.selectAll(".complex-transient").classed("enum-hidden",true)
-			me.nodeg.selectAll(".reaction").classed("enum-hidden",true)
-		}
-
-		me.showCondensed = function toggleCondensed(show) {
-			if(show) return showCondensed()
-			else return showFull();
+			me.condensedLinkg.classed("enum-hidden",!show)
+			me.condensedNodeg.classed("enum-hidden",!show)
 		}
 
 		// me.showCondensed = function toggleCondensed(show) {
 		// 	if(show) return showCondensed()
-		// 	else return hideCondensed();
+		// 	else return showFull();
 		// }
 
-		me.showFull = function toggleCondensed(show) {
-			if(show) return showFull()
-			else return hideFull();
-		}
+		// // me.showCondensed = function toggleCondensed(show) {
+		// // 	if(show) return showCondensed()
+		// // 	else return hideCondensed();
+		// // }
+
+		// me.showFull = function toggleCondensed(show) {
+		// 	if(show) return showFull()
+		// 	else return hideFull();
+		// }
 
 
 		function selectNode(d) {

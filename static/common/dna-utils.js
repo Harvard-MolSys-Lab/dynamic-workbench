@@ -1276,7 +1276,9 @@ var DNA = module.exports.DNA = (function(_) {
 	
 	var layout = (function() {
 		var debug = true;
-		var baseLength = breakWidth = 20, stemWidth = 1.5*baseLength, duplexWidth = stemWidth + baseLength,
+		var baseLength = breakWidth = 20, 
+			stemWidth = 1.5 * baseLength, 
+			duplexWidth = stemWidth + baseLength,
 			pi2 = 2*Math.PI,
 			piHalf = Math.PI/2;
 		var phi = Math.PI/4;
@@ -1378,14 +1380,17 @@ var DNA = module.exports.DNA = (function(_) {
 			
 			var out = [];
 			
+			// If drawing an opening 
 			if(mode == 'first') {
 				if (struct.length == 2) {
 					var theta_line, len, firstBase;
 					switch(struct[0][0] + struct[1][0]) {
 
-						//  \__
-						//   __ 
-						//  
+						//  ??
+						//  \__|
+						//   __| 
+						//     |
+						//     
 						case '.D':
 						case 'UD':
 						case '.H':
@@ -1406,9 +1411,10 @@ var DNA = module.exports.DNA = (function(_) {
 				} else if(struct.length == 3) {
 					switch(struct[0][0] + struct[1][0] + struct[2][0]) {
 						
-						//  \__
-						//   __ 
-						//  /
+						//  ??
+						//  \__|
+						//   __| 
+						//  /  |
 						//  
 						case '.D.':
 						case 'UDU':
@@ -1438,7 +1444,10 @@ var DNA = module.exports.DNA = (function(_) {
 					switch(struct[0][0] + struct[1][0]) {
 
 						//  ??
-						//  
+						//  __|/
+						//  __|
+						//    |
+						//      *
 						case '.+':
 						case 'U+':
 							theta_line = theta-phi; 
@@ -1448,7 +1457,10 @@ var DNA = module.exports.DNA = (function(_) {
 							break;
 						
 						//  ??
-						//  
+						//  __|
+						//  __|
+						//    |\
+						//       *
 						case '+.':
 						case '+U':
 							theta_line = theta+phi; 
@@ -1457,8 +1469,11 @@ var DNA = module.exports.DNA = (function(_) {
 							out = out.concat(drawLine(len,firstBase,theta_line));
 							break;
 
-						//  ??
 						//  
+						//   __|
+						//   __|
+						//  /  |
+						//   *
 						case 'D.':
 						case 'DU':
 						case 'H.':
@@ -1479,8 +1494,12 @@ var DNA = module.exports.DNA = (function(_) {
 				} else if(struct.length == 3) {
 					switch(struct[0][0] + struct[1][0] + struct[2][0]) {
 						
-						//  ??
-						//  
+						//  PROBLEM?
+						// 
+						//  _|/ _
+						//  _|___
+						//   |
+						//     *
 						case '.+D':
 						case 'U+D':
 						case '.+H':
@@ -1498,6 +1517,10 @@ var DNA = module.exports.DNA = (function(_) {
 
 						//  ??
 						//  
+						//  _|___
+						//  _|_ _
+						//   | /
+						//     *
 						case 'D.+':
 						case 'DU+':
 						case 'H.+':
@@ -1516,8 +1539,12 @@ var DNA = module.exports.DNA = (function(_) {
 
 							break;
 
-						//  ??
-						//  
+						// ???
+						// 
+						//  _| \_
+						//  _|___
+						//   |
+						//     *
 						case '+.D':
 						case '+UD':
 						case '+.H':
@@ -1535,6 +1562,10 @@ var DNA = module.exports.DNA = (function(_) {
 
 						//  ??
 						//  
+						//  _|___
+						//  _|_ _
+						//   | \
+						//     *
 						case 'D+.':
 						case 'D+U':
 						case 'H+.':
@@ -1639,7 +1670,7 @@ var DNA = module.exports.DNA = (function(_) {
 				out = [];
 
 			if(debug) {						
-				console.log('Line : '+coords(start)+' '+deg(theta)+'° + len: '+len);					
+				console.log('Line : '+coords(start)+' '+deg(theta)+'° = U'+len);					
 			}
 			
 			for(var i = 0; i<len; i++) {
@@ -1654,7 +1685,7 @@ var DNA = module.exports.DNA = (function(_) {
 				cx = center.x, cy = center.y, x, y, out = [];
 				
 			if(debug) {						
-				console.log('Arc : '+coords(center)+' '+deg(theta)+'° + '+deg(sweep)+' (dtheta='+dtheta+'°), r: '+radius+' len: '+len);					
+				console.log('Arc : '+coords(center)+' '+deg(theta)+'° + '+deg(sweep)+' (dΘ='+dtheta+'°), r: '+radius+' = U'+len);					
 			}
 			
 			theta += dtheta/2;
@@ -1668,6 +1699,7 @@ var DNA = module.exports.DNA = (function(_) {
 		}
 		
 		function drawDuplex(chunk,theta,firstBase,loopMode) {
+
 			if(debug) {
 				console.group('Duplex : '+coords(firstBase)+' '+deg(theta)+'° = '+DNA.printDUPlus([chunk]));
 			}
@@ -2405,6 +2437,16 @@ var DNA = module.exports.DNA = (function(_) {
 		return {map: map, breaks: breaks};
 	}
 
+	/**
+	 * Prints a parsed DU+ structure
+	 *
+	 * ex: 
+	 * ['D',3, [['U',4],['+'],['U',8],['D',6,[['+']]]] ]
+	 * -> 'D3(U4 + U8 D6(+))'
+	 * 
+	 * @param  {Array} loop Parsed DU+ structure
+	 * @return {String} Printed structure
+	 */		
 	function printDUPlus (loop) {
 		return _.map(loop, function(item) {
 			switch(item[0]) {

@@ -458,12 +458,35 @@ def output_sbml(enumerator,filename, output_condensed = False):
 	fout.write(header+'\n'+doc.documentElement.toprettyxml(indent="\t"))
 	fout.close()
 	
+
+def output_crn(enumerator, filename, output_condensed = False):
+	output_file = open(filename, 'w')
+
+	def write_reaction(output_file,reaction):
+		reactants = map(str,reaction.reactants)
+		products = map(str,reaction.products)
+		reac_string_list = [" + ".join(reactants),"->"," + ".join(products),"\n"]
+		reac_string = ' '.join(reac_string_list)
+		output_file.write(reac_string)
+
+	reactions = enumerator.reactions
+	if (output_condensed):
+		condensed = condense_resting_states(enumerator)
+		reactions = condensed['reactions']
+
+	for reaction in sorted(reactions): #utils.natural_sort(reactions):
+		write_reaction(output_file,reaction)
+
+	output_file.close()
+
+
 text_output_functions = {
 	'standard': output_legacy,
 	'legacy': output_legacy,
 	'pil': output_pil,
 	'json': output_json,
-	'sbml': output_sbml
+	'sbml': output_sbml,
+	'crn': output_crn
 }
 
 graph_output_functions = {

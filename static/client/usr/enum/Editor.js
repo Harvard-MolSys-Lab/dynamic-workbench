@@ -3,6 +3,7 @@
  */
 Ext.define('App.usr.enum.Editor', {
 	extend: 'App.usr.text.Editor',
+	requires: ['App.usr.enum.RunButton'],
 	iconCls:'enum-icon',
 	editorType: 'Enum',
 	title: 'Enumerator',
@@ -38,52 +39,57 @@ Ext.define('App.usr.enum.Editor', {
 		
 		this.extraTbarItems = [];
 		
-		this.condense = Ext.create('Ext.menu.CheckItem', {
-			text: 'Condense output',
-			name: 'condense',
-			checked: false,
-		});
-		this.maxComplexSize = Ext.create('Ext.form.field.Number',{
-			minValue: 1,
-			value: 10,
-			indent: true,
-		});
+	this.runButton = Ext.create('App.usr.enum.RunButton',{app: this});
+
+		// this.condense = Ext.create('Ext.menu.CheckItem', {
+		// 	text: 'Condense output',
+		// 	name: 'condense',
+		// 	checked: false,
+		// });
+		// this.maxComplexSize = Ext.create('Ext.form.field.Number',{
+		// 	minValue: 1,
+		// 	value: 10,
+		// 	indent: true,
+		// });
 		
-		var tbar = this.extraTbarItems.concat([{
-			text: 'Run Enumerator',
-			iconCls: 'enum-icon',
-			handler: this.makeEnumHandler('enjs'),
-			scope: this,
-			xtype: 'splitbutton',
-			menu: [{
-				text: 'ENJS',
-				handler: this.makeEnumHandler('enjs'),
-				iconCls: 'enum-icon',
-				scope: this,
-			},{
-				text: 'PIL',
-				handler: this.makeEnumHandler('pil'),
-				iconCls: 'pil',
-				scope: this,
-			},{
-				text: 'Legacy',
-				handler: this.makeEnumHandler('legacy'),
-				iconCls: 'gear',
-				scope: this,
-			},{
-				text: 'SBML',
-				handler: this.makeEnumHandler('sbml'),
-				iconCls: 'sbml',
-				scope: this,
-			},{
-				text: 'Graph (EPS)',
-				handler: this.makeEnumHandler('graph'),
-				scope: this,
-			},'-',this.condense,{ 
-				text: 'Maximum complex size: ',
-				canActivate: false,
-			},this.maxComplexSize]
-		}]);
+		var tbar = this.extraTbarItems.concat([
+			this.runButton,
+		// {
+		// 	text: 'Run Enumerator',
+		// 	iconCls: 'enum-icon',
+		// 	handler: this.makeEnumHandler('enjs'),
+		// 	scope: this,
+		// 	xtype: 'splitbutton',
+		// 	menu: [{
+		// 		text: 'ENJS',
+		// 		handler: this.makeEnumHandler('enjs'),
+		// 		iconCls: 'enum-icon',
+		// 		scope: this,
+		// 	},{
+		// 		text: 'PIL',
+		// 		handler: this.makeEnumHandler('pil'),
+		// 		iconCls: 'pil',
+		// 		scope: this,
+		// 	},{
+		// 		text: 'Legacy',
+		// 		handler: this.makeEnumHandler('legacy'),
+		// 		iconCls: 'gear',
+		// 		scope: this,
+		// 	},{
+		// 		text: 'SBML',
+		// 		handler: this.makeEnumHandler('sbml'),
+		// 		iconCls: 'sbml',
+		// 		scope: this,
+		// 	},{
+		// 		text: 'Graph (EPS)',
+		// 		handler: this.makeEnumHandler('graph'),
+		// 		scope: this,
+		// 	},'-',this.condense,{ 
+		// 		text: 'Maximum complex size: ',
+		// 		canActivate: false,
+		// 	},this.maxComplexSize]
+		// }
+		]);
 		
 		if(this.showEditButton) {
 			tbar.push({
@@ -110,31 +116,31 @@ Ext.define('App.usr.enum.Editor', {
 		})
 		this.callParent(arguments);
 	},
-	makeEnumHandler: function(mode) {
-		return function() {
-			this.runEnum(mode);
-		}
-	},
-	runEnum: function(mode) {
-		var node = this.doc.getDocumentPath(),
-			resNode = App.path.addExt(App.path.removeExt(node,'enum')+'-enum',mode);
+	// makeEnumHandler: function(mode) {
+	// 	return function() {
+	// 		this.runEnum(mode);
+	// 	}
+	// },
+	// runEnum: function(mode) {
+	// 	var node = this.doc.getDocumentPath(),
+	// 		resNode = App.path.addExt(App.path.removeExt(node,'enum')+'-enum',mode);
 
-		App.runTask('Enumerator', {
-			node: this.getDocumentPath(),
-			mode: mode,
-			condense: this.condense.checked,
-			'max-complex-size': this.maxComplexSize.getValue(),
-		},function(success) {
-			if(success) 
-				Ext.msg('Enumerator','Reaction enumeration completed.');
-			else
-				Ext.msg('Enumerator','Reaction enumeration failed. Click for details.',{handler: 'console'});
+	// 	App.runTask('Enumerator', {
+	// 		node: this.getDocumentPath(),
+	// 		mode: mode,
+	// 		condense: this.condense.checked,
+	// 		'max-complex-size': this.maxComplexSize.getValue(),
+	// 	},function(success) {
+	// 		if(success) 
+	// 			Ext.msg('Enumerator','Reaction enumeration completed.');
+	// 		else
+	// 			Ext.msg('Enumerator','Reaction enumeration failed. Click for details.',{handler: 'console'});
 
-		},this,{
-			openOnEnd: [resNode]
-		});
-		Ext.msg('Enumerator','Reaction enumeration started.');
-	},
+	// 	},this,{
+	// 		openOnEnd: [resNode]
+	// 	});
+	// 	Ext.msg('Enumerator','Reaction enumeration started.');
+	// },
 	/**
 	 * Opens a {@link App.ui.SequenceThreader sequence threader}, allowing the 
 	 * user to thread together sequences based on a sequence specification into

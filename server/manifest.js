@@ -7,6 +7,9 @@ var libPath = 'lib';
 var extPath = libPath + '/ext-4.1.0';
 var stylePath = 'static/styles';
 var extStyles = extPath + '/resources/css/ext-all';
+// var extStyles = extPath + '/resources/css/ext-neptune-debug'; // extPath + '/resources/css/ext-all';
+
+
 var codeMirrorVersion = '2.24';
 var codeMirrorPath = libPath + '/CodeMirror-'+codeMirrorVersion;
 var raphaelVersion = '2.0.1';//'1.5.2';
@@ -28,7 +31,7 @@ var libs = ['jquery-1.5.1.min', 'underscore', 'string', 'color-field-1.0.0/color
 'valums-file-uploader/client/fileuploader', // 
 'jquery-animate-css-rotate-scale/jquery-css-transform', //
 'jquery-animate-css-rotate-scale/jquery-animate-css-rotate-scale', 'Ext.ux.StatusBar', //
-'protovis-3.2/protovis-d3.2',
+// 'protovis-3.2/protovis-d3.2',
 'd3-v2/d3.v2','d3-v2/lib/colorbrewer/colorbrewer',
 // 'd3-v3/d3.v3','d3-v3/lib/colorbrewer/colorbrewer',
 
@@ -40,6 +43,7 @@ var libs = ['jquery-1.5.1.min', 'underscore', 'string', 'color-field-1.0.0/color
 //'ChemDoodleWeb/src/ChemDoodleWeb-sketcher-unpacked',
 //'ChemDoodleWeb/install/sketcher/ChemDoodleWeb-sketcher',//
 'naturalSort',
+'strandpreview/StrandPreview'
 ];//
 
 var uxs = ['RowExpander', 'CheckColumn'];
@@ -69,6 +73,7 @@ function getResources(staticOnly,env) {
 	} else {
 		js.push(extPath+'/ext-all.js');
 	}
+	// js.push(extPath+'/ext-neptune-debug.js');
 	
 	// Libraries
 	_.each(libs ,function(lib) {

@@ -44,6 +44,8 @@ Ext.define('App.ui.Application', {
 	constructor : function(config) {
 		this.id = App.ui.Launcher.getId();
 		this.bindDocument( config ? (config.document ? config.document : null) : null, true);
+		Ext.util.Observable.prototype.constructor.apply(this)
+		this.on('destroy', this.markSaved, this);
 	},
 	requestDocument: function(callback,scope) {
 		if(this.document) {
@@ -268,5 +270,5 @@ Ext.define('App.ui.Application', {
 		this.unsaved = false;
 		App.ui.Launcher.markSaved(this);
 		this.updateTitle();
-	}
+	},
 });

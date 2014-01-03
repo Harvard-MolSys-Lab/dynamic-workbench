@@ -307,6 +307,12 @@ Ext.define('App.ui.Launcher', {
 		editorType : 'Pepper',
 		mode : 'pepper',
 	});
+	App.ui.Launcher.register('crn', 'App.usr.text.Editor', {
+		iconCls : 'crn',
+		editorType : 'CRN',
+		mode : '',
+	});
+
 	App.ui.Launcher.register('strandedit','App.usr.dil.DilEditor',{
 	});
 	App.ui.Launcher.register('dil','App.usr.dil.DilEditor',{

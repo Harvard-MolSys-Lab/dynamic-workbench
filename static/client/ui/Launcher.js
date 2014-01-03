@@ -297,7 +297,7 @@ Ext.define('App.ui.Launcher', {
 		editorType : 'ReStructuredText',
 		mode : 'rst',
 	});
-	App.ui.Launcher.register('pil', 'App.usr.text.Editor', {
+	App.ui.Launcher.register('pil', 'App.usr.pepper.PilEditor', {
 		iconCls : 'pil',
 		editorType : 'PIL',
 		mode : 'pepper',

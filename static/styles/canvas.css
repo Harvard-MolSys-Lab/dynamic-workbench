@@ -346,6 +346,12 @@ ul.dashboard-actions li a:hover {
 .compile {
 	background-image: url(/images/icons/fugue/compile.png) !important;
 }
+.enum-compress {
+	background-image: url(/images/icons/fugue/grid-small.png) !important;
+}
+.enum-full {
+	background-image: url(/images/icons/fugue/grid.png) !important;
+}
 
 .sequence, .seq {
 	background-image: url(/images/icons/etc/sequence.png) !important;
@@ -623,6 +629,14 @@ ul.dashboard-actions li a:hover {
 	margin-bottom:-2px;
 }
 
+.no-select {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
 
 
 path.hull {

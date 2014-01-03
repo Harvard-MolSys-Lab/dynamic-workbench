@@ -29,11 +29,12 @@ exports.start = function(req, res, params) {
 
 
 	var pre = path.join(path.dirname(fullPath),prefix(fullPath));
-	var mode = params['mode'] || 'pil';
-	var ext = mode;
-	if (ext == 'enjs') { mode = 'json' }
+	var outputMode = params['mode'] || 'pil';
+	var inputMode = utils.extname(fullPath); inputMode = (inputMode == 'enum' ? 'standard' : inputMode);
+	var ext = outputMode;
+	if (ext == 'enjs') { outputMode = 'json' }
 
-	var args = ['--infile',fullPath,'-i','standard','--outfile',postfix(pre+'-enum',ext),'-o',mode];
+	var args = ['--infile',fullPath,'-i',inputMode,'--outfile',postfix(pre+'-enum',ext),'-o',outputMode];
 	
 	if(!!params['max-complex-size']) { 
 		args = args.concat(['--max-complex-size', params['max-complex-size']]) 
@@ -44,8 +45,7 @@ exports.start = function(req, res, params) {
 	}
 	
 	//--infile test_files/test_input_standard_SLC.in -i standard --outfile temporary_test_output.out -o standard
-	cmd = getCommand(commands['enumerator'], 
-	args)
+	cmd = getCommand(commands['enumerator'], args)
 	
 	winston.log("info", cmd);
 	

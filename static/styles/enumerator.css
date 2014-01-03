@@ -33,6 +33,12 @@ svg {
 	fill: #a00;
 	stroke: #fff;
 }
+condensed-nodes .reaction-fast {
+	fill: #02d;
+}
+condensed-nodes .reaction-slow {
+	fill: #e00;
+}
 
 .enum-selected > text {
 	font-weight: bold;
@@ -43,21 +49,30 @@ svg {
 	stroke: red;
 }
 
-.complex {
+.enum-hull {
+	full: yellow;
+	stroke: gray;
+}
+
+.enum-hidden {
+	display: none
+}
+
+.complex > rect {
 	fill: white;
 	stroke: #888;
 	/*stroke-width: 1em;*/
 }
-.complex-transient {
+.complex-transient > rect {
 	stroke-dasharray:1.5em;
 }
-.complex-resting {
+.complex-resting > rect {
 	fill: #ffa;
 }
-.complex-initial {
+.complex-initial > rect {
 	fill: #efb;
 }
-.resting-state {
+.resting-state > rect {
 /*	fill: yellow;
 	stroke: #fff;
 */}

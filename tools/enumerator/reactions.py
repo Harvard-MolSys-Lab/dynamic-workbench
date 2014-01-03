@@ -18,7 +18,7 @@ def get_auto_name():
 	return str(auto_name)
 
 # TODO: refactor this
-RELEASE_CUTOFF = 8
+RELEASE_CUTOFF = 6
 
 # If true, 3 way branch migrations are always greedy
 UNZIP = True

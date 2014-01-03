@@ -1369,8 +1369,15 @@ var DNA = module.exports.DNA = (function(_) {
 		
 			
 		function drawLoop(struct,start,theta,space,mode) {
+			
+			// Specifies how loops are drawn---either in a simple circle (for bulges, multiloops, hairpins, etc.)
+			// or with linear tails sticking out (e.g. for gate motifs, etc.)
 			mode || (mode = 'circular');
-			if(mode != 'circular' && (struct.length != 2 && struct.length != 3)) {
+
+			// We draw certain special patterns differently in "linear" or "first" mode;
+			// otherwise, default to circular mode
+			if((mode == 'linear' && (struct.length < 2 || struct.length > 3)) || 
+			   (mode == 'first'  && (struct.length < 1 || struct.length > 3))) {
 				mode = 'circular';
 			}
 			
@@ -1380,17 +1387,39 @@ var DNA = module.exports.DNA = (function(_) {
 			
 			var out = [];
 			
-			// If drawing an opening 
+			// Diagrams show each different case; vertical pipes (|) separate 
+			// the section of interest from the rest of the structure, shown 
+			// for context. The asterisk (*) indicates the section of interest.
+			// If drawing an opening "loop" on the outside of a duplex
 			if(mode == 'first') {
+				if (struct.length == 1) {
+					var theta_line, len, firstBase;
+					switch(struct[0][0]) {
+
+						// ______
+						// 
+						case '.':
+						case 'U':
+							len = struct[0][1];
+							out = out.concat(drawLine(len,start,theta));
+
+							break;
+
+						default:
+							if(debug) {
+								console.groupEnd();
+							}
+							return drawLoop(struct,start,theta,space,'circular');
+					}
+				} else 	
 				if (struct.length == 2) {
 					var theta_line, len, firstBase;
 					switch(struct[0][0] + struct[1][0]) {
 
-						//  ??
 						//  \__|
 						//   __| 
 						//     |
-						//     
+						//  *   
 						case '.D':
 						case 'UD':
 						case '.H':
@@ -1402,6 +1431,23 @@ var DNA = module.exports.DNA = (function(_) {
 							out = out.concat(drawLine(len,firstBase,theta_line));
 							out = out.concat(drawDuplex(struct[1],theta,start,'linear'));
 							break;
+
+						//   __|
+						//   __|
+						//  /  |
+						//   *
+						case 'D.':
+						case 'DU':
+						case 'H.':
+						case 'HU':
+							out = out.concat(drawDuplex(struct[0],theta,start,'linear'));//start.addPolar(theta+piHalf,stemWidth/2)));
+
+							theta_line = theta-phi+Math.PI; len = struct[1][1];
+							firstBase = start.addPolar(theta+piHalf,stemWidth);
+							out = out.concat(drawLine(len,firstBase,theta_line));
+							break;
+
+
 						default:
 							if(debug) {
 								console.groupEnd();
@@ -1421,9 +1467,10 @@ var DNA = module.exports.DNA = (function(_) {
 						case '.H.':
 						case 'UHU':
 							// Draw unpaired (line)
-							var theta_line = theta + phi, len = struct[0][1],
-							firstBase = start.addPolar(theta_line+Math.PI,baseLength*len);
-							out = out.concat(drawLine(len,firstBase,theta_line));
+							var theta_line = theta + phi + Math.PI, len = struct[0][1],
+							// firstBase = start.addPolar(theta_line+Math.PI,baseLength*len);
+							firstBase = start.addPolar(theta_line,baseLength);
+							out = out.concat(drawLine(-len,firstBase,theta_line));
 
 							out = out.concat(drawDuplex(struct[1],theta,start,'linear'));
 
@@ -1438,7 +1485,9 @@ var DNA = module.exports.DNA = (function(_) {
 							return drawLoop(struct,start,theta,space,'circular');
 					}
 				}
-			} else if(mode == 'linear') {
+			} 
+			// If drawing a linear loop within an existing duplex
+			else if(mode == 'linear') {
 				var theta_line, len, firstBase;
 				if (struct.length == 2) {
 					switch(struct[0][0] + struct[1][0]) {
@@ -1469,22 +1518,6 @@ var DNA = module.exports.DNA = (function(_) {
 							out = out.concat(drawLine(len,firstBase,theta_line));
 							break;
 
-						//  
-						//   __|
-						//   __|
-						//  /  |
-						//   *
-						case 'D.':
-						case 'DU':
-						case 'H.':
-						case 'HU':
-							out = out.concat(drawDuplex(struct[0],theta,start,mode));//start.addPolar(theta+piHalf,stemWidth/2)));
-
-							theta_line = theta-phi+Math.PI; len = struct[1][1];
-							firstBase = start.addPolar(theta+piHalf,stemWidth);
-							out = out.concat(drawLine(len,firstBase,theta_line));
-							break;
-
 						default:
 							if(debug) {
 								console.groupEnd();
@@ -1494,8 +1527,27 @@ var DNA = module.exports.DNA = (function(_) {
 				} else if(struct.length == 3) {
 					switch(struct[0][0] + struct[1][0] + struct[2][0]) {
 						
-						//  PROBLEM?
-						// 
+						//  __|/
+						//  __|
+						//    |\
+						//       *
+						case '.+.':
+						case 'U+U':
+						case '.+U':
+						case 'U+.':
+							// Draw first unpaired (line)
+							theta_line = theta-phi;
+							len = struct[0][1];
+							firstBase = start.addPolar(theta-piHalf,stemWidth/2).addPolar(theta_line,baseLength);
+							out = out.concat(drawLine(len,firstBase,theta_line));
+
+							// Draw second unpaired (line)
+							theta_line = theta+phi;
+							len = struct[2][1];
+							firstBase = start.addPolar(theta+piHalf,stemWidth/2).addPolar(theta_line,baseLength);
+							out = out.concat(drawLine(-len,firstBase,theta_line));
+							break;
+
 						//  _|/ _
 						//  _|___
 						//   |
@@ -1507,16 +1559,16 @@ var DNA = module.exports.DNA = (function(_) {
 							// Draw unpaired (line)
 							theta_line = theta-phi; 
 							len = struct[0][1];
-							firstBase = start.addPolar(theta-piHalf,stemWidth/2).addPolar(theta_line,baseLength);
+							firstBase = start.addPolar(theta-piHalf,stemWidth/2).addPolar(theta_line,baseLength); //start.addPolar(theta-piHalf,stemWidth/2).addPolar(theta_line,baseLength);
 							out = out.concat(drawLine(len,firstBase,theta_line));
 
+							// Skip strand break
+							start = start.addPolar(theta,breakWidth).addPolar(theta-piHalf,stemWidth/2);
+
 							// Draw duplex
-							start = start.addPolar(theta,breakWidth);
-							out = out.concat(drawDuplex(struct[2],theta,start,mode));
+							out = out.concat(drawDuplex(struct[2],theta,start,'linear'));
 							break;
 
-						//  ??
-						//  
 						//  _|___
 						//  _|_ _
 						//   | /
@@ -1529,7 +1581,7 @@ var DNA = module.exports.DNA = (function(_) {
 							start = start.addPolar(theta,breakWidth).addPolar(theta-piHalf,stemWidth/2);
 
 							// Draw duplex
-							out = out.concat(drawDuplex(struct[0],theta,start,mode));
+							out = out.concat(drawDuplex(struct[0],theta,start,'linear'));
 							
 							// Draw unpaired (line)
 							theta_line = theta+Math.PI-phi; 
@@ -1539,8 +1591,6 @@ var DNA = module.exports.DNA = (function(_) {
 
 							break;
 
-						// ???
-						// 
 						//  _| \_
 						//  _|___
 						//   |
@@ -1549,19 +1599,22 @@ var DNA = module.exports.DNA = (function(_) {
 						case '+UD':
 						case '+.H':
 						case '+UH':
+							// Skip strand break
+							start = start.addPolar(theta,breakWidth).addPolar(theta-piHalf,stemWidth/2);
+
+
 							// Draw unpaired (line)
-							theta_line = theta+phi; 
-							len = struct[0][1];
-							firstBase = start.addPolar(theta-piHalf,stemWidth/2).addPolar(theta_line,baseLength);
-							out = out.concat(drawLine(len,firstBase,theta_line));
+							theta_line = theta-piHalf-phi; 
+							firstBase = start.addPolar(theta_line,baseLength);
+
+							len = struct[1][1];
+							out = out.concat(drawLine(-len,firstBase,theta_line));
 
 							// Draw duplex
-							start = start.addPolar(theta,breakWidth);
-							out = out.concat(drawDuplex(struct[2],theta,start,mode));
+							out = out.concat(drawDuplex(struct[2],theta,start,'linear'));
 							break;
 
-						//  ??
-						//  
+
 						//  _|___
 						//  _|_ _
 						//   | \
@@ -1574,7 +1627,7 @@ var DNA = module.exports.DNA = (function(_) {
 							start = start.addPolar(theta,breakWidth).addPolar(theta-piHalf,stemWidth/2);
 
 							// Draw duplex
-							out = out.concat(drawDuplex(struct[0],theta,start,mode));
+							out = out.concat(drawDuplex(struct[0],theta,start,'linear'));
 							
 							// Draw unpaired (line)
 							theta_line = theta+piHalf-phi; 
@@ -1667,16 +1720,22 @@ var DNA = module.exports.DNA = (function(_) {
 				dx = Math.cos(theta)*baseLength,
 				dy = Math.sin(theta)*baseLength,
 				theta_normal = theta-piHalf,
-				out = [];
+				out = [],
+				flip = (len < 0);
 
 			if(debug) {						
 				console.log('Line : '+coords(start)+' '+deg(theta)+'° = U'+len);					
 			}
 			
+			if(flip) len = -len;
+
 			for(var i = 0; i<len; i++) {
 				out.push([x,y,theta_normal]);
 				x += dx; y += dy;
 			}
+
+			if(flip) { out = out.reverse() }
+
 			return out;
 		}
 
@@ -1762,7 +1821,7 @@ var DNA = module.exports.DNA = (function(_) {
 
 			if(structure.length==0) { return []; }
 			
-			var loopMode = 'circular'; //options ? options.loopMode : null;
+			var loopMode = options ? options.loopMode : null;
 			if(loopMode && loopMode == 'linear') { loopMode = 'first'; } 
 			var points = drawLoop(structure,Point.create(x,y),theta,breakWidth,loopMode);
 			if(points.length > 0 && options && !options.arrangeLayout) {

@@ -383,16 +383,17 @@ Ext.define('App.usr.enum.Viewer', {
 					.style('fill', line_stroke);
 			
 		var hullg = this.hullg = panel.append("g");
-		var condensedLinkg = this.condensedLinkg = panel.append("g");
-		var condensedNodeg = this.condensedNodeg = panel.append("g");
+		var condensedLinkg = this.condensedLinkg = panel.append("g").classed("condensed-links",true);
+		var condensedNodeg = this.condensedNodeg = panel.append("g").classed("condensed-nodes",true);
 		
 		var linkg = this.linkg = panel.append("g");
 		var nodeg = this.nodeg = panel.append("g");
 		// var legendg = this.legendg = panel.append("g");
 
-		var dr = 50,      // default point radius
-			cr = 100, 	 // default complex point radius
-			off = 15;    // cluster hull offset
+		var dr = 50,     // default point radius
+			cr = 10, 	 // default complex point radius
+			off = 50,    // cluster hull offset
+			condenseScale = 2;
 		var dist = 50,
 			nodePadding = 0; //5;
 		
@@ -427,6 +428,8 @@ Ext.define('App.usr.enum.Viewer', {
 
 
 		function buildLinks(linkg,net,me) {
+			net.condensed = net.condensed || false;
+
 			var linkSel = linkg.selectAll("path.link-reaction").data(net.links, linkid);
 			linkSel.exit().remove();
 			linkSel.enter().append("path")
@@ -449,6 +452,8 @@ Ext.define('App.usr.enum.Viewer', {
 		}
 
 		function buildNodes (nodeg,net,me) {
+			net.condensed = net.condensed || false;
+
 			var nodeSel = nodeg.selectAll("g.enum-node").data(net.nodes, nodeid);
 			nodeSel.exit().remove();
 			nodeSel.enter().append("g")
@@ -496,18 +501,22 @@ Ext.define('App.usr.enum.Viewer', {
 
 			// Add rectangle
 			nodeSel.append('rect')
-			.attr("width", radius)
-			.attr("height", radius)
+			.attr("width", function(d) {
+				return radius(d) * (net.condensed ? condenseScale : 1);
+			})
+			.attr("height", function(d) {
+				return radius(d) * (net.condensed ? condenseScale : 1);
+			})
 			.attr("rx", function(d) {
 				switch (d._type) {
-					case 'complex': return 10;
-					default: return d.size ? d.size + dr : dr + 1;
+					case 'complex': return cr;
+					default: return (d.size ? d.size + dr : dr + 1);
 				}
 			})
 			.attr("ry", function(d) {
 				switch (d._type) {
-					case 'complex': return 10;
-					default: return d.size ? d.size + dr : dr + 1;
+					case 'complex': return cr;
+					default: return (d.size ? d.size + dr : dr + 1);
 				}
 			});
 
@@ -650,14 +659,9 @@ Ext.define('App.usr.enum.Viewer', {
 				r.x = centroid[0];
 				r.y = centroid[1];
 
-				// r.width = x2 - x1;
-				// r.height = y2 - y1;
-
 				r.dagre = {
 					x: r.x,
 					y: r.y,
-					// width: r.width,
-					// height: r.height
 				};
 
 				r.edges = (r.edges || []);
@@ -694,20 +698,15 @@ Ext.define('App.usr.enum.Viewer', {
 					l.dagre = {
 						points: [{x: x, y: y}]
 					};
-					// l.dagre = {
-					// 	points: [{x: l.source.x, y: l.source.y},{x: x, y: y},{x: l.target.x, y:l.target.y}] //[{x: x, y: y}]
-					// };
-					// l.dagre = {
-					// 	points: [{x: l.source.x, y: l.source.y},{x: l.target.x, y:l.target.y}]
-					// };
-					reaction.edges.push(l);
+
 					complexMap[product].edges.push(l);
+					reaction.edges.push(l);
 					return l;
 				}))
 			}), /* true to flatten only one level */true);
 	
 			// build selection of (reaction) nodes
-			me.condensedNode = buildNodes(condensedNodeg,{nodes: me.condensedReactionData}, me);
+			me.condensedNode = buildNodes(condensedNodeg,{nodes: me.condensedReactionData, condensed: true}, me);
 			me.condensedNode.datum(function(d) { 
 				d.dagre.width = d.width;
 				d.dagre.height = d.height;
@@ -719,7 +718,7 @@ Ext.define('App.usr.enum.Viewer', {
 
 			// build selection of links
 			// TODO: indicate to buildLinks that these should be handled differently
-			me.condensedLink = buildLinks(condensedLinkg,{links: links},me)
+			me.condensedLink = buildLinks(condensedLinkg,{links: links, condensed: true},me)
 
 			// me.condensedLink.attr("d", function(l) { 
 			// 	return spline(l); 
@@ -859,22 +858,6 @@ Ext.define('App.usr.enum.Viewer', {
 			me.condensedNodeg.classed("enum-hidden",!show)
 		}
 
-		// me.showCondensed = function toggleCondensed(show) {
-		// 	if(show) return showCondensed()
-		// 	else return showFull();
-		// }
-
-		// // me.showCondensed = function toggleCondensed(show) {
-		// // 	if(show) return showCondensed()
-		// // 	else return hideCondensed();
-		// // }
-
-		// me.showFull = function toggleCondensed(show) {
-		// 	if(show) return showFull()
-		// 	else return hideFull();
-		// }
-
-
 		function selectNode(d) {
 			panel.selectAll(".enum-node.enum-selected").classed("enum-selected",false);
 			d3.select(this).classed("enum-selected",true);
@@ -906,13 +889,13 @@ Ext.define('App.usr.enum.Viewer', {
 		var me = this;
 		this.currentScale = scale;
 		this.callParent(arguments);
-		this.node.selectAll('text.node-label').style('font-size',this.fontSize/scale+'em');
-		this.node.selectAll('.complex > rect').style('stroke-width',this.linkWidth/scale);
-		this.node.selectAll('.reaction > rect').style('stroke-width',this.linkWidth/scale);
+		this.allNode.selectAll('text.node-label').style('font-size',this.fontSize/scale+'em');
+		this.allNode.selectAll('.complex > rect').style('stroke-width',this.linkWidth/scale);
+		this.allNode.selectAll('.reaction > rect').style('stroke-width',this.linkWidth/scale);
 		
-		this.link.style('stroke-width',this.linkWidth/scale);
-		this.link.selectAll('link-reaction-reactant, link-reaction-product').style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
-		this.link.classed("link-reaction-noarrow", scale < this.arrowThreshold)
+		this.allLink.style('stroke-width',this.linkWidth/scale);
+		this.allLink.selectAll('link-reaction-reactant, link-reaction-product').style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
+		this.allLink.classed("link-reaction-noarrow", scale < this.arrowThreshold)
 		// this.legendg.attr("transform","translate("+ [(-translate[0]),(-translate[1])] +") scale("+ Math.min(1/scale,10) +")");
 	},
 	viewDetails: function() {

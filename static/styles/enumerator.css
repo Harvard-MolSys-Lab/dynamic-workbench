@@ -33,6 +33,12 @@ svg {
 	fill: #a00;
 	stroke: #fff;
 }
+condensed-nodes .reaction-fast {
+	fill: #02d;
+}
+condensed-nodes .reaction-slow {
+	fill: #e00;
+}
 
 .enum-selected > text {
 	font-weight: bold;

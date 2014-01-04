@@ -304,7 +304,8 @@ exports.configure = function(app, express) {
 		});
 	});
 	app.post('/rename', restrict('json'), function(req, res) {
-		var node = req.param('id'), //
+		var node = req.param('node'), //
+		id = req.param('id'),
 		fullPath = utils.userFilePath(node), //
 		newName = sanitizeBaseName(req.param('text')), 
 		newPath;
@@ -346,7 +347,7 @@ exports.configure = function(app, express) {
 						fs.stat(newPath, function(err, stat) {
 							fileRecord(path.basename(newPath), path.relative(config.files.path,path.dirname(newPath)), null, function(err, outRec) {
 								if(outRec) {
-									outRec.id = node;
+									outRec.id = id;
 									res.send([outRec]);
 								} else {
 									res.send([]);

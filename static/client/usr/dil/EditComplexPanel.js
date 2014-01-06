@@ -38,7 +38,7 @@ Ext.define('App.usr.dil.EditComplexPanel', {
 					name: 'strandsField',
 					validator: Ext.bind(this.validateStrands, this),
 					minHeight: 20,
-					tooltip: "Enter the name(s) of your strand(s) order in which they should appear in the complex. Separate strand names with + signs." + 
+					tooltip: "Enter the name(s) of your strand(s) order in which they should appear in the complex. Separate strand names with + signs. " + 
 					"If you do not enter a strand\'s name here, it will not appear in the complex. Strand names can be used multiple times—this will "+
 					"create a complex with multiple copies of that strand. ",
 					// floating: true,
@@ -56,8 +56,10 @@ Ext.define('App.usr.dil.EditComplexPanel', {
 					fieldLabel: 'Structure',
 					xtype: 'textarea',
 					name: 'structureField',
+					afterLabelTextTpl: "<span style='float: right;'><span class='icon domain' style='margin-left: 2px'> </span><span class='icon dot-paren-icon'> </span></span>",
 					validator: Ext.bind(this.validateStructure, this),
-					tooltip: "Enter the structure for the complex in dot-parenthesis notation."
+					tooltip: "Enter the segment-wise structure for the complex in dot-parenthesis notation (e.g. each symbol should "+
+						"represent a single segment)."
 				}]
 			}],
 		});

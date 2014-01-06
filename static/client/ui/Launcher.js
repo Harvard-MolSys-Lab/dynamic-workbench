@@ -13,7 +13,7 @@ Ext.define('App.ui.Launcher', {
 	triggerDelimiter : ':',
 	_triggers : {},
 	_openTabs : {},
-	_unsavedChanges: [],
+	_unsavedChanges: {},
 	_lastAppId: 0,
 	constructor: function () {
 		window.onbeforeunload = Ext.bind(this.promptUnsaved,this);	
@@ -218,9 +218,10 @@ Ext.define('App.ui.Launcher', {
 		// }
 	},
 	promptUnsaved: function () {
+		// debugger;
 		if(_.keys(this._unsavedChanges).length > 0) {
 			return "You have unsaved changes: \n\n" + _.map(this._unsavedChanges, function(app,id) {
-				return app.title;
+				return Ext.util.Format.stripTags(app.title);
 			}).join("\n")+"\n\nYour changes will be lost if you reload without saving";
 		} else {
 			return;

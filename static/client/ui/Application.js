@@ -34,15 +34,17 @@ Ext.define('App.ui.Application', {
 	 */
 	savingMsg : 'Saving File...',
 
+	/**
+	 * @cfg
+	 * `true` to prompt the user if they try to close the page with unsaved changes in this application,
+	 * `false` otherwise; allows embedded applications not to trigger save warnings
+	 */
+	trackSaves: true,
 	unsaved: false,
-	getId: function () {
-		return this.id;
-	},
 	/**
 	 * @constructor
 	 */
 	constructor : function(config) {
-		this.id = App.ui.Launcher.getId();
 		this.bindDocument( config ? (config.document ? config.document : null) : null, true);
 		Ext.util.Observable.prototype.constructor.apply(this)
 		this.on('destroy', this.markSaved, this);
@@ -124,12 +126,12 @@ Ext.define('App.ui.Application', {
 	updateTitle : function() {
 		var title = this.editorType;
 		if(this.doc) {
-			title = this.doc.getBasename() + ' (' + title + ')' + (this.unsaved ? '*' : '');
+			title = this.doc.getBasename() + ' <span class="app-type">(' + title + ')</span>' + (this.unsaved ? '*' : '');
 		}
-		try {
+		if(this.rendered) 
 			this.setTitle(title);
-		} catch (e) {
-		}
+		else
+			this.title = title;
 	},
 	/**
 	 * Returns the path to the currently open doc
@@ -263,12 +265,14 @@ Ext.define('App.ui.Application', {
 
 	markUnsaved: function () {
 		this.unsaved = true;
-		App.ui.Launcher.markUnsaved(this);
+		if(this.trackSaves)
+			App.ui.Launcher.markUnsaved(this);
 		this.updateTitle();
 	},
 	markSaved: function () {
 		this.unsaved = false;
-		App.ui.Launcher.markSaved(this);
+		if(this.trackSaves)
+			App.ui.Launcher.markSaved(this);
 		this.updateTitle();
 	},
 });

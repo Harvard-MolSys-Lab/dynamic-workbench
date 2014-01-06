@@ -12,6 +12,10 @@
 .pre-release {
 	color: red;
 }
+.app-type {
+	font-weight: lighter;
+	opacity: 0.8;
+}
 .dashboard {
 	font-size: small;
 	font-family: ColaborateLightRegular, Helvetica Neue, Helvetica;

@@ -453,6 +453,7 @@ Ext.define('App.usr.dd.DD', {
 				showNupackButton : false,
 				showEditButton : false,
 				trackSaves: false,
+				preventUpdateTitle: true,
 				extraTbarItems : [{
 					text : 'Update',
 					iconCls : 'refresh',
@@ -493,6 +494,7 @@ Ext.define('App.usr.dd.DD', {
 				bodyBorder : true,
 				margin : 0, //'0 2 2 2',
 				trackSaves: false,
+				preventUpdateTitle: true,
 				listeners : {
 					'afterrender' : {
 						scope : this,

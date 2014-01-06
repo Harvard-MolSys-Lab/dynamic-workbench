@@ -40,6 +40,8 @@ Ext.define('App.ui.Application', {
 	 * `false` otherwise; allows embedded applications not to trigger save warnings
 	 */
 	trackSaves: true,
+	preventUpdateTitle: false,
+	disableFancyTitles: false,
 	unsaved: false,
 	/**
 	 * @constructor
@@ -128,7 +130,10 @@ Ext.define('App.ui.Application', {
 		if(this.doc) {
 			title = this.doc.getBasename() + ' <span class="app-type">(' + title + ')</span>' + (this.unsaved ? '*' : '');
 		}
-		if(this.rendered) 
+		if(this.disableFancyTitles) {
+			title = Ext.util.Format.stripTags(title);
+		}
+		if(this.rendered && !this.preventUpdateTitle) 
 			this.setTitle(title);
 		else
 			this.title = title;

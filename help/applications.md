@@ -7,23 +7,25 @@ Behavioral Design
 -	[Nodal Designer](nodal) - Use a graphical language to specify relations between behavioral nodes; automatically convert behaviors into implementation systems.
 	-	[Strand editor (DIL)](dil) - Graphical interface for viewing and editing a segment-level description of a nucleic acid system. Use to view the results of a nodal build, and to generate sequences with a sequence designer. 
 -	[Pepper Designer](pepper)
+	-	[Pepper intermediate language (PIL)](pil)
 -	CRN Designer (coming soon)
 
 Sequence Design
 ---------------
 
 -	[Web DD](web-dd) - A stochastic, domain-based sequence designer; can be used to design sequences for large systems very quickly by designing a set of noninteracting domains and then threading those domains together to form full strands.
--	NUPACK Thermodynamic sequence designer - Uses Caltech's NUPACK web server to perform multi-objective thermodynamic sequence design. Enter a design using the NUPACK multi-objective sequence design script, select relevant parameters, and click "Design"; the task will be submitted to the Caltech server, and a popup window will be opened taking you to the results page.
--	Multisubjective sequence designer (coming soon)
+-	[NUPACK](nupack) Thermodynamic sequence designer - Uses Caltech's NUPACK web server to perform multi-objective thermodynamic sequence design. Enter a design using the NUPACK multi-objective sequence design script, select relevant parameters, and click "Design"; the task will be submitted to the Caltech server, and a popup window will be opened taking you to the results page.
+-	[Multisubjective](multisubjective) sequence designer
 
 Simulation and Analysis
 -----------------------
 
 See [Simulation and Analysis](simulation-analysis)
 
--	NUPACK partition function calculation - Uses Caltech's NUPACK web server to compute the minimum free energy secondary structure of a strand or set of strands
--	Mfold partition function calculation and MFE structure determination - Uses the University of Albany's DINAMelt web server to compute the minimum free energy secondary structure and base pair probabilities.
--	Vienna RNAfold partition function calculation and MFE structure determination - Uses TBI Vienna's RNAfold Websuite to compute the minimum free energy secondary structure of single DNA or RNA strands.
+-	[Reaction Enumerator](enumerator) – Enumerates the possible reactions and intermediate complexes between a set of initial complexes, at domain resolution
+-	[NUPACK](nupack) partition function calculation - Uses Caltech's NUPACK web server to compute the minimum free energy secondary structure of a strand or set of strands
+-	[Mfold](mfold) partition function calculation and MFE structure determination - Uses the University of Albany's DINAMelt web server to compute the minimum free energy secondary structure and base pair probabilities.
+-	[TBI Vienna RNAfold](rnafold) partition function calculation and MFE structure determination - Uses TBI Vienna's RNAfold Websuite to compute the minimum free energy secondary structure of single DNA or RNA strands.
 
 Utilities
 ---------

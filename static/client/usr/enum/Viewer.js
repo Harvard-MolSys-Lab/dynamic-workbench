@@ -559,6 +559,8 @@ Ext.define('App.usr.enum.Viewer', {
 					return l.dagre.points[k]; 
 				})
 				.on("drag", dragLink));
+			linkSel.on('mouseenter', highlightLink)
+			.on('mouseleave', unhighlightLinks)
 		}
 
 		function addNodeInteractions (nodeSel) {
@@ -790,6 +792,16 @@ Ext.define('App.usr.enum.Viewer', {
 		/* -------------------------------------------------------------------
 		 * Interactivity
 		 */
+
+        function highlightLink(d) {
+        	d3.select(this).style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
+
+			// // Animate link drawing
+			// .style("stroke-dasharray", "0,1000000")
+			// 	.transition()
+			// 	.ease("cubic-in")
+			// 	.style("stroke-dasharray", function() { var l = 2*this.getTotalLength(); return l+','+l } );
+        }
 
 		function highlightLinks(d) {
 			// Generate color scale for incoming/outgoing links

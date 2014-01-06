@@ -39,14 +39,14 @@ Ext.define('App.usr.enum.RunButton', {
 				iconCls: 'crn',
 				scope: this,
 			},{
-				text: 'Legacy',
-				handler: this.makeEnumHandler('legacy'),
-				iconCls: 'gear',
-				scope: this,
-			},{
 				text: 'SBML',
 				handler: this.makeEnumHandler('sbml'),
 				iconCls: 'sbml',
+				scope: this,
+			},'-',{
+				text: 'Legacy',
+				handler: this.makeEnumHandler('legacy'),
+				iconCls: 'gear',
 				scope: this,
 			},{
 				text: 'Graph (EPS)',

@@ -11,6 +11,9 @@ svg {
 .link-reaction-noarrow {
 	marker-mid: none;
 }
+.condensed-links .link-reaction {
+	stroke: #888;
+}
 
 .link-reaction-blurred {
 	opacity: 0.3;
@@ -33,10 +36,10 @@ rect.reaction-slow, .reaction-slow > rect {
 	fill: #a00;
 	stroke: #fff;
 }
-condensed-nodes rect.reaction-fast {
+.condensed-nodes .reaction-fast > rect {
 	fill: #02d;
 }
-condensed-nodes rect.reaction-slow {
+.condensed-nodes .reaction-slow > rect {
 	fill: #e00;
 }
 

@@ -267,6 +267,9 @@
 .blue-document-pencil {
 	background-image: url(/images/icons/fugue/blue-document--pencil.png) !important;	
 }
+.gear {
+	background-image: url(/images/icons/fugue/gear.png) !important;	
+}
 /* Research */
 .thread-sequence, .thread-sequences {
 	background-image: url(/images/icons/fugue/pencil-field.png) !important;		

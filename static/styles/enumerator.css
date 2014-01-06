@@ -25,18 +25,18 @@ svg {
 .node-blurred {
 	opacity: 0.3;
 }
-.reaction-fast {
+rect.reaction-fast, .reaction-fast > rect {
 	fill: #01c;
 	stroke: #fff;
 }
-.reaction-slow {
+rect.reaction-slow, .reaction-slow > rect {
 	fill: #a00;
 	stroke: #fff;
 }
-condensed-nodes .reaction-fast {
+condensed-nodes rect.reaction-fast {
 	fill: #02d;
 }
-condensed-nodes .reaction-slow {
+condensed-nodes rect.reaction-slow {
 	fill: #e00;
 }
 
@@ -70,7 +70,7 @@ condensed-nodes .reaction-slow {
 	fill: #ffa;
 }
 .complex-initial > rect {
-	fill: #efb;
+	fill: #eff;
 }
 .resting-state > rect {
 /*	fill: yellow;

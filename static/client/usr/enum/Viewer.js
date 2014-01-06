@@ -55,11 +55,12 @@ Ext.define('App.usr.enum.Viewer', {
 			layout: 'fit',
 			width: 300, 
 			height: 200,
-			x: 100, 
+			x: 350, 
 			y: 100,
 			title: 'Legend',
 			constrain: true,
 			autoShow: true,
+			renderTo: this.getEl(),
 			// floating: true
 		});
 		Ext.apply(this,{
@@ -95,7 +96,7 @@ Ext.define('App.usr.enum.Viewer', {
 				},
 				scope: this,
 			}],
-			items: [this.legendWindow]
+			// items: [this.legendWindow]
 		})
 
 		this.callParent(arguments);
@@ -130,7 +131,10 @@ Ext.define('App.usr.enum.Viewer', {
 		
 	
 	},
-	
+	destroy: function () {
+		this.legendWindow.destroy();
+		this.callParent(arguments);
+	},
 
 	/**
 	 * Parses and collades the data from #data, sets various internal 
@@ -1144,7 +1148,7 @@ Ext.define('App.usr.enum.LegendPanel',{
 	pan: false, zoom: false,
 	buildVis: function() {
 		function buildLegend(legendg,me) {
-			var radius = 8,
+			var radius = 10,
 			legend = legendg.selectAll('g.legend').data([{
 				name : 'Resting Complex',
 				type : 'complex complex-resting'
@@ -1160,11 +1164,14 @@ Ext.define('App.usr.enum.LegendPanel',{
 			}, {
 				name : 'Initial Complex',
 				type : 'complex complex-initial'
-			}]).enter().append('g').attr('class', 'legend').attr('transform', function(d, i) {
-				return "translate(15," + (20 * i + 15) + ")"
+			}]).enter()
+			.append('g')
+			.attr('class',function(d) { return 'legend '+d.type })
+			.attr('transform', function(d, i) {
+				return "translate(15," + (2*(radius+2) * i + 15) + ")"
 			});
 
-			legend.append('circle').attr("class",function(d) { return d.type })
+			legend.append('rect').attr("width",radius).attr("height",radius)
 			// .attr('fill', function(d) {
 			// 	return fills[d.type]
 			// }).attr('stroke', function(d) {
@@ -1174,7 +1181,7 @@ Ext.define('App.usr.enum.LegendPanel',{
 			
 			legend.append('text').style('fill', '#111').text(function(d) {
 				return d.name
-			}).attr("dx", radius + 5).attr("dy", ".35em")
+			}).attr("dx", radius + 10).attr("dy", ".75em")
 
 			return legend;
 		}

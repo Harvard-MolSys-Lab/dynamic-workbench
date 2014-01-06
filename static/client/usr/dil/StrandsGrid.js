@@ -268,6 +268,7 @@ Ext.define('App.usr.dil.StrandsGrid',{
 				iconCls: 'export',
 				items: [this.exportView],
 				layout: 'fit', 
+				closeAction: 'hide',
 				border: false, bodyBorder: false,
 				width: 500,
 				height: 400,

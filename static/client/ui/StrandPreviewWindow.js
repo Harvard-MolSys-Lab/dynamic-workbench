@@ -12,6 +12,7 @@ Ext.define('App.ui.StrandPreviewWindow',{
 	bodyBorder: false,
 	border: false,
 	closeAction: 'hide',
+	maximizable: true,
 	initComponent: function() {
 		Ext.apply(this,{
 			layout: 'border',

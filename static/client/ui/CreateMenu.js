@@ -220,8 +220,8 @@ Ext.define('App.ui.CreateMenu', {
 				canActivate: false,
 				plain: true,
 			},{
-				text: 'Reaction Enumeration',
-				iconCls: 'document-enum',
+				text: 'Reaction Enumerator Script',
+				iconCls: 'enum-icon',
 				type: 'enum',
 			},{
 				text: 'SBML File',
@@ -231,7 +231,6 @@ Ext.define('App.ui.CreateMenu', {
 				text: 'Chemical Reaction Network',
 				iconCls: 'crn',
 				type: 'crn',
-				disabled: true,
 			},
 			'-',{
 				text: '<b>Writing</b>',

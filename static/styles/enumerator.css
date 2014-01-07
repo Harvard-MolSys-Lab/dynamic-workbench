@@ -11,6 +11,9 @@ svg {
 .link-reaction-noarrow {
 	marker-mid: none;
 }
+.condensed-links .link-reaction {
+	stroke: #888;
+}
 
 .link-reaction-blurred {
 	opacity: 0.3;
@@ -25,13 +28,19 @@ svg {
 .node-blurred {
 	opacity: 0.3;
 }
-.reaction-fast {
+rect.reaction-fast, .reaction-fast > rect {
 	fill: #01c;
 	stroke: #fff;
 }
-.reaction-slow {
+rect.reaction-slow, .reaction-slow > rect {
 	fill: #a00;
 	stroke: #fff;
+}
+.condensed-nodes .reaction-fast > rect {
+	fill: #02d;
+}
+.condensed-nodes .reaction-slow > rect {
+	fill: #e00;
 }
 
 .enum-selected > text {
@@ -43,21 +52,30 @@ svg {
 	stroke: red;
 }
 
-.complex {
+.enum-hull {
+	full: yellow;
+	stroke: gray;
+}
+
+.enum-hidden {
+	display: none
+}
+
+.complex > rect {
 	fill: white;
 	stroke: #888;
 	/*stroke-width: 1em;*/
 }
-.complex-transient {
+.complex-transient > rect {
 	stroke-dasharray:1.5em;
 }
-.complex-resting {
+.complex-resting > rect {
 	fill: #ffa;
 }
-.complex-initial {
-	fill: #efb;
+.complex-initial > rect {
+	fill: #eff;
 }
-.resting-state {
+.resting-state > rect {
 /*	fill: yellow;
 	stroke: #fff;
 */}

@@ -22,6 +22,9 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 	paddingWidth: 6,
 	paddingHeight: 14,
 
+	emptyText: '<div class="complexes-empty">No complexes to display</div>',
+	deferEmptyText: false,
+
 	/**
 	 * @cfg nodeFillMode
 	 * One of `identity`, `segment`, or `domain`
@@ -221,15 +224,7 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 			}
 		}
 
-		if(nodes.length > 0) {
-			// Configure chart prototype
-			var chart = me.getChart();
-
-			// Build selection and chart
-			var nodeData = d3.selectAll(nodes).data(data).append('svg');
-			this.preview = chart(nodeData);
-
-		}
+		this.runChart(nodes,data)
 	},
 	/**
 	 * Adds the passed complexes to the view. Called by the underlying view on the #itemadd event
@@ -249,14 +244,20 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 			data.push(me.getComplexData(rec, segmentMap));
 		}
 
+		this.runChart(nodes, data)
+	},
+	runChart: function(nodes, data) {
 		if(nodes.length > 0) {
 			// Configure chart prototype
-			var chart = me.getChart();
+			var chart = this.getChart();
 
 			// Build selection and chart
 			var nodeData = d3.selectAll(nodes).data(data).append('svg');
-			this.preview = chart(nodeData);
-
+			try {
+				this.preview = chart(nodeData);
+			} catch(e) {
+				console.log("Error rendering strand preview. Error details:",e);
+			}
 		}
 	},
 	/**
@@ -275,8 +276,10 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 		var chart = me.getChart();
 
 		var nodeData = d3.select(node).data(data).append('svg');
-		chart(nodeData);
-		this.preview.expandSelection(nodeData);
+		try {
+			chart(nodeData);
+			this.preview.expandSelection(nodeData);
+		} catch(e) {}
 
 	},
 	removeComplex: function(record, index) {

@@ -25,7 +25,15 @@ Ext.define('App.ui.CodeMirror', {
 		 * Fires when the cursor changes position
 		 * @param {App.ui.CodeMirror} panel This class
 		 * @param {CodeMirror} editor The codemirror instance
-		 */'cursorchange');
+		 */
+		'cursorchange',
+
+		/**
+		 * @event
+		 * Fires when the contents of the editor changes
+		 */
+		'change'
+		);
 	},
 	/**
     * @cfg {String} mode The default mode to use when the editor is initialized. When not given, this will default to the first mode that was loaded. 
@@ -151,6 +159,7 @@ Ext.define('App.ui.CodeMirror', {
 				onCursorActivity : 	Ext.bind(this.onCursorActivity, this),
 				onBlur:				Ext.bind(this.onBlur,this),
 				onFocus:			Ext.bind(this.onFocus,this),
+				onChange:			Ext.bind(this.onChange,this)
 			},this));
 			this.codemirror.setValue(this.value || '');
 			
@@ -165,16 +174,19 @@ Ext.define('App.ui.CodeMirror', {
 		}
 	},
 	onBlur: function() {
-		this.fireEvent('blur', this, this.editor);
+		this.fireEvent('blur', this, this.codemirror);
 	},
 	onFocus: function() {
-		this.fireEvent('focus', this, this.editor);
+		this.fireEvent('focus', this, this.codemirror);
+	},
+	onChange: function(cm, changes) {
+		this.fireEvent('change', this, changes, this.codemirror);
 	},
 	/**
 	 * Fires the {@link #cursorchange} event
 	 */
 	onCursorActivity : function() {
-		this.fireEvent('cursorchange', this, this.editor);
+		this.fireEvent('cursorchange', this, this.codemirror);
 	},
 	/**
 	 * Returns the value of the CodeMirror instance

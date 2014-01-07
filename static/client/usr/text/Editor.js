@@ -38,6 +38,14 @@ Ext.define('App.usr.text.Editor', {
 		this.callParent(arguments);
 		this.editor = this.down('.codemirror');
 		this.on('afterrender',this.loadFile,this);
+
+		// Mark unsaved state when the editor changes
+		this.editor.on('change',function (ed, changes, cm) {
+			var hs = cm.historySize();
+			if(hs.undo > 0) {
+				this.markUnsaved();
+			}
+		},this,{ buffer: 1000 })
 	},
 	onLoad: function() {
 		this.editor.setValue(this.data);

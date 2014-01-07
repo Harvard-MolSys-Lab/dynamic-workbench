@@ -1,0 +1,214 @@
+<h1 id="installation">Installation</h1>
+<p>These instructions assume you're hosting your own server. If you're using a hosted installation, you don't need to do anything to install! If you're confused, see the <a href="server">server</a> page.</p>
+<h2 id="mac-os-x">Mac OS X</h2>
+<p>You should have recieved a Disk image (<code>.dmg</code> file) containing a few different items. If you follow the graphical instructions in the disk image, you'll be good. Here are the steps explicitly:</p>
+<ul>
+<li>Mount the disk image by double-clicking it in Finder</li>
+<li><a href="http://www.virtualbox.org/wiki/Downloads">Download</a> and install VirtualBox</li>
+<li>Install the DyNAMiC Workbench Server Virtual Machine:
+<ul>
+<li>Launch VirtualBox</li>
+<li>From VirtualBox, select &quot;File&quot;, &quot;Import Appliance...&quot;</li>
+<li>Browse to the mounted disk image</li>
+<li>Select the file <code>DyNAMiC Workbench Server (0.3.0).ova</code></li>
+<li>Accept the license terms</li>
+</ul></li>
+<li>Install the helper Applications
+<ul>
+<li>Drag and Drop the applications named &quot;Workbench Server&quot; (green icon) and &quot;DyNAMiC Workbench&quot; (red icon) to your &quot;Applications&quot; folder
+<ul>
+<li>&quot;DyNAMiC Workbench&quot; is a browser which you can use specifically for Workbench</li>
+<li>&quot;Workbench Server&quot; is an application that helps you start and stop the server</li>
+</ul></li>
+</ul></li>
+<li>Configure the shared folders
+<ul>
+<li>Launch the &quot;Workbench Server&quot; application from your Applications folder</li>
+<li>In the Workbench Server application, from the &quot;Configure&quot; menu, select &quot;Virtual Machine Shared Folder...&quot;</li>
+<li>Navigate to or create a folder on your machine where you would like the Workbench IDE to store your files.</li>
+</ul></li>
+</ul>
+<p>Great! Now follow the instructions below under &quot;Starting Workbench&quot; to get the Workbench server running.</p>
+<h2 id="windows">Windows</h2>
+<p>You should have recieved a <code>.zip</code> file containing a few items. Follow these steps</p>
+<ul>
+<li>Unzip the downloaded file.</li>
+<li><a href="http://www.virtualbox.org/wiki/Downloads">Download</a> and install VirtualBox</li>
+<li>Launch Virtual Box</li>
+<li>Select &quot;File&quot; &gt; &quot;Import Appliance...&quot;, click &quot;Choose&quot;, and navigate to the folder where you extracted the <code>.zip</code> file. Select &quot;workbench.ova.&quot;</li>
+<li>Accept the license terms.</li>
+<li>Configure the shared folders
+<ul>
+<li>From VirtualBox, select the newly imported VM, and click &quot;Settings.&quot;</li>
+<li>From the window which opens, select &quot;Shared Folders.&quot;</li>
+<li>In the list, you should see one shared folder labeled &quot;fileshare&quot;.
+<ul>
+<li>If you do not see this file, click the plus button to the right of the list. From the &quot;Folder Path dropdown, navigate to or create a folder on your machine where you would like the Workbench IDE to store your files. <strong>Regardless of the file you choose, enter &quot;fileshare&quot; under Folder Name, and make sure to check &quot;Auto-mount&quot;.</strong>'</li>
+<li>If you do see this file, click the middle button (yellow circle: edit). From the &quot;Folder Path dropdown, navigate to or create a folder on your machine where you would like the Workbench IDE to store your files. Do not change the Folder Name. Make sure &quot;Auto-mount&quot; is checked.</li>
+<li>Once you've created/setup this folder, but before you launch the virtual machine, create another directory within this folder called &quot;files&quot; (lowercase, no quotes); you can do this using Windows Explorer. You will not be able to create or upload files otherwise. <em>Do this before you create an account, as described below</em>.</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="linux">Linux</h2>
+<ul>
+<li>Install VirtualBox</li>
+<li>Configure shared folders</li>
+<li>Start the server</li>
+</ul>
+<h2 id="starting-workbench-and-initial-configuration">Starting Workbench and initial configuration</h2>
+<ol style="list-style-type: decimal">
+<li>Start the <a href="server">Workbench Server</a>: <strong>Note:</strong> if you're using a hosted server, you can skip this step.
+<ul>
+<li>On Mac OS X:
+<ol style="list-style-type: decimal">
+<li>Launch the 'Workbench Server' application from your Applications folder</li>
+<li>Click 'Start' from the server control window. You will see a VirtualBox window open; wait until you are prompted to log in. Once you see the prompt, your server is running! (you don't need to actually log in here)</li>
+</ol></li>
+<li>On Linux:
+<ol style="list-style-type: decimal">
+<li>Open the &quot;VirtualBox&quot; application. Launch the 'DyNAMiC Workbench Server (0.3.0)' Virtual Machine from the VirtualBox manager. Alternatively, enter: <code>VBoxManage startvm 'DyNAMiC Workbench Server (0.3.0)</code> on the command line.</li>
+<li>You will see a VirtualBox window open; wait until you are prompted to log in. Once you see the prompt, your server is running! (you don't need to actually log in)Congratulations, your server is running!</li>
+</ol></li>
+<li>On Windows:
+<ol style="list-style-type: decimal">
+<li>Open the &quot;VirtualBox&quot; application. Launch the 'DyNAMiC Workbench Server (0.3.0)' Virtual Machine from the VirtualBox manager.</li>
+<li>You will see a VirtualBox window open; wait until you are prompted to log in. Once you see the prompt, your server is running! (you don't need to actually log in here) Congratulations, your server is running!</li>
+</ol></li>
+</ul></li>
+<li>Open the Workbench Client in a web browser; either:
+<ul>
+<li>Click &quot;Launch in Browser&quot; from the 'Workbench Server' Application (Mac OS X only), or</li>
+<li>Launch the 'DyNAMiC Workbench' application from your Applications folder (Mac OS X only), or</li>
+<li>Open a web browser and navigate to <a href="http://192.168.56.10:3000">http://192.168.56.10:3000</a>.</li>
+</ul></li>
+<li>Create a <a href="users">user account</a>; from the login screen:
+<ol style="list-style-type: decimal">
+<li>Click the link titled &quot;Don't have an account?&quot;</li>
+<li>Enter your name, email, and password, as well as the invite code provided with this distribution.</li>
+<li><p>Click &quot;Sign Up&quot;</p>
+<p><strong>Note:</strong> If you're hosting your own Workbench server, your account is only created on your local machine, and your name/email/password/files will not be shared with anyone.</p></li>
+</ol></li>
+</ol>
+<p>Congratulations! You're all set up; now let's do some fun stuff with DNA.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="mac-os-x-1">Mac OS X</h3>
+<h4 id="cannot-create-files-in-workbench">Cannot create files in Workbench</h4>
+<p>Make sure you followed the last part of the installation instructions and created a folder called &quot;files&quot; within your shared folder. You can do this in Mac OS X using Finder. If you already created you account, but did not follow this step, you should also create a directory within &quot;files&quot; corresponding to the email address you used to sign up (e.g. if you signed up with &quot;demo.user@wyss.harvard&quot;, you should create a file with that name). This must be done while the Workbench virtual machine is not running.</p>
+<h4 id="nonexistent-host-networking-interface-name-vboxnet0-verr_internal_error">Nonexistent host networking interface, name 'vboxnet0' (VERR_INTERNAL_ERROR)</h4>
+<p>A &quot;host-only adaptor&quot; is a utility which VirtualBox uses to create a network that exists only between your &quot;host&quot; operating system and the DyNAMiC Workbench Server virtual machine. This is necessary to do things like connect to the Workbench interface via the web. To fix:</p>
+<ol style="list-style-type: decimal">
+<li>Shut down the Workbench virtual machine</li>
+<li>Launch VirtualBox from Applications &gt; VirtualBox</li>
+<li>Select &quot;Preferences...&quot; from the &quot;VirtualBox&quot; menu</li>
+<li>Select the &quot;Network&quot; tab</li>
+<li>In the box under &quot;Host-only Networks,&quot; look for &quot;vboxnet0&quot;. If it's there already, proceed to the next step. If it doesn't appear, click the plus icon next to that box; &quot;vboxnet0&quot; should appear.</li>
+<li>Click OK</li>
+<li>From the main VirtualBox window, select the DyNAMiC Workbench Server virtual machine, then click &quot;Settings&quot; from the toolbar.</li>
+<li>Click &quot;Network&quot;</li>
+<li>Select &quot;Adapter 2&quot;. Make sure &quot;Enable Network Adapter&quot; is checked. Under the drop-down labeled &quot;Attached to&quot;, select &quot;Host-only Adapter.&quot; In the &quot;Name&quot; field, enter or select &quot;vboxnet0&quot; (no quotes).</li>
+<li>Click OK</li>
+<li>Restart the VM</li>
+</ol>
+<h4 id="failed-to-load-vmmr0.r0-verr_suplib_owner_not_root">Failed to load VMMR0.r0 (VERR_SUPLIB_OWNER_NOT_ROOT)</h4>
+<p>This message usually means that <code>/Applications</code> directory is not owned by the superuser <code>root</code> but, rather, by a user account (<i>e.g.</i>, your own). To resolve this problem:</p>
+<ol style="list-style-type: decimal">
+<li>Launch <strong>Applications &gt; Utilities &gt; Terminal</strong>, which will provide a command line.</li>
+<li><p>Type sudo chown root /Applications</p>
+<p>followed by Enter, inputting your password if prompted.</p></li>
+<li>Quit Terminal.</li>
+<li><p>Restart the server using the green Workbench Server application.</p></li>
+</ol>
+<p>Source: <a href="http://forums.virtualbox.org/viewtopic.php?f=7&amp;t=38825">1</a></p>
+<h4 id="failed-to-load-vmmr0.r0-verr_suplib_world_writable">Failed to load VMMR0.r0 (VERR_SUPLIB_WORLD_WRITABLE)</h4>
+<p>This message usually means that that <code>/Applications</code> directory is world-writable for some reason. This is a security risk. To resolve this problem:</p>
+<ol style="list-style-type: decimal">
+<li>Launch <strong>Applications &gt; Utilities &gt; Terminal</strong>, which will provide a command-line.</li>
+<li><p>Type sudo chmod o-w /Applications</p>
+<p>followed by Enter, inputting your password if prompted.</p></li>
+<li>Quit Terminal.</li>
+<li><p>Restart the server using the green Workbench Server application.</p></li>
+</ol>
+<p>Source: <a href="http://forums.virtualbox.org/viewtopic.php?f=7&amp;t=39179">2</a></p>
+<h3 id="windows-1">Windows</h3>
+<h4 id="cannot-create-files-in-workbench-1">Cannot create files in Workbench</h4>
+<p>Make sure you followed the last part of the installation instructions and created a folder called &quot;files&quot; within your shared folder. You can do this in Windows using Windows Explorer. If you already created you account, but did not follow this step, you should also create a directory within &quot;files&quot; corresponding to the email address you used to sign up (e.g. if you signed up with &quot;demo.user@wyss.harvard&quot;, you should create a file with that name). This must be done while the Workbench virtual machine is not running.</p>
+<h4 id="nonexistent-host-networking-interface-name-verr_internal_error">Nonexistent host networking interface, name '' (VERR_INTERNAL_ERROR)</h4>
+<p>For some reason, VirtualBox doesn't always come with a &quot;host-only adapter&quot; configured. A &quot;host-only adaptor&quot; is a utility which VirtualBox uses to create a network that exists only between your &quot;host&quot; operating system and the DyNAMiC Workbench Server virtual machine. This is necessary to do things like connect to the Workbench interface via the web. To fix:</p>
+<ol style="list-style-type: decimal">
+<li>Launch VirtualBox. (If VirtualBox is already running, shut down any virtual machines that are running, as by clicking the red circle in the top-left corner of each's window.)</li>
+<li>Select <strong>Preferences...</strong> under VirtualBox's <strong>File</strong> menu.</li>
+<li>Click <strong>Network</strong>.</li>
+<li>If <strong>VirtualBox Host-Only Ethernet Adapter</strong> does not already appear in the white box under <strong>Host-only Networks</strong>, click the plus icon to the right of that box, and <strong>VirtualBox Host-Only Ethernet Adapter</strong> should then appear in the box.</li>
+<li>Click <strong>OK</strong>.</li>
+<li>Single-click whichever virtual machine originally triggered the error (<i>e.g.</i>, the DyNAMiC Workbench Server), then click <strong>Settings</strong>.</li>
+<li>Click <strong>Network</strong>.</li>
+<li>Click each of <strong>Adapter 1</strong>, <strong>Adapter 2</strong>, <strong>Adapter 3</strong>, and <strong>Adapter 4</strong>. If any of them has both <strong>Enable Network Adapter</strong> checked and a value of <strong>Host-only Adapter</strong> for <strong>Attached to</strong> (as should the DyNAMiC Workbench Server for <strong>Adapter 2</strong>), ensure that the adapter also has a value of <strong>VirtualBox Host-Only Ethernet Adapter</strong> now for <strong>Name</strong>, selecting it yourself from the drop-down menu next to <strong>Name</strong> yourself if necessary.</li>
+<li>Click <strong>OK</strong>.</li>
+<li>Start whichever virtual machine originally triggered the problem (<i>e.g.</i>, the DyNAMiC Workbench Server); it should now be gone.</li>
+</ol>
+<p>Source: <a href="https://manual.cs50.net/VirtualBox">5</a></p>
+<h4 id="the-installer-has-encountered-an-unexpected-error-installing-this-package.-this-may-indicate-a-problem-with-this-package.-the-error-code-is-2869.">The installer has encountered an unexpected error installing this package.  This may indicate a problem with this package.  The error code is 2869.</h4>
+<p>This problem generally indicates that VirtualBox's installer wasn't run as an &quot;administrator.&quot; To resolve this problem:</p>
+<ol style="list-style-type: decimal">
+<li>Hit Windows-<strong>R</strong> on your keyboard (<i>i.e.</i>, hold the Windows key, then hit <strong>R</strong>) to open a <strong>Run</strong> prompt.</li>
+<li>Input <strong>ncpa.cpl</strong> to the right of <strong>Open</strong>, then hit Enter.</li>
+<li>A window entitled <strong>Network Connections</strong> should then appear, containing an icon called <strong>Wireless Network Connection</strong> and/or <strong>Local Area Connection</strong> (or similar).
+<ul>
+<li>If using <u>wireless</u> Internet, right-click <strong>Wireless Network Connection</strong> (or similar), then choose <strong>Properties</strong> from the menu that appears. A window entitled <strong>Wireless Network Connection Properties</strong> (or similar) should then appear.</li>
+<li>If using <u>wired</u> Internet, right-click <strong>Local Area Connection</strong> (or similar), then choose <strong>Properties</strong> from the menu that appears. A window entitled <strong>Local Area Connection Properties</strong> (or similar) should then appear.</li>
+</ul></li>
+<li>Inside of that window should be a list of items, some (or all) of which are checked. If <strong>VirtualBox Bridged Networking Driver</strong> appears in the list, single-click it to highlight it, then click <strong>Uninstall</strong>.</li>
+<li>If prompted if you are <strong>sure you want to uninstall</strong>, click <strong>Yes</strong>.</li>
+<li>Click <strong>Close</strong>.</li>
+<li>Proceed to reinstall VirtualBox per <a href="#Windows" title="wikilink">the directions above</a>. <strong>Be sure to run the installer as an administrator.</strong></li>
+</ol>
+<p>Source: <a href="https://manual.cs50.net/VirtualBox">6</a></p>
+<h4 id="vt-xamd-v-hardware-acceleration-has-been-enabled-but-is-not-operational.">VT-x/AMD-V hardware acceleration has been enabled, but is not operational.</h4>
+<p>&quot;Your 64-bit guest will fail to detect a 64-bit CPU and will not be able to boot. Please ensure that you have enabled VT-x/AMD-V properly in the BIOS of your host computer.&quot;</p>
+<p>Hardware virtualization is a feature on most modern processors which allows guest operating systems to directly utilize the processor on the host machine in a secure fashion. Additional information for the curious is <a href="https://www.virtualbox.org/manual/ch10.html#hwvirt">here</a> To enable hardware virtualization on your system, you need to configure it through the BIOS. The exact method of doing this depends on the manufacturer of your computer, but sample instructions are below:</p>
+<ul>
+<li>Dell systems
+<ul>
+<li>Depress the F12 key when boot menu text appears at startup</li>
+<li>Select BIOS setup and depress the Enter key</li>
+<li>Using the mouse, expand the Virtualization Support menu item by clicking on the plus to the left of Virtualization Support and select Virtualization</li>
+<li>Check the Enable Intel Virtualization Technology checkbox</li>
+<li>Click Apply</li>
+<li>Click Exit</li>
+<li>Fully shut down (power off), wait a few seconds, and restart your computer</li>
+</ul></li>
+<li>HP systems
+<ul>
+<li>Depress Esc key when prompted at startup</li>
+<li>Depress the F10 key to Configure BIOS</li>
+<li>Scroll to System Configuration using the arrow keys</li>
+<li>Select Virtualization Technology and depress the Enter key</li>
+<li>Select Enabled and depress the Enter key</li>
+<li>Depress the F10 key to save and exit</li>
+<li>Select Yes and depress the Enter key</li>
+<li>Fully shut down (power off), wait a few seconds, and restart your computer</li>
+</ul></li>
+<li>Lenovo ThinkPad systems
+<ul>
+<li>Depress the blue ThinkVantage key when prompted at startup</li>
+<li>Depress the F1 key to enter the BIOS setup utility</li>
+<li>Using the arrow keys, scroll to Config and depress the Enter key</li>
+<li>Scroll to CPU and depress the Enter key</li>
+<li>Scroll to Intel® Virtualization Technology and depress the Enter key</li>
+<li>Select Enabled and depress the Enter key</li>
+<li>Depress Enter key to continue</li>
+<li>Depress F10 key to save and exit</li>
+<li>Select Yes and depress the Enter key</li>
+<li>Fully shut down (power off), wait a few seconds, and restart your computer</li>
+</ul></li>
+<li>Acer, Asus, and Samsung machine should already be configured properly</li>
+<li>Panasonic
+<ul>
+<li>Depress the F2 key when boot menu text appears at startup</li>
+<li>Select &quot;Advanced&quot; menu in Setup Utility</li>
+<li>Change &quot;Intel® Virtualization Technology&quot; setting from &quot;Disable&quot; to &quot;Enable&quot;</li>
+<li>Depress F10 to exit Setup Utility</li>
+<li>Select &quot;Yes&quot; in confirmation menu</li>
+<li>Depress Enter to exit confirmation menu.</li>
+</ul></li>
+</ul>

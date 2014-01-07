@@ -38,25 +38,28 @@ Ext.define('App.usr.dil.EditComplexPanel', {
 					name: 'strandsField',
 					validator: Ext.bind(this.validateStrands, this),
 					minHeight: 20,
-					tooltip: "Enter the name(s) of your strand(s) order in which they should appear in the complex. Separate strand names with + signs." + 
+					tooltip: "Enter the name(s) of your strand(s) order in which they should appear in the complex. Separate strand names with + signs. " + 
 					"If you do not enter a strand\'s name here, it will not appear in the complex. Strand names can be used multiple times—this will "+
 					"create a complex with multiple copies of that strand. ",
 					// floating: true,
 					// autoRender: true,
-				},
-				 {
+				}, {
 					fieldLabel: 'Strand Order',
 					xtype: 'displayfield',
 					name: 'segmentsField',
-					cls: 'strand-glyph-well',
+					fieldCls: Ext.baseCSSPrefix + 'form-display-field' + ' strand-glyph-well',
+					// 'baseBodyCls': 'strand-glyph-well',
 					minHeight: 20,
-					tooltip: "Click to edit the order in which strands will appear in the complex. If you do not enter a strand\'s name here, it will not appear in the complex."
+					tooltip: "Click to edit the order in which strands will appear in the complex. Separate strand names with + signs." + 
+					"If you do not enter a strand\'s name here, it will not appear in the complex."
 				}, {
 					fieldLabel: 'Structure',
 					xtype: 'textarea',
 					name: 'structureField',
+					afterLabelTextTpl: "<span style='float: right;'><span class='icon domain' style='margin-left: 2px'> </span><span class='icon dot-paren-icon'> </span></span>",
 					validator: Ext.bind(this.validateStructure, this),
-					tooltip: "Enter the structure for the complex in dot-parenthesis notation."
+					tooltip: "Enter the segment-wise structure for the complex in dot-parenthesis notation (e.g. each symbol should "+
+						"represent a single segment)."
 				}]
 			}],
 		});
@@ -100,6 +103,8 @@ Ext.define('App.usr.dil.EditComplexPanel', {
 		},this,{buffer: 100});
 
 		this.mixins.tip.init.call(this,[]);
+
+		this.strandManager.strandStore.on('update',this.updateSegmentsView, this);
 	},
 
 	/**

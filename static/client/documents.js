@@ -24,7 +24,13 @@ Ext.define('App.Document', {
 		name : 'preventRename',
 		type : 'bool',
 		defaultValue : false,
-	}],
+	}, 
+	// {
+	// 	name: 'iconCls',
+	// 	type: 'string',
+	// 	defaultValue: 'document-error',
+	// }
+	],
 	isLeaf: true,
 	iconCls: 'document-error',
 	/**
@@ -195,7 +201,7 @@ Ext.define('App.DocumentTreeStore', {
 					'exception': function(proxy,response,operation) {
 						_.each(operation.getRecords(),function(rec) {
 							rec.set('iconCls','document-error');
-							rec.set('isLeaf','false');
+							rec.set('leaf',true);
 						});
 					}
 				},

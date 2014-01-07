@@ -21,9 +21,9 @@ Ext.define('App.usr.dil.DilEditor', {
 
 		this.callParent(arguments);
 	},
-	title: 'Strand Editor',
+	title: 'DIL Editor',
 	iconCls: 'domains',
-	editorType: 'System',
+	editorType: 'DIL',
 	initComponent: function() {
 		/**
 		 * Stores segments in the system

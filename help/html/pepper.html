@@ -7,104 +7,108 @@
 <p>A component file (name.comp) contains the specification for a single component in a DNA system (like an AND gate or a threshold, etc.). It specifies the secondary structure, kinetic and sequence constraints for that component. System files are used to connect together components.</p>
 <p>The component syntax is based on Joe Zadeh's design specification syntax.</p>
 <h4 id="comments">Comments</h4>
-<p>The pound sign (#) denotes that the rest of the line is a comment (python/sh style comments):</p>
-<p><code>   # This is a comment</code></p>
+<p>The pound sign (<code>#</code>) denotes that the rest of the line is a comment (python/sh style comments):</p>
+<pre><code># This is a comment</code></pre>
 <p>Comments may appear on their own lines or after a command, like so:</p>
-<p><code>   declare component And22: x + y -&gt; s + c  # This is the function declaration</code></p>
+<pre><code>declare component And22: x + y -&gt; s + c  # This is the function declaration</code></pre>
 <h4 id="component-declaration">Component Declaration</h4>
 <p>In the spirit of Matlab's first line declarations, each component needs to have a declaration statement at the first line of code. Syntax:</p>
-<p><code>      declare component </code><name><code>: </code><inputs><code> -&gt; </code><outputs></p>
+<pre><code>declare component &lt;name&gt; : &lt;inputs&gt; -&gt; &lt;outputs&gt;</code></pre>
 <p>For example:</p>
-<p><code>   declare component And22: x + y  -&gt;  s + c</code></p>
-<p>The <inputs> and <outputs> are '+' separated lists of sequences that will be defined and used below in the specification. These sequences will be constrained on the system level and so usually represent the recognition regions of the inputs and outputs. Waste byproduct will generally not be represented here, because it will not be constrained on the system level.</p>
-<p><name> should be the same as the base name of the component file (i.e. this file should be HalfAdder.comp).</p>
+<pre><code>declare component And22: x + y  -&gt;  s + c</code></pre>
+<p>The <code>&lt;inputs&gt;</code> and <code>&lt;outputs&gt;</code> are <code>+</code> separated lists of sequences that will be defined and used below in the specification. These sequences will be constrained on the system level and so usually represent the recognition regions of the inputs and outputs. Waste byproduct will generally not be represented here, because it will not be constrained on the system level.</p>
+<p><code>&lt;name&gt;</code> should be the same as the base name of the component file (i.e. this file should be HalfAdder.comp).</p>
 <h4 id="sequences">Sequences</h4>
 <p>In order to constrain some regions/subdomains of some strands to be complementary to regions on other strands we define sequence regions:</p>
-<p><code>   sequence </code><name><code> = </code><constraints><code> : </code><length></p>
+<pre><code>sequence &lt;name&gt; = &lt;constraints&gt; : &lt;length&gt;</code></pre>
 <p>For example:</p>
-<p><code>   sequence x = &quot;6N S 13N S&quot; : 21</code></p>
-<p>''The total length constraint is optional; if you don't want it, omit it and the colon.</p>
+<pre><code>sequence x = &quot;6N S 13N S&quot; : 21</code></pre>
+<p>The total length constraint is optional; if you don't want it, omit it and the colon.</p>
 <p>We include the (redundant) length input for quick error checking as complex constraints can be easily misnumbered. In addition one wildcard (?) may be used instead of a number, to imply (make this as large as possible to fit the specified total length. For example:</p>
-<p><code>   sequence dx = &quot;S ?N S&quot; : 15</code></p>
+<pre><code>sequence dx = &quot;S ?N S&quot; : 15</code></pre>
 <p>is the same as:</p>
-<p><code>   sequence dx = &quot;S 13N S&quot; : 15</code></p>
+<pre><code>sequence dx = &quot;S 13N S&quot; : 15</code></pre>
 <p>Sequence region definitions may include previously defined regions, for example:</p>
-<p><code>   # The toehold, clamp and data region of the carry-bit output</code></p>
-<p><code>   sequence tc =  &quot;6N&quot; :  6</code></p>
-<p><code>   sequence cc =  &quot;1S&quot; :  1</code></p>
-<p><code>   sequence dc = &quot;29N&quot; : 29</code></p>
-<p><code>   # We combine them into a single label</code></p>
-<p><code>   sequence  c = tc1 cc1 dc1 : 36</code></p>
+<pre><code># The toehold, clamp and data region of the carry-bit output
+sequence tc =  &quot;6N&quot; :  6
+sequence cc =  &quot;1S&quot; :  1
+sequence dc = &quot;29N&quot; : 29
+# We combine them into a single label
+sequence  c = tc1 cc1 dc1 : 36</code></pre>
 <p>So now, for example:</p>
-<p><code>   c* = dc* cc* tc*</code></p>
+<pre><code>c* = dc* cc* tc*</code></pre>
 <p>We use quotes for nucleotide constraints so that we can distinguish them from other sequence names and group them (each pair of quotes denotes one domain).</p>
 <h4 id="strands">Strands</h4>
 <p>Strands represent individual strand of DNA in the system. The syntax is:</p>
-<p><code>   strand </code><name><code> = </code><list of sequences and explicit constraints><code> : </code><length></p>
+<pre><code>strand &lt;name&gt; = &lt;list of sequences and explicit constraints&gt; : &lt;length&gt;</code></pre>
 <p>For example:</p>
-<p><code>   strand C = &quot;?N&quot; c : 44</code></p>
-<p>The &quot;?N&quot; is an explicit constraint. First of all, it uses the wildcard, so it fills the remaining space on the left. Furthermore, since it is never declared as a sequence it will be constrained only by what it is forced to bind to. The idea is that you have a data region of the strand and some other regions that you're required to have, but don't want to name.</p>
+<pre><code>strand C = &quot;?N&quot; c : 44</code></pre>
+<p>The <code>&quot;?N&quot;</code> is an explicit constraint. First of all, it uses the wildcard, so it fills the remaining space on the left. Furthermore, since it is never declared as a sequence it will be constrained only by what it is forced to bind to. The idea is that you have a data region of the strand and some other regions that you're required to have, but don't want to name.</p>
 <h4 id="structures">Structures</h4>
 <p>Now we glue the strands together to make multi-stranded (or single-stranded) structures:</p>
-<p><code>   structure </code><name><code> = </code><list of strands><code> : </code><secondary structure></p>
+<pre><code>structure &lt;name&gt; = &lt;list of strands&gt; : &lt;secondary structure&gt;</code></pre>
 <p>So continuing the above example:</p>
-<p><code>   structure Gate = X + C + S + Y : U6 H15(+ H15(U29 + U14 H15(+)))</code></p>
+<pre><code>structure Gate = X + C + S + Y : U6 H15(+ H15(U29 + U14 H15(+)))</code></pre>
 <p>using [Joe Zadeh's (H)elix (U)npaired notation](Joe Zadeh's (H)elix (U)npaired notation &quot;wikilink&quot;) or, say</p>
-<p><code>   structure Gate = X + C + S + Y : 6. 15( + 15( 29. + 14. 15( + 45)</code></p>
+<pre><code>structure Gate = X + C + S + Y : 6. 15( + 15( 29. + 14. 15( + 45)</code></pre>
 <p>in a sort of shorthand dot-paren notation (where each number is a multiplier on the symbol following it).</p>
 <p>By default it is assumed that you want to optimize the thermodynamics of the structure to be as close to the specified secondary structure as possible. If not, you can tell the compiler not to optimize a specific structure. For example:</p>
-<p><code>   structure [no-opt] Gate = X + C + S + Y : U6 H15(+ H15(U29 + U14 H15(+)))</code></p>
+<pre><code>structure [no-opt] Gate = X + C + S + Y : U6 H15(+ H15(U29 + U14 H15(+)))</code></pre>
 <p>This can be useful for two reasons. First, you may with to impose base-pairing constraints but don't want thermodynamic optimization, for example, because you know this structure is not the MFE structure. Second, you may want the compiler to know that these strands should be grouped together as a complex, but the intended complex has psuedoknots that cannot (yet) be properly expressed in Pepper.</p>
 <p>Alternatively for limited optimization:</p>
-<p><code>   structure [10nt] Gate = X + C + S + Y : U6 H15(+ H15(U29 + U14 H15(+)))</code></p>
+<pre><code>structure [10nt] Gate = X + C + S + Y : U6 H15(+ H15(U29 + U14 H15(+)))</code></pre>
 <p>This aims to be within 10 nucleotides of the specified structure, on average. Note that how these parameters are interpreted is up to the back-end sequence designer. E.g. Zadeh's designer will try to minimize the average number of incorrect nucleotides; another designer might want the MFE structure to be within 10 nucleotides; the SpuriousC designer could use the parameter for some kind of weighting, but currently doesn't.</p>
 <p>We can also specify the secondary structure on the domain level:</p>
-<p><code>   structure Gate = X + C + S + Y : domain .(+(.+.(+)))</code></p>
+<pre><code>structure Gate = X + C + S + Y : domain .(+(.+.(+)))</code></pre>
 <p>assuming, for example, that the strands had been defined as</p>
-<p><code>   strand X = toe_x data_x</code></p>
-<p><code>   strand C = carry &quot;29N&quot;</code></p>
-<p><code>   strand S = &quot;14N&quot; sum</code></p>
-<p><code>   strand Y = sum* carry* data_x*</code></p>
+<pre><code>strand X = toe_x data_x
+
+strand C = carry &quot;29N&quot;
+
+strand S = &quot;14N&quot; sum
+
+strand Y = sum* carry* data_x*</code></pre>
 <p>Here each dot-paren represents an entire domain.</p>
 <h4 id="kinetics">Kinetics</h4>
 <p>Now all we have left is to explain the desired kinetics, what structures will interact and what will they produce:</p>
-<p><code>   kinetic </code><input structures><code> -&gt; </code></p>
-<output structures>
+<pre><code>kinetic &lt;input structures&gt; -&gt; &lt;output structures&gt;</code></pre>
 <p>So if we're working with the half adder, we might have:</p>
-<p><code>   kinetic inX + Gate        -&gt;  waste_X + inter_G</code></p>
-<p><code>   kinetic inY + inter_Gate  -&gt;  waste_Y + outS + outC</code></p>
+<pre><code>kinetic inX + Gate        -&gt;  waste_X + inter_G
+
+kinetic inY + inter_Gate  -&gt;  waste_Y + outS + outC</code></pre>
 <p>I might allow some optional parameters to fine tune these, maybe specifying fuzzy states or desired speed of reactions.</p>
 <h4 id="examples">Examples</h4>
 <ul>
 <li><a href="DNA%20compiler/And22.comp" title="wikilink">DNA compiler/And22.comp</a></li>
 </ul>
 <h3 id="pepper-systems-1">Pepper Systems</h3>
-<p>A system file (name.sys) contains a specification for the connectivity of <a href="DNA%20compiler/component%20syntax" title="wikilink">components</a> in a DNA system. It specifies each component and and ties their signal sequences together. A system may be used as a component in a larger system.</p>
+<p>A system file (name.sys) contains a specification for the connectivity of <a href="">components</a> in a DNA system. It specifies each component and and ties their signal sequences together. A system may be used as a component in a larger system.</p>
 <h4 id="comments-1">Comments</h4>
 <p>The pound sign (#) denotes that the rest of the line is a comment (python/sh style comments): # This is a comment Comments may appear on their own lines or after a command, like so:</p>
-<p><code>   import And22  # Half adder is used in the first layer only</code></p>
+<pre><code>import And22  # Half adder is used in the first layer only</code></pre>
 <h4 id="system-declaration">System Declaration</h4>
 <p>In the spirit of Matlab's first line declarations, each system needs to have a declaration statement at the first line of code. Syntax:</p>
-<p><code>   declare system </code><name><code>: </code><inputs><code> -&gt; </code><outputs></p>
+<pre><code>declare system &lt;name&gt;: &lt;inputs&gt; -&gt; &lt;outputs&gt;</code></pre>
 <p>For example:</p>
-<p><code>   declare system HalfAdder: x0 + y0  -&gt;  s0 + c1</code></p>
-<p>The <inputs> and <outputs> are '+' separated lists of sequences that will be constrained to components below.</p>
+<pre><code>declare system HalfAdder: x0 + y0  -&gt;  s0 + c1</code></pre>
+<p>The <code>&lt;inputs&gt;</code> and <code>&lt;outputs&gt;</code> are '+' separated lists of sequences that will be constrained to components below.</p>
 <p>These are used if this is a system being used as a component. However, for top-level systems, we will not have inputs and outputs and so</p>
-<p><name> should be the same as the base name of the component file (i.e. this file should be HalfAdder.comp).</p>
+<p><code>&lt;name&gt;</code> should be the same as the base name of the component file (i.e. this file should be HalfAdder.comp).</p>
 <h4 id="imports">Imports</h4>
 <p>In order to use a component file you must import it first (python-style). Syntax:</p>
-<p><code>   import </code><component name> <code>For example:</code></p>
-<p><code>   import And22</code></p>
+<pre><code>import &lt;component name&gt; For example:
+
+import And22</code></pre>
 <p>You may import from a different directory/name than the name you use in the file. For example:</p>
-<p><code>   import Georg0711/Parallel_And22 as And22</code></p>
+<pre><code>import Georg0711/Parallel_And22 as And22</code></pre>
 <p>which would import from the component file 'Parallel_And22.comp' from the directory 'Georg0711/', but still use the name And22 in the specification.</p>
 <h4 id="components">Components</h4>
 <p>This is the meat of the circuit file. You must make one statement for each component in the DNA system specifying the input and output sequences. The syntax is:</p>
-<p><code>   component </code><name><code> = </code><component name><code>: </code><list of input sequences><code> -&gt; </code><list of output sequences></p>
+<pre><code>component &lt;name&gt; = &lt;component name&gt;: &lt;list of input sequences&gt; -&gt; &lt;list of output sequences&gt;</code></pre>
 <p>for example</p>
-<p><code>   component G0_01 = And22: nx0 + y0  -&gt;  s0 + nc1</code></p>
+<pre><code>component G0_01 = And22: nx0 + y0  -&gt;  s0 + nc1</code></pre>
 <p>Note: Components <strong>may</strong> have 0 inputs or 0 outputs (or even both, if you can find that useful). Example:</p>
-<p><code>   component DNS0 = Detector: ns0 -&gt;</code></p>
+<pre><code>component DNS0 = Detector: ns0 -&gt;</code></pre>
 <p>Is a 'ns0' detector. It will activate if ns0 is input but doesn't produce any outputs for downstream gates.</p>
 <h4 id="examples-1">Examples</h4>
 <ul>

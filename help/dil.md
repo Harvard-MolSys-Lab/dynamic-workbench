@@ -40,7 +40,7 @@ You can mouse over segments in the Segments or Strands pane in order to highligh
 
 ## Designing sequences
 
-From the ribbon, DIL systems may be exported to various sequence designers, including [Web DD](web-dd), [NUPACK](nupack), and [Multisubjective](multisubjective). Clicking these buttons will generate a file and open the requisite sequence designer.
+From the ribbon, DIL systems may be exported to various sequence designers, including [Web DD](web-dd), [NUPACK](nupack), and [Multisubjective](multisubjective). Simply click the appropriate button Clicking these buttons will generate a file and open the requisite sequence designer.
 
 ## Enumerating reactions
 
@@ -53,6 +53,5 @@ See the [Enumerator](enumerator) page for details.
 ## Evaluating thermodynamics
 
 From the ribbon, you can invoke various thermodynamic calculations. Click "Predict" to open a window for analysis using [NUPACK](nupack), or click the arrow to analyze using [Mfold](mfold) or [RNAfold](rnafold). You can use the "MFE Structures" button to open a NUPACK analysis that will examine only single-stranded complexes (the "complex size" parameter is set to 1); the "Pairwise" button will open a NUPACK analysis with the "complex size" parameter set to 2.
-
 
 

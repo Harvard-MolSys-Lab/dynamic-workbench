@@ -9,15 +9,15 @@ Creating files
 You can easily create files within the Workbench interface:
 
 1.	Select "New" from the main menu bar
-2.	Enter a filename (you can choose to omit the file extension; workbench will add it)
-3.	From the menu under "Create," select the type of file you would like to create. Your new file should appear in the tree on the left (labeled "Files").
+2.	Enter a filename (you can choose to omit the file extension; Workbench will add it)
+3.	From the menu under "Create," select the type of file you would like to create. Your new file should appear in the tree on the left (labeled "Files"), and should open automatically.
 	There are some file types which are not currently available in Workbench, but for which support is planned; these appear as greyed out menu items.
-4.	Open the file by double-clicking on its name in the Files tree, or right-clicking and selecting "Open" from the context menu.
+4.	Later, you can re-open the file by double-clicking on its name in the Files tree, or right-clicking and selecting "Open" from the context menu.
 
 Uploading files
 ---------------
 
-To upload a file to Workbench from your desktop, just drag and drop the file from your normal file manager (Finder, Nautilus, Explorer, etc.) onto the Files tree. Your new file will appear once it's been uploaded (you should see a notification). 
+To upload a file to Workbench from your desktop, just drag and drop the file from your normal file manager (Finder, Nautilus, Windows Explorer, etc.) onto the Files tree. Your new file will appear once it's been uploaded (you should see a notification). 
 
 Downloading files
 -----------------

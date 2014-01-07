@@ -19,7 +19,7 @@ Ext.define('App.ui.StrandPreviewWindow',{
 			items: [{
 				xtype: 'codemirror',
 				mode: 'nupack',
-				
+				iconCls: 'dot-paren-icon',
 				//height: 100,
 				title: 'Structure',
 				//margin: '0 0 5 0',

@@ -36,7 +36,8 @@ Ext.define('App.usr.dil.StrandsGrid',{
 				"For example, to describe a strand with two domains, an input A containing segments 1, 2, and 3, "+
 				"and an output B (containing segments 4, 5, and 6), you could write: <pre>\tA[1 2 3]i+ B[4 3* 2*]o-</pre> "+
 				"You can also omit the domain information and just list segments: <pre>\t1 2 3 4 3* 2*</pre> "+
-				"<a href='"+App.ui.Help.getLink('dynaml#short-notation')+"'>Details</a>",
+				// NOTE: do not change \" to ' or it will screw up the App.ui.Help.getLink() result
+				"<a href=\""+App.ui.Help.getLink('dynaml#short-notation')+"\">Details</a>",
 				hideDelay: 2000,
 				anchor: "bottom",
 				anchorToTarget: true,

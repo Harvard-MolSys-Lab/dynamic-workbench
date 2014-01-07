@@ -39,7 +39,7 @@ Ext.define('App.usr.enum.Editor', {
 		
 		this.extraTbarItems = [];
 		
-	this.runButton = Ext.create('App.usr.enum.RunButton',{app: this});
+		this.runButton = Ext.create('App.usr.enum.RunButton',{app: this});
 
 		// this.condense = Ext.create('Ext.menu.CheckItem', {
 		// 	text: 'Condense output',
@@ -53,46 +53,7 @@ Ext.define('App.usr.enum.Editor', {
 		// });
 		
 		var tbar = this.extraTbarItems.concat([
-			this.runButton,
-		// {
-		// 	text: 'Run Enumerator',
-		// 	iconCls: 'enum-icon',
-		// 	handler: this.makeEnumHandler('enjs'),
-		// 	scope: this,
-		// 	xtype: 'splitbutton',
-		// 	menu: [{
-		// 		text: 'ENJS',
-		// 		handler: this.makeEnumHandler('enjs'),
-		// 		iconCls: 'enum-icon',
-		// 		scope: this,
-		// 	},{
-		// 		text: 'PIL',
-		// 		handler: this.makeEnumHandler('pil'),
-		// 		iconCls: 'pil',
-		// 		scope: this,
-		// 	},{
-		// 		text: 'Legacy',
-		// 		handler: this.makeEnumHandler('legacy'),
-		// 		iconCls: 'gear',
-		// 		scope: this,
-		// 	},{
-		// 		text: 'SBML',
-		// 		handler: this.makeEnumHandler('sbml'),
-		// 		iconCls: 'sbml',
-		// 		scope: this,
-		// 	},{
-		// 		text: 'Graph (EPS)',
-		// 		handler: this.makeEnumHandler('graph'),
-		// 		scope: this,
-		// 	},'-',this.condense,{ 
-		// 		text: 'Maximum complex size: ',
-		// 		canActivate: false,
-		// 	},this.maxComplexSize]
-		// }
-		]);
-		
-		if(this.showEditButton) {
-			tbar.push({
+			this.runButton, {
 				text: 'Edit',
 				iconCls: 'pencil',
 				/**
@@ -104,10 +65,18 @@ Ext.define('App.usr.enum.Editor', {
 					text: 'Thread segments to sequences',
 					handler: this.threadStrands
 				},]
-			})
-		}
+			},
+			'->',
+			{
+				text: 'Help',
+				iconCls: 'help',
+				handler: App.ui.Launcher.makeLauncher('help:enumerator'),
+			}
+		]);
+		
+		
 		if(this.showSaveButton) {
-			tbar = tbar.concat(['->',Ext.create('App.ui.SaveButton',{
+			tbar = tbar.concat([Ext.create('App.ui.SaveButton',{
 				app: this,
 			})]);
 		}

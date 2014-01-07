@@ -311,12 +311,6 @@ Ext.define('App.usr.seq.Editor', {
 				tooltip: 'Generate various input and output formats, or transform the strands for output',
 				menu: {
 					items:[{
-						iconCls: 'seq',
-						text: 'Make DD input file',
-						handler: this.insertDD,
-						scope: this,
-						tooltip: 'Generates an input file for DD or WebDD which can be used to mutate the selected domains.'
-					},{
 						text: 'Convert:',
 						canActivate: false,
 					},{
@@ -344,6 +338,12 @@ Ext.define('App.usr.seq.Editor', {
 						iconCls: 'txt',
 						handler: function () { this.convertSelection(''); },
 						scope: this,
+					},{
+						iconCls: 'seq',
+						text: 'Make DD input file',
+						handler: this.insertDD,
+						scope: this,
+						tooltip: 'Generates an input file for DD or WebDD which can be used to mutate the selected domains.'
 					},'-',{
 						text: 'Thread sequences to strand',
 						handler: this.threadStrands,
@@ -520,7 +520,11 @@ Ext.define('App.usr.seq.Editor', {
 						}]
 					}]
 				}
-			},'->',Ext.create('App.ui.SaveButton',{
+			},'->',{
+				text: 'Help',
+				iconCls: 'help',
+				handler: App.ui.Launcher.makeLauncher('help:sequence-edit'),
+			}, Ext.create('App.ui.SaveButton',{
 				text: this.saveButtonText,
 				iconCls: 'save',
 				app: this,

@@ -95,6 +95,10 @@ Ext.define('App.usr.enum.Viewer', {
 					this.showCondensed(state);
 				},
 				scope: this,
+			},'->',{
+				text: 'Help',
+				iconCls: 'help',
+				handler: App.ui.Launcher.makeLauncher('help:enumerator'),
 			}],
 			// items: [this.legendWindow]
 		})

@@ -115,6 +115,25 @@ exports.configure = function(app, express) {
 		});
 	});
 
+	app.get('/help/images/:image', function (req, res) {
+		var image = req.param('image'), fullPath;
+		fullPath = path.join('help/images', image);
+		res.sendfile(fullPath, function(err) {
+			if(err) {
+				sendError(res, 'Not Found', 404);
+				utils.log({
+					source: '/help/images/:image',
+					level:"warn",
+					message:"Can't find documentation image. ", 
+					image : image,
+					fullPath : fullPath,
+					err : err,
+				});
+				return;
+			}
+		})
+	});
+
 	app.get('/help/:page', restrict('html'), function(req, res) {
 		// var page = req.param('page') || 'index', fullPath = path.join('help', page) + '.md';
 

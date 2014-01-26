@@ -272,6 +272,3 @@ produce any outputs for downstream gates.
 -   [DNA compiler/Two-Bit Adder](DNA compiler/Two-Bit Adder "wikilink")
 
 
-## Pepper Intermediate Language (PIL)
-
-

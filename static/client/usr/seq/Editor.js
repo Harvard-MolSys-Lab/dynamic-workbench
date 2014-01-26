@@ -215,7 +215,7 @@ Ext.define('App.usr.seq.Editor', {
 							indent: true,
 						},{
 							text: 'Count: ',
-							tooltip: "Specify which how many copies of the above you would like inserted",
+							tooltip: "Specify how many copies of the above you would like inserted",
 							canActivate: false,
 						},{
 							xtype: 'numberfield',
@@ -227,7 +227,7 @@ Ext.define('App.usr.seq.Editor', {
 							handler: this.insertNMer,
 							scope: this,
 						}]
-					},{
+					},{	
 						text: 'Generate Poly-X sequence',
 						iconCls: '',
 						tooltip: 'Generates a random sequence according to the base or degenerate base specified (e.g. NNNN -> ATCG; YYYY -> CTCT, etc.)',
@@ -243,7 +243,7 @@ Ext.define('App.usr.seq.Editor', {
 							indent: true,
 						},{
 							text: 'Count: ',
-							tooltip: "Specify which how many copies of the above you would like inserted",
+							tooltip: "Specify how many copies of the above you would like inserted",
 							canActivate: false,
 						},{
 							xtype: 'numberfield',

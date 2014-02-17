@@ -844,7 +844,7 @@ Ext.define('App.ui.StrandPreview', {
 	extend : 'App.ui.D3Panel',
 
 	alias : 'widget.strandpreview',
-	requires : ['App.ui.StrandPreviewViewMenu'],
+	requires : ['App.ui.StrandPreviewViewMenu','App.ui.SVGEditorWindow'],
 
 	autoRender : true,
 	data : '',

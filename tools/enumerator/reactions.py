@@ -223,14 +223,14 @@ def bind21(reactant1, reactant2):
 	
 def find_external_strand_break(complex, location):
 	"""
-	Takes a complex and a location (strand+domain index) referring to a domain in
-	the complex which is on an external loop. Returns the index of the last
-	strand before the strand break which makes the argument domain on an
-	external loop.
+	Takes a complex and a location (strand index, domain index). This location
+	refers to a domain in the `complex` which is on an external loop. Returns the 
+	index of the last strand _before_ the strand break which would put `location` 
+	on an external loop.
 	
-	The argument location is a tuple (strand_num, index_num)
-	
-	# TODO: This is really confusingly worded...
+	Finds the location of a strand break on an external loop.  Used to 
+	determine where to split a complex when merging it with another complex at
+	`location`.
 	"""
 	
 	strand_num = location[0]
@@ -256,9 +256,11 @@ def find_external_strand_break(complex, location):
 				# If the current domain is unpaired, move to the next domain
 				# to the right
 				search_dom_index += 1
-			elif ((paired_dom[0] > search_strand_index) or \
-					 ((paired_dom[0] == search_strand_index) and \
-					  (paired_dom[1] > search_dom_index))):
+			
+			# elif ((paired_dom[0] > search_strand_index) or \
+			# 		 ((paired_dom[0] == search_strand_index) and \
+			# 		  (paired_dom[1] > search_dom_index))):
+			elif (paired_dom > (search_strand_index,search_dom_index)):
 				# If the current domain is paired to something which is to the
 				# right of the current search domain, then we jump past that
 				# loop
@@ -286,9 +288,10 @@ def find_external_strand_break(complex, location):
 				# If the current domain is unpaired, move to the next domain
 				# to the left
 				search_dom_index -= 1
-			elif ((paired_dom[0] < search_strand_index) or 
-					 ((paired_dom[0] == search_strand_index) and
-					  (paired_dom[1] < search_dom_index))):
+			# elif ((paired_dom[0] < search_strand_index) or 
+			# 		 ((paired_dom[0] == search_strand_index) and
+			# 		  (paired_dom[1] < search_dom_index))):
+			elif (paired_dom < (search_strand_index,search_dom_index)):
 				# If the current domain is paired to something which is to the
 				# left of the current search domain, then we jump past that
 				# loop
@@ -439,15 +442,15 @@ def combine_complexes_21(complex1, location1, complex2, location2):
 	return new_complex
 
 def open(reactant):
-	'''
+	"""
 	Returns a list of reaction product sets that can be produced by the
 	'open' reaction, in which a short helix dissociates. Each product
 	set are the results of one particular dissociation; each strand in the
 	reactant occurs exactly once in one of the complexes in the product set.
 	
-	A dissociation can happen to any helix under the threshold length
-				
-	'''
+	A dissociation can happen to any helix under the threshold length		
+	"""
+
 	product_sets = []
 	
 	
@@ -455,7 +458,7 @@ def open(reactant):
 	strands = reactant.strands
 	
 	
-	# We loop through all
+	# We loop through all stands, domains
 	for (strand_index, strand) in enumerate(strands):
 		for (domain_index, domain) in enumerate(strand.domains):
 			# If the domain is unpaired, skip it
@@ -470,9 +473,7 @@ def open(reactant):
 		
 			# If the domain is bound to an earlier domain, then we have
 			# already considered it, so skip it
-			if ( (helix_startB[0] < helix_startA[0]) or \
-			     ((helix_startB[0] == helix_startA[0]) and \
-				  (helix_startB[1] < helix_startA[1])) ):
+			if (helix_startB < helix_startA):
 				continue
 			
 			helix_endA = helix_startA[:]
@@ -559,10 +560,10 @@ def open(reactant):
 	
 	
 def find_releases(reactant):
-	'''
+	"""
 	Determines if reactant actually represents multiple unattached complexes.
 	If so, returns a list of these complexes. Otherwise, returns [reactant].
-	'''
+	"""
 	
 	structure = reactant.structure
 	strands = reactant.strands
@@ -586,9 +587,8 @@ def find_releases(reactant):
 		# 		inner_index strand < strand_index, or
 		#		inner_index strand = strand_index and inner_index domain < domain_index)
 		while (inner_index[0] >= 0) and (inner_index[0] < (len(strands) - 1)) and \
-			  ( (inner_index[0] < strand_index) or \
-			    ((inner_index[0] == strand_index) and \
-			     (inner_index[1] < domain_index)) ):
+			  ( inner_index < (strand_index, domain_index)):
+
 
 			# If we have run off of the end of a strand,
 			# then we have found a release point  
@@ -599,7 +599,7 @@ def find_releases(reactant):
 				# We check the two resulting complexes to see if they can
 				# be split further
 				for complex in split_list:
-					output_list.extend(find_releases(complex))
+					output_list += (find_releases(complex))
 				return output_list					
 			
 			# Otherwise decide where to go next
@@ -690,10 +690,10 @@ def find_releases(reactant):
 	return [reactant]
 	
 def split_complex(reactant, split_start, split_end):
-	'''
+	"""
 	Splits a disconnected complex between split_start and split_end (which
 	should be at ends of strands), and returns the two resulting complexes.
-	'''
+	"""
 	
 	strands = reactant.strands
 	structure = reactant.structure
@@ -768,12 +768,12 @@ def split_complex(reactant, split_start, split_end):
 	return [out1, out2]
 
 def branch_3way(reactant):
-	'''
+	"""
 	Returns a list of reaction pathways that can be created through one 
 	iteration of a 3 way branch migration reaction (more than one molecule may 
 	be produced by a reaction because branch migration can liberate strands and 
 	complexes).
-	'''
+	"""
 	
 	output_sets = []
 	structure = reactant.structure
@@ -906,11 +906,11 @@ def branch_3way(reactant):
 
 
 def do_3way_migration(reactant, displacing_loc, new_bound_loc):
-	'''
+	"""
 	Returns the product set which is the result of a 3-way branch migration
 	reaction where the domain at displacing_loc displaces the domain bound to
 	the domain at new_bound_loc.
-	'''
+	"""
 
 	out_reactant = copy.deepcopy(reactant)
 	out_reactant.structure[displacing_loc[0]][displacing_loc[1]] = new_bound_loc
@@ -939,12 +939,12 @@ def do_3way_migration(reactant, displacing_loc, new_bound_loc):
 
 
 def branch_4way(reactant):
-	'''
+	"""
 	Returns a list of complex sets that can be created through one iteration of
 	a 4 way branch migration reaction (each set consists of the molecules that
 	result from the iteration; more than one molecule may result because branch
 	migration can liberate strands and complexes).	
-	'''
+	"""
 	
 	structure = reactant.structure
 	output_sets = []
@@ -1037,3 +1037,4 @@ def do_4way_migration(reactant, loc1, loc2, loc3, loc4):
 	out = Complex(get_auto_name(), reactant.strands[:], new_struct)
 	
 	return find_releases(out)
+

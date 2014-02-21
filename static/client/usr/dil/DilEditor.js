@@ -613,7 +613,8 @@ Ext.define('App.usr.dil.DilEditor', {
 
 			strand = {
 				name: name,//rec.get('name'),
-				domains: doms
+				domains: doms,
+				polarity: rec.get('polarity')
 			};
 			strands.push(strand);
 			//strandMap[strand.name] = strand;

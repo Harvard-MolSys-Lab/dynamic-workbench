@@ -37,7 +37,8 @@ function StrandPreview() {
 
 			arrowDistance = 60,
 			arrowScale = 20,
-			loopMode = 'circular',
+			// loopMode = 'circular',
+			loopMode = 'linear',
 
 			line_stroke = '#aaa',
 			strokes = {

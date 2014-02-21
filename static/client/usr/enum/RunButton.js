@@ -18,6 +18,22 @@ Ext.define('App.usr.enum.RunButton', {
 			value: 10,
 			indent: true,
 		});
+		this.releaseCutoff = Ext.create('Ext.form.field.Number',{
+			minValue: 1,
+			value: 8,
+			indent: true,
+		});
+		this.maxComplexCount = Ext.create('Ext.form.field.Number',{
+			minValue: 1,
+			value: 200,
+			indent: true,
+		});
+		this.maxReactionCount = Ext.create('Ext.form.field.Number',{
+			minValue: 1,
+			value: 1000,
+			indent: true,
+		});
+
 		
 		Ext.apply(this,{
 			handler: this.makeEnumHandler('enjs'),
@@ -53,9 +69,18 @@ Ext.define('App.usr.enum.RunButton', {
 				handler: this.makeEnumHandler('graph'),
 				scope: this,
 			},'-',this.condense,{ 
-				text: 'Maximum complex size: ',
+				text: 'Maximum complex size (stands): ',
 				canActivate: false,
-			},this.maxComplexSize]
+			},this.maxComplexSize,{ 
+				text: 'Release cutoff (nt): ',
+				canActivate: false,
+			},this.releaseCutoff,{ 
+				text: 'Maximum complexes to enumerate: ',
+				canActivate: false,
+			},this.maxComplexCount,{ 
+				text: 'Maximum reaction to enumerate: ',
+				canActivate: false,
+			},this.maxReactionCount]
 		});
 		
 		this.callParent(arguments);
@@ -74,6 +99,10 @@ Ext.define('App.usr.enum.RunButton', {
 			mode: mode,
 			condense: this.condense.checked,
 			'max-complex-size': this.maxComplexSize.getValue(),
+			'release-cutoff': this.releaseCutoff.getValue(),
+			'max-complex-count': this.maxComplexCount.getValue(),
+			'max-reaction-count': this.maxReactionCount.getValue(),
+
 		},function(success) {
 			if(success) 
 				Ext.msg('Enumerator','Reaction enumeration completed.');

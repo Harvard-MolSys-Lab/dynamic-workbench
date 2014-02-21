@@ -551,13 +551,13 @@ Ext.define('App.usr.dil.DilEditor', {
 					sequence: strand.getSequence(),
 					complex: strand.getNode().getName(),
 					spec: strand.printDomains( /* omitLengths */ true),
-					polarity: strand.getPolarity()
+					// polarity: strand.getPolarity()
 				};
 			}));
 
 			return {
 				name: node.getName(),
-				polarity: node.getPolarity(),
+				// polarity: node.getPolarity(),
 				type: node.type,
 				structure: node.getOrderedSegmentwiseStructure().toDotParen(),
 				strands: _.map(node.getStrands(), function(strand) {

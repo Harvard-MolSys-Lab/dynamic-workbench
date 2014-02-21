@@ -17,7 +17,7 @@ var maxBuffer = 1000*1024;
 
 exports.name = 'Enumerator';
 exports.iconCls = 'enum-icon';
-exports.params = ['node','mode','condense','max-complex-size']
+exports.params = ['node','mode','condense','max-complex-size','release-cutoff','max-complex-count','max-reaction-count']
 exports.start = function(req, res, params) {
 	var node = params['node'], fullPath = utils.userFilePath(node), cmd;
 
@@ -34,12 +34,20 @@ exports.start = function(req, res, params) {
 	var ext = outputMode;
 	if (ext == 'enjs') { outputMode = 'json' }
 
+	// build command line arguments
 	var args = ['--infile',fullPath,'-i',inputMode,'--outfile',postfix(pre+'-enum',ext),'-o',outputMode];
-	
 	if(!!params['max-complex-size']) { 
 		args = args.concat(['--max-complex-size', params['max-complex-size']]) 
 	}
-	
+	if(!!params['release-cutoff']) { 
+		args = args.concat(['--release-cutoff', params['release-cutoff']]) 
+	}
+	if(!!params['max-complex-count']) { 
+		args = args.concat(['--max-complex-count', params['max-complex-count']]) 
+	}
+	if(!!params['max-reaction-count']) { 
+		args = args.concat(['--max-reaction-count', params['max-reaction-count']]) 
+	}
 	if(!!params['condense'] && params['condense'] != "false") {
 		args.push('-c')
 	}

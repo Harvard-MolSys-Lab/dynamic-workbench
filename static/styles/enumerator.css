@@ -1,5 +1,9 @@
 /* Enumerator reaction graph */
 
+text {
+	font-family: Arial, Sans-Serif;
+}
+
 svg {
 	fill: none;
 }
@@ -7,6 +11,9 @@ svg {
 .link-reaction {
 	stroke: #ccc;
 	marker-mid: url(#reaction-arrow);
+}
+.link-reaction-highlight {
+	stroke: #999;
 }
 .link-reaction-noarrow {
 	marker-mid: none;
@@ -43,15 +50,6 @@ rect.reaction-slow, .reaction-slow > rect {
 	fill: #e00;
 }
 
-.enum-selected > text {
-	font-weight: bold;
-	fill: red;
-}
-
-.enum-selected > rect.reaction-fast, .enum-selected > rect.reaction-slow {
-	stroke: red;
-}
-
 .enum-hull {
 	full: yellow;
 	stroke: gray;
@@ -75,6 +73,14 @@ rect.reaction-slow, .reaction-slow > rect {
 .complex-initial > rect {
 	fill: #eff;
 }
+.complex-initial .node-label {
+	fill: #00a;
+	font-weight: bold;
+}
+.complex-resting .node-label {
+
+}
+
 .resting-state > rect {
 /*	fill: yellow;
 	stroke: #fff;
@@ -82,4 +88,13 @@ rect.reaction-slow, .reaction-slow > rect {
 .node-label {
 	fill: #111;
 	text-shadow:1px 1px 2px white;
+}
+
+.enum-selected > .node-label {
+	font-weight: bold;
+	fill: #c00;
+}
+
+.enum-selected > rect {
+	stroke: #c00;
 }

@@ -11,6 +11,7 @@ from reactions import ReactionPathway, auto_name
 import reactions
 import json
 import subprocess
+import collections
 from condense import condense_resting_states
 
 
@@ -435,18 +436,21 @@ def output_sbml(enumerator,filename, output_condensed = False):
 		complexes = enumerator.complexes
 		reactions = enumerator.reactions
 	
+	def id(species):
+		return "s_"+species.name
+
 	for complex in complexes:
-		out.append('<species compartment="reaction" id="s_%(name)s" name="%(name)s"/>' % {"name": complex.name})
+		out.append('<species compartment="reaction" id="%(id)s" name="%(name)s"/>' % {"name": complex.name, "id": id(complex)})
 	out.extend(['</listOfSpecies>','<listOfReactions>']);
 	for (i, reaction) in enumerate(reactions):
 		out.extend(['<reaction id="r_%d">' % i,
                 '<listOfReactants>'])
 		for species in reaction.reactants:
-			out.append('<speciesReference species="%s"/>' % species.name)
+			out.append('<speciesReference species="%s"/>' % id(species))
 		out.extend(['</listOfReactants>',
                 '<listOfProducts>'])
 		for species in reaction.products:
-			out.append('<speciesReference species="%s"/>' % species.name)	
+			out.append('<speciesReference species="%s"/>' % id(species))	
 		out.extend(['</listOfProducts>','</reaction>'])
 
 	out.extend(['</listOfReactions>','</model>','</sbml>']);
@@ -478,6 +482,32 @@ def output_crn(enumerator, filename, output_condensed = False):
 		write_reaction(output_file,reaction)
 
 	output_file.close()
+
+def output_k(enumerator, filename, output_condensed = False):
+	output_file = open(filename, 'w')
+
+	def write_reaction(output_file,reaction,reversible=True):
+		reactants = sorted([ str(count)+'*'+str(x) if count > 1 else str(x) \
+			for (x, count) in collections.Counter(sorted(reaction.reactants)).iteritems() ])
+		products = sorted([ str(count)+'*'+str(x) if count > 1 else str(x) \
+			for (x, count) in collections.Counter(sorted(reaction.products)).iteritems() ])
+
+		if reversible: arrow = '<->'
+		else: arrow = '->'
+
+		rxn = [" + ".join(reactants),arrow," + ".join(products),"\n"]
+		output_file.write(' '.join(rxn))
+
+	reactions = enumerator.reactions
+	if (output_condensed):
+		condensed = condense_resting_states(enumerator)
+		reactions = condensed['reactions']
+
+	for reaction in sorted(reactions): #utils.natural_sort(reactions):
+		write_reaction(output_file,reaction,True)
+
+	output_file.close()
+
 
 
 text_output_functions = {

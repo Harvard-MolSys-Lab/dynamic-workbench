@@ -304,112 +304,112 @@ class CondenseTests(unittest.TestCase):
         assert sorted(reactions) == sorted(expected_reactions)
 
 
-    def testCondenseGraph3(self):
-        from input import input_standard
-        enum = input_standard('test_files/examples/sarma2010/fig4.in')
-        enum.enumerate()
+    # def testCondenseGraph3(self):
+    #     from input import input_standard
+    #     enum = input_standard('test_files/examples/sarma2010/fig4.in')
+    #     enum.enumerate()
         
-        complexes = dict()
-        for complex in enum.complexes:
-            complexes[complex.name] = complex
+    #     complexes = dict()
+    #     for complex in enum.complexes:
+    #         complexes[complex.name] = complex
         
-        out = condense_graph(enum)
-        resting_states = out['resting_state_map']
-        resting_state_targets = out['resting_state_targets']
-        reactions = out['condensed_reactions']
+    #     out = condense_graph(enum)
+    #     resting_states = out['resting_state_map']
+    #     resting_state_targets = out['resting_state_targets']
+    #     reactions = out['condensed_reactions']
         
-        print "Detailed reactions"
-        for r in enum.reactions:
-            print repr(r)
-        print
+    #     print "Detailed reactions"
+    #     for r in enum.reactions:
+    #         print repr(r)
+    #     print
         
-        print "Complexes"
-        print_dict(complexes)
-        for c in enum.complexes:
-            print repr(c)
-        print
+    #     print "Complexes"
+    #     print_dict(complexes)
+    #     for c in enum.complexes:
+    #         print repr(c)
+    #     print
         
-        # Resting states
-        print "Resting states"
-        print_dict(resting_states)
-        print
+    #     # Resting states
+    #     print "Resting states"
+    #     print_dict(resting_states)
+    #     print
         
-        rs = {
-            'com2' : RestingState('com2',[complexes['com2']]),
-            '38' : RestingState('38',[complexes['38']]),
-            'bot' : RestingState('bot',[complexes['bot']]),
-            'com1' : RestingState('com1',[complexes['com1']]),
-            '39' : RestingState('39',[complexes['39']]),
-            'top' : RestingState('top',[complexes['top']]),
-            '15' : RestingState('15',[complexes['15']]),
-            '40' : RestingState('40',[complexes['40']]),
-            '18' : RestingState('18',[complexes['18']]),
-            '25' : RestingState('25',[complexes['25']]),
-        }
+    #     rs = {
+    #         'com2' : RestingState('com2',[complexes['com2']]),
+    #         '38' : RestingState('38',[complexes['38']]),
+    #         'bot' : RestingState('bot',[complexes['bot']]),
+    #         'com1' : RestingState('com1',[complexes['com1']]),
+    #         '39' : RestingState('39',[complexes['39']]),
+    #         'top' : RestingState('top',[complexes['top']]),
+    #         '15' : RestingState('15',[complexes['15']]),
+    #         '40' : RestingState('40',[complexes['40']]),
+    #         '18' : RestingState('18',[complexes['18']]),
+    #         '25' : RestingState('25',[complexes['25']]),
+    #     }
         
-        expected_resting_states = {
-            frozenset([complexes['com2']]) : rs['com2'],
-            frozenset([complexes['38']]) : rs['38'],
-            frozenset([complexes['bot']]) : rs['bot'],
-            frozenset([complexes['com1']]) : rs['com1'],
-            frozenset([complexes['39']]) : rs['39'],
-            frozenset([complexes['top']]) : rs['top'],
-            frozenset([complexes['15']]) : rs['15'],
-            frozenset([complexes['40']]) : rs['40'],
-            frozenset([complexes['18']]) : rs['18'],
-            frozenset([complexes['25']]) : rs['25'],
-        }
+    #     expected_resting_states = {
+    #         frozenset([complexes['com2']]) : rs['com2'],
+    #         frozenset([complexes['38']]) : rs['38'],
+    #         frozenset([complexes['bot']]) : rs['bot'],
+    #         frozenset([complexes['com1']]) : rs['com1'],
+    #         frozenset([complexes['39']]) : rs['39'],
+    #         frozenset([complexes['top']]) : rs['top'],
+    #         frozenset([complexes['15']]) : rs['15'],
+    #         frozenset([complexes['40']]) : rs['40'],
+    #         frozenset([complexes['18']]) : rs['18'],
+    #         frozenset([complexes['25']]) : rs['25'],
+    #     }
 
-        print "Expected resting states"
-        print_dict(expected_resting_states)
+    #     print "Expected resting states"
+    #     print_dict(expected_resting_states)
         
-        assert expected_resting_states == resting_states
-        
-        
-        # Resting state targets
-        print "Resting state targets"
-        print_dict(resting_state_targets)
-        print
-        
-        expected_resting_state_targets = {
-            complexes['55'] : ReachableRestingStates([ ( rs['25'], rs['40'],) ]),
-            complexes['47'] : ReachableRestingStates([ ( rs['com1'], rs['39'],), ( rs['25'], rs['40'], rs['18'],) ]),
-            complexes['com2'] : ReachableRestingStates([ ( rs['com2'],) ]),
-            complexes['38'] : ReachableRestingStates([ ( rs['38'], ) ]),
-            complexes['top'] : ReachableRestingStates([ ( rs['top'], ) ]),
-            complexes['39'] : ReachableRestingStates([ ( rs['39'], ) ]),
-            complexes['67'] : ReachableRestingStates([ ( rs['25'], rs['40'] ) ]),
-            complexes['17'] : ReachableRestingStates([ ( rs['25'], rs['15'] ) ]),
-            complexes['11'] : ReachableRestingStates([ ( rs['com1'], rs['com2'] ), ( rs['25'], rs['15'], rs['18'] ) ]),
-            complexes['44'] : ReachableRestingStates([ ( rs['com1'], rs['39'] ), ( rs['25'], rs['40'], rs['18'] ) ]),
-            complexes['49'] : ReachableRestingStates([ ( rs['com1'], rs['39'] ), ( rs['25'], rs['40'], rs['18'] ) ]),
-            complexes['bot'] : ReachableRestingStates([ ( rs['bot'], ) ]),
-            complexes['40'] : ReachableRestingStates([ ( rs['40'], ) ]),
-            complexes['23'] : ReachableRestingStates([ ( rs['25'], rs['18'] ) ]),
-            complexes['com1'] : ReachableRestingStates([ ( rs['com1'], ) ]),
-            complexes['18'] : ReachableRestingStates([ ( rs['18'], ) ]),
-            complexes['15'] : ReachableRestingStates([ ( rs['15'], ) ]),
-            complexes['8'] : ReachableRestingStates([ ( rs['com1'], rs['com2'] ), ( rs['25'], rs['15'], rs['18'] ) ]),
-            complexes['48'] : ReachableRestingStates([ ( rs['com1'], rs['39'] ), ( rs['25'], rs['40'], rs['18'] ) ]),
-            complexes['16'] : ReachableRestingStates([ ( rs['25'], rs['18'] ) ]),
-            complexes['25'] : ReachableRestingStates([ ( rs['25'], ) ]),
-        }
-        assert resting_state_targets == expected_resting_state_targets
+    #     assert expected_resting_states == resting_states
         
         
-        # Condensed reactions
-        print "Condensed Reactions"
-        print "\n".join(map(print_condensed_reaction,reactions))
+    #     # Resting state targets
+    #     print "Resting state targets"
+    #     print_dict(resting_state_targets)
+    #     print
         
-        expected_reactions = [ 
-            ReactionPathway('condensed', [ rs['com2'], rs['bot'] ], [ rs['39'] ]),
-            ReactionPathway('condensed', [ rs['com1'], rs['39'] ], [ rs['25'], rs['40'], rs['18'] ]),
-            ReactionPathway('condensed', [ rs['top'], rs['bot'] ], [ rs['38'] ]),
-            ReactionPathway('condensed', [ rs['15'], rs['bot'] ], [ rs['40'] ]),
-            ReactionPathway('condensed', [ rs['com1'], rs['com2'] ], [ rs['25'], rs['15'], rs['18'] ]), 
-        ]
+    #     expected_resting_state_targets = {
+    #         complexes['55'] : ReachableRestingStates([ ( rs['25'], rs['40'],) ]),
+    #         complexes['47'] : ReachableRestingStates([ ( rs['com1'], rs['39'],), ( rs['25'], rs['40'], rs['18'],) ]),
+    #         complexes['com2'] : ReachableRestingStates([ ( rs['com2'],) ]),
+    #         complexes['38'] : ReachableRestingStates([ ( rs['38'], ) ]),
+    #         complexes['top'] : ReachableRestingStates([ ( rs['top'], ) ]),
+    #         complexes['39'] : ReachableRestingStates([ ( rs['39'], ) ]),
+    #         complexes['67'] : ReachableRestingStates([ ( rs['25'], rs['40'] ) ]),
+    #         complexes['17'] : ReachableRestingStates([ ( rs['25'], rs['15'] ) ]),
+    #         complexes['11'] : ReachableRestingStates([ ( rs['com1'], rs['com2'] ), ( rs['25'], rs['15'], rs['18'] ) ]),
+    #         complexes['44'] : ReachableRestingStates([ ( rs['com1'], rs['39'] ), ( rs['25'], rs['40'], rs['18'] ) ]),
+    #         complexes['49'] : ReachableRestingStates([ ( rs['com1'], rs['39'] ), ( rs['25'], rs['40'], rs['18'] ) ]),
+    #         complexes['bot'] : ReachableRestingStates([ ( rs['bot'], ) ]),
+    #         complexes['40'] : ReachableRestingStates([ ( rs['40'], ) ]),
+    #         complexes['23'] : ReachableRestingStates([ ( rs['25'], rs['18'] ) ]),
+    #         complexes['com1'] : ReachableRestingStates([ ( rs['com1'], ) ]),
+    #         complexes['18'] : ReachableRestingStates([ ( rs['18'], ) ]),
+    #         complexes['15'] : ReachableRestingStates([ ( rs['15'], ) ]),
+    #         complexes['8'] : ReachableRestingStates([ ( rs['com1'], rs['com2'] ), ( rs['25'], rs['15'], rs['18'] ) ]),
+    #         complexes['48'] : ReachableRestingStates([ ( rs['com1'], rs['39'] ), ( rs['25'], rs['40'], rs['18'] ) ]),
+    #         complexes['16'] : ReachableRestingStates([ ( rs['25'], rs['18'] ) ]),
+    #         complexes['25'] : ReachableRestingStates([ ( rs['25'], ) ]),
+    #     }
+    #     assert resting_state_targets == expected_resting_state_targets
         
-        assert sorted(reactions) == sorted(expected_reactions)
+        
+    #     # Condensed reactions
+    #     print "Condensed Reactions"
+    #     print "\n".join(map(print_condensed_reaction,reactions))
+        
+    #     expected_reactions = [ 
+    #         ReactionPathway('condensed', [ rs['com2'], rs['bot'] ], [ rs['39'] ]),
+    #         ReactionPathway('condensed', [ rs['com1'], rs['39'] ], [ rs['25'], rs['40'], rs['18'] ]),
+    #         ReactionPathway('condensed', [ rs['top'], rs['bot'] ], [ rs['38'] ]),
+    #         ReactionPathway('condensed', [ rs['15'], rs['bot'] ], [ rs['40'] ]),
+    #         ReactionPathway('condensed', [ rs['com1'], rs['com2'] ], [ rs['25'], rs['15'], rs['18'] ]), 
+    #     ]
+        
+    #     assert sorted(reactions) == sorted(expected_reactions)
 
     def testCondenseGraph4(self):
 

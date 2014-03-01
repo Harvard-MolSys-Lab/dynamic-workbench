@@ -12,7 +12,7 @@ Ext.define('App.usr.enum.Viewer', {
 	iconCls: 'enum-icon',
 	fontSize: 1,
 	linkWidth: 2,
-	arrowThreshold: 0.25,
+	arrowThreshold: 0.01,
 	highlightLinkWidth : 2,
 
 	createTip: true,
@@ -65,9 +65,17 @@ Ext.define('App.usr.enum.Viewer', {
 		});
 		Ext.apply(this,{
 			tbar: [{
-				text: 'Show details',
+				text: 'Details',
 				iconCls: 'window-secondary',
 				handler: this.viewDetails,
+				scope: this,
+			},{
+				text: 'Highlight',
+				handler: this.highlightSelection,
+				scope: this,
+			},{
+				text: 'Clear',
+				handler: this.unhighlightSelection,
 				scope: this,
 			},{
 				text: 'Export',
@@ -429,6 +437,8 @@ Ext.define('App.usr.enum.Viewer', {
 
 		me.showCondensed = showCondensed;
 		me.showFull = showFull;
+		me.highlightLinks = highlightLinks
+		me.unhighlightLinks = unhighlightLinks
 
 		// Most of the work happens in init(), defined below
 		init();
@@ -568,7 +578,7 @@ Ext.define('App.usr.enum.Viewer', {
 		}
 
 		function addNodeInteractions (nodeSel) {
-			nodeSel.on('mouseenter', highlightLinks)
+			nodeSel.on('mouseenter', highlightMyLinks)
 			.on('mouseleave', unhighlightLinks)
 			.on('dblclick', function(d) {
 				if (d._type == 'complex') {
@@ -798,7 +808,7 @@ Ext.define('App.usr.enum.Viewer', {
 		 */
 
         function highlightLink(d) {
-        	d3.select(this).style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
+        	d3.select(this).classed("link-reaction-highlight",true).style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
 
 			// // Animate link drawing
 			// .style("stroke-dasharray", "0,1000000")
@@ -807,53 +817,64 @@ Ext.define('App.usr.enum.Viewer', {
 			// 	.style("stroke-dasharray", function() { var l = 2*this.getTotalLength(); return l+','+l } );
         }
 
-		function highlightLinks(d) {
-			// Generate color scale for incoming/outgoing links
-			var incoming_color = d3.scale.ordinal().range(_.reverse(colorbrewer.BuPu[4])),
-				outgoing_color = d3.scale.ordinal().range(_.reverse(colorbrewer.OrRd[4]));
+        function highlightMyLinks(d) {
+        	unhighlightLinks()
+        	highlightLinks(d3.select(this))
+        }
+
+		function highlightLinks(selection) {
 
 			// Blur all complexes, links
 			panel.selectAll("path.link-reaction").classed("link-reaction-blurred",true);
 			panel.selectAll("g.enum-node").classed("node-blurred",true)
 
-			// Un-blur this complex
-			panel.selectAll('g.enum-node[name="'+d.name+'"]').classed("node-blurred",false);
+			selection.each(function(d) {
+
+				// Generate color scale for incoming/outgoing links
+				var incoming_color = d3.scale.ordinal().range(_.reverse(colorbrewer.BuPu[4])),
+					outgoing_color = d3.scale.ordinal().range(_.reverse(colorbrewer.OrRd[4]));
+
+				// Un-blur this complex
+				panel.selectAll('g.enum-node[name="'+d.name+'"]').classed("node-blurred",false);
 
 
-			// Select all paths that point out of this node
-			panel.selectAll("path.link-reaction.source-" + d.name).each(function(r, i) {
-				panel.selectAll('g.enum-node[name="'+r.target.name+'"]').classed("node-blurred",false);
+				// Select all paths that point out of this node
+				panel.selectAll("path.link-reaction.source-" + d.name).each(function(r, i) {
+					panel.selectAll('g.enum-node[name="'+r.target.name+'"]').classed("node-blurred",false);
 
-			}).classed("link-reaction-blurred",false).classed("link-reaction-reactant",true).style("stroke",function(d) { 
-				return outgoing_color(d.target.name); 
+				}).classed("link-reaction-blurred",false).classed("link-reaction-reactant",true).style("stroke",function(d) { 
+					return outgoing_color(d.target.name); 
+				})
+				// .style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
+
+				// Animate link drawing
+				.style("stroke-dasharray", "0,1000000")
+					.transition()
+					.ease("cubic-in")
+					.style("stroke-dasharray", function() { var l = 5*this.getTotalLength(); return l+','+l } );
+
+
+				// Select all paths that point into this node
+				panel.selectAll("path.link-reaction.target-" + d.name).each(function(r, i) {
+					panel.selectAll('g.enum-node[name="'+r.source.name+'"]').classed("node-blurred",false);
+
+				}).classed("link-reaction-blurred",false).classed("link-reaction-product",true).style("stroke",function(d) { 
+					return incoming_color(d.source.name); 
+				})
+				// .style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
+
+				// Animate link drawing
+				.style("stroke-dasharray", "0,1000000")
+					.transition()
+					.ease("cubic-in")
+					.style("stroke-dasharray", function() { var l = 5*this.getTotalLength(); return l+','+l } );
+
 			})
-			.style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
 
-			// Animate link drawing
-			.style("stroke-dasharray", "0,1000000")
-				.transition()
-				.ease("cubic-in")
-				.style("stroke-dasharray", function() { var l = 2*this.getTotalLength(); return l+','+l } );
-
-
-			// Select all paths that point into this node
-			panel.selectAll("path.link-reaction.target-" + d.name).each(function(r, i) {
-				panel.selectAll('g.enum-node[name="'+r.source.name+'"]').classed("node-blurred",false);
-
-			}).classed("link-reaction-blurred",false).classed("link-reaction-product",true).style("stroke",function(d) { 
-				return incoming_color(d.source.name); 
-			})
-			.style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
-
-			// Animate link drawing
-			.style("stroke-dasharray", "0,1000000")
-				.transition()
-				.ease("cubic-in")
-				.style("stroke-dasharray", function() { var l = 2*this.getTotalLength(); return l+','+l } );
 		}
 
 		function unhighlightLinks() {
-			panel.selectAll("path.link-reaction").classed("link-reaction-blurred",false)
+			panel.selectAll("path.link-reaction").classed("link-reaction-highlight",false).classed("link-reaction-blurred",false)
 				.classed("link-reaction-reactant",false).classed("link-reaction-product",false).style("stroke",null)
 				.style('stroke-width',me.linkWidth/me.currentScale);
 
@@ -879,8 +900,28 @@ Ext.define('App.usr.enum.Viewer', {
 		}
 
 		function selectNode(d) {
+			if (d3.event.shiftKey) {
+				toggleSelectNode.call(this,d)
+			} else {
+				selectOnlyNode.call(this,d)
+			}
+		}
+
+		function toggleSelectNode(d) {
+			d3.select(this).classed("enum-selected",function (d) {
+				return !d3.select(this).classed("enum-selected")
+			});			
+		}
+
+		function selectOnlyNode(d) {
+			deselect()
+			d3.select(this).classed("enum-selected",true)
+			// d3.select(this).classed("enum-selected",function (d) {
+			// 	return !d3.select(this).classed("enum-selected")
+			// });
+		}
+		function deselect() {
 			panel.selectAll(".enum-node.enum-selected").classed("enum-selected",false);
-			d3.select(this).classed("enum-selected",true);
 		}
 
 		function dragNode(d) {
@@ -935,6 +976,16 @@ Ext.define('App.usr.enum.Viewer', {
 	getSelection: function() {
 		var panel = this.getCanvas();
 		return panel.selectAll('.enum-selected');
+	},
+	getSelected: function () {
+		var panel = this.getCanvas();
+		return panel.select('.enum-selected');
+	},
+	highlightSelection: function () {
+		this.highlightLinks(this.getSelection())
+	},
+	unhighlightSelection: function () {
+		this.unhighlightLinks()
 	},
 	updateTipBody: function(tip) {
 		var helpText = '(click to show/select | double-click to open window | drag to move)';

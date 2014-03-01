@@ -833,7 +833,8 @@ StrandPreview.defaultSegmentColors = function () {
 	return d3.scale.category20();
 }
 StrandPreview.defaultStrandColors = function () {
-	return d3.scale.ordinal().range(colorbrewer.Set1[9])
+	// '#FE0'
+	return d3.scale.ordinal().range(["#e41a1c","#377eb8","#4daf4a","#984ea3","#ff7f00","#ffee00","#a65628","#f781bf","#999999"])
 }
 StrandPreview.defaultBaseColors = function () {
 	return d3.scale.ordinal().domain(['A','T','C','G','N']).range(['blue','red','green','black','orange']);

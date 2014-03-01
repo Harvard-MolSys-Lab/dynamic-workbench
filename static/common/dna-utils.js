@@ -1376,9 +1376,12 @@ var DNA = module.exports.DNA = (function(_) {
 
 			// We draw certain special patterns differently in "linear" or "first" mode;
 			// otherwise, default to circular mode
-			if((mode == 'linear' && (struct.length < 2 || struct.length > 3)) || 
-			   (mode == 'first'  && (struct.length < 1 || struct.length > 3))) {
+			if (mode == 'linear' && (struct.length < 2 || struct.length > 3)) {
+				mode = 'circular'
+			} 
+			else if (mode == 'first'  && (struct.length < 1 || struct.length > 3)) {
 				mode = 'circular';
+				struct.push(['+',1])
 			}
 			
 			if(debug) {
@@ -1409,7 +1412,7 @@ var DNA = module.exports.DNA = (function(_) {
 							if(debug) {
 								console.groupEnd();
 							}
-							return drawLoop(struct,start,theta,space,'circular');
+							return drawLoop(struct.concat([['+', 1]]),start,theta,space,'circular');
 					}
 				} else 	
 				if (struct.length == 2) {
@@ -1452,7 +1455,7 @@ var DNA = module.exports.DNA = (function(_) {
 							if(debug) {
 								console.groupEnd();
 							}
-							return drawLoop(struct,start,theta,space,'circular');
+							return drawLoop(struct.concat([['+', 1]]),start,theta,space,'circular');
 					}
 				} else if(struct.length == 3) {
 					switch(struct[0][0] + struct[1][0] + struct[2][0]) {
@@ -1482,7 +1485,7 @@ var DNA = module.exports.DNA = (function(_) {
 							if(debug) {
 								console.groupEnd();
 							}
-							return drawLoop(struct,start,theta,space,'circular');
+							return drawLoop(struct.concat([['+', 1]]),start,theta,space,'circular');
 					}
 				}
 			} 
@@ -1646,12 +1649,33 @@ var DNA = module.exports.DNA = (function(_) {
 					}
 				}
 			} else if(mode == 'circular') {
+
+				function mod(x, m) {
+				    return (x % m + m) % m;
+				}
 				
+				var umode = null;
+				for (var i = struct.length - 1; i >= 0; i--) {
+					if(struct[i][0] == 'U' || struct[i][0] == '.') {
+						if (i > 0 && struct[i-1][0] == '+' && (umode == null || umode == '-line')) {
+							umode = '-line'
+						} else if ((i+1) < struct.length && struct[i+1][0] == '+' && (umode == null || umode == '+line')) {
+							umode = '+line';
+						} else {
+							umode = 'arc'
+							break
+						}
+					}
+				}
+
+
 				// Contribution of each chunk to the circumference
 				var dcirc = _.map(struct,function(chunk) {
 					switch(chunk[0]) {
 						case 'H': case 'D': return duplexWidth;
-						case '.': case 'U': return baseLength * chunk[1];
+						case '.': case 'U': 
+							if (umode == '+line' || umode == '-line') return duplexWidth;
+							else return baseLength * chunk[1];
 						case '+': return breakWidth;
 					}
 				});
@@ -1682,20 +1706,26 @@ var DNA = module.exports.DNA = (function(_) {
 						case 'D':
 							// center of duplex should be at theta + dtheta/2
 							var theta_duplexCenter = theta + dtheta/2, 
-								duplexCenter = center.addPolar(theta_duplexCenter,loopRadius);
-								
-							// 
-							var theta_firstBase = theta_duplexCenter - (dtheta * 0.5 * stemWidth/duplexWidth), 
-								//theta_lastBase = theta + dtheta - (dtheta * baseLength/(duplexWidth)),
-								
+								duplexCenter = center.addPolar(theta_duplexCenter,loopRadius),
+								theta_firstBase = theta_duplexCenter - (dtheta * 0.5 * stemWidth/duplexWidth), 
 								firstBase = center.addPolar(theta_firstBase,loopRadius),
-								//lastBase = center.addPolar(theta_lastBase,loopRadius);
 								
 							out = out.concat(drawDuplex(chunk,theta_duplexCenter,firstBase,'linear'))
 							break;
 						case '.':							
 						case 'U':
-							out = out.concat(drawArc(chunk[1],Point.create(cx,cy),theta,dtheta,loopRadius));
+							if (umode == '+line' || umode == '-line') {
+								var theta_duplexCenter = theta + dtheta/2, 
+									duplexCenter = center.addPolar(theta_duplexCenter,loopRadius),
+									theta_firstBase = theta_duplexCenter - (dtheta * 0.5 * stemWidth/duplexWidth), 
+									firstBase = center.addPolar(theta_firstBase,loopRadius);
+
+								if (umode == '-line')
+									out = out.concat(drawLine(-chunk[1],firstBase,theta_duplexCenter));
+								else
+									out = out.concat(drawLine(chunk[1],firstBase,theta_duplexCenter));
+							}
+							else out = out.concat(drawArc(chunk[1],Point.create(cx,cy),theta,dtheta,loopRadius));
 							break;
 						case '+':
 							break;
@@ -1704,6 +1734,64 @@ var DNA = module.exports.DNA = (function(_) {
 					x = Math.cos(theta) * loopRadius + cx;
 					y = Math.sin(theta) * loopRadius + cy;
 				}
+
+				// // Contribution of each chunk to the circumference
+				// var dcirc = _.map(struct,function(chunk) {
+				// 	switch(chunk[0]) {
+				// 		case 'H': case 'D': return duplexWidth;
+				// 		case '.': case 'U': return baseLength * chunk[1];
+				// 		case '+': return breakWidth;
+				// 	}
+				// });
+				
+				// // Total loop circumference
+				// var loopCirc = sum(dcirc) + space;
+				
+				// // Loop radius
+				// var loopRadius = loopCirc / pi2;
+				
+				// // Center, starting point
+				// var center = start.addPolar(theta,loopRadius),
+				// 	cx = center.x, cy = center.y,
+				// 	x, y;
+					
+				// theta += Math.PI;
+				// theta += (.5 * space / loopCirc) * pi2;
+				
+				// x = Math.cos(theta) * loopRadius + cx;
+				// y = Math.sin(theta) * loopRadius + cy;
+				
+				// for(var i = 0; i<struct.length; i++) {
+				// 	var chunk = struct[i],
+				// 		dtheta = dcirc[i] / loopCirc * pi2; 
+					
+				// 	switch(chunk[0]) {
+				// 		case 'H':
+				// 		case 'D':
+				// 			// center of duplex should be at theta + dtheta/2
+				// 			var theta_duplexCenter = theta + dtheta/2, 
+				// 				duplexCenter = center.addPolar(theta_duplexCenter,loopRadius);
+								
+				// 			// 
+				// 			var theta_firstBase = theta_duplexCenter - (dtheta * 0.5 * stemWidth/duplexWidth), 
+				// 				//theta_lastBase = theta + dtheta - (dtheta * baseLength/(duplexWidth)),
+								
+				// 				firstBase = center.addPolar(theta_firstBase,loopRadius),
+				// 				//lastBase = center.addPolar(theta_lastBase,loopRadius);
+								
+				// 			out = out.concat(drawDuplex(chunk,theta_duplexCenter,firstBase,'linear'))
+				// 			break;
+				// 		case '.':							
+				// 		case 'U':
+				// 			out = out.concat(drawArc(chunk[1],Point.create(cx,cy),theta,dtheta,loopRadius));
+				// 			break;
+				// 		case '+':
+				// 			break;
+				// 	}
+				// 	theta += dtheta;
+				// 	x = Math.cos(theta) * loopRadius + cx;
+				// 	y = Math.sin(theta) * loopRadius + cy;
+				// }
 
 			}
 			
@@ -3046,6 +3134,7 @@ var DNA = module.exports.DNA = (function(_) {
 										// segment_identity : g > 0 ? id.identity : null,
 										// domain:  m > 0 ? dom.name : null,
 										// domain_role : m > 0 ? dom.role : null,
+										base: seq ? seq[k] : null,
 
 										segment: seg ? seg.name : null,
 										segment_identity : id ? id.identity : null,

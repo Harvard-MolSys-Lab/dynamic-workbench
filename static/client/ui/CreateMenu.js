@@ -39,6 +39,11 @@ Ext.define('App.ui.CreateMenu', {
 
 	/**
 	 * @cfg
+	 */
+	initialValue: '',
+
+	/**
+	 * @cfg
 	 * True to automatically build the file type menu by calling #getCreateMenu
 	 */
 	autoCreateMenu: true,
@@ -67,6 +72,7 @@ Ext.define('App.ui.CreateMenu', {
 				//validate: Ext.bind(this.validate,this),
 				iconCls: 'rename',
 				ref: 'fileNameField',
+				value: this.initialValue,
 				indent: true,
 				/**
 				 * @cfg {Mixed[]} extraMenuItems

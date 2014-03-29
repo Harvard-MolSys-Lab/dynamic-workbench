@@ -1,0 +1,12 @@
+!!! 5
+html(lang="en")
+  head
+    title DyNAMiC Workbench
+    - var resources = manifest.getResources(true,env);
+    - var dynamic = manifest.getDynamicResources();
+    - var bootstrap = manifest.bootstrap;
+    - each sheet in resources.links
+      link(rel="stylesheet",href=sheet)
+  body(class="x-body x-border-box")
+    | $body
+    

@@ -589,7 +589,8 @@ Ext.define('App.TaskRunner.Task', {
 		this.log(Ext.String.format("Completed task '{0}' at {1} on '{2}'",this.name,this.get('endDate'),this.get('target')),{});
 		if(this.arguments && this.arguments.node) {
 			var path = App.Path.pop(this.arguments.node);
-			App.ui.filesTree.refreshDocument(App.DocumentStore.tree.getNodeById(path),function(recs,operation,success) {
+			var node = App.DocumentStore.tree.getNodeById(path) || App.DocumentStore.tree.findChild('path', path, /* deep */ true)
+			App.ui.filesTree.refreshDocument(node,function(recs,operation,success) {
 				/**
 				 * @event refresh
 				 * Fires after the task has completed if files in the `node` parameter were reloaded.

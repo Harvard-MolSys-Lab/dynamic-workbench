@@ -164,7 +164,8 @@ Ext.define('App.usr.nodal.Canvas', {
 				renderTo : Ext.getBody(),
 				anchor : 'top',
 				cls : 'build-tip',
-				dismissDelay: 0
+				dismissDelay: 0,
+				autoHide: false
 			});
 		}
 	},

@@ -80,95 +80,106 @@ Ext.define('App.usr.nodal.BuildTab', {
 							handler: this.compileLocal,
 							scope: this,
 						}]
-					},{
-						iconCls: 'compile',
-						text: 'Serialize',
-						rowspan: 1,
-						disabled: true,
-						ref:'serializeMenu',
-						tooltip: {
-							title: 'Serialize System',
-							text: 'View and edit serialized forms of nodal system, including TerseML, PIL, and SVG, for further processing (must compile first). ',
-						},
-						menu: [{
-							text: 'TerseML',
-							iconCls: 'txt',
-							ref: 'txt',
-							disabled: true,
-							handler: _.bind(this.openFile,this,'txt'),
-						},{
-							text: 'DyNAML',
-							iconCls: 'dynaml',
-							ref: 'dynaml',
-							disabled: true,
-							handler: _.bind(this.openFile,this,'dynaml'),
-						},{
-							text: 'PIL',
-							iconCls: 'pil',
-							ref: 'pil',
-							disabled: true,
-							handler: _.bind(this.openFile,this,'pil'),
-						},{
-							text: 'SVG',
-							iconCls: 'svg',
-							ref: 'svg',
-							disabled: true,
-							handler: _.bind(this.openFile,this,'svg'),
-						}]
-					},{
-						iconCls: 'sequence',
-						text: 'Sequence',
-						rowspan: 1,
-						disabled: true,
-						ref:'sequenceMenu',
-						tooltip: {
-							title: 'Sequence System',
-							text: 'Opens the system in a sequence editor to perform sequence design. Available sequence editors: NUPACK multi-objective, Web DD, and SpuriousC.',
-						},
-
-						//handler: this.spuriousDesign,
-						//scope: this,
-						menu: [{
-							text: 'SpuriousC',
-							iconCls: 'spurious-c',
-							ref: 'spur',
-							disabled: true,
-							handler: _.bind(this.openFile,this,'spur'),
-						},{
-							text: 'NUPACK',
-							iconCls: 'nupack',
-							ref: 'nupack',
-							disabled: true,
-							handler: _.bind(this.openFile,this,'nupack'),
-						},{
-							text: 'Web DD',
-							iconCls: 'seq',
-							ref: 'domains',
-							disabled: true,
-							handler: _.bind(this.openFile,this,'domains'),
-						}]
-					}]
-				},{
-					xtype: 'buttongroup',
-					title: 'Simulation',
-					columns: 1,
-					disabled: true,
-					defaults: {
-						// cellCls: 'table-cell-padded',
 					},
-					items: [{
-						text: 'Enumerate',
-						iconCls: 'enumerate',
-						iconAlign: 'left'
-					},{
-						text: 'Simulate',
-						iconCls: 'simulate',
-						iconAlign: 'left'
-					}]
-				},{
+					{
+						iconCls: 'dynaml',
+						text: 'Save as DyNAML',
+						handler: this.compileDynamlServer,
+						scope: this
+					},
+					// {
+					// 	iconCls: 'compile',
+					// 	text: 'Serialize',
+					// 	rowspan: 1,
+					// 	disabled: true,
+					// 	ref:'serializeMenu',
+					// 	tooltip: {
+					// 		title: 'Serialize System',
+					// 		text: 'View and edit serialized forms of nodal system, including TerseML, PIL, and SVG, for further processing (must compile first). ',
+					// 	},
+					// 	menu: [{
+					// 		text: 'TerseML',
+					// 		iconCls: 'txt',
+					// 		ref: 'txt',
+					// 		disabled: true,
+					// 		handler: _.bind(this.openFile,this,'txt'),
+					// 	},{
+					// 		text: 'DyNAML',
+					// 		iconCls: 'dynaml',
+					// 		ref: 'dynaml',
+					// 		disabled: true,
+					// 		handler: _.bind(this.openFile,this,'dynaml'),
+					// 	},{
+					// 		text: 'PIL',
+					// 		iconCls: 'pil',
+					// 		ref: 'pil',
+					// 		disabled: true,
+					// 		handler: _.bind(this.openFile,this,'pil'),
+					// 	},{
+					// 		text: 'SVG',
+					// 		iconCls: 'svg',
+					// 		ref: 'svg',
+					// 		disabled: true,
+					// 		handler: _.bind(this.openFile,this,'svg'),
+					// 	}]
+					// },
+					// {
+					// 	iconCls: 'sequence',
+					// 	text: 'Sequence',
+					// 	rowspan: 1,
+					// 	disabled: true,
+					// 	ref:'sequenceMenu',
+					// 	tooltip: {
+					// 		title: 'Sequence System',
+					// 		text: 'Opens the system in a sequence editor to perform sequence design. Available sequence editors: NUPACK multi-objective, Web DD, and SpuriousC.',
+					// 	},
+
+					// 	//handler: this.spuriousDesign,
+					// 	//scope: this,
+					// 	menu: [{
+					// 		text: 'SpuriousC',
+					// 		iconCls: 'spurious-c',
+					// 		ref: 'spur',
+					// 		disabled: true,
+					// 		handler: _.bind(this.openFile,this,'spur'),
+					// 	},{
+					// 		text: 'NUPACK',
+					// 		iconCls: 'nupack',
+					// 		ref: 'nupack',
+					// 		disabled: true,
+					// 		handler: _.bind(this.openFile,this,'nupack'),
+					// 	},{
+					// 		text: 'Web DD',
+					// 		iconCls: 'seq',
+					// 		ref: 'domains',
+					// 		disabled: true,
+					// 		handler: _.bind(this.openFile,this,'domains'),
+					// 	}]
+					// }
+					]
+				},
+				// {
+				// 	xtype: 'buttongroup',
+				// 	title: 'Simulation',
+				// 	columns: 1,
+				// 	disabled: true,
+				// 	defaults: {
+				// 		// cellCls: 'table-cell-padded',
+				// 	},
+				// 	items: [{
+				// 		text: 'Enumerate',
+				// 		iconCls: 'enumerate',
+				// 		iconAlign: 'left'
+				// 	},{
+				// 		text: 'Simulate',
+				// 		iconCls: 'simulate',
+				// 		iconAlign: 'left'
+				// 	}]
+				// },
+				{
 					xtype: 'buttongroup',
 					title: 'Image',
-					columns: 1,
+					columns: 2,
 					disabled: false,
 					defaults: {
 						// cellCls: 'table-cell-padded',
@@ -180,6 +191,14 @@ Ext.define('App.usr.nodal.BuildTab', {
 						iconAlign: 'top',
 						scale: 'medium',
 						handler: this.toSVG,
+						scope: this,
+					},{
+						text: 'Print/Popout/PDF',
+						iconCls: 'pdf',
+						rowspan: 2,
+						iconAlign: 'top',
+						scale: 'medium',
+						handler: this.popup,
 						scope: this,
 					}]
 				}]
@@ -195,13 +214,15 @@ Ext.define('App.usr.nodal.BuildTab', {
 			this[cmp.ref] = cmp;
 		}, this);
 		this.mixins.tips.init.apply(this,arguments);
-		this.sequenceMenu.on('click',this.doUpdateMenus,this);
-		this.serializeMenu.on('click',this.doUpdateMenus,this);
+		// this.sequenceMenu.on('click',this.doUpdateMenus,this);
+		// this.serializeMenu.on('click',this.doUpdateMenus,this);
 	},
 	toSVG: function () {
 		this.ribbon.canvas.toSVG()
 	},
-
+	popup: function () {
+		this.ribbon.canvas.popup()
+	},
 	init: function() {
 		this.updateMenus(true);
 	},
@@ -227,8 +248,8 @@ Ext.define('App.usr.nodal.BuildTab', {
 		// }
 	},
 	enableMenus: function() {
-		this.sequenceMenu.enable();
-		this.serializeMenu.enable();			
+		// this.sequenceMenu.enable();
+		// this.serializeMenu.enable();			
 	},
 	openFile: function(ext) {
 		var doc = this.getDoc(), basename = doc.getBasename();
@@ -308,6 +329,22 @@ Ext.define('App.usr.nodal.BuildTab', {
 			Ext.msg('Nodal Build','Build of system <strong>{0}</strong> completed.',this.getDoc().getBasename());
 			this.highlightOutput();
 		},this));
+	},
+	compileDynamlServer: function() {
+		var data = Ext.encode(this.serializeDynaml()),
+			node = this.ribbon.canvas.doc.getDocumentPath(),
+			dynamlNode = App.path.repostfix(node,'dynaml');
+		App.runTask('Nodal',{
+			node: node,
+			data: data,
+			action: 'dynaml',
+		},function() {
+			//this.enableMenus();
+			Ext.msg('Nodal Build','Build of system <strong>{0}</strong> completed.',this.getDoc().getBasename());
+			this.highlightOutput();
+		},this,{
+			openOnEnd: [dynamlNode],
+		});
 	},
 	compileTerse: function() {
 		var data = this.serializeTerse(),

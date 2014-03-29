@@ -231,7 +231,7 @@ Ext.define('App.usr.dil.DilEditor', {
 					labelWidth: 40,
 					width: 100,
 					minValue: 100,
-					maxValue: 400,
+					maxValue: 500,
 					value: 200,
 					increment: 10,
 					listeners: {

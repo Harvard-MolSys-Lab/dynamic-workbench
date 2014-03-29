@@ -8,7 +8,16 @@ Ext.define('App.ui.SaveButton', {
 	iconCls: 'save',
 	saveText : 'Save',
 	createText : 'Create',
+	/**
+	 * @cfg
+	 * True to force the filename to adopt the value returned by #getDefaultExtension
+	 */
 	forceDefaultExtension : true,
+	/**
+	 * @cfg
+	 * Initial filename
+	 */
+	initialValue: '',
 	initComponent : function() {
 
 		this.overwrite = Ext.create('Ext.menu.CheckItem', {
@@ -31,6 +40,7 @@ Ext.define('App.ui.SaveButton', {
 			autoCreateMenu : false,
 			createText : this.createText,
 			afterLeaveDelay: 1000,
+			initialValue: this.initialValue,
 			onCreateButton : Ext.bind(this.doSave, this),
 		});
 		this.saveMenu.fileNameField.on('afterrender', this.afterrender, this)

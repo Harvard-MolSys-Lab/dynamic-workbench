@@ -231,7 +231,7 @@ Ext.define('App.usr.dil.DilEditor', {
 					labelWidth: 40,
 					width: 100,
 					minValue: 100,
-					maxValue: 400,
+					maxValue: 500,
 					value: 200,
 					increment: 10,
 					listeners: {
@@ -560,7 +560,7 @@ Ext.define('App.usr.dil.DilEditor', {
 				// polarity: node.getPolarity(),
 				type: node.type,
 				structure: node.getOrderedSegmentwiseStructure().toDotParen(),
-				strands: _.map(node.getStrands(), function(strand) {
+				strands: _.map(node.getOrderedStrands(), function(strand) {
 					return strand.getQualifiedName()
 				})
 			};

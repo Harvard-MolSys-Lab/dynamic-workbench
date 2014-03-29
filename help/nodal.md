@@ -4,7 +4,7 @@ Designing Nodal Systems
 Overview
 --------
 
-The nodal formalism allows you to express complicated computational or assembly processes in terms of simple behavioral units, called nodes. Many types of nodes exist---these types are called "motifs"; motifs are defined by mapping a structural unit of DNA or RNA (such as a hairpin) to a simple behavioral function. Nodes generally have several _ports_ which correspond to _domains_ of the underlying nucleic acid species. Nodal programs are written by adding instances of motifs (nodes) to a workspace, then connecting the ports together to indicate behavioral relationships. These behavioral relationships in turn imply sequence complementarities. The nodal compiler, called DyNAMiC (the Dynamic Nucleic Acid Mechanism Compiler) propagates those sequence complementarity requirements to generate a list of distinct sequences which must be designed by a sequence designer (such as [DD](web-dd) or [NUPACK](nupack)&nbsp;).
+The nodal formalism allows you to express complicated computational or assembly processes in terms of simple behavioral units, called nodes. Many types of nodes exist---these types are called "motifs," or "node types"; motifs are defined by mapping a structural unit of DNA or RNA (such as a hairpin) to a simple behavioral function. Nodes generally have several _ports_ which correspond to _domains_ of the underlying nucleic acid species. Nodal programs are written by adding instances of motifs (nodes) to a workspace, then connecting the ports together to indicate behavioral relationships. These behavioral relationships in turn imply sequence complementarities. The nodal compiler, called DyNAMiC (the Dynamic Nucleic Acid Mechanism Compiler) propagates those sequence complementarity requirements to generate a list of distinct sequences which must be designed by a sequence designer (such as [DD](web-dd) or [NUPACK](nupack)&nbsp;).
 
 The basic workflow is like this:
 
@@ -14,12 +14,41 @@ The basic workflow is like this:
 -	From the DIL file, DyNAMiC can generate input files for many different sequence designers.
 -	Sequences can be designed using sequence designers
 
-DyNAMiC actually uses a [JSON](http://json.org/)-based input format, called [DyNAML](dynaml). You can enter DyNAML directly using the DyNAML editor application, or you can design custom DyNAML motifs from within workbench. The DyNAML language is described in [this whitepaper](/etc/papers/nodal.pdf).
+DyNAMiC actually uses a [JSON](http://json.org/)-based input format, called
+[DyNAML](dynaml). You can enter DyNAML directly using the DyNAML editor application, or you can design custom DyNAML motifs from within workbench. The DyNAML language is described in [this whitepaper](/etc/papers/nodal.pdf).
+
+How to design a nodal system
+----------------------------
+
+Here's the quick overview:
+
+![Nodal design---quick tutorial](images/nodal-steps.png)
+
+1. Drag-and-drop pre-defined node types from the palette on the left
+2. Select the "Connect" tool to connect ports together, indicating desired bindings (and thus complementarities) between nodes.
+3. Click and drag from the output port (circle) of one node to the input port (triangle) of another.
+4. (Optional) Select some node (by clicking on it), then expand the panel over here to examine the molecule that implements the node.
+5. Click the "Build" tab, then click "Compile" to generate the system. A new window should pop up showing the segment-level view of your compiled system. [Read about what to do next](dil).
+
+Nodal design interface
+----------------------
+
+Here's a bit more detail about different parts of the interface:
+
+![Nodal design interface](images/nodal-interface.png)
+
+1. Ribbon -- perform common actions from here; in particular, use the "Connect" tool to connect ports together, or use the pointer to go back to selecting things. 
+2. Palette -- drag-and-drop pre-built node types from here to add them to the workspace (3). If this doesn't work, it might be because you're still using the "Connect" tool; switch back to the pointer (top-left) to add more node types. If you design a custom motif (node type), it will appear under the "Custom" tab.
+3. Workspace -- this is where you design systems. 
+4. Build status -- the Nodal compiler automatically compiles your system in real-time as you edit it; this icon will show you if you have any errors. If there's an error, the affected node(s) will be highlighted in red, and you can mouse over this button to see the message.
+5. Inspector -- select something, then go here to see its properties. For instance, you can select a node and look at its structural implementation.
+
+Read on for more details about different things you might want to do.
 
 Adding Nodes
 -------------
 
-You can add nodes to the system by draging and droping existing motifs from the "Standard" panel in the lower-left, onto the workspace. You can also define new motifs (see [below](#motif-editor)), which will appear in the "Custom" tab of the same panel.
+You can add nodes to the system by draging and droping existing motifs (node types) from the "Standard" panel in the lower-left, onto the workspace. You can also define new motifs (see [below](#motif-editor)), which will appear in the "Custom" tab of the same panel.
 
 Defining Motifs
 ---------------

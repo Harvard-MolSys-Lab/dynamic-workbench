@@ -81,6 +81,14 @@ app.configure(function() {
 			layout : false
 		});
 	});
+
+	app.get('/popup.html', function (req, res) {
+		res.render('popup.jade', {
+			manifest: require('./server/manifest'),
+			env: app.set('env'),
+			layout : false
+		});
+	})
 	
 	// configure file manager
 	fm.configure(app, express);

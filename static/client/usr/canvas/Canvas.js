@@ -267,7 +267,19 @@ Ext.define('App.usr.canvas.Canvas', {
 	zoomWorkspace: function(s,v) {
 		this.workspace.zoomTo(v);
 	},
-
+	popup: function () {
+		var text = this.bodyPanel.body.dom.innerHTML
+		$.get('/popup.html',function(html) {
+			html = html.replace("$body", text)
+			var win = window.open('',Ext.util.Format.stripTags(this.title),'height=400,width=400')
+			win.document.write(html)
+			win.document.close()
+			// $(win).ready(function() {
+			// 	win.document.body.innerHTML = text
+			// 	if (win.focus) win.focus()
+			// })
+		})
+	},
 	toSVG: function (btn) {
 		this.svgWindow = Ext.create('App.ui.SVGEditorWindow',{
 			// stylesUrl: 'styles/strand-preview.css',

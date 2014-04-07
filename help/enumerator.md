@@ -5,6 +5,8 @@ Domain-level reaction enumeration
 
 Once reactions have been enumerated, the enumerator can also generate a "condensed" network of reactions; this network groups all "resting states" (individual resting complexes or cycles of resting complexes connected by fast reactions), and shows only reactions between these resting states. Such a network helps visualize more complex reaction networks by occluding some detail.
 
+The reaction enumerator was originally developed by Karthik Sarma, Brian Wolfe, and Erik Winfree at Caltech, and was also based on algorithms developed by Seung Woo Shin; it has been debugged and extended by Casey Grun at Harvard.
+
 [^domains-vs-segments]: In the [Nodal](nodal) compiler and formalism, a distinction is drawn between *segments* (continuous regions of complementarity), and *domains* (groups of segments with a particular behavioral function, such as input or output). In this sense, the reaction enumerator operates on *segments*; here we use the terms *domain* and *segment* interchangeably to refer to a continuous region of complementary bases.
 
 ## Preparing input for the enumerator

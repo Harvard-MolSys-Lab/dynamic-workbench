@@ -3,6 +3,10 @@ SOURCES_MD=$(addsuffix .md,$(SOURCES))
 HTML_OUTS=$(addprefix html/,$(SOURCES))
 
 .PHONY: html
+.PHONY: all
+
+all : html manual.pdf
+	
 
 html: $(SOURCES_MD)
 	mkdir -p ./html

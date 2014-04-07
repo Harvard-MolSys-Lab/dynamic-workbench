@@ -81,6 +81,11 @@ Ext.define('App.usr.enum.Viewer', {
 				text: 'Export',
 				iconCls: 'document-export',
 				menu: [{
+					text: 'Print / Pop-out / PDF',
+					iconCls: 'pdf',
+					handler: this.popup,
+					scope: this
+				},{
 					text: 'To SVG',
 					iconCls: 'svg',
 					handler: this.toSVG,
@@ -145,6 +150,7 @@ Ext.define('App.usr.enum.Viewer', {
 	},
 	destroy: function () {
 		this.legendWindow.destroy();
+		_.each(this.complexWindows,function(w) { w.destroy() })
 		this.callParent(arguments);
 	},
 
@@ -329,7 +335,13 @@ Ext.define('App.usr.enum.Viewer', {
 		}
 
 		function radius(d) {
-			return d._type == 'complex' ? d.strands.length * 50 : dr
+			var length = _.reduce(d.strands,
+					function(x,s) { return x+_.reduce(s.domains, 
+						function(y,d) { return y+_.reduce(d, 
+							function(z, r) { return x + r.sequence.length },0) },0) },0)
+			// return d._type == 'complex' ? d.strands.length * 50 : dr
+			return d._type == 'complex' ? 
+				Math.log(length) * 100 + 50 : dr
 		}
 
 		/* -------------------------------------------------------------------
@@ -1136,6 +1148,7 @@ Ext.define('App.usr.enum.Viewer', {
 				autoHide : false,
 				closable : true,
 				closeAction : 'hide',
+				maximizable: true,
 				width : 300,
 				height : 200,
 				draggable : true,
@@ -1144,6 +1157,7 @@ Ext.define('App.usr.enum.Viewer', {
 				autoRender : true,
 				border: false, bodyBorder: false
 			});
+			this.complexWindows[d.name].on('close',this.complexPanels[d.name].onHide,this.complexPanels[d.name])
 			this.complexWindows[d.name].show();
 			this.complexPanels[d.name].setTitle(names(strands))
 			this.complexPanels[d.name].setValue(data);
@@ -1206,6 +1220,19 @@ Ext.define('App.usr.enum.Viewer', {
 		this.svgWindow.show()
 		this.svgWindow.setValue(this.getCanvasMarkup())
 	},
+	popup: function () {
+		var text = this.body.dom.innerHTML
+		$.get('/popup.html',function(html) {
+			html = html.replace("$body", text)
+			var win = window.open('',Ext.util.Format.stripTags(this.title),'height=400,width=400')
+			win.document.write(html)
+			win.document.close()
+			// $(win).ready(function() {
+			// 	win.document.body.innerHTML = text
+			// 	if (win.focus) win.focus()
+			// })
+		})
+	}
 });
 
 Ext.define('App.usr.enum.LegendPanel',{
@@ -1262,7 +1289,6 @@ Ext.define('App.usr.enum.LegendPanel',{
 	// updateVis: function() {
 	// 	this.path.attr("transform", "translate(" + (this.getWidth() / 2) + "," + (this.getHeight() / 2) + ")")
 	// },
-
 
 })
 
@@ -1446,4 +1472,5 @@ Ext.define('App.usr.enum.ReactionViewer', {
 		}
 		return this.strandColors;	
 	},
+	
 });

@@ -418,14 +418,33 @@ def output_condensed_graph(enumerator, filename):
 	
 
 def output_sbml(enumerator,filename, output_condensed = False):
+	# default initial concentration of all species is 100 nM
+	initial_concentration = 1e-7 
+
 	import xml.dom.minidom
 	header = '<?xml version="1.0" encoding="UTF-8"?>'
 	out = [header,
 		'<sbml level="2" version="3" xmlns="http://www.sbml.org/sbml/level2/version3">',
 		'<model name="%s">' % filename,
-		'<listOfCompartments>',
-		'<compartment id="reaction" />',
-		'</listOfCompartments>',
+		'''
+		<listOfUnitDefinitions>
+            <unitDefinition id="per_second">
+                <listOfUnits>
+                    <unit kind="second" exponent="-1"/>
+                </listOfUnits>
+            </unitDefinition>
+            <unitDefinition id="litre_per_mole_per_second">
+                <listOfUnits>
+                    <unit kind="mole"   exponent="-1"/>
+                    <unit kind="litre"  exponent="1"/>
+                    <unit kind="second" exponent="-1"/>
+                </listOfUnits>
+            </unitDefinition>
+        </listOfUnitDefinitions>
+        <listOfCompartments>
+			<compartment id="reaction" size="1e-3" />
+		</listOfCompartments>
+        ''',
 		'<listOfSpecies>']
 	
 	if(output_condensed):
@@ -439,19 +458,47 @@ def output_sbml(enumerator,filename, output_condensed = False):
 	def id(species):
 		return "s_"+species.name
 
-	for complex in complexes:
-		out.append('<species compartment="reaction" id="%(id)s" name="%(name)s"/>' % {"name": complex.name, "id": id(complex)})
-	out.extend(['</listOfSpecies>','<listOfReactions>']);
+	# build elements for each species
+	if(output_condensed):
+		for resting_state in complexes:
+			is_initial = any(c in enumerator.initial_complexes for c in resting_state.complexes)
+			out.append('<species compartment="reaction" id="%(id)s" name="%(name)s" initialAmount="%(initial).10f"/>' \
+				% {"name": resting_state.name, "id": id(resting_state), "initial": (initial_concentration if is_initial else 0.) })
+	else:
+		for complex in complexes:
+			is_initial = (complex in enumerator.initial_complexes)
+			out.append('<species compartment="reaction" id="%(id)s" name="%(name)s" initialAmount="%(initial).10f"/>' \
+				% {"name": complex.name, "id": id(complex), "initial": (initial_concentration if is_initial else 0.) })
+	
+	out += ['</listOfSpecies>','<listOfReactions>']
+
+	# list reactions
 	for (i, reaction) in enumerate(reactions):
-		out.extend(['<reaction id="r_%d">' % i,
-                '<listOfReactants>'])
-		for species in reaction.reactants:
-			out.append('<speciesReference species="%s"/>' % id(species))
-		out.extend(['</listOfReactants>',
-                '<listOfProducts>'])
-		for species in reaction.products:
-			out.append('<speciesReference species="%s"/>' % id(species))	
-		out.extend(['</listOfProducts>','</reaction>'])
+		out += ['<reaction id="r_%d" reversible="false">' % i,
+                '<listOfReactants>'] + \
+					['<speciesReference species="%s"/>' % id(species) for species in reaction.reactants] + \
+				['</listOfReactants>',
+                '<listOfProducts>'] + \
+					['<speciesReference species="%s"/>' % id(species) for species in reaction.products]	+ \
+				['</listOfProducts>']
+
+		# unimolecular rate constants have units 1/s, bimolecular rate 
+		# constants have units 1/M/s
+		units = 'per_second' if reaction.arity[0] == 1 else 'litre_per_mole_per_second'
+
+		out += ['<kineticLaw>',
+			'<math xmlns="http://www.w3.org/1998/Math/MathML">',
+				'<apply>',
+					'<times />',
+					'<ci>k</ci>'] + \
+					['<ci>'+id(s)+'</ci>' for s in reaction.reactants] + \
+				['</apply>',
+			'</math>',
+			'<listOfParameters>',
+	            '<parameter id="k"  value="%.10f" units="%s"/>' % (reaction.rate(), units), 
+	        '</listOfParameters>',
+		'</kineticLaw>',
+		'</reaction>']
 
 	out.extend(['</listOfReactions>','</model>','</sbml>']);
 

@@ -67,33 +67,33 @@ class OutputTests(unittest.TestCase):
 	def testOutputLegacy3(self):
 		output_legacy(self.simple2_enumerator, 'test_files/test_output/test_output_Legacy3.out', output_condensed=False)
 	
-	def testOutputFullGraph(self):
-		output_full_graph(self.SLC_enumerator_reduced, 'test_files/test_output/test_output_FullGraph.out')
+	# def testOutputFullGraph(self):
+	# 	output_full_graph(self.SLC_enumerator_reduced, 'test_files/test_output/test_output_FullGraph.out')
 	
-	def testOutputFullGraph2(self):
-		output_full_graph(self.three_arm_enumerator_reduced, 'test_files/test_output/test_output_FullGraph2.out')
+	# def testOutputFullGraph2(self):
+	# 	output_full_graph(self.three_arm_enumerator_reduced, 'test_files/test_output/test_output_FullGraph2.out')
 	
-	def testOutputFullGraph3(self):
-		output_full_graph(self.simple2_enumerator, 'test_files/test_output/test_output_FullGraph3.out')
+	# def testOutputFullGraph3(self):
+	# 	output_full_graph(self.simple2_enumerator, 'test_files/test_output/test_output_FullGraph3.out')
 
-	def testOutputFullGraph4(self):
-		output_full_graph(self.SLC_enumerator, 'test_files/test_output/test_output_FullGraph4.out')
+	# def testOutputFullGraph4(self):
+	# 	output_full_graph(self.SLC_enumerator, 'test_files/test_output/test_output_FullGraph4.out')
 		
-	def testOutputCondensedGraph(self):
-		output_condensed_graph(self.SLC_enumerator_reduced, 'test_files/test_output/test_output_CondensedGraph.out')
+	# def testOutputCondensedGraph(self):
+	# 	output_condensed_graph(self.SLC_enumerator_reduced, 'test_files/test_output/test_output_CondensedGraph.out')
 	
-	def testOutputCondensedGraph2(self):
-		output_condensed_graph(self.three_arm_enumerator_reduced, 'test_files/test_output/test_output_CondensedGraph2.out')
+	# def testOutputCondensedGraph2(self):
+	# 	output_condensed_graph(self.three_arm_enumerator_reduced, 'test_files/test_output/test_output_CondensedGraph2.out')
 	
-	def testOutputCondensedGraph3(self):
-		output_condensed_graph(self.simple2_enumerator, 'test_files/test_output/test_output_CondensedGraph3.out')
+	# def testOutputCondensedGraph3(self):
+	# 	output_condensed_graph(self.simple2_enumerator, 'test_files/test_output/test_output_CondensedGraph3.out')
 	
-	def testOutputCondensedGraph4(self):
-		output_condensed_graph(self.SLC_enumerator, 'test_files/test_output/test_output_CondensedGraph4.out')
+	# def testOutputCondensedGraph4(self):
+	# 	output_condensed_graph(self.SLC_enumerator, 'test_files/test_output/test_output_CondensedGraph4.out')
 		
-	def testOutputGraph(self):
-		output_graph(self.simple2_enumerator,'test_files/test_output/test_output_Graph.out',output_condensed=True)
-		output_graph(self.simple2_enumerator,'test_files/test_output/test_output_GraphCondensed.out',output_condensed=False)
+	# def testOutputGraph(self):
+	# 	output_graph(self.simple2_enumerator,'test_files/test_output/test_output_Graph.out',output_condensed=True)
+	# 	output_graph(self.simple2_enumerator,'test_files/test_output/test_output_GraphCondensed.out',output_condensed=False)
 
 
 	# PIL output
@@ -225,7 +225,6 @@ class OutputTests(unittest.TestCase):
 		assert enumerator == self.SLC_enumerator_reduced
 
 	def testOutputSBML(self):
-
 		output_sbml(self.SLC_enumerator_reduced, 'test_files/test_output/test_output_SBML.sbml')
 		
 	def testOutputSBML2(self):

@@ -647,6 +647,7 @@ Ext.define('App.usr.dil.DilEditor', {
 		});
 	},
 	getStrandSequences: function() {
+		this.strandStore.updateStrandSequences();
 		return this.strandStore.getSequences();
 	},
 	buildThermMFE: function () {

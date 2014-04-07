@@ -15,7 +15,7 @@ The basic workflow is like this:
 -	Sequences can be designed using sequence designers
 
 DyNAMiC actually uses a [JSON](http://json.org/)-based input format, called
-[DyNAML](dynaml). You can enter DyNAML directly using the DyNAML editor application, or you can design custom DyNAML motifs from within workbench. The DyNAML language is described in [this whitepaper](/etc/papers/nodal.pdf).
+[DyNAML](dynaml). You can enter DyNAML directly using the DyNAML editor application, or you can design custom DyNAML motifs from within workbench. The DyNAML language, as well as the Nodal compiler, is described in [this whitepaper](/etc/papers/nodal.pdf).
 
 How to design a nodal system
 ----------------------------

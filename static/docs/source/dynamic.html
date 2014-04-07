@@ -364,6 +364,25 @@ App.dynamic = module.exports = (function(_,DNA) {
 			}
 			return concatamer;
 		},
+		getOrderedStructure: function () {
+			var r = Structure.join(_.map(this.getStrands(), function(strand) {
+				var s = strand.Structure();
+				return (strand.getPolarity() == -1) ? s.reverse() : s;
+			}));
+			return (this.getPolarity() == -1) ? r.reverse() : r;
+		},
+		getSegmentwiseStructure: function() {
+			return Structure.join(_.map(this.getStrands(),function(strand) {
+				return strand.getSegmentwiseStructure();
+			}));
+		},
+		getOrderedSegmentwiseStructure: function() {
+			var r = Structure.join(_.map(this.getStrands(), function(strand) {
+				var s = strand.getSegmentwiseStructure();
+				return (strand.getPolarity() == -1) ? s.reverse() : s;
+			}));
+			return (this.getPolarity() == -1) ? r.reverse() : r;
+		},
 <span id='App-dynamic-Motif-method-getAnnotatedStructure'>		/**
 </span>		 * Returns object like:
 		 * 	[{strand: {Strand}, structure:strand.getAnnotatedStructure()},...]
@@ -374,16 +393,6 @@ App.dynamic = module.exports = (function(_,DNA) {
 			});
 			s.dotParen = this.getStructure().toDotParen();
 			return s;
-		},
-		getSegmentwiseStructure: function() {
-			return Structure.join(_.map(this.getStrands(),function(strand) {
-				return strand.getSegmentwiseStructure();
-			}));
-		},
-		getOrderedSegmentLengths: function() {
-			return _.comprehend(this.getOrderedStrands(),function(strand) {
-				return strand.getOrderedSegmentLengths();
-			});
 		},
 
 <span id='App-dynamic-Motif-method-instantiate'>		/**
@@ -416,6 +425,11 @@ App.dynamic = module.exports = (function(_,DNA) {
 			return _.clone(_.comprehend(this.getOrderedStrands(),function(strand) {
 				return strand.getOrderedSegments();
 			}))
+		},
+		getOrderedSegmentLengths: function() {
+			return _.comprehend(this.getOrderedStrands(),function(strand) {
+				return strand.getOrderedSegmentLengths();
+			});
 		},
 <span id='App-dynamic-Motif-method-getDomains'>		/**
 </span>		 * Gets all {@link App.dynamic.Domain domains} associated with this motif/node
@@ -1063,6 +1077,14 @@ App.dynamic = module.exports = (function(_,DNA) {
 </span>		 * @property {Number} polarity
 		 */
 		this.polarity = DNA.parsePolarity(this.polarity);
+
+<span id='App-dynamic-Domain-cfg-expose'>		/**
+</span>		 * @cfg {Object} expose
+		 * @cfg {String} expose.name
+		 * @cfg {String} expose.role
+		 *
+		 * Exposes this domain as a port with `name` and `role` in an outer motif
+		 */
 	}
 
 
@@ -2036,43 +2058,74 @@ App.dynamic = module.exports = (function(_,DNA) {
 <span id='App-dynamic-Library-method-toNupackOutput'>		/**
 </span>		 * Formats the library as (NUPACK)[http://www.nupack.org/] multi-objective design script
 		 * @param {Object} options
-		 * @param {Boolean} [options.multisubjective = true] True to surround domains with comment-backtick blocks for Multisubjective
+		 * @param {Boolean} [options.multisubjective = false] True to export data for Multisubjective; note that this makes output no longer a valid NUPACK file
 		 * @param {Boolean} [options.forceDU = true] True to convert all structures to DU+
 		 * @param {Boolean} [options.segmentsInStructure = false] True to export the `(structure_name).seq =` followed by lists of segments, rather than lists of strands 
 		 */
 		toNupackOutput: function(options) {
-			options = options || {multisubjective: true,forceDU: true,segmentsInStructure: false};
+			options = options || { multisubjective: false, forceDU: true, segmentsInStructure: false };
 			
 			var library = this;
-
 			var out = [];
-			
-			// TODO: Add custom parameters
-			// material = dna
-			// temperature[C] = 23.0 # optional units: C (default) or K
-			// trials = 3
-			// sodium[M] = 1.0       # optional units: M (default), mM, uM, nM, pM
-			// dangles = some
-			
-			
-			// print domains (segments)
-			// e.g.: domain x = N7
-			
+
+			// helper functions
 			// stupid NUPACK doesn't allow numerical domain identifiers
 			function nupackifyIdentity(id) {
 				return 'd'+id;
 			}
+			function structureName(nodeName) {
+				return nodeName; // + '_structure';
+			}
+
 			
-			// Surround with backtics for Multisubjective
+			// add NUPACK metadata
+			// 		material = dna
+			// 		temperature[C] = 23.0 # optional units: C (default) or K
+			// 		trials = 3
+			// 		sodium[M] = 1.0       # optional units: M (default), mM, uM, nM, pM
+			// 		dangles = some
+			
+			out.push([&quot;material = dna&quot;, 
+				&quot;temperature[C] = 23.0&quot;, 
+				&quot;trials = 3&quot;, 
+				&quot;sodium[M] = 1.0&quot;, 
+				&quot;dangles = some&quot;].join('\n'));
+
+
+			// print multisubjective-specific metadata and structure info
+			if(options.multisubjective) {
+
+				// add Multisubjective metadata
+				out = out.concat([&quot;!threshold = .6&quot;, &quot;!toethreshold = .6&quot;, &quot;!intermolecular = on&quot;, &quot;!immutable = auto&quot;]);
+				
+				// print Multisubjective structure specifications
+				// 		e.g.: !hairpin A1: -
+				// 		e.g.: !static A2
+				out.push(_.map(library.nodes,function(node) {
+					if(node.type == 'hairpin') {
+						return ['!hairpin',structureName(node.getName()),':',(node.getPolarity() &lt; 0 ? '-' : '+')].join(' ');
+					} else if(node.type=='cooperative' || node.type=='coop') {
+						var len = _.max(_.map(node.getStrands(),function(strand) { return strand.getLength() }))
+						return ['!coop',structureName(node.getName()),'=',len].join(' ');
+					} else {
+						return ['!static',structureName(node.getName())].join(' ');
+					}
+				}).join('\n'));
+			}
+
+			// print domains (segments)
+			// 		e.g.: domain x = N7
+			
+			// surround with backtics for Multisubjective
 			if(!!options.multisubjective) out.push('#`');
 			out.push(_.map(library.segments,function(segment) {
 				return ['domain',nupackifyIdentity(segment.identity),'=',segment.getSequence()].join(' ');
 			}).join('\n'));
 			if(!!options.multisubjective) out.push('#`');
 
+
 			// print strands (&quot;optional?&quot;)
-			// e.g.: strand J = gate_toehold1* gate_duplex1* gate_toehold2
-			
+			// 		e.g.: strand J = gate_toehold1* gate_duplex1* gate_toehold2
 			out.push(_.map(library.strands,function(strand) {
 				var segments = strand.getOrderedSegments();
 				
@@ -2081,48 +2134,36 @@ App.dynamic = module.exports = (function(_,DNA) {
 				})).join(' ');
 			}).join('\n'));
 			
+
 			// print structures
-			// e.g.: structure gate_full = D30(+D30(U6+))
-			// e.g.: structure haripin = Ux Hx Ux Ux
-			
+			// 		e.g.: structure gate_full = D30(+D30(U6+))
+			// 		e.g.: structure haripin = Ux Hx Ux Ux
 			out.push(_.map(library.nodes,function(node) {
 				
-				// var structs = _.map(node.getStrands(),function(strand) { 
-					// var struct = strand.getStructure();
-					// if(strand.getPolarity() == -1) {
-						// struct = struct.reverse();
-					// }
-					// return struct;
-				// });
 				
 				var concatamer = node.getStructure(), //Structure.join(structs), 
 				concatamer_struct;
 				
 				// Concatamer is automatically reversed by node if polarity == -1
-				// if(node.getPolarity() == -1) {
-					// concatamer = concatamer.reverse();
-				// }
 				if(!!options.multisubjective || !!options.forceDU) {
 					concatamer_struct = concatamer.toDUPlus();
 				} else {
 					concatamer_struct = concatamer.toDotParen();
 				}
-			
 				
-				
-				return ['structure',node.getName()+'_structure','=',concatamer_struct].join(' ');
+				return ['structure',structureName(node.getName()),'=',concatamer_struct].join(' ');
 			}).join('\n'));
 			
+
 			// thread sequences onto structures 
-			// e.g.: gate_full.seq = E G F
-			
+			// 		e.g.: gate_full.seq = E G F
 			if(!options.multisubjective) {
 				
 				out.push(_.map(library.nodes,function(node) {
 					var names = _.map(node.getStrands(),function(strand) {
 						return strand.getQualifiedName();
 					});
-					return [node.getName()+'_structure.seq','='].concat(names).join(' ');
+					return [structureName(node.getName())+'.seq','='].concat(names).join(' ');
 				}).join('\n'));
 			
 			} else {
@@ -2136,7 +2177,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 							return strand.getQualifiedName();
 						}
 					});
-					return [node.getName()+'_structure.seq','='].concat(names).join(' ');
+					return [structureName(node.getName())+'.seq','='].concat(names).join(' ');
 				}).join('\n'));
 				
 			}
@@ -2145,44 +2186,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 			
 		},
 		toMSOutput: function() {
-			var library = this;
-
-			var out = [];
-			
-			// print lengths (segments)
-			// e.g.: length a = N7Y6N3
-			// Y specifies an immutable base
-			
-			function nupackifyIdentity(id) {
-				return 'd'+id;
-			}
-			
-			function structureName(nodeName) {
-				return nodeName + '_structure';
-			}
-			
-			out.push(_.map(library.segments,function(segment) {
-				return ['length',nupackifyIdentity(segment.identity),'=','N'+segment.getLength()].join(' ');
-			}).join('\n'));
-			
-			
-			// print structures
-			// e.g.: hairpin A1: -
-			// e.g.: static A2
-			
-			out.push(_.map(library.nodes,function(node) {
-				if(node.type == 'hairpin') {
-					return ['hairpin',structureName(node.getName()),':',(node.getPolarity() &lt; 0 ? '-' : '+')].join(' ');
-				} else if(node.type=='cooperative' || node.type=='coop') {
-					var len = _.max(_.map(node.getStrands(),function(strand) { return strand.getLength() }))
-					return ['coop',structureName(node.getName()),'=',len].join(' ');
-				} else {
-					return ['static',structureName(node.getName())].join(' ');
-				}
-			}).join('\n'));
-			
-			
-			return out.join('\n\n');
+			return this.toNupackOutput({ multisubjective: true })
 		},
 		toPilOutput: function() {
 			
@@ -2916,9 +2920,10 @@ App.dynamic = module.exports = (function(_,DNA) {
 									throw new DynamlError({
 									type : 'segment length mismatch',
 										message : _.template('Complementarity statement (&lt;%= sourceNode %&gt;.&lt;%= sourcePort %&gt; * &lt;%= targetNode %&gt;.&lt;%= targetPort %&gt;) '+
-										'in node &lt;%= sourceNode %&gt; implies segment &lt;%= targetNode %&gt;.&lt;%= targetPort %&gt;.&lt;%= targetSegment %&gt; (&lt;%= targetSegmentIndex %&gt;/&lt;%= targetSegmentCount %&gt;)' + //
-										'should have same length as &lt;%= sourceNode %&gt;.&lt;%= sourcePort %&gt;.&lt;%= sourceSegment %&gt; (&lt;%= sourceSegmentIndex %&gt;/&lt;%= sourceSegmentCount %&gt;): '+
-										'&lt;%= expected %&gt; segments, but instead it has &lt;%= encountered %&gt; segments.', {
+										'in node &lt;%= sourceNode %&gt; implies: '+
+										'segment &lt;%= targetNode %&gt;.&lt;%= targetPort %&gt;.&lt;%= targetSegment %&gt; (#&lt;%= targetSegmentIndex %&gt;/&lt;%= targetSegmentCount %&gt;) ' + //
+										'should have same length as &lt;%= sourceNode %&gt;.&lt;%= sourcePort %&gt;.&lt;%= sourceSegment %&gt; (#&lt;%= sourceSegmentIndex %&gt;/&lt;%= sourceSegmentCount %&gt;): '+
+										'&lt;%= expected %&gt; nt, but instead it has &lt;%= encountered %&gt; nt.', {
 											sourceNode : complement.sourceNode.getName(),
 											sourcePort : complement.sourcePort.getName(),
 											sourceSegment : sourceSegment.getName(),
@@ -3892,7 +3897,7 @@ App.dynamic = module.exports = (function(_,DNA) {
 					domains: 'A[a:t v:c b w:c]i+ B[x:c c y:c d]o- C[z:c e w*:c b* v*:c]o-'
 				},
 			],
-			
+			// ------------------------------------------------------------------------------------------
 			// Version 1
 			[{
 				&quot;name&quot;: &quot;m0&quot;,

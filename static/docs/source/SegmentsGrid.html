@@ -38,17 +38,27 @@ Ext.define('App.usr.dil.SegmentsGrid',{
 
 		Ext.apply(this,{
 			tbar: [Ext.create('App.ui.AddDomainButton', {
+				lengthLabel: 'New segment length:',
+				itemLabel: 'Add Segment',
 				addDomain: Ext.bind(this.createSegment, this),
-				extraMenuItems: [{
+				extraMenuItems: ['-',{
 					text: 'Add many segments...',
+					iconCls: 'plus',
 					handler: this.showAddSegmentsWindow,
 					scope: this,
 				}]
 			}),{
+				xtype: 'splitbutton',
 				text: 'Edit',
 				iconCls: 'pencil',
 				handler: this.editSegment,
 				scope: this,
+				menu: [{
+					text: 'Edit all segments...',
+					iconCls: 'pencil',
+					handler: this.showEditSegmentsWindow,
+					scope: this,
+				}]
 			},{
 				text: 'Delete',
 				iconCls: 'delete',
@@ -77,7 +87,7 @@ Ext.define('App.usr.dil.SegmentsGrid',{
 				dataIndex: 'identity',
 				flex: 1,
 				editor: {
-					xtype:'textfield',
+					xtype:'textarea',
 					selectOnFocus:  true,
 				}
 			}, {
@@ -119,6 +129,24 @@ Ext.define('App.usr.dil.SegmentsGrid',{
 		}
 		this.addSegmentsWindow.show();
 	},
+<span id='App-usr-dil-SegmentsGrid-method-showEditSegmentsWindow'>	showEditSegmentsWindow: function() {
+</span>		var me = this;
+		if(!this.addSegmentsWindow) {
+<span id='App-usr-dil-SegmentsGrid-property-addSegmentsWindow'>			/**
+</span>			 * @property {App.ui.SequenceWindow} addSegmentsWindow 
+			 * A window for adding many segments. Calls #updateSegments upon confirmation.
+			 */
+			this.editSegmentsWindow = Ext.create('App.ui.SequenceWindow',{
+				handler: function(domains) {
+					me.updateSegments(domains);
+				},
+				title: 'Update segments in system'
+			});
+		}
+		var segments = this.store.getSegmentMap();
+		this.editSegmentsWindow.show();
+		this.editSegmentsWindow.setValue(DNA.printSequences(segments,':'));
+	},
 	
 <span id='App-usr-dil-SegmentsGrid-method-addSegment'>	/**
 </span>	 * Adds a segment with the passed {@link DNA#parseIdentity identity} and sequence to the component
@@ -126,11 +154,7 @@ Ext.define('App.usr.dil.SegmentsGrid',{
 	 * @param {String} sequence Sequence of bases
 	 */
 	addSegment: function(identity,sequence) {
-		return _.first(this.segmentStore.add({
-			identity: identity,
-			sequence: sequence,
-			color: this.segmentStore.getColor(identity),
-		}));
+		return this.segmentStore.addSegment(identity,sequence)
 	},
 <span id='App-usr-dil-SegmentsGrid-method-addSegments'>	/**
 </span>	 * Adds several segments to the store.
@@ -141,14 +165,7 @@ Ext.define('App.usr.dil.SegmentsGrid',{
 	 * @return {App.usr.dil.Segment[]} Array of segment records
 	 */
 	addSegments: function(map) {
-		var me = this;
-		return this.segmentStore.add(_.map(map,function(sequence,identity) {
-			return {
-				identity: identity,
-				sequence: sequence,
-				color: me.segmentStore.getColor(identity),
-			}
-		}));
+		return this.segmentStore.addSegments(map);
 	},
 <span id='App-usr-dil-SegmentsGrid-method-updateSegments'>	/**
 </span>	 * Updates several segments to the store.
@@ -160,20 +177,7 @@ Ext.define('App.usr.dil.SegmentsGrid',{
 	 * @return {App.usr.dil.Segment[]} Array of modified segment records
 	 */
 	updateSegments: function(map) {
-		var me = this;
-		return _.map(map,function(sequence,identity) {
-			var seg = me.segmentStore.findRecord('identity',identity);
-			if(seg) {
-				seg.set('sequence',sequence);
-				return seg;
-			} else {
-				return _.first(me.segmentStore.add({
-					identity: identity,
-					sequence: sequence,
-					color: me.segmentStore.getColor(identity),
-				}));
-			}
-		});
+		return this.segmentStore.updateSegments(map);
 	},
 <span id='App-usr-dil-SegmentsGrid-method-createSegment'>	/**
 </span>	 * Creates a segment of the given length, entirely of `N`'s

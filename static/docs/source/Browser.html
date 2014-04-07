@@ -34,7 +34,7 @@ Ext.define('App.usr.browser.Browser', {
 		 * URL to open in this tab
 		 */
 		Ext.apply(this, {
-			html: '&lt;iframe src=&quot;'+this.url+'&quot; style=&quot;width:100%;height:100%;border:none;&quot;&gt;&lt;/iframe&gt;'
+			html: '&lt;iframe src=&quot;'+this.url+'&quot; style=&quot;width:100%;height:100%;border:none;position:absolute;&quot; height=&quot;100%&quot;&gt;&lt;/iframe&gt;'
 		});
 		this.callParent(arguments);
 	}

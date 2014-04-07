@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='App-usr-dil-HighlightManager'>/**
+</span> * Handles synchornizing highlighting among a {@link App.usr.dil.SegmentsGrid}, {@link App.usr.dil.StrandsGrid}, and {@link App.usr.dil.StrandPreviewGrid}.
+ */
+Ext.define('App.usr.dil.HighlightManager',{
+	mixins: {
+        observable: 'Ext.util.Observable'
+    },
+<span id='App-usr-dil-HighlightManager-method-constructor'>	constructor: function(config) {
+</span>		this.mixins.observable.constructor.apply(this, arguments);
+		Ext.apply(this,config);
+
+		// Highlight items in the #strandsGrid and #complexView when they're moused over in the segments grid
+		this.segmentsGrid.on('itemmouseenter', function(grid, rec, el, e) {
+			this.fireEvent('updateSegmentHighlight', rec.get('identity'), 1);
+		}, this);
+		this.segmentsGrid.on('itemmouseleave', function(grid, rec, el, e) {
+			this.fireEvent('updateSegmentHighlight', null);
+		}, this);
+		this.on('updateSegmentHighlight', this.updateSegmentHighlight, this, {
+			buffer: 10,
+		});
+
+		
+	},
+
+<span id='App-usr-dil-HighlightManager-method-afterrender'>	/**
+</span>	 * Highlight items in #segmentsGrid and #complexView when they're moused over in the strands grid
+	 * @return {[type]} [description]
+	 */
+	afterrender: function() {
+		this.strandsGrid.getEl().on('mouseover', function(e, el) {
+			var identity = el.getAttribute('data-segment-identity'),
+				polarity = el.getAttribute('data-segment-polarity');
+			this.fireEvent('updateSegmentHighlight', identity, polarity);
+		}, this, {
+			delegate: 'span.sequence-segment'
+		});
+	},
+
+<span id='App-usr-dil-HighlightManager-method-updateSegmentHighlight'>	updateSegmentHighlight: function(identity, polarity) {
+</span>		if(identity) {
+			this.highlightSegment(identity, polarity);
+		} else {
+			this.unhighlightSegment();
+		}
+	},
+<span id='App-usr-dil-HighlightManager-method-highlightSegment'>	/**
+</span>	 * Highlights the passed segment with the given polarity in the #complexView and #strandsGrid
+	 * @param  {String} segment Segment identity
+	 * @param  {Number} polarity Segment polarity (-1 or 1)
+	 */
+	highlightSegment: function(segment, polarity) {
+		this.complexView.preview.fade();
+		this.complexView.preview.highlight({
+			'segment_identity': segment,
+			'segment_polarity': polarity
+		}, 'node-highlight');
+		this.complexView.preview.highlight({
+			'segment_identity': segment,
+			'segment_polarity': -1 * polarity
+		}, 'node-highlight-complement');
+
+		this.strandsGrid.unhighlightSegment();
+		this.strandsGrid.highlightSegment(segment, polarity);
+	},
+<span id='App-usr-dil-HighlightManager-method-unhighlightSegment'>	/**
+</span>	 * Unhighlights the passed segment with the given polarity in the #complexView and #strandsGrid
+	 * @param  {String} segment Segment identity
+	 * @param  {Number} polarity Segment polarity (-1 or 1)
+	 */
+	unhighlightSegment: function(segment, polarity) {
+		this.complexView.preview.unfade();
+		this.complexView.preview.unhighlight(null, 'node-highlight');
+		this.complexView.preview.unhighlight(null, 'node-highlight-complement');
+
+		this.strandsGrid.unhighlightSegment();
+	},
+});</pre>
+</body>
+</html>

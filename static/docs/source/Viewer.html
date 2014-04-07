@@ -26,50 +26,187 @@ Ext.define('App.usr.enum.Viewer', {
 	},
 <span id='App-usr-enum-Viewer-property-editorType'>	editorType : 'Enumerator',
 </span><span id='App-usr-enum-Viewer-cfg-autoRender'>	autoRender : false,
-</span>
-<span id='App-usr-enum-Viewer-property-fontSize'>	fontSize: 1,
+</span><span id='App-usr-enum-Viewer-property-iconCls'>	iconCls: 'enum-icon',
+</span><span id='App-usr-enum-Viewer-property-fontSize'>	fontSize: 1,
 </span><span id='App-usr-enum-Viewer-property-linkWidth'>	linkWidth: 2,
-</span><span id='App-usr-enum-Viewer-property-arrowThreshold'>	arrowThreshold: 0.25,
+</span><span id='App-usr-enum-Viewer-property-arrowThreshold'>	arrowThreshold: 0.01,
+</span><span id='App-usr-enum-Viewer-property-highlightLinkWidth'>	highlightLinkWidth : 2,
+</span>
+<span id='App-usr-enum-Viewer-property-createTip'>	createTip: true,
+</span><span id='App-usr-enum-Viewer-property-tipDelegate'>	tipDelegate: 'rect',
+</span>	
+<span id='App-usr-enum-Viewer-property-autoShowFull'>	autoShowFull: true,
+</span><span id='App-usr-enum-Viewer-property-autoShowCondensed'>	autoShowCondensed: false,
 </span>
 <span id='App-usr-enum-Viewer-method-constructor'>	constructor : function() {
 </span>		this.callParent(arguments);
 		this.mixins.app.constructor.apply(this, arguments);
 		this.on('afterrender', this.loadFile, this);
-		this.complexWindows = {};
 		this.previewPanels = {};
+		this.previewCharts = {};
 
-		this.reactionPanel = Ext.create('App.usr.enum.ReactionViewer')
-		this.reactionWindow = Ext.create('Ext.window.Window',{
-			items: [ this.reactionPanel ],
-			layout: 'fit',
-			width: 700,
-			height: 200,
-			border: false, bodyBorder: false,
-		});
+		this.complexWindows = {};
+		this.complexPanels = {};
+
+		this.reactionPanels = {};
+		this.reactionWindows = {};
+		
+		this.currentScale = 1;
 	},
 <span id='App-usr-enum-Viewer-method-onLoad'>	onLoad : function() {
 </span>		this.afterrender();
-		this.reactionWindow.show();
+		// this.reactionWindow.show();
 	},
-<span id='App-usr-enum-Viewer-method-redraw'>	redraw: function (translate,scale) {
-</span>		
+	
+<span id='App-usr-enum-Viewer-method-initComponent'>	initComponent: function() {
+</span>		this.viewMenu = Ext.create('App.ui.StrandPreviewViewMenu',{ view:null });
+		this.viewMenu.setOptions({
+			showIndexes: false,
+			showBases: false,
+			showBubbles: false,
+			showSegments: false,
+			complexViewMode: 'strand',
+		});
+		this.legendWindow = Ext.create('Ext.window.Window',{
+			items: [Ext.create('App.usr.enum.LegendPanel')],
+			layout: 'fit',
+			width: 300, 
+			height: 200,
+			x: 350, 
+			y: 100,
+			title: 'Legend',
+			constrain: true,
+			autoShow: true,
+			renderTo: this.getEl(),
+			// floating: true
+		});
+		Ext.apply(this,{
+			tbar: [{
+				text: 'Details',
+				iconCls: 'window-secondary',
+				handler: this.viewDetails,
+				scope: this,
+			},{
+				text: 'Highlight',
+				handler: this.highlightSelection,
+				scope: this,
+			},{
+				text: 'Clear',
+				handler: this.unhighlightSelection,
+				scope: this,
+			},{
+				text: 'Export',
+				iconCls: 'document-export',
+				menu: [{
+					text: 'Print / Pop-out / PDF',
+					iconCls: 'pdf',
+					handler: this.popup,
+					scope: this
+				},{
+					text: 'To SVG',
+					iconCls: 'svg',
+					handler: this.toSVG,
+					scope: this,
+				}]
+			},this.viewMenu,{
+				text: 'Show Full',
+				iconCls: 'enum-full',
+				enableToggle: true,
+				pressed: true,
+				toggleHandler: function(btn,state) {
+					this.showFull(state);
+				},
+				scope: this,
+			},{
+				text: 'Show Condensed',
+				iconCls: 'enum-compress',
+				enableToggle: true,
+				toggleHandler: function(btn,state) {
+					this.showCondensed(state);
+				},
+				scope: this,
+			},'-&gt;',{
+				text: 'Help',
+				iconCls: 'help',
+				handler: App.ui.Launcher.makeLauncher('help:enumerator'),
+			}],
+			// items: [this.legendWindow]
+		})
 
 		this.callParent(arguments);
-		this.node.selectAll('text.node-label').style('font-size',this.fontSize/scale+'em');
-		this.link.style('stroke-width',this.linkWidth/scale);
-		this.link.classed(&quot;link-reaction-noarrow&quot;, scale &lt; this.arrowThreshold)
-		// this.legendg.attr(&quot;transform&quot;,&quot;translate(&quot;+ [(-translate[0]),(-translate[1])] +&quot;) scale(&quot;+ Math.min(1/scale,10) +&quot;)&quot;);
+		this.on('afterrender', function() {
+			
+			// this.legendWindow.showAt(0,500); //.showAt(this.getEl().getX(),this.getEl().getY());
+			// this.legendWindow.show();
+			
+			// this.showFull(true);
+			// this.showCondensed(false);
+
+			if(this.createTip) { 
+				this.tip = Ext.create('Ext.tip.ToolTip', {
+					target: this.getEl(),
+					delegate: this.tipDelegate,
+					trackMouse: true,
+					showDelay: false,
+					renderTo: Ext.getBody(),
+					listeners: {
+						// Change content dynamically depending on which element triggered the show.
+						beforeshow: {
+							fn: this.updateTipBody,
+							scope: this
+						}
+					}
+				});
+				this.sequenceRenderer = CodeMirror.modeRenderer('sequence');
+			}
+		}, this);
+		this.viewMenu.updateView = Ext.bind(this.updatePreviews,this);
+
+		
+	
 	},
-<span id='App-usr-enum-Viewer-method-loadData'>	loadData: function() {
-</span>		var data = this.data = JSON.parse(this.data);
+<span id='App-usr-enum-Viewer-method-destroy'>	destroy: function () {
+</span>		this.legendWindow.destroy();
+		_.each(this.complexWindows,function(w) { w.destroy() })
+		this.callParent(arguments);
+	},
+
+<span id='App-usr-enum-Viewer-method-loadData'>	/**
+</span>	 * Parses and collades the data from #data, sets various internal 
+	 * properties (#reactions, #restingStates, #complexData, etc.) that
+	 * are used by #buildVis and internal utility functions
+	 */
+	loadData: function() {
+		var data = this.data = JSON.parse(this.data);
 		
 		var initial_complexes = this.initial_complexes = _.reduce(data['initial_complexes'], function(memo, c) {
 			memo[c.name] = true;
 			return memo;
 		}, {});
 
+		// Grab reaction data
 		var reactions = this.reactions = data['reactions'];
 
+		// Map domain names to specifications
+		var domains = data['domains'], domainMap = {};
+		for(var i=0; i&lt;domains.length; i++) {
+			var domain = domains[i];
+			domainMap[domain.name] = {
+				sequence: Array(domain.length+1).join('N'),
+				name: domain.name,
+			};
+		}
+
+		// Map strand names to specifications
+		var strands = data['strands'], strandMap = {};
+		for(var i =0; i&lt;strands.length; i++) {
+			var strand = strands[i];
+			strand.domains = _.map(strand.domains, function(dom) { return domainMap[dom] });
+			strand.domains = [strand.domains];
+			strandMap[strand.name] = strand;
+		}
+
+		// Aggregate data about complexes, remembering whether they are resting or transient
 		var complexes;
 		if (data['transient_complexes']) {
 			complexes = _.map(data['resting_complexes'], function(x) {
@@ -86,14 +223,23 @@ Ext.define('App.usr.enum.Viewer', {
 			})
 		}
 
-		// Map complexes to their containing resting state
-		var restingStateMap = this.restingStateMap = {};
-		if (data['resting_states']) {
-			for (var i = 0; i &lt; data['resting_states'].length; i++) {
-				var resting_state = data['resting_states'][i];
+		// Build data for resting states
+		var resting_states = this.restingStates = data['resting_states'],
+			restingStateMap = this.restingStateMap = {},
+			complexRestingStates = this.complexRestingStates = {};
+
+		// For each resting state
+		if (resting_states) {
+			for (var i = 0; i &lt; resting_states.length; i++) {
+				var resting_state = resting_states[i];
+				
+				// For each complex in resting state
 				for (var j = 0; j &lt; resting_state.complexes.length; j++) {
-					restingStateMap[resting_state.complexes[j]] = resting_state.name;
+					
+					// Map complexes to their containing resting state
+					complexRestingStates[resting_state.complexes[j]] = resting_state.name;
 				}
+				restingStateMap[resting_state.name] = resting_state;
 			}
 		}
 
@@ -103,13 +249,14 @@ Ext.define('App.usr.enum.Viewer', {
 			if (!!initial_complexes[x.name]) {
 				x.initial = true;
 			}
-			if (!!restingStateMap[x.name]) {
-				x.group = restingStateMap[x.name];
+			if (!!complexRestingStates[x.name]) {
+				x.group = complexRestingStates[x.name];
 			} else {
 				//x.group = x.name;
 				x.group = null;
 			}
 			x._index = i;
+			x.strands = _.map(x.strands,function(strand) { return strandMap[strand]; })
 			return x
 		});
 		var complexMap = this.complexMap = _.reduce(complexData, function(memo, x, i) {
@@ -143,13 +290,28 @@ Ext.define('App.usr.enum.Viewer', {
 			}	
 			return x
 		});
+
+		// Build data for condensed reactions
+		var condensedReactionMap = this.condensedReactionMap = {};
+		var condensedReactionData = this.condensedReactionData = _.map(data.condensed_reactions, function (x, i) {
+			x._type = 'reaction';
+			x.name = 'reaction_condensed' + i;
+			x.condensed = true;
+			x.fast = !(x.reactants.length &gt; 1);
+			x.slow = !x.fast;
+
+			condensedReactionMap[x.name] = x;
+			return x;
+		})
 	},
-<span id='App-usr-enum-Viewer-method-buildVis'>	buildVis : function() {
-</span>		/* ****
+<span id='App-usr-enum-Viewer-method-buildVis'>	/**
+</span>	 * Generates the visualization, and defines internal utility functions that handle interactivity
+	 */
+	buildVis : function() {
+		/* -------------------------------------------------------------------
 		 * Visualization utilities
 		 */
 
-		// var curve = d3.svg.line().interpolate(&quot;cardinal-closed&quot;).tension(.85);
 
 		var fill = d3.scale.category20();
 
@@ -165,24 +327,44 @@ Ext.define('App.usr.enum.Viewer', {
 		var splinePathGenerator = d3.svg.line()
 				.x(function(d) { return d.x; })
 				.y(function(d) { return d.y; })
-				.interpolate(&quot;bundle&quot;).tension(.6);
+				.tension(.95)
+				.interpolate(&quot;bundle&quot;);
 
 		function spline(e) {
-			var points = e.dagre.points.slice(0);
-			var source = dagre.util.intersectRect(e.source.dagre, points[0]);
-			var target = dagre.util.intersectRect(e.target.dagre, points[points.length - 1]);
-			points.unshift(source);
-			points.push(target);
+			// var points = e.dagre.points.slice(0);
+			// var source = dagre.util.intersectRect(e.source.dagre, points[0]);
+			// var target = dagre.util.intersectRect(e.target.dagre, points[points.length - 1]);
+			// points.unshift(source);
+			// points.push(target);
+
+			var points = e.dagre.points.slice(0),
+				source = e.source.dagre,
+				target = e.target.dagre,
+				p0 = points.length == 0 ? source :  points[0],
+				p1 = points.length == 0 ? target :  points[points.length - 1];
+
+			points.unshift(dagre.util.intersectRect(source, p0));
+			points.push(dagre.util.intersectRect(target, p1));
+
 
 			// points = [source,target]
 			return splinePathGenerator(points);
 		}
 
-		// --------------------------------------------------------
+		function radius(d) {
+			var length = _.reduce(d.strands,
+					function(x,s) { return x+_.reduce(s.domains, 
+						function(y,d) { return y+_.reduce(d, 
+							function(z, r) { return x + r.sequence.length },0) },0) },0)
+			// return d._type == 'complex' ? d.strands.length * 50 : dr
+			return d._type == 'complex' ? 
+				Math.log(length) * 100 + 50 : dr
+		}
 
-		/* ******************************
-		 * Load data, build graph data structures
+		/* -------------------------------------------------------------------
+		 * Load data, build graph data structure
 		 */
+
 
 		this.loadData();
 		var complexes = this.complexes,
@@ -217,17 +399,13 @@ Ext.define('App.usr.enum.Viewer', {
 				return l;
 			}))
 		}), /* true to flatten only one level */true);
-
-
-		/* ******************************
-		 * Build resting state groups thing
-		 */
 		
 		var data = { nodes: complexMap, links: links };		
 
-		/* ******************************
-		 * Build visualization
+		/* -------------------------------------------------------------------
+		 * Build Visualization
 		 */
+
 		
 		// One-time initialization
 		var panel = this.getCanvas();
@@ -249,13 +427,18 @@ Ext.define('App.usr.enum.Viewer', {
 					.style('stroke', line_stroke)
 					.style('fill', line_stroke);
 			
+		var hullg = this.hullg = panel.append(&quot;g&quot;);
+		var condensedLinkg = this.condensedLinkg = panel.append(&quot;g&quot;).classed(&quot;condensed-links&quot;,true);
+		var condensedNodeg = this.condensedNodeg = panel.append(&quot;g&quot;).classed(&quot;condensed-nodes&quot;,true);
+		
 		var linkg = this.linkg = panel.append(&quot;g&quot;);
-  		var nodeg = this.nodeg = panel.append(&quot;g&quot;);
-		var legendg = this.legendg = panel.append(&quot;g&quot;);
+		var nodeg = this.nodeg = panel.append(&quot;g&quot;);
+		// var legendg = this.legendg = panel.append(&quot;g&quot;);
 
-		var dr = 50,      // default point radius
-    		cr = 100, 	 // default complex point radius
-    		off = 15;    // cluster hull offset
+		var dr = 50,     // default point radius
+			cr = 10, 	 // default complex point radius
+			off = 50,    // cluster hull offset
+			condenseScale = 2;
 		var dist = 50,
 			nodePadding = 0; //5;
 		
@@ -267,118 +450,95 @@ Ext.define('App.usr.enum.Viewer', {
 			'reaction' : '',
 			'reaction-fast' : '#01c',
 			'reaction-slow' : '#a00',
-			'transient' : '#0a0',
-			'complex' : 'green',
-			'resting' : 'green',
-			'initial' : 'green',
+			'transient' : '#fff',
+			'complex' : '#fff',
+			'resting' : '#fff',
+			'initial' : '#fff',
 		};
 		strokes = {
 			'reaction-fast' : '#fff',
 			'reaction-slow' : '#fff',
-			'transient' : '#fff',
-			'complex' : '#fff',
+			'transient' : '#ddd',
+			'complex' : '#ddd',
 			'initial' : 'yellow',
-			'resting' : 'white',
+			'resting' : '#ddd',
 		};
-		
-		function radius(d) {
-			return d._type == 'complex' ? d.strands.length * 50 : dr
-		}
-		
-		
-		function highlightLinks(d) {
-			var color = d3.scale.category20();
 
-			panel.selectAll(&quot;path.link-reaction&quot;).classed(&quot;link-reaction-blurred&quot;,true);
-			panel.selectAll(&quot;g.node&quot;).classed(&quot;node-blurred&quot;,true)
+		me.showCondensed = showCondensed;
+		me.showFull = showFull;
+		me.highlightLinks = highlightLinks
+		me.unhighlightLinks = unhighlightLinks
 
-			panel.selectAll('g.node[name=&quot;'+d.name+'&quot;]').classed(&quot;node-blurred&quot;,false);
+		// Most of the work happens in init(), defined below
+		init();
+		me.redraw([0,0],1);
 
-
-			// Select all paths that point out of this node
-			panel.selectAll(&quot;path.link-reaction.source-&quot; + d.name).each(function(r, i) {
-				// panel.selectAll(&quot;path.link-reaction.target-&quot; + r.target.name).classed(&quot;link-reaction-blurred&quot;,false);
-				panel.selectAll('g.node[name=&quot;'+r.target.name+'&quot;]').classed(&quot;node-blurred&quot;,false);
-
-			}).classed(&quot;link-reaction-blurred&quot;,false).classed(&quot;link-reaction-reactant&quot;,true).style(&quot;stroke&quot;,function(d) { 
-				return color(d.target.name); 
-			});
-
-			// Select all paths that point into this node
-			panel.selectAll(&quot;path.link-reaction.target-&quot; + d.name).each(function(r, i) {
-				// panel.selectAll(&quot;path.link-reaction.source-&quot; + r.source.name).classed(&quot;link-reaction-blurred&quot;,false);
-				panel.selectAll('g.node[name=&quot;'+r.source.name+'&quot;]').classed(&quot;node-blurred&quot;,false);
-
-			}).classed(&quot;link-reaction-blurred&quot;,false).classed(&quot;link-reaction-product&quot;,true).style(&quot;stroke&quot;,function(d) { 
-				return color(d.source.name); 
-			});
-		}
-
-		function unhighlightLinks() {
-			panel.selectAll(&quot;path.link-reaction&quot;).classed(&quot;link-reaction-blurred&quot;,false)
-				.classed(&quot;link-reaction-reactant&quot;,false).classed(&quot;link-reaction-product&quot;,false).style(&quot;stroke&quot;,null);
-
-			panel.selectAll(&quot;g.node&quot;).classed(&quot;node-blurred&quot;,false)
-
-		}
 
 		function buildLinks(linkg,net,me) {
+			net.condensed = net.condensed || false;
+
 			var linkSel = linkg.selectAll(&quot;path.link-reaction&quot;).data(net.links, linkid);
 			linkSel.exit().remove();
 			linkSel.enter().append(&quot;path&quot;)
-				.attr(&quot;class&quot;, function(d) {
+			.attr(&quot;class&quot;, function(d) {
 				var cls = [&quot;link-reaction&quot;]
 				cls.push(&quot;source-&quot; + d.source.name);
 				cls.push(&quot;target-&quot; + d.target.name);
+				cls.push(&quot;link-full&quot;);
 				return cls.join(' ');
-			}).attr(&quot;x1&quot;, function(d) {
-				return d.source.x;
-			}).attr(&quot;y1&quot;, function(d) {
-				return d.source.y;
-			}).attr(&quot;x2&quot;, function(d) {
-				return d.target.x;
-			}).attr(&quot;y2&quot;, function(d) {
-				return d.target.y;
-			}).style(&quot;stroke-width&quot;, function(d) {
+			})
+			.style(&quot;stroke-width&quot;, function(d) {
 				return d.size || 1;
 			}).style(&quot;fill&quot;,&quot;none&quot;)
-			.classed(&quot;link-reaction-noarrow&quot;,false);
+			.classed(&quot;link-reaction-noarrow&quot;,false)
+			.attr(&quot;pointer-events&quot;,&quot;stroke&quot;);
+
+			addLinkInteractions(linkSel);
 
 			return linkSel;
 		}
 
 		function buildNodes (nodeg,net,me) {
-			var nodeSel = nodeg.selectAll(&quot;g.node&quot;).data(net.nodes, nodeid);
+			net.condensed = net.condensed || false;
+
+			var nodeSel = nodeg.selectAll(&quot;g.enum-node&quot;).data(net.nodes, nodeid);
 			nodeSel.exit().remove();
 			nodeSel.enter().append(&quot;g&quot;)
-				.attr('class', 'node')
-				.attr(&quot;transform&quot;, function(d) {
+			.attr(&quot;class&quot;, function(d) {
+				var cls = ['enum-node'];
+				switch (d._type) {
+					case 'complex':
+						cls.push('complex');
+						cls.push(d.resting ? 'complex-resting' : 'complex-transient');
+						cls.push(d.initial ? 'complex-initial': '');
+						break;
+					case 'reaction':
+						cls.push('reaction');
+						cls.push(d.fast ? 'reaction-fast' : 'reaction-slow');
+						cls.push(d.outgoing ? &quot;reaction-outgoing&quot; :&quot;reaction-internal&quot;)
+						break;
+					default:
+						if (d.size != 0) {
+							return 'resting-state';
+						}
+						return '';
+				}
+				return cls.join(' ');
+			})		
+			.attr(&quot;transform&quot;, function(d) {
 				return &quot;translate(&quot; + d.x + &quot;,&quot; + d.y + &quot;)&quot;;
 			})
 			.attr('name',function (d) {
 				return d.name;
-				// switch (d._type) {
-				// 	case 'complex':
-				// 		return 'complex_'+d.name;
-				// 	case 'reaction':
-				// 		return d.name;
-				// }
-			})
-			.on('mouseover', highlightLinks)
-			.on('mouseout', unhighlightLinks)
-			.on('dblclick', function(d) {
-				if (d._type == 'complex') {
-					me.renderPreview(d, this);
-					d3.event.stopPropagation();
-				} else if (d._type=='reaction') {
-					me.showReaction(d);
-				}
 			})
 
+			// Add label
 			nodeSel.append('text').attr('class', 'node-label')
 			.attr(&quot;dx&quot;, function(d) {
 				return radius(d) + 5;
-			}).attr(&quot;dy&quot;, &quot;.35em&quot;).text(function(d) {
+			})
+			.attr(&quot;dy&quot;, &quot;.35em&quot;)
+			.text(function(d) {
 				if (d._type == 'complex') {
 					return d.name;
 				} else {
@@ -386,78 +546,232 @@ Ext.define('App.usr.enum.Viewer', {
 				}
 			});
 
+			// Add rectangle
 			nodeSel.append('rect')
-			.attr(&quot;class&quot;, function(d) {
-				switch (d._type) {
-					case 'complex':
-						return 'complex ' + (d.resting ? 'complex-resting' : 'complex-transient');
-					case 'reaction':
-						return '' + (d.fast ? 'reaction-fast' : 'reaction-slow');
-					default:
-						if (d.size != 0) {
-							return 'resting-state';
-						}
-						return '';
-				}
+			.attr(&quot;width&quot;, function(d) {
+				return radius(d) * (net.condensed ? condenseScale : 1);
 			})
-			.attr(&quot;width&quot;, radius)
-			.attr(&quot;height&quot;, radius)
+			.attr(&quot;height&quot;, function(d) {
+				return radius(d) * (net.condensed ? condenseScale : 1);
+			})
 			.attr(&quot;rx&quot;, function(d) {
 				switch (d._type) {
-					case 'complex': return 10;
-					default: return d.size ? d.size + dr : dr + 1;
+					case 'complex': return cr;
+					default: return (d.size ? d.size + dr : dr + 1);
 				}
 			})
 			.attr(&quot;ry&quot;, function(d) {
 				switch (d._type) {
-					case 'complex': return 10;
-					default: return d.size ? d.size + dr : dr + 1;
+					case 'complex': return cr;
+					default: return (d.size ? d.size + dr : dr + 1);
 				}
 			});
 
+			// Add sub-drawing for structure
+			nodeSel.append(&quot;svg&quot;)
+			.attr(&quot;width&quot;, radius)
+			.attr(&quot;height&quot;, radius);
+
 			nodeSel.each(function(d) {
-			    var bbox = this.getBBox();
-			    d.bbox = bbox;
-			    d.width = bbox.width + (2 * nodePadding);
-			    d.height = bbox.height + (2 * nodePadding);
+				var bbox = this.getBBox();
+				d.bbox = bbox;
+				d.width = bbox.width + (2 * nodePadding);
+				d.height = bbox.height + (2 * nodePadding);
 			  });
+
+			// Add interactivity 
+			addNodeInteractions(nodeSel);
 
 			return nodeSel;
 		}
 
-		function buildLegend(legendg,me) {
-			var legend = legendg.selectAll('g.legend').data([{
-				name : 'Resting Complex',
-				type : 'resting'
-			}, {
-				name : 'Transient Complex',
-				type : 'transient'
-			}, {
-				name : 'Fast (unimolecular) Reaction',
-				type : 'reaction-fast'
-			}, {
-				name : 'Slow (bimolecular) Reaction',
-				type : 'reaction-slow'
-			}, {
-				name : 'Initial Complex',
-				type : 'initial'
-			}]).enter().append('g').attr('class', 'legend').attr('transform', function(d, i) {
-				return &quot;translate(15,&quot; + (20 * i + 15) + &quot;)&quot;
+		function addLinkInteractions (linkSel) {
+			linkSel.call(d3.behavior.drag()
+				.origin(function(l) { 
+					var k = 0, // index of point with lowest distance
+						dist = 0;
+					for(var i=0; i&lt;l.dagre.points.length; i++) {
+						if(Math.sqrt( (l.dagre.points[i].x - d3.event.x)^2 + 
+							(l.dagre.points[i].y - d3.event.y)^2 ) &lt; dist || i == 0) {
+
+							dist = Math.sqrt( (l.dagre.points[i].x - d3.event.x)^2 + (l.dagre.points[i].y - d3.event.y)^2 )
+							k = i;
+						}
+					}
+					l._dragPoint = k;
+					return l.dagre.points[k]; 
+				})
+				.on(&quot;drag&quot;, dragLink));
+			linkSel.on('mouseenter', highlightLink)
+			.on('mouseleave', unhighlightLinks)
+		}
+
+		function addNodeInteractions (nodeSel) {
+			nodeSel.on('mouseenter', highlightMyLinks)
+			.on('mouseleave', unhighlightLinks)
+			.on('dblclick', function(d) {
+				if (d._type == 'complex') {
+					me.showComplexPreviewWindow(d,this);
+				} else if (d._type=='reaction') {
+					me.showReactionPreviewWindow(d, this);
+				}
+			})
+			// .on('click', selectNode)
+			.on('click',function(d) {
+				selectNode.call(this,d)
+				if (d._type == 'complex') {
+					var el = d3.select(this).select('svg');
+					me.renderPreview(d, el.node());
+					//d3.event.stopPropagation();
+				}
+			})
+
+			nodeSel.call(d3.behavior.drag()
+				.origin(function(d) { return d.dagre; })
+				.on(&quot;drag&quot;, dragNode));
+		}
+
+		
+
+		function buildHulls(hullg,me) {
+			me.restingStates = _.map(me.restingStates,function (d) {
+				var complexPoints = [],
+					hullPadding = 10;
+				for(var i=0; i&lt;d.complexes.length; i++) {
+					var c = me.complexMap[d.complexes[i]];
+					complexPoints = complexPoints.concat([
+						[c.dagre.x-c.dagre.width/2-hullPadding,c.dagre.y-c.dagre.height/2-hullPadding],
+						[c.dagre.x+c.dagre.width/2+hullPadding,c.dagre.y-c.dagre.height/2-hullPadding],
+						[c.dagre.x-c.dagre.width/2-hullPadding,c.dagre.y+c.dagre.height/2+hullPadding],
+						[c.dagre.x+c.dagre.width/2+hullPadding,c.dagre.y+c.dagre.height/2+hullPadding],
+					]);
+				}
+				var points = d.boundary = d3.geom.hull(complexPoints);
+				var polygon = d3.geom.polygon(d.boundary), centroid = polygon.centroid();
+				var x1 = _.min(_.pluck(points,0)), y1 = _.min(_.pluck(points,1)),
+					x2 = _.max(_.pluck(points,0)), y2 = _.max(_.pluck(points,1));
+
+				d.x = centroid[0];
+				d.y = centroid[1];
+				d.width = x2 - x1;
+				d.height = y2 - y1;
+				
+				d.dagre = {
+					x: d.x,
+					y: d.y,
+					width: d.width,
+					height: d.height
+				}
+
+				return d;
 			});
 
-			legend.append('circle').attr('fill', function(d) {
-				return fills[d.type]
-			}).attr('stroke', function(d) {
-				return strokes[d.type]
-			}).attr('r', 8).attr('stroke-width', 2)
-			
-			legend.append('text').style('fill', '#111').text(function(d) {
-				return d.name
-			}).attr(&quot;dx&quot;, function(d) {
-				return radius(d) + 5
-			}).attr(&quot;dy&quot;, &quot;.35em&quot;)
+			var hullSell = hullg.selectAll('path.enum-hull').data(me.restingStates)
+			var hullPadding = 5;
 
-			return legend;
+			hullSell.exit().remove();
+			hullSell.enter().append(&quot;path&quot;)
+				.attr('class', 'enum-hull')
+				.attr('d',function(d) {
+					return &quot;M&quot; + d.boundary.join(&quot;L&quot;) + &quot;Z&quot;;
+				});
+
+			return hullSell;
+		}
+
+		function buildCondensed(hullg, condensedLinkg, condensedNodeg, me) {
+			me.hull = buildHulls(hullg, me);
+
+			var complexMap = me.complexMap, 
+				restingStateMap = me.restingStateMap;
+
+			// create condensed reaction node data
+			for (var i in me.condensedReactionData) {
+				var r = me.condensedReactionData[i];
+
+				// determine reaction position by taking centroid of reactants and products
+				var rp = r.reactants.concat(r.products),
+					points = _.map(rp, function(s) { s = restingStateMap[s]; return [s.x,s.y]; }),
+					hull = d3.geom.hull(points),
+					x1 = _.min(_.pluck(points,0)), y1 = _.min(_.pluck(points,1)),
+					x2 = _.max(_.pluck(points,0)), y2 = _.max(_.pluck(points,1)),
+					centroid;
+
+				if(hull.length == 0) {
+					hull = [[x1, y1],[x2,y1],[x2,y2],[x1,y2]];
+					centroid = [(x2-x1)/2+x1, (y2-y1)/2+y1]
+				} else {
+					centroid = d3.geom.polygon(hull).centroid();
+
+				}
+
+				r.x = centroid[0];
+				r.y = centroid[1];
+
+				r.dagre = {
+					x: r.x,
+					y: r.y,
+				};
+
+				r.edges = (r.edges || []);
+
+				// return r;
+			};
+
+			// create links between condensed reactions and resting states
+			var links = _.flatten(_.map(me.condensedReactionData, function(reaction) {
+				return _.map(reaction.reactants, function(reactant) {
+					var l = {
+						'source' : restingStateMap[reactant],
+						'target' : reaction,
+					};
+					var x = (l.target.x + l.source.x)/2,
+						y = (l.target.y + l.source.y)/2;
+
+					l.dagre = {
+						points: [{x: x, y: y}]
+					};
+
+					complexMap[reactant].edges.push(l);
+					reaction.edges.push(l);
+					return l; 
+				}).concat(_.map(reaction.products, function(product) {
+					var l = {
+						'source' : reaction,
+						'target' : restingStateMap[product]
+					};
+					
+					var x = (l.target.x + l.source.x)/2,
+						y = (l.target.y + l.source.y)/2;
+
+					l.dagre = {
+						points: [{x: x, y: y}]
+					};
+
+					complexMap[product].edges.push(l);
+					reaction.edges.push(l);
+					return l;
+				}))
+			}), /* true to flatten only one level */true);
+	
+			// build selection of (reaction) nodes
+			me.condensedNode = buildNodes(condensedNodeg,{nodes: me.condensedReactionData, condensed: true}, me);
+			me.condensedNode.datum(function(d) { 
+				d.dagre.width = d.width;
+				d.dagre.height = d.height;
+				return d;
+			})
+			// me.condensedNode.attr(&quot;transform&quot;, function(d) { 
+			// 	return 'translate('+ (d.dagre.x - d.dagre.width/2) +','+ (d.dagre.y - d.dagre.height/2) +')'; 
+			// })
+
+			// build selection of links
+			// TODO: indicate to buildLinks that these should be handled differently
+			me.condensedLink = buildLinks(condensedLinkg,{links: links, condensed: true},me)
+
+			// me.condensedLink.attr(&quot;d&quot;, function(l) { 
+			// 	return spline(l); 
+			// });
 		}
 
 		function init() {
@@ -471,6 +785,7 @@ Ext.define('App.usr.enum.Viewer', {
 			me.link = buildLinks(linkg,net,me)
 			me.node = buildNodes(nodeg,net,me)
 
+			// Run directed graph layout algorithm
 			dagre.layout()
 				.nodeSep(50)
 				.edgeSep(10)
@@ -480,105 +795,390 @@ Ext.define('App.usr.enum.Viewer', {
 				.debugLevel(1)
 				.run();
 
-			// Ensure that we have at least two points between source and target
-			me.link.each(function(d) {
-				var points = d.dagre.points;
-				if (!points.length) {
-					var s = e.source.dagre;
-					var t = e.target.dagre;
-					points.push({
-						x: Math.abs(s.x - t.x) / 2,
-						y: Math.abs(s.y + t.y) / 2
-					});
-				}
+			// Build graph of condensed reactions
+			buildCondensed(me.hullg, me.condensedLinkg, me.condensedNodeg, me);
 
-				if (points.length === 1) {
-					points.push({
-						x: points[0].x,
-						y: points[0].y
-					});
-				}
-			});
+			// Build new selection containing all nodes and links
+			me.allLink = panel.selectAll(&quot;path.link-reaction&quot;)
+			me.allNode = panel.selectAll(&quot;g.enum-node&quot;)
 
-			me.node.attr(&quot;transform&quot;, function(d) { 
+			// Set node positioning
+			me.allNode.attr(&quot;transform&quot;, function(d) { 
 				return 'translate('+ (d.dagre.x - d.dagre.width/2) +','+ (d.dagre.y - d.dagre.height/2) +')'; 
 			});
 
-			me.link
-			// Set the id. of the SVG element to have access to it later
-			    .attr('id', function(e) { return e.dagre.id; })
-			    .attr(&quot;d&quot;, function(e) { return spline(e); });
+			// Set link positioning
+			me.allLink
+				// Ensure that we have at least two points between source and target
+				.each(updateLink)
+				// Set the id. of the SVG element to have access to it later
+				.attr('id', function(e) { 
+					return e.dagre.id; 
+				})
+				.attr(&quot;d&quot;, function(l) { 
+					return spline(l); 
+				});
 
-
+			// Stretch bounding box
 			var svgBBox = panel.node().getBBox();
 			panel.attr(&quot;width&quot;, svgBBox.width + 10);
 			panel.attr(&quot;height&quot;, svgBBox.height + 10);
 			me.rect.attr(&quot;width&quot;, svgBBox.width + 10);
 			me.rect.attr(&quot;height&quot;, svgBBox.height + 10);
-			
+
+			// Show full and condensed
+			me.showFull(me.autoShowFull);
+			me.showCondensed(me.autoShowCondensed);
+
 		}	
-		
-		// Construct Legend
-		me.legend = buildLegend(legendg,me);
 
-		init();
+		/* -------------------------------------------------------------------
+		 * Interactivity
+		 */
 
-	},
-<span id='App-usr-enum-Viewer-method-showReaction'>	showReaction: function (d) {
-</span>		if(d._type=='reaction')	{
-			var me = this,
-				reactants = _.map(d.reactants, function(r) { return me.complexMap[r] }),
-				products = _.map(d.reactants, function(r) { return me.complexMap[r] });
+        function highlightLink(d) {
+        	d3.select(this).classed(&quot;link-reaction-highlight&quot;,true).style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
 
-			this.reactionPanel.setValue(d,reactants,products)
+			// // Animate link drawing
+			// .style(&quot;stroke-dasharray&quot;, &quot;0,1000000&quot;)
+			// 	.transition()
+			// 	.ease(&quot;cubic-in&quot;)
+			// 	.style(&quot;stroke-dasharray&quot;, function() { var l = 2*this.getTotalLength(); return l+','+l } );
+        }
+
+        function highlightMyLinks(d) {
+        	unhighlightLinks()
+        	highlightLinks(d3.select(this))
+        }
+
+		function highlightLinks(selection) {
+
+			// Blur all complexes, links
+			panel.selectAll(&quot;path.link-reaction&quot;).classed(&quot;link-reaction-blurred&quot;,true);
+			panel.selectAll(&quot;g.enum-node&quot;).classed(&quot;node-blurred&quot;,true)
+
+			selection.each(function(d) {
+
+				// Generate color scale for incoming/outgoing links
+				var incoming_color = d3.scale.ordinal().range(_.reverse(colorbrewer.BuPu[4])),
+					outgoing_color = d3.scale.ordinal().range(_.reverse(colorbrewer.OrRd[4]));
+
+				// Un-blur this complex
+				panel.selectAll('g.enum-node[name=&quot;'+d.name+'&quot;]').classed(&quot;node-blurred&quot;,false);
+
+
+				// Select all paths that point out of this node
+				panel.selectAll(&quot;path.link-reaction.source-&quot; + d.name).each(function(r, i) {
+					panel.selectAll('g.enum-node[name=&quot;'+r.target.name+'&quot;]').classed(&quot;node-blurred&quot;,false);
+
+				}).classed(&quot;link-reaction-blurred&quot;,false).classed(&quot;link-reaction-reactant&quot;,true).style(&quot;stroke&quot;,function(d) { 
+					return outgoing_color(d.target.name); 
+				})
+				// .style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
+
+				// Animate link drawing
+				.style(&quot;stroke-dasharray&quot;, &quot;0,1000000&quot;)
+					.transition()
+					.ease(&quot;cubic-in&quot;)
+					.style(&quot;stroke-dasharray&quot;, function() { var l = 5*this.getTotalLength(); return l+','+l } );
+
+
+				// Select all paths that point into this node
+				panel.selectAll(&quot;path.link-reaction.target-&quot; + d.name).each(function(r, i) {
+					panel.selectAll('g.enum-node[name=&quot;'+r.source.name+'&quot;]').classed(&quot;node-blurred&quot;,false);
+
+				}).classed(&quot;link-reaction-blurred&quot;,false).classed(&quot;link-reaction-product&quot;,true).style(&quot;stroke&quot;,function(d) { 
+					return incoming_color(d.source.name); 
+				})
+				// .style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
+
+				// Animate link drawing
+				.style(&quot;stroke-dasharray&quot;, &quot;0,1000000&quot;)
+					.transition()
+					.ease(&quot;cubic-in&quot;)
+					.style(&quot;stroke-dasharray&quot;, function() { var l = 5*this.getTotalLength(); return l+','+l } );
+
+			})
+
+		}
+
+		function unhighlightLinks() {
+			panel.selectAll(&quot;path.link-reaction&quot;).classed(&quot;link-reaction-highlight&quot;,false).classed(&quot;link-reaction-blurred&quot;,false)
+				.classed(&quot;link-reaction-reactant&quot;,false).classed(&quot;link-reaction-product&quot;,false).style(&quot;stroke&quot;,null)
+				.style('stroke-width',me.linkWidth/me.currentScale);
+
+			panel.selectAll(&quot;g.enum-node&quot;).classed(&quot;node-blurred&quot;,false)
+		}
+
+		function showFull(show) {
+			// panel.selectAll(&quot;.reaction-internal&quot;).classed(&quot;enum-hidden&quot;,false)
+			// panel.selectAll(&quot;.reaction-full&quot;).classed(&quot;enum-hidden&quot;,true)
+			// panel.selectAll(&quot;.reaction-condensed&quot;).classed(&quot;enum-hidden&quot;,false)
+
+			me.link.classed(&quot;enum-hidden&quot;,!show)
+			me.nodeg.selectAll(&quot;.complex-transient&quot;).classed(&quot;enum-hidden&quot;,!show)
+			me.nodeg.selectAll(&quot;.reaction&quot;).classed(&quot;enum-hidden&quot;,!show)
+		}
+
+		function showCondensed(show) {
+			// panel.selectAll(&quot;.reaction-internal&quot;).classed(&quot;enum-hidden&quot;,true)
+			// panel.selectAll(&quot;.reaction-full&quot;).classed(&quot;enum-hidden&quot;,false)
+			// panel.selectAll(&quot;.reaction-condensed&quot;).classed(&quot;enum-hidden&quot;,true)
+			me.condensedLinkg.classed(&quot;enum-hidden&quot;,!show)
+			me.condensedNodeg.classed(&quot;enum-hidden&quot;,!show)
+		}
+
+		function selectNode(d) {
+			if (d3.event.shiftKey) {
+				toggleSelectNode.call(this,d)
+			} else {
+				selectOnlyNode.call(this,d)
+			}
+		}
+
+		function toggleSelectNode(d) {
+			d3.select(this).classed(&quot;enum-selected&quot;,function (d) {
+				return !d3.select(this).classed(&quot;enum-selected&quot;)
+			});			
+		}
+
+		function selectOnlyNode(d) {
+			deselect()
+			d3.select(this).classed(&quot;enum-selected&quot;,true)
+			// d3.select(this).classed(&quot;enum-selected&quot;,function (d) {
+			// 	return !d3.select(this).classed(&quot;enum-selected&quot;)
+			// });
+		}
+		function deselect() {
+			panel.selectAll(&quot;.enum-node.enum-selected&quot;).classed(&quot;enum-selected&quot;,false);
+		}
+
+		function dragNode(d) {
+			d.x = d.dagre.x = d3.event.x, 
+			d.y = d.dagre.y = d3.event.y;
+			d3.select(this).attr(&quot;transform&quot;,'translate('+ (d.dagre.x - d.dagre.width/2) +','+ (d.dagre.y - d.dagre.height/2) +')');
+			me.allLink.filter(function(l) { return l.source === d; }).each(updateLink).attr(&quot;d&quot;,spline)
+			me.allLink.filter(function(l) { return l.target === d; }).each(updateLink).attr(&quot;d&quot;,spline);
+		}
+
+
+		function dragLink(l) {
+			if(l.dagre.points.length &gt; 0) {
+				l.dagre.points[l._dragPoint].x = d3.event.x;
+				l.dagre.points[l._dragPoint].y = d3.event.y;
+			}
+			d3.select(this).attr(&quot;d&quot;,spline(l))
+		}
+
+		function updateLink(l) {
+
 		}
 	},
-<span id='App-usr-enum-Viewer-method-renderPreview'>	renderPreview: function(d,node) {
-</span>		var data = !!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'],
-			panel = d3.select(node);
-
-		this.previewPanels[d.name] = StrandPreview(panel).width(d.width).height(d.height)
-		this.complexWindows[d.name] = this.previewPanels[d.name] (panel.data([data]));
+	
+<span id='App-usr-enum-Viewer-method-redraw'>	redraw: function (translate,scale) {
+</span>		var me = this;
+		this.currentScale = scale;
+		this.callParent(arguments);
+		this.allNode.selectAll('text.node-label').style('font-size',this.fontSize/scale+'em');
+		this.allNode.selectAll('.complex &gt; rect').style('stroke-width',this.linkWidth/scale);
+		this.allNode.selectAll('.reaction &gt; rect').style('stroke-width',this.linkWidth/scale);
+		
+		this.allLink.style('stroke-width',this.linkWidth/scale);
+		this.allLink.selectAll('link-reaction-reactant, link-reaction-product').style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
+		this.allLink.classed(&quot;link-reaction-noarrow&quot;, scale &lt; this.arrowThreshold)
+		// this.legendg.attr(&quot;transform&quot;,&quot;translate(&quot;+ [(-translate[0]),(-translate[1])] +&quot;) scale(&quot;+ Math.min(1/scale,10) +&quot;)&quot;);
 	},
-<span id='App-usr-enum-Viewer-method-showWindow'>	showWindow : function(d, node) {
-</span>		if (!this.complexWindows[d.name]) {
-			var strands = d['strands'];
+<span id='App-usr-enum-Viewer-method-viewDetails'>	viewDetails: function() {
+</span>		var elements = this.getSelection(), data = !!elements ? elements.data() : [];
+		if(elements.length &gt; 0) {
+			for(var i = 0; i &lt; elements.length; i++) {
+				var node = elements[i], d = data[i];
+				switch(d._type) {
+					case 'complex':
+						this.showComplexPreviewWindow(d,node);
+					case 'reaction':
+						this.showReactionPreviewWindow(d,node);
+				}
+			}
+		}
+	},
+<span id='App-usr-enum-Viewer-method-getSelection'>	getSelection: function() {
+</span>		var panel = this.getCanvas();
+		return panel.selectAll('.enum-selected');
+	},
+<span id='App-usr-enum-Viewer-method-getSelected'>	getSelected: function () {
+</span>		var panel = this.getCanvas();
+		return panel.select('.enum-selected');
+	},
+<span id='App-usr-enum-Viewer-method-highlightSelection'>	highlightSelection: function () {
+</span>		this.highlightLinks(this.getSelection())
+	},
+<span id='App-usr-enum-Viewer-method-unhighlightSelection'>	unhighlightSelection: function () {
+</span>		this.unhighlightLinks()
+	},
+<span id='App-usr-enum-Viewer-method-updateTipBody'>	updateTipBody: function(tip) {
+</span>		var helpText = '(click to show/select | double-click to open window | drag to move)';
+		var targetEl = Ext.get(tip.triggerElement).up('g');
+		if(targetEl) { 
+			targetEl = d3.select(targetEl.dom);
+			if(targetEl.classed('enum-node')) {
+				var data = targetEl.datum()
+				tip.update(this.getNodeDetails(data)+
+					'&lt;br /&gt;'+helpText);
+			} else {
+				return false;
+			}
+		}
+	},
+<span id='App-usr-enum-Viewer-method-getReactionDetails'>	getReactionDetails: function(data,breakLines) {
+</span>		breakLines =  breakLines || false;
 
-			// this.previewPanels[d.name] = Ext.create('App.usr.nodal.StrandPreview', {
-			// 	adjacencyMode : 1,
-			// 	cls : 'simple-header',
-			// 	title : strands.join(&quot; + &quot;),
-			// 	autoRender : true,
-			// 	value : '',
-			// });
-			this.previewPanels[d.name] = Ext.create('App.ui.StrandPreview', {
+		var out = [];
+		var arity;
+		var type;
+		switch(data.reactants.length) {
+			case 1: arity = 'Unimolecular'; break;
+			case 2: arity = 'Bimolecular'; break;
+			case 3: arity = 'Trimolecular'; break;
+			default: arity = 'High order'; break;
+		}
+		if(data.reactants.length &gt; data.products.length) {
+			type = 'Association';
+		}
+		else if(data.reactants.length &lt; data.products.length) {
+			type = 'Dissociation';
+		}
+		else {
+			type = 'Rearrangement';
+		}
+		out.push('&lt;b&gt;'+arity+' '+type+'&lt;/b&gt; Reaction ');
+		out.push(
+			'&lt;span class=&quot;enum-reaction-well&quot;&gt;'+
+			_.map(data.reactants,function(r) { return '&lt;b&gt;'+r+'&lt;/b&gt;' }).join(' + ') +
+			' &amp;rarr; ' +
+			_.map(data.products,function(r) { return '&lt;b&gt;'+r+'&lt;/b&gt;' }).join(' + ')+
+			'&lt;/span&gt;'
+		)
+		
+		if(data.fast) { out.push(' (&lt;b&gt;Fast&lt;/b&gt;)'); }
+		if(data.slow) { out.push(' (&lt;b&gt;Slow&lt;/b&gt;)'); }
+
+		if(breakLines) return out.join('&lt;br /&gt;')
+		else return out.join('')
+	},
+<span id='App-usr-enum-Viewer-method-getComplexDetails'>	getComplexDetails: function (data) {
+</span>		var out = '';
+		out += 'Complex &lt;b&gt;'+data.name+'&lt;/b&gt;&lt;br /&gt;';
+		out += '&lt;span class=&quot;enum-strands-well&quot;&gt;'+_.map(data.strands,function(s) {return '&lt;b&gt;'+s.name+'&lt;/b&gt;';}).join(' + ')+'&lt;/span&gt;&lt;br /&gt;'
+		if(data.initial) { out+='&lt;b&gt;Initial Complex&lt;/b&gt;&lt;br /&gt;'; }
+		if(data.resting) { out+='&lt;b&gt;Resting State&lt;/b&gt;&lt;br /&gt;'; }
+		if(data['transient']) { out+='&lt;b&gt;Transient&lt;/b&gt;&lt;br /&gt;'; }
+		return out;
+	},
+<span id='App-usr-enum-Viewer-method-getNodeDetails'>	getNodeDetails: function (data) {
+</span>		// var out = '&lt;b&gt;'+this.sequenceRenderer(data.base)+'&lt;/b&gt; | &lt;b&gt;'+data.strand+'&lt;/b&gt; / &lt;b&gt;'+data.segment+'&lt;/b&gt; / '+data.segment_index+'&lt;br /&gt;';
+		// if(data.immutable) { out+='&lt;b&gt;Immutable&lt;/b&gt;&lt;br /&gt;'; }
+		// if(data.prevented) { out+='&lt;b&gt;Prevented&lt;/b&gt; ('+this.sequenceRenderer(data.prevented)+')&lt;br /&gt;'; }
+		// if(data.changed) { out+='&lt;b&gt;Changed&lt;/b&gt; ('+data.changed.reason+')'; }
+		var out = '';
+		switch(data._type) {
+			case 'complex':
+				out = this.getComplexDetails(data);
+				break;
+			case 'reaction':
+				out = this.getReactionDetails(data,true)
+				break;
+		}
+		return out;
+	},
+<span id='App-usr-enum-Viewer-method-renderPreview'>	renderPreview: function(d,node) {
+</span>		var structure = !!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'],
+			strands = d['strands'] || null,
+			panel = d3.select(node),
+			data = { dotParen: structure, strands: strands },
+			options = this.viewMenu.getOptions();
+
+		if(!this.previewCharts[d.name]) {
+			this.previewCharts[d.name] = StrandPreview(panel).width(d.width).height(d.height)
+				.segmentColors(this.getSegmentColorScale())
+				.strandColors(this.getStrandColorScale())
+				.options(options);
+			this.previewPanels[d.name] = this.previewCharts[d.name] (panel.data([data]));
+			this.previewPanels[d.name]._node = panel;
+			this.previewPanels[d.name]._data = data;
+		}
+	},
+<span id='App-usr-enum-Viewer-method-updatePreviews'>	updatePreviews: function(options) {
+</span>		var data, panel, charts = _.clone(this.previewCharts);
+		for(var name in charts) {
+			panel = this.previewPanels[name]._node;
+			data = this.previewPanels[name]._data;
+			panel.selectAll('g').remove();
+			this.previewCharts[name] = this.previewCharts[name].options(options);
+			this.previewPanels[name] = this.previewCharts[name] (panel.data([data]))
+			this.previewPanels[name]._node = panel;
+			this.previewPanels[name]._data = data;
+		}
+	},
+<span id='App-usr-enum-Viewer-method-getViewOptions'>	getViewOptions: function() {
+</span>		var options = this.viewMenu.getOptions();
+		options.complexViewMode = this.viewMenu.getComplexViewMode();
+		return options;
+	},
+<span id='App-usr-enum-Viewer-method-showComplexPreviewWindow'>	showComplexPreviewWindow: function(d,node) {
+</span>		function names(strands) {
+			return _.map(strands,function(s) { return s.name }).join(&quot; + &quot;);
+		}
+
+		var structure = !!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'],
+			strands = d['strands'] || null,
+			data = { dotParen: structure, strands: strands },
+			options = this.getViewOptions();
+
+
+		if (!this.complexWindows[d.name]) {
+			var strands = d['strands'];
+			this.complexPanels[d.name] = Ext.create('App.ui.StrandPreview', {
 				cls : 'simple-header',
-				title : strands.join(&quot; + &quot;),
+				title : names(strands),
 				autoRender : true,
 				value : '',
 				adjacencyMode: 2,
+				region: 'center',
+				border: true,
+				viewOptions: options,
+				segmentColors: this.getSegmentColorScale(),
+				strandColors: this.getStrandColorScale(),
 			});
-
-			this.complexWindows[d.name] = Ext.create('Ext.tip.ToolTip', {
-				target : node,
-				anchor : 'left',
-				constrainPosition : true,
-				items : [this.previewPanels[d.name]],
-				layout : 'fit',
+			this.complexWindows[d.name] = Ext.create('Ext.window.Window', {
+				// target : node,
+				// anchor : 'left',
+				// constrainPosition : true,
+				items : [this.complexPanels[d.name],{
+					html: this.getNodeDetails(d),
+					frame: true,
+					region: 'east',
+					split: true,
+					width: 100,
+				}],
+				layout : 'border',
 				autoHide : false,
 				closable : true,
 				closeAction : 'hide',
-				width : 200,
+				maximizable: true,
+				width : 300,
 				height : 200,
 				draggable : true,
 				title : &quot;Complex: &quot; + d.name,
 				resizable : true,
 				autoRender : true,
+				border: false, bodyBorder: false
 			});
-
+			this.complexWindows[d.name].on('close',this.complexPanels[d.name].onHide,this.complexPanels[d.name])
 			this.complexWindows[d.name].show();
-			this.previewPanels[d.name].setTitle(strands.join(&quot; + &quot;))
-			this.previewPanels[d.name].setValue(!!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'], strands);
+			this.complexPanels[d.name].setTitle(names(strands))
+			this.complexPanels[d.name].setValue(data);
+			// this.complexPanels[d.name].setValue(!!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'], strands);
 		} else {
 			if (this.complexWindows[d.name].isVisible()) {
 				this.complexWindows[d.name].hide();
@@ -586,8 +1186,128 @@ Ext.define('App.usr.enum.Viewer', {
 				this.complexWindows[d.name].show();
 			}
 		}
+	},
+<span id='App-usr-enum-Viewer-method-showReactionPreviewWindow'>	showReactionPreviewWindow: function (d, node) {
+</span>		if(d._type=='reaction')	{
+			
+			var me = this,
+				reactants = _.map(d.reactants, function(r) { return me.complexMap[r] }),
+				products = _.map(d.products, function(r) { return me.complexMap[r] }),
+				name = d.name,
+				options = this.getViewOptions();
+
+			if(!this.reactionPanels[d.name]) {
+				this.reactionPanels[d.name] = Ext.create('App.usr.enum.ReactionViewer', { 
+					viewOptions: options,
+					segmentColors: this.getSegmentColorScale(),
+					strandColors: this.getStrandColorScale(),
+				})
+				this.reactionWindows[d.name] = Ext.create('Ext.window.Window',{
+					items: [ this.reactionPanels[d.name] ],
+					layout: 'fit',
+					width: 700,
+					height: 200,
+					closeAction: 'hide',
+					border: false, bodyBorder: false,
+					title: this.getReactionDetails(d),
+				});
+			}
+			this.reactionWindows[d.name].show()
+			this.reactionPanels[d.name].setValue(d,reactants,products)
+			this.reactionPanels[d.name].setTitle(this.getReactionDetails(d));
+		}
+	},
+<span id='App-usr-enum-Viewer-method-getSegmentColorScale'>	getSegmentColorScale: function() {
+</span>		if(!this.segmentColors) {
+			this.segmentColors = StrandPreview.defaultSegmentColors();
+		}
+		return this.segmentColors;
+	},
+<span id='App-usr-enum-Viewer-method-getStrandColorScale'>	getStrandColorScale: function() {
+</span>		if(!this.strandColors) {
+			this.strandColors = StrandPreview.defaultStrandColors(); //d3.scale.ordinal().range(colorbrewer.Set3[12]); //d3.scale.category20b();
+		}
+		return this.strandColors;	
+	},
+<span id='App-usr-enum-Viewer-method-toSVG'>	toSVG: function (btn) {
+</span>		this.svgWindow = Ext.create('App.ui.SVGEditorWindow',{
+			stylesUrl: 'styles/enumerator.css',
+			title: 'SVG',
+		});
+		this.svgWindow.show()
+		this.svgWindow.setValue(this.getCanvasMarkup())
+	},
+<span id='App-usr-enum-Viewer-method-popup'>	popup: function () {
+</span>		var text = this.body.dom.innerHTML
+		$.get('/popup.html',function(html) {
+			html = html.replace(&quot;$body&quot;, text)
+			var win = window.open('',Ext.util.Format.stripTags(this.title),'height=400,width=400')
+			win.document.write(html)
+			win.document.close()
+			// $(win).ready(function() {
+			// 	win.document.body.innerHTML = text
+			// 	if (win.focus) win.focus()
+			// })
+		})
 	}
 });
+
+Ext.define('App.usr.enum.LegendPanel',{
+	extend: 'App.ui.D3Panel',
+	autoRender: true,
+	border: false, bodyBorder: false,
+	pan: false, zoom: false,
+	buildVis: function() {
+		function buildLegend(legendg,me) {
+			var radius = 10,
+			legend = legendg.selectAll('g.legend').data([{
+				name : 'Resting Complex',
+				type : 'complex complex-resting'
+			}, {
+				name : 'Transient Complex',
+				type : 'complex complex-transient'
+			}, {
+				name : 'Fast (unimolecular) Reaction',
+				type : 'reaction reaction-fast'
+			}, {
+				name : 'Slow (bimolecular) Reaction',
+				type : 'reaction reaction-slow'
+			}, {
+				name : 'Initial Complex',
+				type : 'complex complex-initial'
+			}]).enter()
+			.append('g')
+			.attr('class',function(d) { return 'legend '+d.type })
+			.attr('transform', function(d, i) {
+				return &quot;translate(15,&quot; + (2*(radius+2) * i + 15) + &quot;)&quot;
+			});
+
+			legend.append('rect').attr(&quot;width&quot;,radius).attr(&quot;height&quot;,radius)
+			// .attr('fill', function(d) {
+			// 	return fills[d.type]
+			// }).attr('stroke', function(d) {
+			// 	return strokes[d.type]
+			// })
+			.attr('r', radius).attr('stroke-width', 2)
+			
+			legend.append('text').style('fill', '#111').text(function(d) {
+				return d.name
+			}).attr(&quot;dx&quot;, radius + 10).attr(&quot;dy&quot;, &quot;.75em&quot;)
+
+			return legend;
+		}
+
+
+
+		var panel = this.getCanvas(),
+			legendg = this.legendg = panel.append(&quot;g&quot;);
+			legend = this.legend = buildLegend(legendg,this);
+	},
+	// updateVis: function() {
+	// 	this.path.attr(&quot;transform&quot;, &quot;translate(&quot; + (this.getWidth() / 2) + &quot;,&quot; + (this.getHeight() / 2) + &quot;)&quot;)
+	// },
+
+})
 
 Ext.define('App.ui.PlusPanel', {
 	extend: 'App.ui.D3Panel',
@@ -649,9 +1369,10 @@ Ext.define('App.usr.enum.ReactionViewer', {
 	requires : ['App.usr.nodal.StrandPreview'],
 	layout: 'hbox',
 	align: 'stretch',
-	border: false, bodyBorder: false,
+	border: false, bodyBorder: true,
 	
-	constructor : function() {
+	initComponent : function() {
+		this.viewOptions = this.viewOptions || {};
 		this.reactant1 = Ext.create('App.ui.StrandPreview',{
 			cls : 'simple-header',
 			title : ' ',
@@ -660,6 +1381,9 @@ Ext.define('App.usr.enum.ReactionViewer', {
 			adjacencyMode: 2,
 			flex: 1,
 			border: false, bodyBorder: false,
+			viewOptions: this.viewOptions,
+			segmentColors: this.segmentColors,
+			strandColors: this.strandColors,
 		});
 		this.reactant_plus = Ext.create('App.ui.PlusPanel');
 		this.reactant2 = Ext.create('App.ui.StrandPreview',{
@@ -670,6 +1394,9 @@ Ext.define('App.usr.enum.ReactionViewer', {
 			adjacencyMode: 2,
 			flex: 1,
 			border: false, bodyBorder: false,
+			viewOptions: this.viewOptions,
+			segmentColors: this.segmentColors,
+			strandColors: this.strandColors,
 		});
 
 		this.reaction_arrow = Ext.create('App.ui.ArrowPanel');
@@ -682,6 +1409,9 @@ Ext.define('App.usr.enum.ReactionViewer', {
 			adjacencyMode: 2,
 			flex: 1,
 			border: false, bodyBorder: false,
+			viewOptions: this.viewOptions,
+			segmentColors: this.segmentColors,
+			strandColors: this.strandColors,
 		})
 		this.product_plus = Ext.create('App.ui.PlusPanel');
 		this.product2 = Ext.create('App.ui.StrandPreview',{
@@ -692,17 +1422,20 @@ Ext.define('App.usr.enum.ReactionViewer', {
 			adjacencyMode: 2,
 			flex: 1,
 			border: false, bodyBorder: false,
+			viewOptions: this.viewOptions,
+			segmentColors: this.segmentColors,
+			strandColors: this.strandColors,
 		})
 
 		Ext.apply(this,{
 			layout: {
-		    	type: 'hbox',
-		    	align: 'stretch'
-		    },
-		    defaults: {
-		    	bodyBorder: false,
-		    	border: false,
-		    },
+				type: 'hbox',
+				align: 'stretch'
+			},
+			defaults: {
+				bodyBorder: false,
+				border: false,
+			},
 			items: [
 				this.reactant1,
 				this.reactant_plus,
@@ -725,25 +1458,38 @@ Ext.define('App.usr.enum.ReactionViewer', {
 				structure = !!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'],
 				strands = d['strands'];
 
-			reactantViews[i].setValue(structure,strands);
-			reactantViews[i].setTitle(strands.join('+'));
+			reactantViews[i].setValue({dotParen: structure,strands: strands});
+			reactantViews[i].setTitle(_.map(strands,function(s) {return s.name;}).join(' + '));
 
 		}
 		if(reactants.length&lt;2) { this.reactant2.hide(); this.reactant_plus.hide(); }
 		else { this.reactant2.show(); this.reactant_plus.show(); }
 
 		for(var i=0; i&lt;Math.min(productViews.length,products.length); i++) {
-			var d = reactants[i],
+			var d = products[i],
 				structure = !!d['dot-paren-full'] ? d['dot-paren-full'] : d['dot-paren'],
 				strands = d['strands'];		
 
-			productViews[i].setValue(structure,strands);
-			productViews[i].setTitle(strands.join('+'));
+			productViews[i].setValue({dotParen: structure,strands: strands});
+			productViews[i].setTitle(_.map(strands,function(s) {return s.name;}).join(' + '));
 		}
 
 		if(products.length&lt;2) { this.product2.hide(); this.product_plus.hide(); }
 		else { this.product2.show(); this.product_plus.show(); }
-	}
+	},
+	getSegmentColorScale: function() {
+		if(!this.segmentColors) {
+			this.segmentColors = d3.scale.category20();
+		}
+		return this.segmentColors;
+	},
+	getStrandColorScale: function() {
+		if(!this.strandColors) {
+			this.strandColors = d3.scale.category20();
+		}
+		return this.strandColors;	
+	},
+	
 });
 </pre>
 </body>

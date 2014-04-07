@@ -25,8 +25,17 @@ Ext.define('App.ui.SaveButton', {
 </span><span id='App-ui-SaveButton-property-iconCls'>	iconCls: 'save',
 </span><span id='App-ui-SaveButton-property-saveText'>	saveText : 'Save',
 </span><span id='App-ui-SaveButton-property-createText'>	createText : 'Create',
-</span><span id='App-ui-SaveButton-property-forceDefaultExtension'>	forceDefaultExtension : true,
-</span><span id='App-ui-SaveButton-method-initComponent'>	initComponent : function() {
+</span><span id='App-ui-SaveButton-cfg-forceDefaultExtension'>	/**
+</span>	 * @cfg
+	 * True to force the filename to adopt the value returned by #getDefaultExtension
+	 */
+	forceDefaultExtension : true,
+<span id='App-ui-SaveButton-cfg-initialValue'>	/**
+</span>	 * @cfg
+	 * Initial filename
+	 */
+	initialValue: '',
+<span id='App-ui-SaveButton-method-initComponent'>	initComponent : function() {
 </span>
 		this.overwrite = Ext.create('Ext.menu.CheckItem', {
 			text : 'Overwrite exiting file',
@@ -48,6 +57,7 @@ Ext.define('App.ui.SaveButton', {
 			autoCreateMenu : false,
 			createText : this.createText,
 			afterLeaveDelay: 1000,
+			initialValue: this.initialValue,
 			onCreateButton : Ext.bind(this.doSave, this),
 		});
 		this.saveMenu.fileNameField.on('afterrender', this.afterrender, this)

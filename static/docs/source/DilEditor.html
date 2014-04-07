@@ -28,7 +28,7 @@ Ext.define('App.usr.dil.DilEditor', {
 		app: 'App.ui.Application',
 		tip: 'App.ui.TipHelper',
 	},
-	requires: ['App.ui.D3Panel', 'App.usr.seq.Editor', 'App.usr.dd.RulesWindow', 'App.usr.dd.ScoreParametersWindow', //
+	requires: ['App.ui.D3Panel', 'App.usr.seq.Editor', 'App.usr.dil.HighlightManager', 'App.usr.dil.EditComplexWindow', //
 	'App.usr.dd.SequenceWindow', 'App.ui.SequenceThreader', 'App.ui.AddDomainButton', 'App.ui.StrandPreviewViewMenu',
 	'App.usr.dil.SegmentStore','App.usr.dil.StrandStore','App.usr.dil.ComplexStore',
 	'App.usr.dil.SegmentsGrid','App.usr.dil.StrandsGrid','App.usr.dil.StrandPreviewGrid'],
@@ -38,9 +38,9 @@ Ext.define('App.usr.dil.DilEditor', {
 
 		this.callParent(arguments);
 	},
-<span id='App-usr-dil-DilEditor-property-title'>	title: 'Strand Editor',
+<span id='App-usr-dil-DilEditor-property-title'>	title: 'DIL Editor',
 </span><span id='App-usr-dil-DilEditor-property-iconCls'>	iconCls: 'domains',
-</span><span id='App-usr-dil-DilEditor-property-editorType'>	editorType: 'System',
+</span><span id='App-usr-dil-DilEditor-property-editorType'>	editorType: 'DIL',
 </span><span id='App-usr-dil-DilEditor-method-initComponent'>	initComponent: function() {
 </span><span id='App-usr-dil-DilEditor-property-segmentStore'>		/**
 </span>		 * Stores segments in the system
@@ -89,7 +89,7 @@ Ext.define('App.usr.dil.DilEditor', {
 					iconCls: 'ms-icon',
 					handler: this.buildMS,
 					scope: this,
-					disabled: true,
+					// disabled: true,
 				}]
 			}, {
 				xtype: 'buttongroup',
@@ -107,25 +107,47 @@ Ext.define('App.usr.dil.DilEditor', {
 					text: 'to PIL',
 					iconCls: 'pil',
 				}, {
-					text: 'to Graph (ENJS)'
+					text: 'to SBML',
+					iconCls: 'sbml',
 				}],
 				//disabled: true,
 			}, {
 				xtype: 'buttongroup',
 				columns: 2,
 				title: 'Thermodynamics',
+				// width: 80,
 				items: [{
-					text: 'Predict structures',
+					xtype: 'splitbutton',
+					text: 'Predict',
 					scale: 'medium',
 					rowspan: 2,
 					iconAlign: 'top',
 					iconCls: 'secondary-24',
 					handler: this.buildTherm,
 					scope: this,
-				}, {
-					text: 'Complexes',
-				}, {
-					text: 'MFE structure'
+					menu: [{
+						handler: function() { this.buildTherm('nupack') }, scope: this,
+						text: 'Predict structures with NUPACK',
+						iconCls: 'nupack',
+					},{
+						handler: function() { this.buildTherm('vienna') }, scope: this,
+						text: 'Predict structures with RNAfold',
+						iconCls: 'tbi',
+					},{
+						handler: function() { this.buildTherm('mfold') }, scope: this,
+						text: 'Predict structures with Mfold',
+						iconCls: 'mfold',
+					}]
+				},{
+					text: 'MFE Structures',
+					iconCls: 'secondary-mfe',
+					handler: this.buildThermMFE,
+					scope: this,
+				},{
+					text: 'Pairwise',
+					iconCls: 'secondary-pairwise',
+					handler: this.buildThermPairwise,
+					scope: this,
 				}],
 				//disabled: true,
 			}, {
@@ -226,7 +248,7 @@ Ext.define('App.usr.dil.DilEditor', {
 					labelWidth: 40,
 					width: 100,
 					minValue: 100,
-					maxValue: 400,
+					maxValue: 500,
 					value: 200,
 					increment: 10,
 					listeners: {
@@ -282,33 +304,22 @@ Ext.define('App.usr.dil.DilEditor', {
 		this.complexView = this.down('[name=complexView]');
 		this.down('[name=complexViewMenu]').view = this.complexView;
 
-
 		this.segmentStore.on('update', function(store, rec, operation, modifiedFieldNames) {
 			this.updateStrandSequences();
 		}, this);
+		
+		this.highlightManager = Ext.create('App.usr.dil.HighlightManager',{
+			segmentStore: this.segmentStore,
+			strandStore: this.strandStore,
+			complexStore: this.complexStore,
 
-		// Highlight items in the #strandsGrid and #complexView when they're moused over in the segments grid
-		this.segmentsGrid.on('itemmouseenter', function(grid, rec, el, e) {
-			this.fireEvent('updateSegmentHighlight', rec.get('identity'), 1);
-		}, this);
-		this.segmentsGrid.on('itemmouseleave', function(grid, rec, el, e) {
-			this.fireEvent('updateSegmentHighlight', null);
-		}, this);
-		this.on('updateSegmentHighlight', this.updateSegmentHighlight, this, {
-			buffer: 10,
+			segmentsGrid: this.segmentsGrid,
+			strandsGrid: this.strandsGrid,
+			complexView: this.complexView
 		});
-
-		// Highlight items in #segmentsGrid and #complexView when they're moused over in the strands grid
 		this.on('afterrender', function() {
-			this.strandsGrid.getEl().on('mouseover', function(e, el) {
-				var identity = el.getAttribute('data-segment-identity'),
-					polarity = el.getAttribute('data-segment-polarity');
-				this.fireEvent('updateSegmentHighlight', identity, polarity);
-			}, this, {
-				delegate: 'span.sequence-segment'
-			});
-		}, this);
-
+			this.highlightManager.afterrender();
+		},this);
 
 	},
 <span id='App-usr-dil-DilEditor-method-onLoad'>	onLoad: function() {
@@ -438,48 +449,6 @@ Ext.define('App.usr.dil.DilEditor', {
 		}
 	},
 
-<span id='App-usr-dil-DilEditor-method-updateSegmentHighlight'>	/* ------------------------------------------------------------------------------------------- 
-</span>	   Visualization                                                                             */
-
-	updateSegmentHighlight: function(identity, polarity) {
-		if(identity) {
-			this.highlightSegment(identity, polarity);
-		} else {
-			this.unhighlightSegment();
-		}
-	},
-<span id='App-usr-dil-DilEditor-method-highlightSegment'>	/**
-</span>	 * Highlights the passed segment with the given polarity in the #complexView and #strandsGrid
-	 * @param  {String} segment Segment identity
-	 * @param  {Number} polarity Segment polarity (-1 or 1)
-	 */
-	highlightSegment: function(segment, polarity) {
-		this.complexView.preview.fade();
-		this.complexView.preview.highlight({
-			'segment_identity': segment,
-			'segment_polarity': polarity
-		}, 'node-highlight');
-		this.complexView.preview.highlight({
-			'segment_identity': segment,
-			'segment_polarity': -1 * polarity
-		}, 'node-highlight-complement');
-
-		this.strandsGrid.unhighlightSegment();
-		this.strandsGrid.highlightSegment(segment, polarity);
-	},
-<span id='App-usr-dil-DilEditor-method-unhighlightSegment'>	/**
-</span>	 * Unhighlights the passed segment with the given polarity in the #complexView and #strandsGrid
-	 * @param  {String} segment Segment identity
-	 * @param  {Number} polarity Segment polarity (-1 or 1)
-	 */
-	unhighlightSegment: function(segment, polarity) {
-		this.complexView.preview.unfade();
-		this.complexView.preview.unhighlight(null, 'node-highlight');
-		this.complexView.preview.unhighlight(null, 'node-highlight-complement');
-
-		this.strandsGrid.unhighlightSegment();
-	},
-
 	/* ------------------------------------------------------------------------------------------- 
 	   Builds                                                                                    */
 
@@ -595,18 +564,20 @@ Ext.define('App.usr.dil.DilEditor', {
 			strandStore.add(_.map(node.getStrands() || [], function(strand) {
 				return {
 					name: strand.getQualifiedName(),
+					prefix: node.getName()+'_',
 					sequence: strand.getSequence(),
 					complex: strand.getNode().getName(),
 					spec: strand.printDomains( /* omitLengths */ true),
-					polarity: strand.getPolarity()
+					// polarity: strand.getPolarity()
 				};
 			}));
 
 			return {
 				name: node.getName(),
-				polarity: node.getPolarity(),
-				structure: node.getSegmentwiseStructure().toDotParen(),
-				strands: _.map(node.getStrands(), function(strand) {
+				// polarity: node.getPolarity(),
+				type: node.type,
+				structure: node.getOrderedSegmentwiseStructure().toDotParen(),
+				strands: _.map(node.getOrderedStrands(), function(strand) {
 					return strand.getQualifiedName()
 				})
 			};
@@ -642,7 +613,8 @@ Ext.define('App.usr.dil.DilEditor', {
 		// Build objects for strands
 		for(var i = 0; i &lt; strandRecs.length; i++) {
 			var rec = strandRecs[i],
-				strand, doms = _.clone(rec.getParsedSpec());
+				strand, doms = _.clone(rec.getParsedSpec()),
+				name;
 
 			// Update domain objects (built from spec) with sequence info
 			for(var j = 0; j &lt; doms.length; j++) {
@@ -653,12 +625,17 @@ Ext.define('App.usr.dil.DilEditor', {
 				}
 			}
 
+			// remove prefix from name
+			name = rec.get('name').replace(new RegExp('^'+rec.get('prefix')),'')
+
 			strand = {
-				name: rec.get('name'),
-				domains: doms
+				name: name,//rec.get('name'),
+				domains: doms,
+				polarity: rec.get('polarity')
 			};
 			strands.push(strand);
-			strandMap[strand.name] = strand;
+			//strandMap[strand.name] = strand;
+			strandMap[rec.get('name')] = strand;
 		}
 
 		// Build objects for nodes
@@ -673,7 +650,8 @@ Ext.define('App.usr.dil.DilEditor', {
 				polarity: complex.get('polarity'),
 				strands: _.map(complexStrands, function(strand) {
 					return strandMap[strand]
-				})
+				}),
+				type: complex.get('type'),
 			};
 
 			nodes.push(node);
@@ -684,6 +662,59 @@ Ext.define('App.usr.dil.DilEditor', {
 			nodes: nodes,
 			allSegments: allSegments
 		});
+	},
+<span id='App-usr-dil-DilEditor-method-getStrandSequences'>	getStrandSequences: function() {
+</span>		this.strandStore.updateStrandSequences();
+		return this.strandStore.getSequences();
+	},
+<span id='App-usr-dil-DilEditor-method-buildThermMFE'>	buildThermMFE: function () {
+</span>		
+		var predefined_complexes = [];
+		var complexes = this.complexStore.getRange();
+		predefined_complexes = _.compact(_.map(complexes, function (complex) {
+			var strands = complex.get('strands')
+			if (strands.length &gt; 1) return strands.join('+');
+			else return null;
+		}));
+		var options = {
+			'max_complex_size':1,
+			'predefined_complexes':predefined_complexes.join('\n')
+		}
+
+		this.buildTherm('nupack',options);
+	},
+<span id='App-usr-dil-DilEditor-method-buildThermPairwise'>	buildThermPairwise: function () {
+</span>		
+		// var predefined_complexes = [];
+		// var complexes = this.complexStore.getRange();
+		// predefined_complexes = _.map(complexes, function (complex) {
+		// 	return complex.get('strands').join('+')
+		// });
+		var options = {
+			'max_complex_size':2,
+			// 'predefined_complexes':predefined_complexes.join('\n')
+		}
+
+		this.buildTherm('nupack',options);
+	},
+
+<span id='App-usr-dil-DilEditor-method-buildTherm'>	buildTherm: function (mode,options) {
+</span>		//var library = this.buildLibrary();
+		var sequences = this.getStrandSequences(), win;
+		mode = mode || 'nupack';
+
+		switch(mode) {
+			case 'mfold':
+				win = Ext.create('App.ui.mfold.QuikFoldWindow'); break;
+			case 'vienna':
+				win = Ext.create('App.ui.vienna.RNAfoldWindow'); break;
+			case 'nupack':
+			default:
+				win = Ext.create('App.ui.nupack.PartitionWindow');
+		}
+		if (options) win.setOptions(options);
+		win.show();
+		win.setValue(DNA.printSequences(sequences,':'));
 	},
 <span id='App-usr-dil-DilEditor-method-serializeDil'>	serializeDil: function() {
 </span>		var lib = this.buildLibrary();

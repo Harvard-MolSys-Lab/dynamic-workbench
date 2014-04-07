@@ -15,18 +15,19 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='App-ui-nupack-PartitionWindow'>/**
-</span> * Shows a window allowing submission of sequences to the NUPACK web server for Partition function and MFE structure calculation.
+  <pre class="prettyprint lang-js">/*
+ * Shows a window allowing submission of sequences to the NUPACK web server for Partition function and MFE structure calculation.
  */
 Ext.define('App.ui.nupack.PartitionWindow',{
 	extend:'App.ui.sequence.AnalysisWindow',
-<span id='App-ui-nupack-PartitionWindow-property-title'>	title: &quot;NUPACK Partition Calculator&quot;,
-</span><span id='App-ui-nupack-PartitionWindow-property-url'>	url: 'http://www.nupack.org/partition/new',
-</span><span id='App-ui-nupack-PartitionWindow-property-cite'>	cite: 'zadeh_etal_2011',
-</span><span id='App-ui-nupack-PartitionWindow-property-iconCls'>	iconCls: 'nupack-icon',
-</span><span id='App-ui-nupack-PartitionWindow-property-height'>	height: 500,
-</span><span id='App-ui-nupack-PartitionWindow-method-getForm'>	getForm: function() {
-</span>		return {
+	title: &quot;NUPACK Partition Calculator&quot;,
+	url: 'http://www.nupack.org/partition/new',
+	cite: 'zadeh_etal_2011',
+	iconCls: 'nupack-icon',
+	height: 600,
+	getForm: function() {
+		return {
+			height: 370,
 			items: [{
 				fieldLabel: 'Nucleic Acid',
 				name      : 'partition_job[nucleic_acid_type]',
@@ -97,6 +98,7 @@ Ext.define('App.ui.nupack.PartitionWindow',{
 				fieldLabel : 'Temperature (°C)',
 			}, {
 				name: 'partition_job[max_complex_size]',
+				ref: 'max_complex_size',
 				xtype: 'numberfield',
 				value: 1,
 				fieldLabel : 'Max Complex Size',
@@ -161,6 +163,12 @@ Ext.define('App.ui.nupack.PartitionWindow',{
 				xtype: 'hidden',
 				value: '',
 			},{
+				// name: 'partition_job[predefined_complexes]',
+				ref: 'predefined_complexes', // add because Ext.ComponentQuery doesn't like names with []
+				xtype: 'textarea',
+				fieldLabel: 'Additional Complexes',
+				value: '',
+			},{
 				name: 'partition_job[email_address]',
 				fieldLabel: 'Email'
 			},{
@@ -175,8 +183,8 @@ Ext.define('App.ui.nupack.PartitionWindow',{
 		}
 	},
 
-<span id='App-ui-nupack-PartitionWindow-method-getParams'>	getParams: function(start_index,end_index) {
-</span>		start_index || (start_index = 0);
+	getParams: function(start_index,end_index) {
+		start_index || (start_index = 0);
 		end_index || (end_index = null);
 		
 		var strands = this.getStrands();
@@ -219,30 +227,55 @@ Ext.define('App.ui.nupack.PartitionWindow',{
 			}
 		}));
 		
+		// allows splitting sequences into ranges
 		if(end_index == null) {
 			partition_sequence = partition_sequence.slice(start_index);
 		} else {
 			partition_sequence = partition_sequence.slice(start_index,end_index);
 		}
-		
-		return _.reduce(partition_sequence,function(memo,strand,i) {
-				memo['partition_sequence['+i+'][name]'] = strand.name;
-				memo['partition_sequence['+i+'][concentration]'] = strand.concentration;
-				memo['partition_sequence['+i+'][scale]'] = strand.scale;
-				memo['partition_sequence['+i+'][contents]'] = strand.contents;
-				return memo;
-			},{
-				'partition_job[min_melt_temperature]':'',
-				'partition_job[is_melt]':0,
-				'partition_job[melt_temperature_increment]':'',
-				'partition_job[max_melt_temperature]':'',
-				'partition_job[num_sequences]':partition_sequence.length,
-				'partition_job[pseudoknots]':0,
-				'partition_job[predefined_complexes]':'',
-				'partition_job[filter_min_fraction_of_max]':'',
-				'partition_job[filter_max_number]':'',
-			});
 
+		// build output data
+		var strand_indices = {};
+		var memo = {
+			'partition_job[min_melt_temperature]':'',
+			'partition_job[is_melt]':0,
+			'partition_job[melt_temperature_increment]':'',
+			'partition_job[max_melt_temperature]':'',
+			'partition_job[num_sequences]':partition_sequence.length,
+			'partition_job[pseudoknots]':0,
+			'partition_job[predefined_complexes]':'',
+			'partition_job[filter_min_fraction_of_max]':'',
+			'partition_job[filter_max_number]':'',
+		};
+
+		for(var i = 0; i &lt; partition_sequence.length; i++) {
+			var strand = partition_sequence[i];
+			memo['partition_sequence['+i+'][name]'] = strand.name;
+			memo['partition_sequence['+i+'][concentration]'] = strand.concentration;
+			memo['partition_sequence['+i+'][scale]'] = strand.scale;
+			memo['partition_sequence['+i+'][contents]'] = strand.contents;
+			strand_indices[strand.name] = i+1;
+		}
+
+		// specify additional complexes
+	var predefined_complexes = (this.down('[ref=predefined_complexes]').getValue() || '').split('\n'),
+			additionalComplexes = [];
+		for(var i = 0; i &lt; predefined_complexes.length; i++) {
+			var complexString = predefined_complexes[i].split('+'),
+				complex = [], strandName;
+			for(var j=0;j&lt;complexString.length;j++) {
+				strandName = complexString[j].trim();
+				if(strand_indices[strandName] !== undefined) {
+					complex.push(strand_indices[strandName])
+				}
+			}
+			if(complex.length &gt; 0) {
+				additionalComplexes.push(complex.join(' '))
+			}
+		}
+		memo['partition_job[predefined_complexes]'] = additionalComplexes.join('\n');
+
+		return memo;
 	}
 })
 

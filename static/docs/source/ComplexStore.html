@@ -15,69 +15,11 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='App-usr-dil-Complex'>/**
-</span> * @class
- * Record defining a complex. Use with App.usr.dil.ComplexStore
- */
-Ext.define('App.usr.dil.Complex', {
-	extend: 'Ext.data.Model',
-	requires: ['App.usr.dil.StrandStore','App.usr.dil.SegmentStore'],
-<span id='App-usr-dil-Complex-property-fields'>	fields: [{
-</span>		name: 'id',
-		type: 'int'
-	}, {
-		name: 'name'
-	}, {
-		name: 'polarity',
-		type: 'int'
-	}, {
-		name: 'strands' // array
-	}, {
-		name: 'specs',
-		// array
-	}, {
-		name: 'sequences',
-		// array
-	}, {
-		name: 'structure'
-	}, ],
-<span id='App-usr-dil-Complex-property-idgen'>	idgen: 'sequential',
-</span><span id='App-usr-dil-Complex-method-getDynaml'>	getDynaml: function(lib) {
-</span>		return lib.getNode(this.get('name'));
-	},
-<span id='App-usr-dil-Complex-method-getStrands'>	getStrands: function() {
-</span>		return this.get('strands');
-	},
-<span id='App-usr-dil-Complex-method-getStructures'>	getStructures: function() {
-</span>		var structures = this.get('structure') || '';
-		return  _.map(structures.split('+'), function(s) {
-			return s.trim();
-		});
-	},
-<span id='App-usr-dil-Complex-method-fixStructure'>	fixStructure: function(strandIndex,added,removed) {
-</span>		var structures = this.getStructures(),
-			struct = structures[strandIndex];
-		if(struct) {
-			struct = struct.split('');
-			for(var i=struct.length-1; i&gt;=0; i--) {
-				if(removed.indexOf(i) != -1) {
-					delete struct[i];
-				}
-				if(added.indexOf(i) != -1) {
-					struct.splice(i,0,'.');
-				}
-			}
-			structures[strandIndex] = _.compact(struct).join('');
-			this.set('structure',structures.join('+'));
-		}
-	},
-<span id='App-usr-dil-Complex-property-proxy'>	proxy: 'memory',
-</span>});
-
-<span id='App-usr-dil-ComplexStore'>/**
+  <pre class="prettyprint lang-js"><span id='App-usr-dil-ComplexStore'>/**
 </span> * Store representing a collection of {@link App.dynamic.Complex DyNAML complexes}.
  */
 Ext.define('App.usr.dil.ComplexStore', {
+	requires: ['App.usr.dil.Complex'],
 	extend: 'Ext.data.Store',
 <span id='App-usr-dil-ComplexStore-property-model'>	model: 'App.usr.dil.Complex',
 </span><span id='App-usr-dil-ComplexStore-method-constructor'>	constructor: function() {

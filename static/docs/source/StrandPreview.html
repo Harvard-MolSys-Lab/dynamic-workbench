@@ -15,686 +15,14 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">function StrandPreview() {
-	/* **********************
-	 * Configuration
-	 */
-		
-		var viewSizeX = 400, viewSizeY = 400,
-			fade_in_duration = 100, 
-			panel_wait_duration = 1000, simultaneous_panels = 2,
-			//k = Math.sqrt(nodes.length / (viewSizeX * viewSizeY));
-			maxLinkDistance, strandLinkDistance, wcLinkDistance, persistenceLength = false,
-			
-			baseWidth = 1,
-			
-			nodeFillMode = 'segment', // 'identity', 'segment', 'domain'
-			nodeStrokeMode = 'segment', // 'identity', 'segment', 'domain'
-			lineStrokeMode = 'default', // 'segment', 'domain', 'default'
-			textFillMode = 'default', // 'default', 'segment', 'domain', 'identity'
-			showBubbles = true,
-			showBases = true,
-			showIndexes = true,
-			showSegments = true,
-
-			segmentLabelFontSize = 1,
-			nodeBaseFontSize = baseWidth*.8,
-			nodeIndexFontSize = baseWidth*.8,
-
-			scaleSegmentLabels = true,
-			minFontSize = 0.25,
-			segment_label_height = 2,
-
-			arrowDistance = 60,
-			arrowScale = 20,
-			loopMode = 'circular',
-
-			line_stroke = '#aaa',
-			strokes = {
-				'wc': '#ccc',
-				'strand' : line_stroke,
-				'persistence' : '',
-				'undesired' : '#a00',
-			};
-		var segmentColors = d3.scale.category20(),
-			baseColors = d3.scale.ordinal().domain(['A','T','C','G','N']).range(['blue','red','green','black','orange']);
-	
-	/* **********************
-	 * Utility methods
-	 */	
-	 
-	function range(arr) {
-		return _.range(arr[0], arr[1] + 1)
-	}
-		
-	function buildNodeLayout(structure) {
-		if(_.isString(structure)) {
-			return DNA.generateAdjacency(structure,['A'],true,{
-				persistenceLength: false,
-			});
-		} else if(structure.strands &amp;&amp; structure.structure &amp;&amp; structure.sequences) {
-			return DNA.generateAdjacency3(structure.structure, structure.strands, {
-				sequences: structure.sequences,
-				persistenceLength: false,
-			});
-		} else {
-			return DNA.generateAdjacency2(structure, {
-				linkStrands : true,
-				//persistenceLength: this.persistenceLength,
-				persistenceLength: false,
-			});
-		}
-	}
-	
-	function buildPointLayout(parsed_struct,viewSizeX,viewSizeY) {
-		var pairs = DNA.layoutStructure(parsed_struct,{
-			loopMode:loopMode,
-			arrangeLayout: false,
-		}), layout, scale;
-		
-		if(pairs.length == 0) {
-			return { pairs: [], zoom: 1, translate: [0,0] };
-		}
-
-		layout = DNA.arrangeLayout(pairs,{
-			center: true, 
-			//scale: [viewSizeX*.8,viewSizeY*.8], 
-			offsets:[viewSizeX*.05,viewSizeY*.05], 
-			loopMode: loopMode,
-		});
-		scale = DNA.getScale(layout.bounds,[viewSizeX*.8,viewSizeY*.8],/* maintainAspect */ true);
-		
-		return {
-			pairs: layout.pairs,
-			zoom: scale[0]*0.9,
-			translate: DNA.getOffset(layout.bounds,[viewSizeX*.8,viewSizeY*.8],scale[0]*.9)
-		};
-	}
-	
-	function updateLinkDistances() {
-		maxLinkDistance = viewSizeX / 20;
-		strandLinkDistance = maxLinkDistance;
-		wcLinkDistance = 1.5 * strandLinkDistance;
-	}
-	
-	
-			
-	
-	/* ******************************************
-	 * Constructor
-	 */	
-	function chart(selection) {
-		selection.each(function(data) {
-			
-			/* ******************************
-			 * Parse incoming data
-			 */
-			var parsed_struct,			
-				structure = data;			
-			if(_.isString(data)) {
-				parsed_struct = DNA.parseDotParen(structure);
-			} else {
-				if(structure.strands) {
-					structure.strands = DNA.expandStrands(structure.strands);								
-				}
-				if(structure.dotParen) {								
-					parsed_struct = DNA.parseDotParen(structure.dotParen);	
-				} else if(structure.strands &amp;&amp; structure.sequences) {								
-					structure.dotParen = DNA.expandStructure(structure.structure, structure.strands, structure.sequences,true);
-					parsed_struct = DNA.parseDotParen(structure.dotParen);	
-				} 
-			}
-			
-			
-			/* ******************************
-			 * Build nodeLayout and pointLayout
-			 */
-			var pointLayout, nodeLayout, nodes, links;
-			
-			// Build nodeLayout; this is the arrangement of nodes and links
-			// which is fed to d3.
-			nodeLayout = buildNodeLayout(data);
-			
-			// Build pointLayout; this determines the (starting) 2D positions
-			// of each node. By default uses a planar graph layout
-			pointLayout = buildPointLayout(parsed_struct,viewSizeX,viewSizeY);
-			
-			
-			// Update node positions based on pointLayout
-			nodes = _.map(nodeLayout.nodes, function(n, i) {
-				n.x = pointLayout.pairs[i][0];
-				n.y = pointLayout.pairs[i][1];
-				n.theta = pointLayout.pairs[i][2];
-				return n;
-			});
-			links = nodeLayout.links;
-			
-			// Build node for 3' tail
-			var lastIndex = nodes.length-1, lastNode = nodes[lastIndex-1];
-			if(lastNode) { 
-				var theta = lastNode.theta+Math.PI/2,
-				tailNode = {
-					x: lastNode.x+Math.cos(theta)*arrowDistance,
-					y: lastNode.y+Math.sin(theta)*arrowDistance,
-					theta: theta,
-				},
-				tailLink = {source: lastIndex, target: lastIndex+1, type: 'tail'};
-			}
-
-			/* *****************************
-			 * Build panel
-			 */
-			var panel = d3.select(this)
-			.attr(&quot;pointer-events&quot;, &quot;all&quot;)
-			.append('g')
-				//.attr('width',viewSizeX)
-				//.attr('height',viewSizeY)
-				.call(d3.behavior.zoom().on('zoom',zoomRedraw).scale(pointLayout.zoom).translate(pointLayout.translate))
-			.append('g');
-
-			panel.attr(&quot;transform&quot;,
-			      &quot;translate(&quot; + pointLayout.translate + &quot;)&quot;
-			      + &quot; scale(&quot; + pointLayout.zoom + &quot;)&quot;);
-			
-			/* ******************************
-			 * Build force-directed graph
-			 */
-			var force = d3.layout.force()
-			.size([viewSizeX, viewSizeY]) //
-			.charge(-45) //
-			.linkDistance(function(l,i) { 
-				if(l.type == 'persistence') {
-					return persistenceLength * (1.2*maxLinkDistance)
-				} else if(l.type == 'wc') {
-					return wcLinkDistance;
-				} else if(l.type == 'strand') {
-					return strandLinkDistance;
-				}
-			}).linkStrength(function(l, i) {
-				if(l.type == 'persistence') {
-					return 1/persistenceLength
-				} else if(l.type == 'wc') {
-					return 1;
-				} else if(l.type == 'strand') {
-					return 0.7;
-				}
-			}).gravity(0.005);
-			
-			// Bind nodes to the force layout
-			var forceNodes = nodes;
-			if(tailNode) {
-				forceNodes = _.clone(nodes);
-				forceNodes.push(tailNode);
-				links.push(tailLink);
-			}
-			force.nodes(forceNodes).links(links)
-			
-			/* ******************************
-			 * Build visualization
-			 */
-			
-			panel.append(&quot;rect&quot;)
-			.classed('strand-preview-drag',true)
-			//.attr(&quot;fill&quot;,&quot;transparent&quot;)
-			.attr(&quot;width&quot;,viewSizeX/pointLayout.zoom)
-			.attr(&quot;height&quot;,viewSizeY/pointLayout.zoom);
-			
-			var nodeSel, linkSel;
-			
-			// Links
-			linkSel = panel.selectAll(&quot;line.link&quot;).data(links);
-			linkSel.exit().remove();
-			var link_line = linkSel = linkSel.enter().append(&quot;line&quot;).attr(&quot;class&quot;, function(d) {
-				var cls = [&quot;link&quot;,&quot;link-&quot;+d.type];
-				cls.push(&quot;source-&quot; + d.source.name);
-				cls.push(&quot;target-&quot; + d.target.name);
-				return cls.join(' ');
-			}).style('stroke',function(d) {
-				if(d.type == 'strand') {
-					switch(lineStrokeMode) {
-						case 'identity':
-								return baseColors(d.base)
-						case 'segment':
-								return segmentColors(d.segment_identity)
-						case 'domain':
-								return App.dynamic.Compiler.domainColors[d.domain_role] || null
-						default:
-							return '';
-					}
-				}
-				return '';
-			});
-			
-							
-			// Node Groups
-			nodeSel = panel.selectAll(&quot;g.node&quot;).data(nodes);
-			nodeSel.exit().remove();
-			nodeSel = nodeSel.enter().append('g').attr(&quot;class&quot;, &quot;node&quot;).call(force.drag);
-	
-			// Node circle
-			if(showBubbles) {
-				var node_circle = nodeSel.append(&quot;circle&quot;).attr(&quot;r&quot;, 0.5*baseWidth+'em');
-				redrawNodeCircles(node_circle);
-			}
-							
-			// Node index
-			if(showIndexes) {
-				var node_index = nodeSel.append('text').attr('class', 'node_index');
-				redrawNodeIndex(node_index);
-			}
-
-			// Node base
-			if(showBases) {
-				var node_base = nodeSel.append('text').attr('class', 'node_base');
-				redrawNodeBase(node_base);
-			}
-
-			// Node segment name
-			if(showSegments) {
-				var node_segment = nodeSel.append('text').attr('class', 'node_segment');
-				redrawNodeSegment(node_segment);
-			}
-
-			if(tailNode) {
-				var tailSel = panel.selectAll(&quot;path.tail&quot;)
-					.data([tailNode]).enter().append('path').attr('class','tail');
-				tailSel.attr('d',Ext.String.format('M-{0},-{0} L0,0 L-{0},{0}',arrowScale));
-			}
-
-			redraw(pointLayout.zoom,pointLayout.translate);
-	
-			// gobbles parameters that would be passed to redraw and uses d3.event stuff instead
-			function zoomRedraw() {
-				d3.event.sourceEvent.stopPropagation();
-				return redraw(d3.event.scale,d3.event.translate );
-			}
-
-			var nodeBaseHidden = false,
-				nodeIndexHidden = false,
-				segmentLabelHidden = false;
-
-			function redraw(redraw_scale,redraw_translate) {
-				panel.attr(&quot;transform&quot;,
-			      &quot;translate(&quot; + redraw_translate + &quot;)&quot;
-			      + &quot; scale(&quot; + redraw_scale + &quot;)&quot;);
-
-				if(showBases &amp;&amp; nodeBaseFontSize*redraw_scale &lt; minFontSize &amp;&amp; !nodeBaseHidden) {
-					panel.selectAll('text.node_base').style('display','none');
-					nodeBaseHidden = true;
-				} else if (showBases &amp;&amp; nodeBaseFontSize*redraw_scale &gt;= minFontSize &amp;&amp; nodeBaseHidden) {
-					panel.selectAll('text.node_base').style('display','');
-					nodeBaseHidden = false;
-				}
-				if(showIndexes &amp;&amp; nodeIndexFontSize*redraw_scale &lt; minFontSize &amp;&amp; !nodeIndexHidden) {
-					panel.selectAll('text.node_index').style('display','none');
-					nodeIndexHidden = true;
-				} else if(showIndexes &amp;&amp; nodeIndexFontSize*redraw_scale &lt; minFontSize &amp;&amp; nodeIndexHidden) {
-					panel.selectAll('text.node_index').style('display','');
-					nodeIndexHidden = false;
-				}
-
-				if(showSegments &amp;&amp; scaleSegmentLabels &amp;&amp; !segmentLabelHidden) {
-					var sel = panel.selectAll('text.node_segment');
-					sel.style('font-size',1/redraw_scale*segmentLabelFontSize+'em')
-					.attr('dx', function(d) {
-						if(d.segment_length) {
-							var phi = Math.atan2(segment_label_height,d.segment_length*baseWidth/2),
-							c = Math.sqrt(Math.pow(segment_label_height,2),Math.pow(d.segment_length*baseWidth/2,2));
-							return Math.cos(d.theta+Math.PI/2-phi)*c*redraw_scale*2+'em';
-						}
-						return Math.cos(d.theta+Math.PI/4)*2.5*redraw_scale*2+'em';
-					}).attr('dy', function(d) {
-						if(d.segment_length) {
-							var phi = Math.atan2(segment_label_height,d.segment_length*baseWidth/2),
-							c = Math.sqrt(Math.pow(segment_label_height,2),Math.pow(d.segment_length*baseWidth/2,2));
-							return Math.sin(d.theta+Math.PI/2-phi)*c*redraw_scale*2+0.35+'em';
-						}
-						return Math.sin(d.theta+Math.PI/4)*2.5*redraw_scale*2+0.35+'em';
-					});
-				} else {
-					if(showSegments &amp;&amp; segmentLabelFontSize*redraw_scale &lt; minFontSize &amp;&amp; !segmentLabelHidden) {
-						panel.selectAll('text.node_base').style('display','none');
-						segmentLabelHidden = true;
-					} else if(showSegments &amp;&amp; segmentLabelFontSize*redraw_scale &gt;= minFontSize &amp;&amp; segmentLabelHidden) {
-						panel.selectAll('text.node_base').style('display','');
-						segmentLabelHidden = false;
-					} 
-				}
-				
-
-			}
-			
-			function restart() {
-				function doTick() {
-					linkSel.attr(&quot;x1&quot;, function(d) {
-						return d.source.x;
-					}).attr(&quot;y1&quot;, function(d) {
-						return d.source.y;
-					}).attr(&quot;x2&quot;, function(d) {
-						return d.target.x;
-					}).attr(&quot;y2&quot;, function(d) {
-						return d.target.y;
-					});
-		
-					nodeSel.attr(&quot;transform&quot;, function(d) {
-						return &quot;translate(&quot; + d.x + &quot;,&quot; + d.y + &quot;)&quot;;
-					});
-
-					if(tailSel) {
-						tailSel.attr('transform',function(d) {
-							return &quot;translate(&quot; + d.x + &quot;,&quot; + d.y + &quot;) rotate(&quot;+d.theta*180/Math.PI+&quot;)&quot;;
-						});
-					}
-				}
-				
-				function fadeIn() {
-					panel.style(&quot;opacity&quot;, 1e-6)
-						.transition()
-						.duration(fade_in_duration)
-						.style(&quot;opacity&quot;, 1);
-				}
-					
-				data.force = force;
-
-				// force.start();
-				force.start();
-				doTick();
-				force.stop();
-				//force.on(&quot;tick&quot;, doTick);
-
-				// _.delay(function() { me.force.start(); },2000);	
-				
-				
-				fadeIn();
-			}
-			
-			restart();
-			
-		});
-		
-		var c = {
-			highlight: highlight,
-			unhighlight: unhighlight,
-			fade: fade,
-			unfade: unfade,
-			redrawNodes: redrawNodes,
-			each: each,
-			expandSelection: expandSelection,
-			start: start,
-			stop: stop, 
-		};
-
-		return c;
-
-		function each(f) {
-			selection.each(f);
-			return c;
-		}
-
-		function expandSelection(newSelection) {
-			for(var i=0; i&lt;newSelection.length; i++) {
-				for(var j=0; j&lt;selection.length; j++) {
-					if(selection[j] == newSelection[i]) {
-						selection[j] = newSelection[i];
-						newSelection[i] = null;
-					}
-				}
-			}
-			for(var i=0; i&lt;newSelection.length; i++) {
-				if(newSelection[i] != null) {
-					selection.push(newSelection[i]);
-				}
-			}
-
-		}
-
-		function redrawNodeCircles(node_circle) {
-			node_circle.style(&quot;fill&quot;, function(d) {
-				switch(nodeFillMode) {
-					case 'identity':
-							return baseColors(d.base)
-					case 'segment':
-							return segmentColors(d.segment_identity)
-					case 'domain':
-							return App.dynamic.Compiler.domainColors[d.domain_role] || null
-				}
-			})
-			.style(&quot;stroke&quot;, function(d) {
-				switch(nodeStrokeMode) {
-					case 'identity':
-							return d3.rgb(baseColors(d.base)).darker().toString();
-					case 'segment':
-							return d3.rgb(segmentColors(d.segment_identity)).darker().toString();
-					case 'domain':
-							return App.dynamic.Compiler.domainColors[d.domain_role] ? 
-								d3.rgb(App.dynamic.Compiler.domainColors[d.domain_role]).darker().toString() : null
-				}
-			});
-		}
-
-		function redrawNodeIndex(node_index) {
-			node_index.style('font-size',nodeIndexFontSize+'em')
-			.attr('text-anchor','middle')
-			.attr('dx', function(d) {
-				return Math.cos(d.theta)+'em';
-			}).attr('dy', function(d) {
-				return Math.sin(d.theta)+0.35+'em';
-			}).text(function(d,i) {
-				return (i % 10 == 0) ? i : '';
-			});
-		}
-
-		function redrawNodeBase(node_base) {
-			node_base.style('font-size',nodeBaseFontSize+'em')
-			.attr('text-anchor','middle')
-			.attr('dy','.35em')
-			.text(function(d) {
-				return d.base || 'N'
-			}).style(&quot;fill&quot;, function(d) {
-				switch(textFillMode) {
-					case 'identity':
-							return baseColors(d.base)
-					case 'segment':
-							return segmentColors(d.segment_identity)
-					case 'domain':
-							return App.dynamic.Compiler.domainColors[d.domain_role] || null
-					default:
-						// Hack. Illustrator appears to ignore these values if they're set in CSS on a class
-						return '#fff';
-				}
-			});
-	}
-
-		function redrawNodeSegment(node_segment) {
-			node_segment
-			.attr('text-anchor','middle')
-			.text(function(d,i) {
-				return d.segment_index == 0 ? d.segment : ''
-			}).attr('fill',function(d) {
-				return segmentColors(d.segment_identity);
-			});
-		}
-
-		function redrawNodes() {
-			each(function(data) {
-				var panel = d3.select(this);
-				var nodeSel = panel.selectAll(&quot;g.node&quot;);
-
-				// Node circle
-				if(showBubbles) {
-					redrawNodeCircles(nodeSel.select(&quot;circle&quot;));
-				}
-
-				// Node index
-				if(showIndexes) {
-					redrawNodeIndex(nodeSel.select(&quot;text.node_index&quot;));	
-				}
-				// Node base
-				if(showBases) {
-					redrawNodeBase(nodeSel.select(&quot;text.node_base&quot;));
-				}
-
-				// Node segment name
-				if(showSegments) {
-					redrawNodeSegment(nodeSel.select(&quot;text.node_segment&quot;));
-				}
-				
-			})
-		}
-
-		function fade() {
-			return each(function(data) {
-				d3.select(this).selectAll('g.node').classed('node-faded',true);
-			});
-		}
-
-		function unfade() {
-			return each(function(data) {
-				d3.select(this).selectAll('g.node').classed('node-faded',false);
-			});
-		}
-
-		function highlight(criteria,className) {
-			className || (className = 'node-highlight');
-			if(!criteria) {
-				return each(function(data) {
-					d3.select(this).selectAll('g.node').classed(className,true);
-				})
-			}
-			return each(function(data) {
-				d3.select(this).selectAll('g.node').classed(className,function(d) {
-					if(!criteria) { return true; }
-					var keep = true;
-					for(var key in criteria) {
-						keep = keep &amp;&amp; (d[key] == criteria[key]);
-					}
-					return keep;
-				});
-			});
-		}
-		function unhighlight(criteria,className) {
-			className || (className = 'node-highlight');
-			if(!criteria) {
-				return each(function(data) {
-					d3.select(this).selectAll('g.node').classed(className,false);
-				});
-			}
-			return each(function(data) {
-				d3.select(this).selectAll('g.node').classed(className,function(d) {
-					var keep = true;
-					for(var key in criteria) {
-						keep = keep &amp;&amp; (d[key] == criteria[key]);
-					}
-					return !keep;
-				});
-			});
-		}
-
-		function start() {
-			each(function(data) {
-				data.force.resume();
-			})
-		}
-
-		function stop() {
-			each(function(data) {
-				data.force.stop();
-			})
-		}
-	}
-	
-	/* **********************
-	 * Chainable accessors
-	 */
-	
-	chart.width = function(_) {
-		if (!arguments.length) return viewSizeX;
-		viewSizeX = _;
-		updateLinkDistances()
-		return chart;
-	};
-
-	chart.height = function(_) {
-		if (!arguments.length) return viewSizeY;
-		viewSizeY = _;
-		updateLinkDistances()
-		return chart;
-	};
-	
-	chart.nodeStrokeMode = function(_) {
-		if (!arguments.length) return nodeStrokeMode;
-		nodeStrokeMode = _;
-		return chart;
-	};
-	
-	chart.nodeFillMode = function(_) {
-		if (!arguments.length) return nodeFillMode;
-		nodeFillMode = _;
-		return chart;
-	};
-	
-	chart.lineStrokeMode = function(_) {
-		if (!arguments.length) return lineStrokeMode;
-		lineStrokeMode = _;
-		return chart;
-	};
-	
-	chart.textFillMode = function(_) {
-		if (!arguments.length) return textFillMode;
-		textFillMode = _;
-		return chart;
-	};
-
-	chart.showBubbles = function(_) {
-		if (!arguments.length) return showBubbles;
-		showBubbles = _;
-		return chart;
-	};
-
-	chart.showBases = function(_) {
-		if (!arguments.length) return showBases;
-		showBases = _;
-		return chart;
-	};
-
-	chart.showIndexes = function(_) {
-		if (!arguments.length) return showIndexes;
-		showIndexes = _;
-		return chart;
-	};
-
-	chart.showSegments = function(_) {
-		if (!arguments.length) return showSegments;
-		showSegments = _;
-		return chart;
-	};
-
-
-	chart.loopMode = function(_) {
-		if (!arguments.length) return loopMode;
-		loopMode = _;
-		return chart;
-	};
-
-	chart.segmentColors = function(_) {
-		if (!arguments.length) return segmentColors;
-		segmentColors = _;
-		return chart;
-	};
-
-	updateLinkDistances();
-	
-	return chart;
-}
-
-<span id='App-ui-StrandPreview'>/**
+  <pre class="prettyprint lang-js"><span id='App-ui-StrandPreview'>/**
 </span> * Allows visualization of secondary structures
  */
 Ext.define('App.ui.StrandPreview', {
 	extend : 'App.ui.D3Panel',
 
 	alias : 'widget.strandpreview',
-	requires : ['App.ui.StrandPreviewViewMenu'],
+	requires : ['App.ui.StrandPreviewViewMenu','App.ui.SVGEditorWindow'],
 
 <span id='App-ui-StrandPreview-cfg-autoRender'>	autoRender : true,
 </span><span id='App-ui-StrandPreview-property-data'>	data : '',
@@ -709,14 +37,26 @@ Ext.define('App.ui.StrandPreview', {
 <span id='App-ui-StrandPreview-property-textFillMode'>	textFillMode: 'default',
 </span><span id='App-ui-StrandPreview-property-showBubbles'>	showBubbles: true,
 </span><span id='App-ui-StrandPreview-property-loopMode'>	loopMode: 'linear',
-</span><span id='App-ui-StrandPreview-property-showBases'>	showBases : true,
+</span>	
+<span id='App-ui-StrandPreview-property-showBases'>	showBases : true,
 </span><span id='App-ui-StrandPreview-property-showIndexes'>	showIndexes : true,
 </span><span id='App-ui-StrandPreview-property-showSegments'>	showSegments : true,
-</span><span id='App-ui-StrandPreview-property-segmentColors'>	segmentColors : null,
+</span><span id='App-ui-StrandPreview-property-showStrands'>	showStrands : true,
+</span>	
+<span id='App-ui-StrandPreview-property-segmentColors'>	segmentColors : null,
+</span><span id='App-ui-StrandPreview-property-strandColors'>	strandColors : null,
+</span><span id='App-ui-StrandPreview-property-showToolbar'>	showToolbar: true,
+</span><span id='App-ui-StrandPreview-property-simpleToolbar'>	simpleToolbar: true,
+</span><span id='App-ui-StrandPreview-property-createTip'>	createTip: false,
+</span><span id='App-ui-StrandPreview-property-tipDelegate'>	tipDelegate: 'circle',
 </span>
-<span id='App-ui-StrandPreview-property-showToolbar'>	showToolbar: true,
-</span><span id='App-ui-StrandPreview-method-setValue'>	setValue : function(structure, strands, sequences) {
-</span>		if(structure &amp;&amp; structure.structure &amp;&amp; structure.strands) {
+<span id='App-ui-StrandPreview-cfg-viewOptions'>	/**
+</span>	 * @cfg {Object} viewOptions
+	 */
+
+
+	setValue : function(structure, strands, sequences) {
+		if(structure &amp;&amp; structure.structure &amp;&amp; structure.strands) {
 			this.data = structure;
 			this.strands = structure.strands;
 			this.structure = structure.structure;
@@ -736,32 +76,30 @@ Ext.define('App.ui.StrandPreview', {
 			this.strands = strands;
 			this.sequences = sequences;
 		}
-		// if(structure) {
-			// this.buildVis();
-		// } else {
-			// this.force.nodes([]).links([])
-		// }
 		this.buildVis();
-		// this.restart();
 	},
 <span id='App-ui-StrandPreview-method-buildVis'>	buildVis : function() {
 </span>		var panel = this.getCanvas();
 		panel.selectAll('g').remove();
 		this.chart = StrandPreview(panel).width(this.getWidth()).height(this.getHeight())
-			.showBubbles(this.showBubbles)
-			.showBases(this.showBases)
-			.showIndexes(this.showIndexes)
-			.showSegments(this.showSegments)
-			.loopMode(this.loopMode)
-			.nodeStrokeMode(this.nodeStrokeMode)
-			.nodeFillMode(this.nodeFillMode)
-			.lineStrokeMode(this.lineStrokeMode)
-			.textFillMode(this.textFillMode);
+			.options(this);
+			// .showBubbles(this.showBubbles)
+			// .showBases(this.showBases)
+			// .showIndexes(this.showIndexes)
+			// .showSegments(this.showSegments)
+			// .showStrands(this.showStrands)
+			// .loopMode(this.loopMode)
+			// .nodeStrokeMode(this.nodeStrokeMode)
+			// .nodeFillMode(this.nodeFillMode)
+			// .lineStrokeMode(this.lineStrokeMode)
+			// .textFillMode(this.textFillMode);
 		if(!!this.segmentColors) this.chart.segmentColors(this.segmentColors)
+		if(!!this.strandColors) this.chart.strandColors(this.strandColors)
 		this.preview = this.chart(panel.data([this.data]));
 	},
 <span id='App-ui-StrandPreview-method-updateChartProperties'>	updateChartProperties: function() {
-</span>		this.buildVis();
+</span>		if(this.rendered)
+			this.buildVis();
 	},
 <span id='App-ui-StrandPreview-method-highlight'>	highlight: function(criteria) {
 </span>		this.preview.highlight(criteria);
@@ -771,31 +109,81 @@ Ext.define('App.ui.StrandPreview', {
 	},
 <span id='App-ui-StrandPreview-method-initComponent'>	initComponent : function() {
 </span>		if(this.showToolbar) {
-			this.bbar = [{
-				iconCls:'dot-paren-icon',
-				handler: this.toDotParen,
-				scope: this,
-				tooltip: 'Show structure in dot-parenthesis notation'
-			},{
-				iconCls:'du-plus-icon',
-				handler: this.toDUPlus,
-				scope: this,
-				tooltip: 'Show structure in DU-plus (Zadeh) notation'
-			},{
-				iconCls: 'svg',
-				handler: this.toSVG,
-				scope: this,
-				tooltip: 'Show SVG code for structure'
-			},'-&gt;',
-			// {
-			// 	text: 'Interactive',
-			// 	enableToggle: true,
-			// 	toggleHandler: this.toggleForce,
-			// 	scope: this,
-			// },
-				Ext.create('App.ui.StrandPreviewViewMenu',{view: this})];
+			this.viewMenu = Ext.create('App.ui.StrandPreviewViewMenu',{view: this});
+			this.bbar = {
+				cls: this.simpleToolbar ? 'simple-toolbar' : '', 
+				items:[{
+					iconCls:'dot-paren-icon',
+					handler: this.toDotParen,
+					scope: this,
+					tooltip: 'Show structure in dot-parenthesis notation'
+				},{
+					iconCls:'du-plus-icon',
+					handler: this.toDUPlus,
+					scope: this,
+					tooltip: 'Show structure in DU-plus (Zadeh) notation'
+				},{
+					iconCls: 'svg',
+					handler: this.toSVG,
+					scope: this,
+					tooltip: 'Show SVG code for structure'
+				},'-&gt;',
+				// {
+				// 	text: 'Interactive',
+				// 	enableToggle: true,
+				// 	toggleHandler: this.toggleForce,
+				// 	scope: this,
+				// },
+				this.viewMenu]
+			};
 		}
 		this.callParent(arguments);
+
+		this.on('afterrender', function() {
+			if(this.viewOptions)
+				this.viewMenu.setOptions(this.viewOptions)
+
+			if(this.createTip) { 
+				this.tip = Ext.create('Ext.tip.ToolTip', {
+					target: this.getEl(),
+					delegate: this.tipDelegate,
+					trackMouse: true,
+					showDelay: false,
+					renderTo: Ext.getBody(),
+					listeners: {
+						// Change content dynamically depending on which element triggered the show.
+						beforeshow: {
+							fn: this.updateTipBody,
+							scope: this
+						}
+					}
+				});
+
+				this.sequenceRenderer = CodeMirror.modeRenderer('sequence');
+			}
+		}, this);
+		this.on('hide',this.onHide,this)
+
+	},
+<span id='App-ui-StrandPreview-method-updateTipBody'>	updateTipBody: function(tip) {
+</span>		var targetEl = Ext.get(tip.triggerElement).up('g');
+		if(targetEl) { 
+			targetEl = d3.select(targetEl.dom);
+			var data = targetEl.datum()
+			tip.update(this.getTipBody(data));
+		}
+	},
+<span id='App-ui-StrandPreview-method-getTipBody'>	getTipBody: function (data) {
+</span>		var out = '&lt;b&gt;'+this.sequenceRenderer(data.base)+'&lt;/b&gt; | &lt;b&gt;'+data.strand+'&lt;/b&gt; / &lt;b&gt;'+data.segment+'&lt;/b&gt; / '+data.segment_index+'&lt;br /&gt;';
+		if(data.immutable) { out+='&lt;b&gt;Immutable&lt;/b&gt;&lt;br /&gt;'; }
+		if(data.prevented) { 
+			out+=_.map(data.prevented,function(p) {
+				return '&lt;b&gt;Prevented&lt;/b&gt; '+this.sequenceRenderer(p.seq)+' ('+p.index+'/'+p.length+') &lt;br /&gt;';
+			},this).join('')
+			
+		}
+		if(data.changed) { out+='&lt;b&gt;Changed&lt;/b&gt; ('+data.changed.reason+')'; }
+		return out;
 	},
 <span id='App-ui-StrandPreview-method-toggleForce'>	toggleForce: function() {
 </span>		if(!this.forceEnabled) {
@@ -806,7 +194,7 @@ Ext.define('App.ui.StrandPreview', {
 			this.preview.stop();
 		}
 	},
-<span id='App-ui-StrandPreview-method-showWindow'>	showWindow: function(title,data,button) {
+<span id='App-ui-StrandPreview-method-showWindow'>	showWindow: function(title,data,button,iconCls) {
 </span>		if(!this.textWindow) {
 			this.textWindowBox = Ext.create('App.ui.CodeMirror',{});
 			this.textWindow = Ext.create('Ext.window.Window',{
@@ -820,6 +208,7 @@ Ext.define('App.ui.StrandPreview', {
 				border: false,
 				plain: true,
 				headerPosition: 'left', 
+				iconCls: iconCls,
 			});
 		}
 		this.textWindow.show();
@@ -828,6 +217,8 @@ Ext.define('App.ui.StrandPreview', {
 		}
 		this.textWindow.setTitle(title);
 		this.textWindowBox.setValue(data);
+		if(iconCls)
+			this.textWindowBox.setIconCls(iconCls)
 	},
 <span id='App-ui-StrandPreview-method-getStructure'>	/**
 </span>	 * Returns the structure currently displayed in this window, in dot-parenthesis notation
@@ -837,39 +228,66 @@ Ext.define('App.ui.StrandPreview', {
 	},
 <span id='App-ui-StrandPreview-method-toDotParen'>	toDotParen: function(btn) {
 </span>		var value = this.getStructure();
-		this.showWindow('Dot-Parentheses',value,btn);
+		this.showWindow('Dot-Parentheses',value,btn,'dot-paren-icon');
 	},
 <span id='App-ui-StrandPreview-method-toDUPlus'>	toDUPlus: function(btn) {
 </span>		var value = DNA.dotParenToDU(this.getStructure());
-		this.showWindow('DU+',value,btn);
+		this.showWindow('DU+',value,btn,'du-plus-icon');
 	},
-<span id='App-ui-StrandPreview-method-toSVG'>	toSVG: function(btn) {
-</span>		if(!this.svgStyles) {
-			Ext.Ajax.request({
-			    url: 'styles/strand-preview.css',
-			    success: function(response){
-			        this.svgStyles = response.responseText;
-			        this.doDisplaySVGWindow()
-			    },
-			    scope: this,
+<span id='App-ui-StrandPreview-method-toSVG'>	toSVG: function (btn) {
+</span>		if(!this.svgWindow)
+			this.svgWindow = Ext.create('App.ui.SVGEditorWindow',{
+				stylesUrl: 'styles/strand-preview.css',
+				title: 'SVG',
+				iconCls: 'svg',
+				suggestedFileName: this.getSuggestedFilename(),
+				closeAction: 'hide',
 			});
-		} else {
-			this.doDisplaySVGWindow();
-		}
-	},
-<span id='App-ui-StrandPreview-method-doDisplaySVGWindow'>	doDisplaySVGWindow: function() {
-</span>		var value = '&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;&lt;!DOCTYPE svg PUBLIC &quot;-//W3C//DTD SVG 1.1//EN&quot; &quot;http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd&quot;&gt;'+this.getCanvasMarkup();
 
-		// Sorry Cthulhu... http://www.codinghorror.com/blog/2009/11/parsing-html-the-cthulhu-way.html
-		value = value.replace(/&lt;svg(\b[^&gt;]*)&gt;/g,'&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot; $1&gt;&lt;style type=&quot;text/css&quot;&gt;&lt;![CDATA[' + this.svgStyles + ']]&gt;&lt;/style&gt;');
-
-		this.svgWindow = Ext.create('App.ui.StrandPreviewTextWindow',{
-			title: 'SVG',
-		});
-		this.svgWindow.show();
-		this.svgWindow.setValue(value);
-		//this.showWindow('SVG',value,btn);
+		this.svgWindow.show()
+		this.svgWindow.setValue(this.getCanvasMarkup())
+		this.svgWindow.alignTo(btn)
 	},
+<span id='App-ui-StrandPreview-method-getSuggestedFilename'>	getSuggestedFilename: function () {
+</span>		var title = this.title
+		return title ? title.replace(/\s/g,'') : ''	
+	},
+	// toSVG: function(btn) {
+	// 	if(!this.svgStyles) {
+	// 		Ext.Ajax.request({
+	// 		    url: 'styles/strand-preview.css',
+	// 		    success: function(response){
+	// 		        this.svgStyles = response.responseText;
+	// 		        this.doDisplaySVGWindow()
+	// 		    },
+	// 		    scope: this,
+	// 		});
+	// 	} else {
+	// 		this.doDisplaySVGWindow();
+	// 	}
+	// },
+	// doDisplaySVGWindow: function() {
+	// 	var value = '&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;&lt;!DOCTYPE svg PUBLIC &quot;-//W3C//DTD SVG 1.1//EN&quot; &quot;http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd&quot;&gt;'+this.getCanvasMarkup();
+
+	// 	// Sorry Cthulhu... http://www.codinghorror.com/blog/2009/11/parsing-html-the-cthulhu-way.html
+	// 	value = value.replace(/&lt;svg(\b[^&gt;]*)&gt;/g,'&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot; $1&gt;&lt;style type=&quot;text/css&quot;&gt;&lt;![CDATA[' + this.svgStyles + ']]&gt;&lt;/style&gt;');
+
+<span id='App-ui-StrandPreview-method-onHide'>	// 	this.svgWindow = Ext.create('App.ui.StrandPreviewTextWindow',{
+</span>	// 		title: 'SVG',
+	// 	});
+	// 	this.svgWindow.show();
+	// 	this.svgWindow.setValue(value);
+	// 	//this.showWindow('SVG',value,btn);
+	// },
+	onHide: function () {
+		if(this.textWindow) this.textWindow.close()
+		if(this.svgWindow) this.svgWindow.close()
+	},
+<span id='App-ui-StrandPreview-method-destroy'>	destroy: function() {
+</span>		if(this.textWindow) this.textWindow.destroy()
+		if(this.svgWindow) this.svgWindow.destroy()
+		this.callParent(arguments)
+	}
 });
 
 Ext.define('App.ui.StrandPreviewTextWindow',{

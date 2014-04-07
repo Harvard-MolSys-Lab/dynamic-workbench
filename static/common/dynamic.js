@@ -1060,6 +1060,14 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * @property {Number} polarity
 		 */
 		this.polarity = DNA.parsePolarity(this.polarity);
+
+		/**
+		 * @cfg {Object} expose
+		 * @cfg {String} expose.name
+		 * @cfg {String} expose.role
+		 *
+		 * Exposes this domain as a port with `name` and `role` in an outer motif
+		 */
 	}
 
 

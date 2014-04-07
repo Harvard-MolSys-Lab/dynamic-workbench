@@ -335,8 +335,13 @@ Ext.define('App.usr.enum.Viewer', {
 		}
 
 		function radius(d) {
+			var length = _.reduce(d.strands,
+					function(x,s) { return x+_.reduce(s.domains, 
+						function(y,d) { return y+_.reduce(d, 
+							function(z, r) { return x + r.sequence.length },0) },0) },0)
 			// return d._type == 'complex' ? d.strands.length * 50 : dr
-			return d._type == 'complex' ? _.reduce(d.strands,function(x,s) { return x+_.reduce(s.domains, function(y,d) { return y+_.reduce(d, function(z, r) { return x + r.sequence.length },0) },0) },0) * 10 : dr
+			return d._type == 'complex' ? 
+				Math.log(length) * 100 + 50 : dr
 		}
 
 		/* -------------------------------------------------------------------

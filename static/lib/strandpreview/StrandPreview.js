@@ -24,8 +24,8 @@ function StrandPreview() {
 			showStrands = true,
 
 			// font sizes, in em
-			segmentLabelFontSize = 1,
-			strandLabelFontSize = 1,
+			segmentLabelFontSize = 1.25,
+			strandLabelFontSize = 1.25,
 			nodeBaseFontSize = baseWidth*.8,
 			nodeIndexFontSize = baseWidth*.8,
 
@@ -33,7 +33,7 @@ function StrandPreview() {
 			scaleStrandLabels = true,
 			minFontSize = 0.25,
 			segment_label_height = 2,
-			strand_label_height = 2,
+			strand_label_height = 5,
 
 			arrowDistance = 60,
 			arrowScale = 20,
@@ -174,17 +174,29 @@ function StrandPreview() {
 			links = nodeLayout.links;
 			
 			// Build node for 3' tail
-			var lastIndex = nodes.length-1, lastNode = nodes[lastIndex-1];
-			if(lastNode) { 
-				var theta = lastNode.theta+Math.PI/2,
-				tailNode = {
-					x: lastNode.x+Math.cos(theta)*arrowDistance,
-					y: lastNode.y+Math.sin(theta)*arrowDistance,
-					theta: theta,
-				},
-				tailLink = {source: lastIndex, target: lastIndex+1, type: 'tail'};
+			var strand_breaks = nodeLayout.strand_positions,
+			tailNodes = [],
+			tailLinks = [];
+			if(!strand_breaks) {
+				strand_breaks = [nodes.length-1];
 			}
+			var lastIndex = nodes.length;
+			for(var i = 0; i < strand_breaks.length; i++) {
 
+				var breakIndex = strand_breaks[i]-1, lastNode = nodes[breakIndex-1];
+				if(lastNode) { 
+					var theta = lastNode.theta+Math.PI/2, //-Math.PI*5/16,
+					tailNode = {
+						x: lastNode.x+Math.cos(theta)*arrowDistance,
+						y: lastNode.y+Math.sin(theta)*arrowDistance,
+						theta: theta,
+					},
+					tailLink = {source: breakIndex, target: lastIndex + i, type: 'tail'};
+					tailNodes.push(tailNode)
+					tailLinks.push(tailLink)
+				}
+
+			}
 			/* *****************************
 			 * Build panel
 			 */
@@ -226,10 +238,10 @@ function StrandPreview() {
 			
 			// Bind nodes to the force layout
 			var forceNodes = nodes;
-			if(tailNode) {
+			if(tailNodes) {
 				forceNodes = _.clone(nodes);
-				forceNodes.push(tailNode);
-				links.push(tailLink);
+				forceNodes = forceNodes.concat(tailNodes);
+				links = links.concat(tailLinks);
 			}
 			force.nodes(forceNodes).links(links)
 			
@@ -283,7 +295,13 @@ function StrandPreview() {
 				return cls.join(' ')
 
 			}).call(force.drag);
-	
+			
+			// Uncomment to draw lines showing theta for each base
+			// nodeSel.append("line").attr("x1",0).attr("y1",0)
+			// 	.attr("x2",function(d) { return Math.cos(d.theta)*20; })
+			// 	.attr("y2",function(d) { return Math.sin(d.theta)*20; })
+			// 	.attr("stroke","black").attr("stroke-width","2px")
+
 			// Node circle
 			if(showBubbles) {
 				var node_circle = nodeSel.append("circle").attr("r", 0.5*baseWidth+'em');
@@ -314,10 +332,10 @@ function StrandPreview() {
 				redrawNodeStrand(node_strand);
 			}
 
-			if(tailNode) {
+			if(tailNodes) {
 				var tailPathTemplate = _.template("M-<%=s%>,-<%=s%> L0,0 L-<%=s%>,<%=s%>");
 				var tailSel = panel.selectAll("path.tail")
-					.data([tailNode]).enter().append('path').attr('class','tail');
+					.data(tailNodes).enter().append('path').attr('class','tail');
 				tailSel.attr('d',tailPathTemplate({s:arrowScale}));
 			}
 
@@ -364,20 +382,22 @@ function StrandPreview() {
 						// }
 						if(scaleSegmentLabels) {
 							function nodeSegmentDx(d) {
-								if(d.segment_length) {
-									var phi = Math.atan2(segment_label_height,d.segment_length*baseWidth/2),
-									c = Math.sqrt(Math.pow(segment_label_height,2),Math.pow(d.segment_length*baseWidth/2,2));
-									return Math.cos(d.theta+Math.PI/2-phi)*c*redraw_scale*2+'em';
-								}
-								return Math.cos(d.theta+Math.PI/4)*2.5*redraw_scale*2+'em';
+								// if(d.segment_length) {
+								// 	var phi = Math.atan2(segment_label_height,d.segment_length*baseWidth/2),
+								// 	c = Math.sqrt(Math.pow(segment_label_height,2),Math.pow(d.segment_length*baseWidth/2,2));
+								// 	return Math.cos(d.theta+Math.PI/2-phi)*c*redraw_scale*2+'em';
+								// }
+								// return Math.cos(d.theta+Math.PI/4)*2.5*redraw_scale*2+'em';
+								return Math.cos(d.theta)*segment_label_height*redraw_scale+'em';
 							}
 							function nodeSegmentDy(d) {
-								if(d.segment_length) {
-									var phi = Math.atan2(segment_label_height,d.segment_length*baseWidth/2),
-									c = Math.sqrt(Math.pow(segment_label_height,2),Math.pow(d.segment_length*baseWidth/2,2));
-									return Math.sin(d.theta+Math.PI/2-phi)*c*redraw_scale*2+0.35+'em';
-								}
-								return Math.sin(d.theta+Math.PI/4)*2.5*redraw_scale*2+0.35+'em';
+								// if(d.segment_length) {
+								// 	var phi = Math.atan2(segment_label_height,d.segment_length*baseWidth/2),
+								// 	c = Math.sqrt(Math.pow(segment_label_height,2),Math.pow(d.segment_length*baseWidth/2,2));
+								// 	return Math.sin(d.theta+Math.PI/2-phi)*c*redraw_scale*2+0.35+'em';
+								// }
+								// return Math.sin(d.theta+Math.PI/4)*2.5*redraw_scale*2+0.35+'em';
+								return Math.sin(d.theta)*segment_label_height*redraw_scale+0.35+'em';
 							}
 
 							var sel = panel.selectAll('text.node_segment');
@@ -404,7 +424,7 @@ function StrandPreview() {
 								// 	c = Math.sqrt(Math.pow(segment_label_height,2),Math.pow(d.segment_length*baseWidth/2,2));
 								// 	return Math.cos(d.theta+Math.PI/2-phi)*c*redraw_scale*2+'em';
 								// }
-								return Math.cos(d.theta+Math.PI/4)*2.5*strand_label_height*redraw_scale*2+'em';
+								return Math.cos(d.theta)*strand_label_height*redraw_scale+'em';
 							}
 							function nodeStrandDy(d) {
 								// if(d.segment_length) {
@@ -412,7 +432,7 @@ function StrandPreview() {
 								// 	c = Math.sqrt(Math.pow(segment_label_height,2),Math.pow(d.segment_length*baseWidth/2,2));
 								// 	return Math.sin(d.theta+Math.PI/2-phi)*c*redraw_scale*2+0.35+'em';
 								// }
-								return Math.sin(d.theta+Math.PI/4)*2.5*strand_label_height*redraw_scale*2+0.35+'em';
+								return Math.sin(d.theta)*strand_label_height*redraw_scale+0.35+'em';
 							}
 
 							var sel = panel.selectAll('text.node_strand');
@@ -613,7 +633,7 @@ function StrandPreview() {
 			node_segment
 			.attr('text-anchor','middle')
 			.text(function(d,i) {
-				return d.segment_index == 0 ? d.segment : ''
+				return d.segment_index == Math.floor(d.segment_length/2) ? d.segment : ''
 			}).attr('fill',function(d) {
 				return segmentColors(d.segment_identity);
 			});

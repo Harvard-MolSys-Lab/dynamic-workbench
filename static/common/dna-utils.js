@@ -1807,9 +1807,9 @@ var DNA = module.exports.DNA = (function(_) {
 			var x = start.x, y = start.y, 
 				dx = Math.cos(theta)*baseLength,
 				dy = Math.sin(theta)*baseLength,
-				theta_normal = theta-piHalf,
 				out = [],
-				flip = (len < 0);
+				flip = (len < 0),
+				theta_normal = theta + Math.PI/2 + (flip ? 0 : Math.PI); //(piHalf * flip ? 1 : -1);
 
 			if(debug) {						
 				console.log('Line : '+coords(start)+' '+deg(theta)+'° = U'+len);					
@@ -3247,7 +3247,9 @@ var DNA = module.exports.DNA = (function(_) {
 			
 			var i = 0, // segment-wise counter (tracks position along structure)
 				j = 0; // base-wise counter (tracks position along structure)
-				
+			
+			var strand_positions = [];
+
 			// for each strand
 			for (var s = 0; s < strands.length; s++) {
 				
@@ -3356,12 +3358,15 @@ var DNA = module.exports.DNA = (function(_) {
 				} // next domain
 				i++;
 				
+				strand_positions.push(j);
+
 			} // next strand
 
 			return {
 				nodes : nodes,
 				links : wc_links.concat(persistence_links).concat(strand_links).concat(other_links),
 				strands : strands,
+				strand_positions : strand_positions,
 			};
 		},
 		

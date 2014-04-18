@@ -12,6 +12,7 @@ Ext.define('App.usr.enum.Viewer', {
 	iconCls: 'enum-icon',
 	fontSize: 1,
 	linkWidth: 2,
+	hullLineWidth: 2,
 	arrowThreshold: 0.01,
 	highlightLinkWidth : 2,
 
@@ -614,8 +615,6 @@ Ext.define('App.usr.enum.Viewer', {
 				.on("drag", dragNode));
 		}
 
-		
-
 		function buildHulls(hullg,me) {
 			me.restingStates = _.map(me.restingStates,function (d) {
 				var complexPoints = [],
@@ -969,6 +968,9 @@ Ext.define('App.usr.enum.Viewer', {
 		this.allLink.style('stroke-width',this.linkWidth/scale);
 		this.allLink.selectAll('link-reaction-reactant, link-reaction-product').style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
 		this.allLink.classed("link-reaction-noarrow", scale < this.arrowThreshold)
+
+		this.hullg.selectAll('.enum-hull').style('stroke-width',this.hullLineWidth/scale);
+
 		// this.legendg.attr("transform","translate("+ [(-translate[0]),(-translate[1])] +") scale("+ Math.min(1/scale,10) +")");
 	},
 	viewDetails: function() {

@@ -51,8 +51,9 @@ rect.reaction-slow, .reaction-slow > rect {
 }
 
 .enum-hull {
-	full: yellow;
-	stroke: gray;
+	fill: rgb(255, 255, 207);
+	stroke: #bcbcbc;
+	opacity:0.9;
 }
 
 .enum-hidden {

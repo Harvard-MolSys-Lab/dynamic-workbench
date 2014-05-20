@@ -293,15 +293,51 @@ test("DIL output", function() {
 	expect(0)
 })
 
-// ---------------------------------------------------------------------------
+
+test("fromPil",function() {
+	var input1 = ["sequence a = NNNNNN",
+	"sequence c = NNNNNN",
+	"sequence b = NNNNNNNNNNNNNNNNNN",
+	"sequence x = NNN",
+	"sequence y = NNN",
+	"",
+	"strand h1 = a b c b* x*",
+	"strand h2 = y* b* a* b c*",
+	"strand A = b* a*",
+	"strand R = x b y",
+	"",
+	"structure h1 = h1 : .(.).",
+	"structure h2 = h2 : .(.).",
+	"structure AR = A R : (.+.)."].join("\n");
+	lib1 = App.dynamic.Library.fromPil(input1);
+	console.log(lib1)
+
+
+	var input2 = ["sequence a = CTACTC : 6",
+	"sequence b-seq = ACATCGAN : 8 ",
+	"sequence z = TTTCCA",
+	"sup-sequence q = a b-seq z : 20",
+	"",
+	"strand A = a b-seq z q : 40",
+	"strand B = q* z* b-seq* : 34",
+	"",
+	"#structure [1nt] AB = A B : .(((+)))",
+	"structure [1nt] AB = A + B : ......((((((((((((((((((((((((((((((((((+))))))))))))))))))))))))))))))))))"].join("\n")
+	lib2 = App.dynamic.Library.fromPil(input2);
+	console.log(lib2)
+
+
+});
+
+// // ---------------------------------------------------------------------------
 
 module("App.dynamic.Compiler");
 test("parseSegmentString", function() {
-	var input1 = "a b:t c(4) d(5)c",
+	var input1 = "a b-seq:t c(4) d(5)c",
 		output1 = [{
 			name: 'a'
 		}, {
-			name: 'b',
+			name: 'b-seq',
 			role: 'toehold',
 		}, {
 			name: 'c',
@@ -340,7 +376,7 @@ test("parseSegmentString", function() {
 
 });
 test("parseDomainString", function() {
-	var input1 = "d1[a(5):t]i- d2[b*]+",
+	var input1 = "d1[a(5):t]i- d2[b-seq*]+",
 		output1 = [{
 			name: 'd1',
 			segments: [{
@@ -353,7 +389,7 @@ test("parseDomainString", function() {
 		}, {
 			name: 'd2',
 			segments: [{
-				name: 'b*'
+				name: 'b-seq*'
 			}],
 			polarity: '+',
 		}],
@@ -480,7 +516,7 @@ test("parseDomainOrSegmentString", function() {
 	deepEqual(App.dynamic.Compiler.parseDomainOrSegmentString(input3), output3, "Domain String");
 
 	// Test segment inputs
-	var input1 = "a b:t c(4) d(5)c",
+	var input1 = "a b-seq:t c(4) d(5)c",
 		output1 = [{
 			name: 'A',
 			polarity: 1,
@@ -488,7 +524,7 @@ test("parseDomainOrSegmentString", function() {
 			segments: [{
 				name: 'a'
 			}, {
-				name: 'b',
+				name: 'b-seq',
 				role: 'toehold',
 			}, {
 				name: 'c',
@@ -499,7 +535,7 @@ test("parseDomainOrSegmentString", function() {
 				role: 'clamp'
 			}]
 		}],
-		input2 = "a* b*:t b*t c*(4) d*(5)c",
+		input2 = "a* b*:t b*t c*(4) d*(5)c ",
 		output2 = [{
 			name: 'A',
 			polarity: 1,

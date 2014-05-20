@@ -31,6 +31,24 @@ def find(f, seq, default=None):
 			return item
 	return default
 
+def parse_basewise_dot_paren(structure_line, strands):
+	parts = [x.strip() for x in structure_line.split("+")]
+	assert len(parts) == len(strands), "Structure '%s' has %d parts, but corresponds to %d strands" % \
+		(structure_line,len(parts),len(strands))
+
+	segment_struct = ["" for s in strands]
+	for (i,s) in enumerate(strands):
+		strand_part = parts[i]
+		for d in s.domains:
+			assert len(strand_part) >= len(d), "Not enough characters for domain %s" % str(d) 
+			domain_part, strand_part = strand_part[:len(d)], strand_part[len(d):]
+
+			assert all(c == domain_part[0] for c in domain_part), "Not all parts of structure for %s are the same" % str(d)
+			segment_struct[i] += domain_part[0]
+
+
+	return parse_dot_paren("+".join(segment_struct))
+
 def parse_dot_paren(structure_line):
 	"""
 	Parses a dot-parenthesis structure into the list of lists representeation
@@ -678,6 +696,7 @@ class RestingState(object):
 		self._complexes = complexes
 		self._name = name
 		self._canonical = find(lambda s: not str(s).isdigit(),sorted(complexes),str(complexes[0]))
+		self._hash = None
 		
 	@property
 	def name(self):
@@ -694,6 +713,11 @@ class RestingState(object):
 	@property
 	def canonical(self):
 		return self._canonical
+
+	def __hash__(self):
+		if self._hash == None:
+			self._hash = hash(tuple(self.complexes))
+		return self._hash
 	
 	def __eq__(self, other):
 		return (self.complexes == other.complexes)

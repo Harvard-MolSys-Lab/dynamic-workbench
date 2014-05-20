@@ -102,7 +102,7 @@ def output_legacy(enumerator, filename, output_condensed = False):
 
 output_legacy.supports_condensed = True		
 
-def output_pil(enumerator, filename, output_condensed = False):
+def output_pil(enumerator, filename, output_condensed = False, output_rates = True):
 	"""
 	Text-based output using the Pepper Intermediate Language (PIL)
 	"""
@@ -117,7 +117,13 @@ def output_pil(enumerator, filename, output_condensed = False):
 	def write_reaction(output_file,reaction):
 		reactants = map(str,reaction.reactants)
 		products = map(str,reaction.products)
-		reac_string_list = ["kinetic"," + ".join(reactants),"->"," + ".join(products),"\n"]
+
+		if output_rates:
+			rate_units = "/M" * (reaction.arity[0]-1) + "/s"
+			rate_const = "[%f %s]" % (reaction.rate(), rate_units) 
+		else: rate_const = ""
+
+		reac_string_list = ["kinetic",rate_const," + ".join(reactants),"->"," + ".join(products),"\n"]
 		reac_string = ' '.join(reac_string_list)
 		output_file.write(reac_string)
 		
@@ -279,12 +285,15 @@ def output_graph(enumerator, filename, output_condensed=False):
 	
 output_graph.supports_condensed = True
 
-def output_full_graph(enumerator, filename):
-	"""
-	Products graphical output representing the full reaction graph, with all
-	reactions and complexes. Transient and resting states are differentiated
-	by color.
-	"""
+def output_dotfile(enumerator, filename, output_condensed=False):
+	if not output_condensed:
+		output_full_dotfile(enumerator, filename)
+	else:
+		output_condensed_dotfile(enumerator, filename)
+	
+output_dotfile.supports_condensed = True
+
+def output_full_dotfile(enumerator, filename):
 	fout = open(filename + ".dot", "w")
 	fout.write("digraph G {\n")
 	fout.write('size="7,10"\n')
@@ -377,15 +386,23 @@ def output_full_graph(enumerator, filename):
 	fout.write("}\n")
 	fout.close()
 	
+
+
+def output_full_graph(enumerator, filename):
+	"""
+	Products graphical output representing the full reaction graph, with all
+	reactions and complexes. Transient and resting states are differentiated
+	by color.
+	"""
+	
+	output_full_dotfile(enumerator,filename)
+
 	# Create the output file.
 	# TODO: make 'pdf' configurable
 	subprocess.call(["dot", "-O", "-Teps", "%s.dot" % filename])
-	
-def output_condensed_graph(enumerator, filename):
-	"""
-	Products graphical output representing the condensed reaction graph, with
-	condensed reactions and resting states aggregated into single nodes.
-	"""
+
+
+def output_condensed_dotfile(enumerator, filename):
 	fout = open(filename + ".dot", "w")
 	fout.write("digraph G {\n")
 	fout.write('size="7,10"\n')
@@ -411,6 +428,14 @@ def output_condensed_graph(enumerator, filename):
 			
 	fout.write("}\n")
 	fout.close()
+
+def output_condensed_graph(enumerator, filename):
+	"""
+	Products graphical output representing the condensed reaction graph, with
+	condensed reactions and resting states aggregated into single nodes.
+	"""
+	
+	output_condensed_dotfile(enumerator,filename)
 	
 	# Create the output file.
 	# TODO: make 'pdf' configurable
@@ -419,32 +444,30 @@ def output_condensed_graph(enumerator, filename):
 
 def output_sbml(enumerator,filename, output_condensed = False):
 	# default initial concentration of all species is 100 nM
-	initial_concentration = 1e-7 
+	initial_concentration = 10e-7 
 
 	import xml.dom.minidom
 	header = '<?xml version="1.0" encoding="UTF-8"?>'
 	out = [header,
 		'<sbml level="2" version="3" xmlns="http://www.sbml.org/sbml/level2/version3">',
 		'<model name="%s">' % filename,
-		'''
-		<listOfUnitDefinitions>
-            <unitDefinition id="per_second">
-                <listOfUnits>
-                    <unit kind="second" exponent="-1"/>
-                </listOfUnits>
-            </unitDefinition>
-            <unitDefinition id="litre_per_mole_per_second">
-                <listOfUnits>
-                    <unit kind="mole"   exponent="-1"/>
-                    <unit kind="litre"  exponent="1"/>
-                    <unit kind="second" exponent="-1"/>
-                </listOfUnits>
-            </unitDefinition>
-        </listOfUnitDefinitions>
-        <listOfCompartments>
-			<compartment id="reaction" size="1e-3" />
-		</listOfCompartments>
-        ''',
+		'<listOfUnitDefinitions>',
+            '<unitDefinition id="per_second">',
+                '<listOfUnits>',
+                    '<unit kind="second" exponent="-1"/>',
+               ' </listOfUnits>',
+            '</unitDefinition>',
+            '<unitDefinition id="litre_per_mole_per_second">',
+                '<listOfUnits>',
+                    '<unit kind="mole"   exponent="-1"/>',
+                    '<unit kind="litre"  exponent="1"/>',
+                    '<unit kind="second" exponent="-1"/>',
+                '</listOfUnits>',
+            '</unitDefinition>',
+        '</listOfUnitDefinitions>',
+        '<listOfCompartments>',
+			'<compartment id="reaction" size="1e-3" />',
+		'</listOfCompartments>',
 		'<listOfSpecies>']
 	
 	if(output_condensed):
@@ -462,12 +485,12 @@ def output_sbml(enumerator,filename, output_condensed = False):
 	if(output_condensed):
 		for resting_state in complexes:
 			is_initial = any(c in enumerator.initial_complexes for c in resting_state.complexes)
-			out.append('<species compartment="reaction" id="%(id)s" name="%(name)s" initialAmount="%(initial).10f"/>' \
+			out.append('<species compartment="reaction" id="%(id)s" name="%(name)s" initialConcentration="%(initial).10f"/>' \
 				% {"name": resting_state.name, "id": id(resting_state), "initial": (initial_concentration if is_initial else 0.) })
 	else:
 		for complex in complexes:
 			is_initial = (complex in enumerator.initial_complexes)
-			out.append('<species compartment="reaction" id="%(id)s" name="%(name)s" initialAmount="%(initial).10f"/>' \
+			out.append('<species compartment="reaction" id="%(id)s" name="%(name)s" initialConcentration="%(initial).10f"/>' \
 				% {"name": complex.name, "id": id(complex), "initial": (initial_concentration if is_initial else 0.) })
 	
 	out += ['</listOfSpecies>','<listOfReactions>']
@@ -562,6 +585,7 @@ text_output_functions = {
 	'legacy': output_legacy,
 	'pil': output_pil,
 	'json': output_json,
+	'enjs': output_json,
 	'sbml': output_sbml,
 	'crn': output_crn
 }

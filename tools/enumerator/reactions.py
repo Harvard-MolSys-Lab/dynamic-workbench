@@ -109,7 +109,7 @@ def zipping_rate(length):
 	return 10e7 / length
 
 def opening_rate(length):
-	return 10 ** (6 - 1.23 * length)
+	return 10.0 ** (6 - 1.23 * length)
 
 def hairpin_closing_rate(length):
 	a = 2.54e8
@@ -120,21 +120,21 @@ def hairpin_closing_rate(length):
 def branch_3way_rate(length):
 	init = 2.8e-3
 	step = 0.1e-3
-	return 1 / (init + step * length**2)
+	return 1.0 / (init + step * length**2)
 
 def branch_3way_remote_rate(length):
 	slowdown = hairpin_closing_rate(length)/zipping_rate(length)
 	init = 2.8e-3 * slowdown
 	step = 0.1e-3
-	return 1 / (init + step * length**2)
+	return 1.0 / (init + step * length**2)
 
 def branch_4way_rate(length):
 	init = 77
 	step = 1
-	return 1 / (init + step * length**2)
+	return 1.0 / (init + step * length**2)
 
 def bimolecular_binding_rate(length):
-	return 1e6
+	return 1.0e6
 
 
 # Reaction functions
@@ -903,8 +903,6 @@ def branch_3way(reactant):
 				if (bound_loc[1] == -1):
 					# Reached the end
 					break
-				
-				
 				
 				# Check if this domain is unbound
 				elif (structure[bound_loc[0]][bound_loc[1]] == None):

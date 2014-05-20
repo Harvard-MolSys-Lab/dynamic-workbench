@@ -1216,11 +1216,11 @@ color: white;
 	border-radius: 8px;
 	-moz-border-radius: 8px;
 	background: #F6F6F6;
-	background-image: linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%);
-	background-image: -o-linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%);
-	background-image: -moz-linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%);
-	background-image: -webkit-linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%);
-	background-image: -ms-linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%);
+	background-image: linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%) !important;
+	background-image: -o-linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%) !important;
+	background-image: -moz-linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%) !important;
+	background-image: -webkit-linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%) !important;
+	background-image: -ms-linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%) !important;
 	
 	background-image: -webkit-gradient(
 		linear,
@@ -1228,7 +1228,7 @@ color: white;
 		left top,
 		color-stop(1, rgb(246,246,246)),
 		color-stop(0, rgb(221,221,221))
-	);
+	) !important;
 	
 	border: 2px solid #ccc;
 	margin-top: 2px;
@@ -1245,3 +1245,6 @@ color: white;
 	margin: 0;
 }
 
+#msg-div .msg.error {
+	border-color: #E00000;
+}

@@ -210,6 +210,8 @@ Ext.define('App.usr.enum.Viewer', {
 		// Build data for resting states
 		var resting_states = this.restingStates = data['resting_states'],
 			restingStateMap = this.restingStateMap = {},
+
+			// Maps complexes to their resting states
 			complexRestingStates = this.complexRestingStates = {};
 
 		// For each resting state
@@ -314,6 +316,20 @@ Ext.define('App.usr.enum.Viewer', {
 				.tension(.95)
 				.interpolate("bundle");
 
+		function intersectPolygon(points, point) {
+			var min_seg_i = 0, min_seg_dist = Infinity, min_seg_point = points[0] || point;
+			for (var i = 0; i < points.length; i++) {
+				var seg = [points[i], points[(i+1) % points.length]],
+					mid = { x: (seg[1].x-seg[0].x)/2 + seg[0].x , y: (seg[1].y-seg[0].y)/2 + seg[0].y },
+					dist = Math.sqrt( Math.pow(point.x - mid.x,2) + Math.pow(point.y - mid.y,2) );
+				if(dist < min_seg_dist) {
+					min_seg_i = i;
+					min_seg_point = mid;
+				}
+			}
+			return min_seg_point;
+		}
+
 		function spline(e) {
 			// var points = e.dagre.points.slice(0);
 			// var source = dagre.util.intersectRect(e.source.dagre, points[0]);
@@ -327,8 +343,18 @@ Ext.define('App.usr.enum.Viewer', {
 				p0 = points.length == 0 ? source :  points[0],
 				p1 = points.length == 0 ? target :  points[points.length - 1];
 
-			points.unshift(dagre.util.intersectRect(source, p0));
-			points.push(dagre.util.intersectRect(target, p1));
+
+			if(source.points) {
+				points.unshift(intersectPolygon(source.points, p0));
+			} else {
+				points.unshift(dagre.util.intersectRect(source, p0));
+			}
+
+			if(target.points) {
+				points.push(intersectPolygon(target.points, p1));
+			} else {
+				points.push(dagre.util.intersectRect(target, p1));
+			}
 
 
 			// points = [source,target]
@@ -344,6 +370,27 @@ Ext.define('App.usr.enum.Viewer', {
 			return d._type == 'complex' ? 
 				Math.log(length) * 100 + 50 : dr
 		}
+
+		this.redrawView = function redrawView (translate,scale) {
+			var me = this;
+			this.allNode.selectAll('text.node-label').style('font-size',this.fontSize/scale+'em');
+			this.allNode.selectAll('.complex > rect').style('stroke-width',this.linkWidth/scale);
+			this.allNode.selectAll('.reaction > rect').style('stroke-width',this.linkWidth/scale).attr("width", function(d) {
+				return Math.min(1/scale*radius(d),maxReactionSize) //* (net.condensed ? condenseScale : 1);
+			})
+			.attr("height", function(d) {
+				return Math.min(1/scale*radius(d),maxReactionSize) //* (net.condensed ? condenseScale : 1);
+			});
+			
+			this.allLink.style('stroke-width',this.linkWidth/scale);
+			this.allLink.selectAll('link-reaction-reactant, link-reaction-product').style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
+			this.allLink.classed("link-reaction-noarrow", scale < this.arrowThreshold)
+
+			this.hullg.selectAll('.enum-hull').style('stroke-width',this.hullLineWidth/scale);
+
+			// this.legendg.attr("transform","translate("+ [(-translate[0]),(-translate[1])] +") scale("+ Math.min(1/scale,10) +")");
+		},
+
 
 		/* -------------------------------------------------------------------
 		 * Load data, build graph data structure
@@ -422,7 +469,8 @@ Ext.define('App.usr.enum.Viewer', {
 		var dr = 50,     // default point radius
 			cr = 10, 	 // default complex point radius
 			off = 50,    // cluster hull offset
-			condenseScale = 2;
+			condenseScale = 2,
+			maxReactionSize = 100;
 		var dist = 50,
 			nodePadding = 0; //5;
 		
@@ -592,7 +640,7 @@ Ext.define('App.usr.enum.Viewer', {
 
 		function addNodeInteractions (nodeSel) {
 			nodeSel.on('mouseenter', highlightMyLinks)
-			.on('mouseleave', unhighlightLinks)
+			.on('mouseleave', function() { unhighlightLinks(); unhighlightHulls(); })
 			.on('dblclick', function(d) {
 				if (d._type == 'complex') {
 					me.showComplexPreviewWindow(d,this);
@@ -642,7 +690,8 @@ Ext.define('App.usr.enum.Viewer', {
 					x: d.x,
 					y: d.y,
 					width: d.width,
-					height: d.height
+					height: d.height,
+					points: _.map(d.boundary, function (p) { return { x: p[0], y: p[1]}; })
 				}
 
 				return d;
@@ -653,7 +702,7 @@ Ext.define('App.usr.enum.Viewer', {
 
 			hullSell.exit().remove();
 			hullSell.enter().append("path")
-				.attr('class', 'enum-hull')
+				.attr('class', function(d) { return 'enum-hull enum-hull-'+d.name })
 				.attr('d',function(d) {
 					return "M" + d.boundary.join("L") + "Z";
 				});
@@ -818,6 +867,25 @@ Ext.define('App.usr.enum.Viewer', {
 		 * Interactivity
 		 */
 
+
+		function highlightHulls (selection) {
+			selection.each(function (d) {
+				var hull = me.complexRestingStates[d.name];
+				if(hull) {
+					highlightHull(hull)
+				}
+			})	
+		}
+
+		function highlightHull (name) {
+			panel.selectAll('path.enum-hull').classed('hull-blurred',true)
+			panel.selectAll('path.enum-hull-'+name).classed('hull-blurred',false)
+		}
+
+		function unhighlightHulls () {
+			panel.selectAll('path.enum-hull').classed('hull-blurred',false)
+		}
+
         function highlightLink(d) {
         	d3.select(this).classed("link-reaction-highlight",true).style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
 
@@ -831,6 +899,7 @@ Ext.define('App.usr.enum.Viewer', {
         function highlightMyLinks(d) {
         	unhighlightLinks()
         	highlightLinks(d3.select(this))
+        	highlightHulls(d3.select(this))
         }
 
 		function highlightLinks(selection) {
@@ -956,22 +1025,10 @@ Ext.define('App.usr.enum.Viewer', {
 
 		}
 	},
-	
-	redraw: function (translate,scale) {
-		var me = this;
+	redraw: function  (translate,scale) {
 		this.currentScale = scale;
 		this.callParent(arguments);
-		this.allNode.selectAll('text.node-label').style('font-size',this.fontSize/scale+'em');
-		this.allNode.selectAll('.complex > rect').style('stroke-width',this.linkWidth/scale);
-		this.allNode.selectAll('.reaction > rect').style('stroke-width',this.linkWidth/scale);
-		
-		this.allLink.style('stroke-width',this.linkWidth/scale);
-		this.allLink.selectAll('link-reaction-reactant, link-reaction-product').style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
-		this.allLink.classed("link-reaction-noarrow", scale < this.arrowThreshold)
-
-		this.hullg.selectAll('.enum-hull').style('stroke-width',this.hullLineWidth/scale);
-
-		// this.legendg.attr("transform","translate("+ [(-translate[0]),(-translate[1])] +") scale("+ Math.min(1/scale,10) +")");
+		this.redrawView(translate, scale)
 	},
 	viewDetails: function() {
 		var elements = this.getSelection(), data = !!elements ? elements.data() : [];
@@ -1198,6 +1255,7 @@ Ext.define('App.usr.enum.Viewer', {
 				});
 			}
 			this.reactionWindows[d.name].show()
+
 			this.reactionPanels[d.name].setValue(d,reactants,products)
 			this.reactionPanels[d.name].setTitle(this.getReactionDetails(d));
 		}
@@ -1361,7 +1419,7 @@ Ext.define('App.usr.enum.ReactionViewer', {
 		this.reactant1 = Ext.create('App.ui.StrandPreview',{
 			cls : 'simple-header',
 			title : ' ',
-			autoRender : true,
+			// autoRender : true,
 			value : '',
 			adjacencyMode: 2,
 			flex: 1,
@@ -1374,7 +1432,7 @@ Ext.define('App.usr.enum.ReactionViewer', {
 		this.reactant2 = Ext.create('App.ui.StrandPreview',{
 			cls : 'simple-header',
 			title : ' ',
-			autoRender : true,
+			// autoRender : true,
 			value : '',
 			adjacencyMode: 2,
 			flex: 1,
@@ -1382,6 +1440,8 @@ Ext.define('App.usr.enum.ReactionViewer', {
 			viewOptions: this.viewOptions,
 			segmentColors: this.segmentColors,
 			strandColors: this.strandColors,
+			// hideMode: 'display',
+			hidden: true,
 		});
 
 		this.reaction_arrow = Ext.create('App.ui.ArrowPanel');
@@ -1389,7 +1449,7 @@ Ext.define('App.usr.enum.ReactionViewer', {
 		this.product1 = Ext.create('App.ui.StrandPreview',{
 			cls : 'simple-header',
 			title : ' ',
-			autoRender : true,
+			// autoRender : true,
 			value : '',
 			adjacencyMode: 2,
 			flex: 1,
@@ -1402,7 +1462,7 @@ Ext.define('App.usr.enum.ReactionViewer', {
 		this.product2 = Ext.create('App.ui.StrandPreview',{
 			cls : 'simple-header',
 			title : ' ',
-			autoRender : true,
+			// autoRender : true,
 			value : '',
 			adjacencyMode: 2,
 			flex: 1,
@@ -1410,6 +1470,8 @@ Ext.define('App.usr.enum.ReactionViewer', {
 			viewOptions: this.viewOptions,
 			segmentColors: this.segmentColors,
 			strandColors: this.strandColors,
+			hidden:true,
+			// hideMode: 'display',
 		})
 
 		Ext.apply(this,{

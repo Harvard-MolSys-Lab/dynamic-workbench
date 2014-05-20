@@ -59,6 +59,10 @@ rect.reaction-slow, .reaction-slow > rect {
 .enum-hidden {
 	display: none
 }
+.hull-blurred {
+	opacity: 0.3;
+}
+
 
 .complex > rect {
 	fill: white;

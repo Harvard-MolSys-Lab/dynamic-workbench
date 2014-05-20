@@ -103,11 +103,11 @@ Ext.define('App.usr.enum.RunButton', {
 			'max-complex-count': this.maxComplexCount.getValue(),
 			'max-reaction-count': this.maxReactionCount.getValue(),
 
-		},function(success) {
+		},function(text, args, success) {
 			if(success) 
 				Ext.msg('Enumerator','Reaction enumeration completed.');
 			else
-				Ext.msg('Enumerator','Reaction enumeration failed. Click for details.',{handler: 'console'});
+				Ext.msg('Enumerator','Reaction enumeration failed. Click for details.',{handler: 'console', cls:'error'});
 
 		},this,{
 			openOnEnd: [resNode]

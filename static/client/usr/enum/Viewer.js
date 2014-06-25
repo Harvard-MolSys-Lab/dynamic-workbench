@@ -320,11 +320,15 @@ Ext.define('App.usr.enum.Viewer', {
 			var min_seg_i = 0, min_seg_dist = Infinity, min_seg_point = points[0] || point;
 			for (var i = 0; i < points.length; i++) {
 				var seg = [points[i], points[(i+1) % points.length]],
-					mid = { x: (seg[1].x-seg[0].x)/2 + seg[0].x , y: (seg[1].y-seg[0].y)/2 + seg[0].y },
+					mid = { 
+						x: (seg[1].x-seg[0].x)/2 + seg[0].x , 
+						y: (seg[1].y-seg[0].y)/2 + seg[0].y 
+					},
 					dist = Math.sqrt( Math.pow(point.x - mid.x,2) + Math.pow(point.y - mid.y,2) );
 				if(dist < min_seg_dist) {
 					min_seg_i = i;
 					min_seg_point = mid;
+					min_seg_dist = dist;
 				}
 			}
 			return min_seg_point;
@@ -617,25 +621,61 @@ Ext.define('App.usr.enum.Viewer', {
 			return nodeSel;
 		}
 
+		function findNearestHandle (l, x, y) {
+			var k = 0, // index of point with lowest distance
+				dist = 0,
+				di = 0;
+			for(var i=0; i<l.dagre.points.length; i++) {
+				di = Math.sqrt( (l.dagre.points[i].x - x)^2 + 
+					(l.dagre.points[i].y - y)^2 )
+				if(di < dist || i == 0) {
+					dist = di
+					k = i;
+				}
+			}
+			return k
+		}
+
 		function addLinkInteractions (linkSel) {
 			linkSel.call(d3.behavior.drag()
 				.origin(function(l) { 
-					var k = 0, // index of point with lowest distance
-						dist = 0;
-					for(var i=0; i<l.dagre.points.length; i++) {
-						if(Math.sqrt( (l.dagre.points[i].x - d3.event.x)^2 + 
-							(l.dagre.points[i].y - d3.event.y)^2 ) < dist || i == 0) {
-
-							dist = Math.sqrt( (l.dagre.points[i].x - d3.event.x)^2 + (l.dagre.points[i].y - d3.event.y)^2 )
-							k = i;
-						}
-					}
+					var k = findNearestHandle(l, d3.event.x, d3.event.y)
 					l._dragPoint = k;
 					return l.dagre.points[k]; 
 				})
-				.on("drag", dragLink));
+				.on("drag", dragLink)
+				.on("dragstart", function (l) {
+					l._dragHandles = panel.selectAll("circle.drag-handle").data(l.dagre.points).enter()
+						.append("circle").attr("class","drag-handle")
+						.attr("cx",function (p) {
+							return p.x
+						})
+						.attr("cy",function (p) {
+							return p.y
+						})
+						.attr("width",50).attr("height",50)
+						.style("fill","black")
+				})
+				.on("dragend",function (l) {
+					panel.selectAll("circle.drag-handle").data([]).exit().remove()
+				})
+				);
 			linkSel.on('mouseenter', highlightLink)
 			.on('mouseleave', unhighlightLinks)
+
+			linkSel.on('dblclick', function(l) {
+				if(d3.event.shiftKey) {
+					var k = findNearestHandle(l, d3.event.x, d3.event.y)
+					l.dagre.points.splice(k,0,{ x: d3.event.x, y: d3.event.y });
+				}
+				else if(l.dagre.points.length > 0) {
+					var k = findNearestHandle(l, d3.event.x, d3.event.y)
+					l.dagre.points.splice(k,1);
+				}
+				d3.select(this).attr("d",spline)
+				d3.event.preventDefault()
+				d3.event.stopPropagation()
+			})
 		}
 
 		function addNodeInteractions (nodeSel) {
@@ -649,8 +689,8 @@ Ext.define('App.usr.enum.Viewer', {
 				}
 			})
 			// .on('click', selectNode)
+			.on('mousedown',selectNode)
 			.on('click',function(d) {
-				selectNode.call(this,d)
 				if (d._type == 'complex') {
 					var el = d3.select(this).select('svg');
 					me.renderPreview(d, el.node());
@@ -663,38 +703,42 @@ Ext.define('App.usr.enum.Viewer', {
 				.on("drag", dragNode));
 		}
 
+		function buildHull(d) {
+			var complexPoints = [],
+				hullPadding = 10;
+			for(var i=0; i<d.complexes.length; i++) {
+				var c = me.complexMap[d.complexes[i]];
+				complexPoints = complexPoints.concat([
+					[c.dagre.x-c.dagre.width/2-hullPadding,c.dagre.y-c.dagre.height/2-hullPadding],
+					[c.dagre.x+c.dagre.width/2+hullPadding,c.dagre.y-c.dagre.height/2-hullPadding],
+					[c.dagre.x-c.dagre.width/2-hullPadding,c.dagre.y+c.dagre.height/2+hullPadding],
+					[c.dagre.x+c.dagre.width/2+hullPadding,c.dagre.y+c.dagre.height/2+hullPadding],
+				]);
+			}
+			var points = d.boundary = d3.geom.hull(complexPoints);
+			var polygon = d3.geom.polygon(d.boundary), centroid = polygon.centroid();
+			var x1 = _.min(_.pluck(points,0)), y1 = _.min(_.pluck(points,1)),
+				x2 = _.max(_.pluck(points,0)), y2 = _.max(_.pluck(points,1));
+
+			d.x = centroid[0];
+			d.y = centroid[1];
+			d.width = x2 - x1;
+			d.height = y2 - y1;
+			
+			d.dagre = {
+				x: d.x,
+				y: d.y,
+				width: d.width,
+				height: d.height,
+				points: _.map(d.boundary, function (p) { return { x: p[0], y: p[1]}; })
+			}
+
+			return d;
+		}
+
 		function buildHulls(hullg,me) {
 			me.restingStates = _.map(me.restingStates,function (d) {
-				var complexPoints = [],
-					hullPadding = 10;
-				for(var i=0; i<d.complexes.length; i++) {
-					var c = me.complexMap[d.complexes[i]];
-					complexPoints = complexPoints.concat([
-						[c.dagre.x-c.dagre.width/2-hullPadding,c.dagre.y-c.dagre.height/2-hullPadding],
-						[c.dagre.x+c.dagre.width/2+hullPadding,c.dagre.y-c.dagre.height/2-hullPadding],
-						[c.dagre.x-c.dagre.width/2-hullPadding,c.dagre.y+c.dagre.height/2+hullPadding],
-						[c.dagre.x+c.dagre.width/2+hullPadding,c.dagre.y+c.dagre.height/2+hullPadding],
-					]);
-				}
-				var points = d.boundary = d3.geom.hull(complexPoints);
-				var polygon = d3.geom.polygon(d.boundary), centroid = polygon.centroid();
-				var x1 = _.min(_.pluck(points,0)), y1 = _.min(_.pluck(points,1)),
-					x2 = _.max(_.pluck(points,0)), y2 = _.max(_.pluck(points,1));
-
-				d.x = centroid[0];
-				d.y = centroid[1];
-				d.width = x2 - x1;
-				d.height = y2 - y1;
-				
-				d.dagre = {
-					x: d.x,
-					y: d.y,
-					width: d.width,
-					height: d.height,
-					points: _.map(d.boundary, function (p) { return { x: p[0], y: p[1]}; })
-				}
-
-				return d;
+				return buildHull(d);	
 			});
 
 			var hullSell = hullg.selectAll('path.enum-hull').data(me.restingStates)
@@ -818,9 +862,9 @@ Ext.define('App.usr.enum.Viewer', {
 
 			// Run directed graph layout algorithm
 			dagre.layout()
-				.nodeSep(50)
-				.edgeSep(10)
-				.rankSep(50)
+				.nodeSep(150) // .nodeSep(50)
+				.edgeSep(10) // .edgeSep(10)
+				.rankSep(100) // .rankSep(50)
 				.nodes(net.nodes)
 				.edges(net.links)
 				.debugLevel(1)
@@ -832,6 +876,7 @@ Ext.define('App.usr.enum.Viewer', {
 			// Build new selection containing all nodes and links
 			me.allLink = panel.selectAll("path.link-reaction")
 			me.allNode = panel.selectAll("g.enum-node")
+			me.allHull = panel.selectAll("path.enum-hull")
 
 			// Set node positioning
 			me.allNode.attr("transform", function(d) { 
@@ -1005,13 +1050,43 @@ Ext.define('App.usr.enum.Viewer', {
 		}
 
 		function dragNode(d) {
-			d.x = d.dagre.x = d3.event.x, 
-			d.y = d.dagre.y = d3.event.y;
-			d3.select(this).attr("transform",'translate('+ (d.dagre.x - d.dagre.width/2) +','+ (d.dagre.y - d.dagre.height/2) +')');
-			me.allLink.filter(function(l) { return l.source === d; }).each(updateLink).attr("d",spline)
-			me.allLink.filter(function(l) { return l.target === d; }).each(updateLink).attr("d",spline);
-		}
+			var dx = d3.event.x-d.dagre.x,
+				dy = d3.event.y-d.dagre.y;
 
+			if(!this.id) this.id = Ext.id()
+
+			panel.selectAll(".enum-selected,#"+this.id).each(function (d) {
+				d.x = d.dagre.x = d.dagre.x+dx, 
+				d.y = d.dagre.y = d.dagre.y+dy;
+
+				function updateFirstPoint(l) {
+					if(l.dagre.points.length > 0) {
+						l.dagre.points[0].x += dx
+						l.dagre.points[0].y += dy
+					}
+				}
+
+				function updateLastPoint(l) {
+					if(l.dagre.points.length > 1) {
+						l.dagre.points[l.dagre.points.length-1].x += dx
+						l.dagre.points[l.dagre.points.length-1].y += dy
+					}
+				}
+
+				d3.select(this).attr("transform",'translate('+ (d.dagre.x - d.dagre.width/2) +','+ (d.dagre.y - d.dagre.height/2) +')');
+				me.allLink.filter(function(l) { return l.source === d; }).each(updateFirstPoint).attr("d",spline)
+				me.allLink.filter(function(l) { return l.target === d; }).each(updateLastPoint).attr("d",spline);
+				me.allHull.filter(function(h) { return me.complexRestingStates[d.name] == h.name }).each(updateHull)
+					.each(function (h) {
+						me.allLink.filter(function(l) { return l.source === h; }).each(updateFirstPoint).attr("d",spline)
+						me.allLink.filter(function(l) { return l.target === h; }).each(updateLastPoint).attr("d",spline);
+					})
+					.attr('d',function(d) {
+						return "M" + d.boundary.join("L") + "Z";
+					});
+			})
+
+		}
 
 		function dragLink(l) {
 			if(l.dagre.points.length > 0) {
@@ -1019,6 +1094,10 @@ Ext.define('App.usr.enum.Viewer', {
 				l.dagre.points[l._dragPoint].y = d3.event.y;
 			}
 			d3.select(this).attr("d",spline(l))
+		}
+
+		function updateHull(d) {
+			d = buildHull(d);
 		}
 
 		function updateLink(l) {

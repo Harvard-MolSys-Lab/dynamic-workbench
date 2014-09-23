@@ -2,7 +2,6 @@ import itertools as it
 import operator
 import collections
 import logging
-import numpy as np
 from reactions import get_auto_name,ReactionPathway
 from utils import Complex, Domain, Strand, RestingState
 
@@ -190,7 +189,7 @@ def tarjans(complexes,reactions,reactions_consuming):
     return SCCs
 
 
-def condense_graph(enumerator, compute_rates=True):
+def condense_graph(enumerator, compute_rates=False):
     """
     Condenses the reaction graph for the given `enumerator`.
 
@@ -246,6 +245,9 @@ def condense_graph(enumerator, compute_rates=True):
     # 
     # ------------------------------------------------------------------------
     
+    if compute_rates:
+        import numpy as np
+
     # F(x) : Stores mapping between a complex x and the set of its possible
     # fates
     complex_fates = {}

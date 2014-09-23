@@ -25,6 +25,10 @@ Ext.define('App.ui.StrandPreview', {
 	showIndexes : true,
 	showSegments : true,
 	showStrands : true,
+
+	colorSegmentLabels : true,
+	colorStrandLabels : true,
+
 	
 	segmentColors : null,
 	strandColors : null,

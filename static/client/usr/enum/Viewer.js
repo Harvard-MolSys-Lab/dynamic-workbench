@@ -259,6 +259,10 @@ Ext.define('App.usr.enum.Viewer', {
 			x.slow = !x.fast;
 			x.group = complexMap[x.reactants[0]].group;
 			for(var j=0;j<x.reactants.length;j++) {
+				if (!complexMap[x.reactants[j]]) {
+					console.warn("Warning: complex "+x.reactants[j]+" not found.");
+					continue;
+				}
 				if(complexMap[x.reactants[j]].group != x.group) {
 					x.outgoing = true;
 					x.group = null;
@@ -267,6 +271,10 @@ Ext.define('App.usr.enum.Viewer', {
 			}
 			if(!x.outgoing) {
 				for(var j=0;j<x.products.length;j++) {
+					if (!complexMap[x.products[j]]) {
+						console.warn("Warning: complex "+x.reactants[j]+" not found.");
+						continue;
+					}
 					if(complexMap[x.products[j]].group != x.group) {
 						x.outgoing = true;
 						x.group = null;
@@ -415,8 +423,12 @@ Ext.define('App.usr.enum.Viewer', {
 		});
 
 		// Build links
-		var links = _.flatten(_.map(reactions, function(reaction) {
+		var links = _.compact(_.flatten(_.map(reactions, function(reaction) {
 			return _.map(reaction.reactants, function(reactant) {
+				if (!complexMap[reactant]) {
+					console.warn("Warning: complex "+reactant+" not found.");
+					return;
+				}
 				var l = {
 					'source' : complexMap[reactant],
 					'target' : reaction
@@ -425,6 +437,10 @@ Ext.define('App.usr.enum.Viewer', {
 				reaction.edges.push(l);
 				return l; 
 			}).concat(_.map(reaction.products, function(product) {
+				if (!complexMap[product]) {
+					console.warn("Warning: complex "+product+" not found.");
+					return;
+				}
 				var l = {
 					'source' : reaction,
 					'target' : complexMap[product]
@@ -433,7 +449,7 @@ Ext.define('App.usr.enum.Viewer', {
 				complexMap[product].edges.push(l);
 				return l;
 			}))
-		}), /* true to flatten only one level */true);
+		}), /* true to flatten only one level */true));
 		
 		var data = { nodes: complexMap, links: links };		
 

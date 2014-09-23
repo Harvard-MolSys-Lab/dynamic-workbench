@@ -22,6 +22,11 @@ function StrandPreview() {
 			showIndexes = true,
 			showSegments = true,
 			showStrands = true,
+			colorSegmentLabels = true,
+			defaultSegmentColor = '#888',
+
+			colorStrandLabels = true,
+			defaultStrandColor = '#888',
 
 			// font sizes, in em
 			segmentLabelFontSize = 1.25,
@@ -635,7 +640,7 @@ function StrandPreview() {
 			.text(function(d,i) {
 				return d.segment_index == Math.floor(d.segment_length/2) ? d.segment : ''
 			}).attr('fill',function(d) {
-				return segmentColors(d.segment_identity);
+				return colorSegmentLabels ? segmentColors(d.segment_identity) : defaultSegmentColor;
 			});
 		}
 
@@ -645,7 +650,7 @@ function StrandPreview() {
 			.text(function(d,i) {
 				return d.strand_index == 0 ? d.strand : ''
 			}).attr('fill',function(d) {
-				return strandColors(d.strand);
+				return colorStrandLabels ? strandColors(d.strand) : defaultStrandColor;
 			});
 		}
 
@@ -813,6 +818,19 @@ function StrandPreview() {
 		return chart;
 	};
 
+
+	chart.colorSegmentLabels = function(_) {
+		if (!arguments.length) return colorSegmentLabels;
+		colorSegmentLabels = _;
+		return chart;
+	};
+
+	chart.colorStrandLabels = function(_) {
+		if (!arguments.length) return colorStrandLabels;
+		colorStrandLabels = _;
+		return chart;
+	};
+
 	chart.loopMode = function(_) {
 		if (!arguments.length) return loopMode;
 		loopMode = _;
@@ -832,16 +850,18 @@ function StrandPreview() {
 	};
 
 	chart.options = function(opts) {
-		if(opts.showBubbles    !== undefined) chart = chart.showBubbles(opts.showBubbles)
-		if(opts.showBases      !== undefined) chart = chart.showBases(opts.showBases)
-		if(opts.showIndexes    !== undefined) chart = chart.showIndexes(opts.showIndexes)
-		if(opts.showSegments   !== undefined) chart = chart.showSegments(opts.showSegments)
-		if(opts.showStrands    !== undefined) chart = chart.showStrands(opts.showStrands)
-		if(opts.loopMode       !== undefined) chart = chart.loopMode(opts.loopMode)
-		if(opts.nodeStrokeMode !== undefined) chart = chart.nodeStrokeMode(opts.nodeStrokeMode)
-		if(opts.nodeFillMode   !== undefined) chart = chart.nodeFillMode(opts.nodeFillMode)
-		if(opts.lineStrokeMode !== undefined) chart = chart.lineStrokeMode(opts.lineStrokeMode)
-		if(opts.textFillMode   !== undefined) chart = chart.textFillMode(opts.textFillMode);
+		if(opts.showBubbles          !== undefined) chart = chart.showBubbles(opts.showBubbles)
+		if(opts.showBases            !== undefined) chart = chart.showBases(opts.showBases)
+		if(opts.showIndexes          !== undefined) chart = chart.showIndexes(opts.showIndexes)
+		if(opts.showSegments         !== undefined) chart = chart.showSegments(opts.showSegments)
+		if(opts.showStrands          !== undefined) chart = chart.showStrands(opts.showStrands)
+		if(opts.colorSegmentLabels   !== undefined) chart = chart.colorSegmentLabels(opts.colorSegmentLabels)
+		if(opts.colorStrandLabels    !== undefined) chart = chart.colorStrandLabels(opts.colorStrandLabels)
+		if(opts.loopMode             !== undefined) chart = chart.loopMode(opts.loopMode)
+		if(opts.nodeStrokeMode       !== undefined) chart = chart.nodeStrokeMode(opts.nodeStrokeMode)
+		if(opts.nodeFillMode         !== undefined) chart = chart.nodeFillMode(opts.nodeFillMode)
+		if(opts.lineStrokeMode       !== undefined) chart = chart.lineStrokeMode(opts.lineStrokeMode)
+		if(opts.textFillMode         !== undefined) chart = chart.textFillMode(opts.textFillMode);
 		return chart;
 	}
 

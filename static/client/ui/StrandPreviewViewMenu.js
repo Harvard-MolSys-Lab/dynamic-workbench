@@ -94,12 +94,30 @@ Ext.define('App.ui.StrandPreviewViewMenu',{
 				},
 				scope: this
 			},{
+				text: 'Color segment labels',
+				checked: true,
+				name: 'colorSegmentLabels',
+				xtype: 'menucheckitem',
+				handler: function(item) {
+					this.setComplexViewShow('colorSegments',item.checked);
+				},
+				scope: this
+			},{
 				text: 'Show strand labels',
 				checked: true,
 				name: 'showStrands',
 				xtype: 'menucheckitem',
 				handler: function(item) {
 					this.setComplexViewShow('strands',item.checked);
+				},
+				scope: this
+			},{
+				text: 'Color strand labels',
+				checked: true,
+				name: 'colorStrandLabels',
+				xtype: 'menucheckitem',
+				handler: function(item) {
+					this.setComplexViewShow('colorStrands',item.checked);
 				},
 				scope: this
 			},
@@ -129,6 +147,8 @@ Ext.define('App.ui.StrandPreviewViewMenu',{
 		this.showIndexes = this.menu.down('[name=showIndexes]');
 		this.showSegments = this.menu.down('[name=showSegments]');
 		this.showStrands = this.menu.down('[name=showStrands]');
+		this.colorSegmentLabels = this.menu.down('[name=colorSegmentLabels]');
+		this.colorStrandLabels = this.menu.down('[name=colorStrandLabels]');
 
 		this.coloringSegments = this.menu.down('[name=coloringSegments]');
 		this.coloringSequences = this.menu.down('[name=coloringSequences]');
@@ -245,6 +265,8 @@ Ext.define('App.ui.StrandPreviewViewMenu',{
 		opts.showBases = this.showBases.checked;
 		opts.showSegments = this.showSegments.checked;
 		opts.showStrands = this.showStrands.checked;
+		opts.colorSegmentLabels = this.colorSegmentLabels.checked;
+		opts.colorStrandLabels = this.colorStrandLabels.checked;
 
 		return opts;
 	}

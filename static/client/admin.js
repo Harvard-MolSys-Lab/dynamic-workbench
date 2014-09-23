@@ -90,7 +90,7 @@ Ext.onReady(function() {
     });
 
 
-	var adminWindow = Ext.create('Ext.Window',{
+	var adminWindow = Ext.create('Ext.container.Viewport',{
 		closable : false,
 		maximizable: true,
 		width : 500,
@@ -111,7 +111,7 @@ Ext.onReady(function() {
 			autoScroll:true,
 			plugins: [cellEditing],
 			region : 'center',
-			layout : 'anchor',
+			// layout : 'anchor',
 			frame : true,
 			store: store,
 			columns: [{

@@ -42,7 +42,15 @@ Ext.define('App.ui.CodeMirror', {
 		 * Fires when the cursor changes position
 		 * @param {App.ui.CodeMirror} panel This class
 		 * @param {CodeMirror} editor The codemirror instance
-		 */'cursorchange');
+		 */
+		'cursorchange',
+
+<span id='App-ui-CodeMirror-event-change'>		/**
+</span>		 * @event
+		 * Fires when the contents of the editor changes
+		 */
+		'change'
+		);
 	},
 <span id='App-ui-CodeMirror-cfg-mode'>	/**
 </span>    * @cfg {String} mode The default mode to use when the editor is initialized. When not given, this will default to the first mode that was loaded. 
@@ -168,6 +176,7 @@ Ext.define('App.ui.CodeMirror', {
 				onCursorActivity : 	Ext.bind(this.onCursorActivity, this),
 				onBlur:				Ext.bind(this.onBlur,this),
 				onFocus:			Ext.bind(this.onFocus,this),
+				onChange:			Ext.bind(this.onChange,this)
 			},this));
 			this.codemirror.setValue(this.value || '');
 			
@@ -182,16 +191,19 @@ Ext.define('App.ui.CodeMirror', {
 		}
 	},
 <span id='App-ui-CodeMirror-method-onBlur'>	onBlur: function() {
-</span>		this.fireEvent('blur', this, this.editor);
+</span>		this.fireEvent('blur', this, this.codemirror);
 	},
 <span id='App-ui-CodeMirror-method-onFocus'>	onFocus: function() {
-</span>		this.fireEvent('focus', this, this.editor);
+</span>		this.fireEvent('focus', this, this.codemirror);
+	},
+<span id='App-ui-CodeMirror-method-onChange'>	onChange: function(cm, changes) {
+</span>		this.fireEvent('change', this, changes, this.codemirror);
 	},
 <span id='App-ui-CodeMirror-method-onCursorActivity'>	/**
 </span>	 * Fires the {@link #cursorchange} event
 	 */
 	onCursorActivity : function() {
-		this.fireEvent('cursorchange', this, this.editor);
+		this.fireEvent('cursorchange', this, this.codemirror);
 	},
 <span id='App-ui-CodeMirror-method-getValue'>	/**
 </span>	 * Returns the value of the CodeMirror instance

@@ -1,5 +1,9 @@
 /* Enumerator reaction graph */
 
+text {
+	font-family: Arial, Sans-Serif;
+}
+
 svg {
 	fill: none;
 }
@@ -8,8 +12,14 @@ svg {
 	stroke: #ccc;
 	marker-mid: url(#reaction-arrow);
 }
+.link-reaction-highlight {
+	stroke: #999;
+}
 .link-reaction-noarrow {
 	marker-mid: none;
+}
+.condensed-links .link-reaction {
+	stroke: #888;
 }
 
 .link-reaction-blurred {
@@ -25,43 +35,71 @@ svg {
 .node-blurred {
 	opacity: 0.3;
 }
-.reaction-fast {
+rect.reaction-fast, .reaction-fast > rect {
 	fill: #01c;
 	stroke: #fff;
 }
-.reaction-slow {
+rect.reaction-slow, .reaction-slow > rect {
 	fill: #a00;
 	stroke: #fff;
 }
-
-.enum-selected > text {
-	font-weight: bold;
-	fill: red;
+.condensed-nodes .reaction-fast > rect {
+	fill: #02d;
+}
+.condensed-nodes .reaction-slow > rect {
+	fill: #e00;
 }
 
-.enum-selected > rect.reaction-fast, .enum-selected > rect.reaction-slow {
-	stroke: red;
+.enum-hull {
+	fill: rgb(255, 255, 207);
+	stroke: #bcbcbc;
+	opacity:0.9;
 }
 
-.complex {
+.enum-hidden {
+	display: none
+}
+.hull-blurred {
+	opacity: 0.3;
+}
+
+
+.complex > rect {
 	fill: white;
 	stroke: #888;
 	/*stroke-width: 1em;*/
 }
-.complex-transient {
+.complex-transient > rect {
 	stroke-dasharray:1.5em;
 }
-.complex-resting {
+.complex-resting > rect {
 	fill: #ffa;
 }
-.complex-initial {
-	fill: #efb;
+.complex-initial > rect {
+	fill: #eff;
 }
-.resting-state {
+.complex-initial .node-label {
+	fill: #00a;
+	font-weight: bold;
+}
+.complex-resting .node-label {
+
+}
+
+.resting-state > rect {
 /*	fill: yellow;
 	stroke: #fff;
 */}
 .node-label {
 	fill: #111;
 	text-shadow:1px 1px 2px white;
+}
+
+.enum-selected > .node-label {
+	font-weight: bold;
+	fill: #c00;
+}
+
+.enum-selected > rect {
+	stroke: #c00;
 }

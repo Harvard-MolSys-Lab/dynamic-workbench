@@ -12,23 +12,29 @@ Welcome to Workbench. This manual can help with a few things:
 
 Contents
 --------
-- [Overview](overview)
-- [Getting Started](quickstart)
-- [Workbench Server](server)
-- [File Management](files)
-- [Applications](applications)
-- [Behavioral Design](behavioral)
+- [Getting Started](quickstart) – _Get started building things with Workbench_
+- [Overview](overview) – _What is Workbench?_
+- [File Management](files) – _Learn to manage files_
+- [Applications](applications) – _Learn about different Workbench applications_
+- [Behavioral Design](behavioral) – _Design high-level behaviors that can be compiled to DNA implementations_
 	- [Nodal Systems](nodal)
 	- [Pepper Systems](pepper)
-- [Segment-level Systems](segment)
+- [Segment-level/Domain-level Systems](segment) – _Design systems of DNA strands in terms of complementarity relationships and secondary structure between segments_
 	- [DyNAMiC Intermediate Language](dil)
 	- [Pepper Intermediate Language](pil)
-- [Sequences](sequence)
+- [Sequences](sequence) – _Design and edit sequences of nucleotides_
 	- [Sequence Editor](sequence-edit)
 	- [Sequence Design with Web Domain Designer](web-dd) (Web DD)
-- [Simulation and Analysis](simulation-analysis)
+	- [Sequence Design with NUPACK](nupack)
+	- [Sequence Design with Multisubjective](multisubjective)
+- [Simulation and Analysis](simulation-analysis) – _Simulate and analyze system behavior_
+	- [Reaction Enumeration](enumerator)
 	- [Thermodynamic Simulation with NUPACK](nupack)
+	- [Thermodynamic Analysis with the TBI Vienna RNAfold Webserver](rnafold)
+	- [Thermodynamic Analysis with the Mfold Webserver](mfold)
+- [Tools and Utilities](utilities)
 - [Customization](customization)
+	- [Workbench Server](server)
 	- [Scripting](scripting)
 	- [Application development](application-development)
 	- [API Documentation](/docs/index.html)

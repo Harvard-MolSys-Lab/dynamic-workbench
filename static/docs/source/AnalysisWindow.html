@@ -103,6 +103,10 @@ Ext.define('App.ui.sequence.AnalysisWindow',{
 		var val = codemirror.getValue();
 		return val;
 	},
+<span id='App-ui-sequence-AnalysisWindow-method-setValue'>	setValue: function (value) {
+</span>		var codemirror = this.down('codemirror');
+		codemirror.setValue(value);
+	},
 <span id='App-ui-sequence-AnalysisWindow-method-getStrands'>	getStrands: function() {
 </span>		var val = this.getValue()
 		var strands = _.compact(val.split('\n'));
@@ -111,7 +115,15 @@ Ext.define('App.ui.sequence.AnalysisWindow',{
 <span id='App-ui-sequence-AnalysisWindow-method-updateStrands'>	updateStrands: function(strands) {
 </span>		var strandsField = this.down('codemirror');
 		strandsField.setValue(strands);
-	}
+	},
+<span id='App-ui-sequence-AnalysisWindow-method-setOptions'>	setOptions: function(options) {
+</span>		for(var name in options) {
+			var cmp = this.down('[ref=&quot;'+name+'&quot;]');
+			if(cmp &amp;&amp; cmp.setValue) {
+				cmp.setValue(options[name])
+			}
+		}
+	},
 })
 </pre>
 </body>

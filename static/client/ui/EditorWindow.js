@@ -15,6 +15,7 @@ Ext.define('App.ui.EditorWindow',{
 	helpIcon: 'help',
 	helpText: '',
 	mode: 'text',
+	trackSaves: false,
 	buttonHandler: function() {
 		
 	},

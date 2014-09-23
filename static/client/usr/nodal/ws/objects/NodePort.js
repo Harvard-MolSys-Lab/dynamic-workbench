@@ -13,7 +13,7 @@ Ext.define('App.usr.nodal.ws.objects.NodePort', {
 		this.expose('computedPolarity', function() {
 			var obj = this.getLibraryObject();
 			if(!obj) return 0;
-			if(obj.strand && obj.node) {
+			if(obj.strand || obj.node) {
 				return obj.getAbsolutePolarity();
 			} else {
 				return obj.getPolarity();

@@ -1,5 +1,5 @@
 /**
- * Manages launching and running {@link App.ui.Application}s. Applications can be launched programattically by calling
+ * Manages launching and running {@link App.ui.Application}s. Applications can be launched programmatically by calling
  * {@link App.ui.Launcher#launch}, or simply {App.ui#launch} with a trigger. Triggers identify particular
  * applications
  * @singleton
@@ -13,6 +13,15 @@ Ext.define('App.ui.Launcher', {
 	triggerDelimiter : ':',
 	_triggers : {},
 	_openTabs : {},
+	_unsavedChanges: {},
+	_lastAppId: 0,
+	constructor: function () {
+		window.onbeforeunload = Ext.bind(this.promptUnsaved,this);	
+	},
+	getId: function() {
+		this._lastAppId++;
+		return this._lastAppId;
+	},
 	/**
 	 * Registers a trigger with the provided {@link App.ui.Application} subclass
 	 * @param {String} name Name of the trigger
@@ -99,7 +108,7 @@ Ext.define('App.ui.Launcher', {
 					}));
 				} catch(e) {
 					App.msg('Application failed to load','An error occurred loading application {0}, see console for details. ',{params: [rootTrigger]});
-					App.log('Failed to launch application with trigger ' + trigger+'. Error details: '+e, {
+					console.log('Failed to launch application with trigger ' + trigger+'. Error details: ',e, {
 						iconCls : 'application',
 						level: 'error',
 						silent : true
@@ -132,7 +141,7 @@ Ext.define('App.ui.Launcher', {
 				tab.on('close', function(tab) { 
 					delete this._openTabs[tab.initialTrigger];
 				}, this);
-				App.log('Launched application with trigger: ' + trigger, {
+				console.log('Launched application with trigger: ' + trigger, {
 					iconCls : 'application',
 					silent : true
 				});
@@ -192,6 +201,31 @@ Ext.define('App.ui.Launcher', {
 	},
 	updateAppMenu: function(menu,handler) {
 
+	},
+	markUnsaved: function(app) {
+		var id = app.getId();
+		if(!this._unsavedChanges[id])
+			this._unsavedChanges[id] = app
+	},
+	markSaved: function(app) {
+		var id = app.getId();
+		if(this._unsavedChanges[id])
+			delete this._unsavedChanges[id];
+
+		// var i = this._unsavedChanges.indexOf(app);
+		// if (i != -1) {
+		// 	this._unsavedChanges.splice(i,1);
+		// }
+	},
+	promptUnsaved: function () {
+		// debugger;
+		if(_.keys(this._unsavedChanges).length > 0) {
+			return "You have unsaved changes: \n\n" + _.map(this._unsavedChanges, function(app,id) {
+				return Ext.util.Format.stripTags(app.title);
+			}).join("\n")+"\n\nYour changes will be lost if you reload without saving";
+		} else {
+			return;
+		}
 	}
 }, function() {
 	App.ui.Launcher.register('help', 'App.ui.Help', {
@@ -297,7 +331,7 @@ Ext.define('App.ui.Launcher', {
 		editorType : 'ReStructuredText',
 		mode : 'rst',
 	});
-	App.ui.Launcher.register('pil', 'App.usr.text.Editor', {
+	App.ui.Launcher.register('pil', 'App.usr.pepper.PilEditor', {
 		iconCls : 'pil',
 		editorType : 'PIL',
 		mode : 'pepper',
@@ -307,6 +341,12 @@ Ext.define('App.ui.Launcher', {
 		editorType : 'Pepper',
 		mode : 'pepper',
 	});
+	App.ui.Launcher.register('crn', 'App.usr.text.Editor', {
+		iconCls : 'crn',
+		editorType : 'CRN',
+		mode : '',
+	});
+
 	App.ui.Launcher.register('strandedit','App.usr.dil.DilEditor',{
 	});
 	App.ui.Launcher.register('dil','App.usr.dil.DilEditor',{

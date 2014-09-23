@@ -30,7 +30,7 @@ Ext.define('App.usr.nodal.ws.objects.NodePort', {
 		this.expose('computedPolarity', function() {
 			var obj = this.getLibraryObject();
 			if(!obj) return 0;
-			if(obj.strand &amp;&amp; obj.node) {
+			if(obj.strand || obj.node) {
 				return obj.getAbsolutePolarity();
 			} else {
 				return obj.getPolarity();
@@ -118,7 +118,9 @@ Ext.define('App.usr.nodal.ws.objects.NodePort', {
 		return obj ? obj[prop] : false;
 	},
 <span id='App-usr-nodal-ws-objects-NodePort-method-getLibraryObject'>	getLibraryObject : function() {
-</span>		if(this.parent &amp;&amp; this.getParent().isWType('App.usr.nodal.ws.objects.Node') || this.getParent().isWType('App.usr.nodal.ws.objects.Motif')) {
+</span>		if(this.parent &amp;&amp; 
+			(this.getParent().isWType('App.usr.nodal.ws.objects.Node') 
+				|| this.getParent().isWType('App.usr.nodal.ws.objects.Motif'))) {
 			var node = this.parent.getLibraryObject(), name = this.get('name');
 			if(node) {
 				var me = _.find(node.getDomains(), function(dom) {

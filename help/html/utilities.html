@@ -1,0 +1,48 @@
+<h1 id="utilities">Utilities</h1>
+<p>Workbench includes several utilities for handling common tasks in DNA system design. You can access these utilities from the &quot;Tools&quot; menu in</p>
+<h2 id="structure-editor">Structure Editor</h2>
+<div class="figure">
+<img src="images/secondary.png" alt="Secondary Structure Tool" /><p class="caption">Secondary Structure Tool</p>
+</div>
+<p>Enter a base-wise secondary structure in dot-parenthesis notation. Click &quot;Preview&quot; to update the graphical preview. Use the &quot;View&quot; menu to select various view options. Use the buttons in the lower-left to convert the structure to:</p>
+<ul>
+<li>Dot-parenthesis notation</li>
+<li>DU+ notation</li>
+<li>Scalable Vector Graphics (SVG) -- Exports the current view as an SVG file suitable for editing in programs like Adobe Illustrator or Inkscape.</li>
+</ul>
+<h3 id="secondary-structure-view-menu">Secondary Structure View Menu</h3>
+<div class="figure">
+<img src="images/view-menu.png" alt="Secondary Structure &quot;View&quot; menu" /><p class="caption">Secondary Structure &quot;View&quot; menu</p>
+</div>
+<p>Choose one of four coloring modes, and several additional options from the &quot;View&quot; menu.</p>
+<p>There are four coloring modes:</p>
+<ul>
+<li>Segments -- Color the base bubbles, letters, or backbones based on the segment to which they belong</li>
+<li>Domains -- Color the base bubbles, letters, or backbones based on the domain to which they belong</li>
+<li>Strands -- Color the base bubbles, letters, or backbones based on the strand to which they belong</li>
+<li>Base identity -- Color the base bubbles, letters, or backbones based on the identity of each nucleotide base</li>
+</ul>
+<p>Depending on the additional options (below), different features will be shown and colored:</p>
+<ul>
+<li>Show bubbles -- tick to show each base as a colored circle, or &quot;bubble&quot; (with coloring determined by the mode)</li>
+<li>Show base labels -- tick to show a letter indicating the base identity of each base.</li>
+<li>Show base numbering -- tick to show numerical indices every 10 bases</li>
+<li>Show segment labels -- tick to show colored labels indicating the location of each segment; these can help you see where segments are, even when the coloring mode is not set to &quot;segments&quot;</li>
+<li>Show strand labels -- tick to show labels for each strand</li>
+</ul>
+<p>If &quot;Show bubbles&quot; is checked, the base bubbles will be colored. If &quot;Show bubbles&quot; is unchecked, but &quot;Show base labels&quot; is checked, the base letters will be colored. If both are unchecked, the backbone will be colored.</p>
+<h2 id="sequence-threading-tool">Sequence Threading Tool</h2>
+<div class="figure">
+<img src="images/thread.png" alt="Seqeunce Threading Tool" /><p class="caption">Seqeunce Threading Tool</p>
+</div>
+<p>The sequence threading tool can be used to map a set of sequences on to a design. For instance, if you have the following sequences:</p>
+<pre><code>1 : AATACAG
+2 : CCATAG
+3 : GGAATAC</code></pre>
+<p>And you wish to arrange these segments into strands as follows:</p>
+<pre><code>s1 : 1 2 3
+s2 : 3* 2* 1*
+s3 : 1 2 3 2*</code></pre>
+<p>You could enter the sequences into the left pane, and the strand specifications (in the above format) into the right pane, then click &quot;Thread&quot; to view the full sequences below. Click &quot;Show Dethreaded&quot; to indicate the boundaries between segments in the final sequences shown below.</p>
+<h2 id="sequence-editor">Sequence Editor</h2>
+<p><a href="sequence-edit">Read more</a> about the sequence editor.</p>

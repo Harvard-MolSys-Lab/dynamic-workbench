@@ -11,15 +11,15 @@ var sendError = utils.sendError, forbidden = utils.forbidden, allowedPath = util
 var commands = {
 	pepper : {
 		command : 'python',
-		arguments : ['tools/circuit_compiler/compiler.py'],
+		arguments : ['tools/circuit_compiler/compiler.py','--pil'],
 	},
 }
 
 exports.name = 'Pepper Compiler';
 exports.iconCls = 'pepper';
-exports.params = ['node'];
+exports.params = ['node', 'args'];
 exports.start = function(req, res, params) {
-	var node = params['node'], fullPath = "'" + path.resolve(utils.userFilePath(node)) + "'", cmd = getCommand(commands['pepper'], [fullPath]);
+	var node = params['node'], fullPath = "'" + path.resolve(utils.userFilePath(node)) + "'", args = params['args'], cmd = getCommand(commands['pepper'], [fullPath, args]);
 	winston.log("info",cmd);
 	proc.exec(cmd, function(err, stdout, stderr) {
 		if(err) {
@@ -30,6 +30,6 @@ exports.start = function(req, res, params) {
 				err : err
 			});
 		}
-		res.send(stdout);
+		res.send(stdout + stderr);
 	})
 };

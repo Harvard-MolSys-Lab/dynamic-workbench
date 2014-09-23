@@ -23,13 +23,41 @@ def natural_sort(l):
 	return sorted(l, key = alphanum_key)
 
 def find(f, seq, default=None):
-	"""Return first item in sequence where f(item) == True."""
+	"""
+	Return first item in sequence where f(item) == True.
+	"""
 	for item in seq:
 		if f(item): 
 			return item
 	return default
 
-def parse_dot_paren(structure_line):	
+def parse_basewise_dot_paren(structure_line, strands):
+	parts = [x.strip() for x in structure_line.split("+")]
+	assert len(parts) == len(strands), "Structure '%s' has %d parts, but corresponds to %d strands" % \
+		(structure_line,len(parts),len(strands))
+
+	segment_struct = ["" for s in strands]
+	for (i,s) in enumerate(strands):
+		strand_part = parts[i]
+		for d in s.domains:
+			assert len(strand_part) >= len(d), "Not enough characters for domain %s" % str(d) 
+			domain_part, strand_part = strand_part[:len(d)], strand_part[len(d):]
+
+			assert all(c == domain_part[0] for c in domain_part), "Not all parts of structure for %s are the same" % str(d)
+			segment_struct[i] += domain_part[0]
+
+
+	return parse_dot_paren("+".join(segment_struct))
+
+def parse_dot_paren(structure_line):
+	"""
+	Parses a dot-parenthesis structure into the list of lists representeation
+	used elsewhere in the enumerator.
+
+	                         0,0  0,1  0,2   0,3   0,4     1,0   1,1
+	Example: "...((+))" -> [[None,None,None,(1,0),(1,1)],[(0,4),(0,3)]] 
+
+	"""	
 	complex_structure = []
 	dot_paren_stack = []			
 	strand_index = 0
@@ -37,19 +65,26 @@ def parse_dot_paren(structure_line):
 	curr_strand = []
 	complex_structure.append(curr_strand)
 	for part in structure_line:
+		# stand break
 		if (part == "+"):
 			strand_index += 1
 			domain_index = 0
 			curr_strand = []
 			complex_structure.append(curr_strand)
 			continue
+
+		# unpaired
 		if (part == "."):
 			curr_strand.append(None)
 			domain_index += 1
+
+		# paired to later domain
 		elif (part == "("):
 			curr_strand.append(None)
 			dot_paren_stack.append((strand_index, domain_index))
 			domain_index += 1
+
+		# paired to earlier domain
 		elif (part == ")"):
 			loc = dot_paren_stack.pop()
 			curr_strand.append(loc)
@@ -58,8 +93,13 @@ def parse_dot_paren(structure_line):
 	return complex_structure
 
 
-# More of a testing tool than anything
 def index_parts(enum):
+	"""
+	Testing tool. Accepts an enumerator, produces a tuple 
+	(domains, strands, complexes) where each element is a dict mapping names 
+	of those objects to the objects in the enumerator. For instance, domains
+	maps the name of each domain in the enumerator to the Domain object
+	"""
 	domains = {}
 	strands = {}
 	complexes = {}
@@ -86,7 +126,7 @@ class Domain(object):
 	def __init__(self, name, length, is_complement=False, sequence=None):
 		"""
 		Default constructor. Takes a domain name, a length (positive integer or 
-		"short" or "long", and optionally a base sequence.
+		"short" or "long"), and optionally a base sequence.
 		"""
 		self._name = name
 		self._length = length
@@ -190,7 +230,7 @@ class Domain(object):
 					
 class Strand(object):
 	"""
-	Represents a strand, which is an ordered sequence of domains.
+	Represents a strand---an ordered sequence of domains.
 	"""
 	
 	def __init__(self, name, domains):
@@ -258,20 +298,20 @@ class Complex(object):
 		This constructor assumes that the structure is unpseudoknotted, and will
 		rotate this complex automatically until it is in canonical form.
 		
-		name = string holding complex name
-		strands = list of Strand objects in order
-		structure = list of lists of tuples indicating pairing of domains in 
-					complex with None indicating unpaired --
-					tuple: (strand, domain)
-					Ex:
-					[[(0, 2) None (0, 0)]] 
-					indicates one strand with 3 domains with the first one bound 
-					to the last one, and the middle one free. 
-					
-					[[None (1, 0) (1, 1)] [(0, 1) (0, 2) None]]
-					indicates 2 strands with 3 domains each -- the first two
-					domains of the second strand are bound to the last two
-					of the first.
+		:param name: string holding complex name
+		:param strands: list of Strand objects in order
+		:param structure: list of lists of tuples indicating pairing of domains in the
+					complex. ``None`` indicates the domain is unpaired, while a
+					``(strand, domain)`` tuple indicates the domain is paired to ``domain``
+					on ``strand``.
+
+					Examples:
+
+					*	``[[(0, 2) None (0, 0)]]`` indicates one strand with 3 domains 
+						with the first one bound to the last one, and the middle one free. 
+					*	``[[None (1, 0) (1, 1)], [(0, 1) (0, 2) None]]`` indicates 2 
+						strands with 3 domains each -- the first two domains of the second 
+						strand are bound to the last two of the first.
 					
 					Lists should be in the same order as the strands in the
 					second argument, with each strand's domains from 5' to 3'
@@ -315,6 +355,10 @@ class Complex(object):
 		self._hash = None
 	
 	def __hash__(self):
+		"""
+		Computes a unique hash to represent this complex. Uses the tuple of 
+		strands and structure
+		"""
 		if (self._hash == None):
 			strands = tuple(self._strands)
 			struct = tuple([tuple(s) for s in self._structure])
@@ -652,6 +696,7 @@ class RestingState(object):
 		self._complexes = complexes
 		self._name = name
 		self._canonical = find(lambda s: not str(s).isdigit(),sorted(complexes),str(complexes[0]))
+		self._hash = None
 		
 	@property
 	def name(self):
@@ -668,6 +713,11 @@ class RestingState(object):
 	@property
 	def canonical(self):
 		return self._canonical
+
+	def __hash__(self):
+		if self._hash == None:
+			self._hash = hash(tuple(self.complexes))
+		return self._hash
 	
 	def __eq__(self, other):
 		return (self.complexes == other.complexes)

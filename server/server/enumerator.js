@@ -17,7 +17,7 @@ var maxBuffer = 1000*1024;
 
 exports.name = 'Enumerator';
 exports.iconCls = 'enum-icon';
-exports.params = ['node','mode','condense','max-complex-size']
+exports.params = ['node','mode','condense','max-complex-size','release-cutoff','max-complex-count','max-reaction-count']
 exports.start = function(req, res, params) {
 	var node = params['node'], fullPath = utils.userFilePath(node), cmd;
 
@@ -29,23 +29,31 @@ exports.start = function(req, res, params) {
 
 
 	var pre = path.join(path.dirname(fullPath),prefix(fullPath));
-	var mode = params['mode'] || 'pil';
-	var ext = mode;
-	if (ext == 'enjs') { mode = 'json' }
+	var outputMode = params['mode'] || 'pil';
+	var inputMode = utils.extname(fullPath); inputMode = (inputMode == 'enum' ? 'standard' : inputMode);
+	var ext = outputMode;
+	if (ext == 'enjs') { outputMode = 'json' }
 
-	var args = ['--infile',fullPath,'-i','standard','--outfile',postfix(pre+'-enum',ext),'-o',mode];
-	
+	// build command line arguments
+	var args = ['--infile',fullPath,'-i',inputMode,'--outfile',postfix(pre+'-enum',ext),'-o',outputMode];
 	if(!!params['max-complex-size']) { 
 		args = args.concat(['--max-complex-size', params['max-complex-size']]) 
 	}
-	
+	if(!!params['release-cutoff']) { 
+		args = args.concat(['--release-cutoff', params['release-cutoff']]) 
+	}
+	if(!!params['max-complex-count']) { 
+		args = args.concat(['--max-complex-count', params['max-complex-count']]) 
+	}
+	if(!!params['max-reaction-count']) { 
+		args = args.concat(['--max-reaction-count', params['max-reaction-count']]) 
+	}
 	if(!!params['condense'] && params['condense'] != "false") {
 		args.push('-c')
 	}
 	
 	//--infile test_files/test_input_standard_SLC.in -i standard --outfile temporary_test_output.out -o standard
-	cmd = getCommand(commands['enumerator'], 
-	args)
+	cmd = getCommand(commands['enumerator'], args)
 	
 	winston.log("info", cmd);
 	
@@ -70,9 +78,9 @@ exports.start = function(req, res, params) {
 				stderr : stderr,
 				stdout : stdout,
 			});
-			return res.send("Task completed with errors. \n\n" + stderr + '\n'+ stdout,200);
+			return res.send("Task completed with errors. \n\n" + stderr + '\n'+ stdout,500);
 		} else {
-			return res.send(stdout,200);
+			return res.send(stdout,(err || stderr ? 500 : 200));
 		}
 	})
 };

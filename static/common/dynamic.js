@@ -1060,6 +1060,14 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * @property {Number} polarity
 		 */
 		this.polarity = DNA.parsePolarity(this.polarity);
+
+		/**
+		 * @cfg {Object} expose
+		 * @cfg {String} expose.name
+		 * @cfg {String} expose.role
+		 *
+		 * Exposes this domain as a port with `name` and `role` in an outer motif
+		 */
 	}
 
 
@@ -2613,6 +2621,144 @@ App.dynamic = module.exports = (function(_,DNA) {
 			lib.updateOutputProperties();
 			return lib;
 		},
+
+		/**
+		 * Parses a PIL system and returns a DIL representation
+		 * @param  {String} pil PIL input text
+		 * @return {App.dynamic.Library} lib
+		 */
+		fromPil: function (pil) {
+			var lines = pil.split("\n"),
+				sequences = {},
+				segments = {},
+				sup_segments = {},
+				strands = {},
+				nodes = {};
+
+			for (var i = 0; i < lines.length; i++) {
+				var line = lines[i], parts;
+
+				if(parts = line.match(/sequence\s*([\w-]+)\s*=\s*(\w+)\s*:?\s*(\d?)\s*/)) {
+					var segment = {
+						identity: parts[1],
+						sequence: parts[2]
+					};
+					sequences[segment.identity] = segment.sequence
+					segments[segment.identity] = segment
+				}
+
+				else if (parts = line.match(/sup-sequence\s*([\w-]+)\s*=\s*((?:[\w-]+\s*)+):?(\d?)/)) {
+					var name = parts[1];
+					sup_segments[name] = parts[2]
+				}
+
+				else if (parts = line.match(/strand\s*([\w-]+)\s*=\s*((?:[\w*-]+\s*)+):?(\d?)/)) {
+					var strand = {
+						name: parts[1],
+						domains: Compiler.parseDomainOrSegmentString(parts[2].trim(), /*parseIdentifiers*/ true)
+					}
+					strands[strand.name] = strand
+				}
+
+				else if (parts = line.match(/structure\s+(?:\[[^\]]+\])?\s*([\w-]+)\s*=\s*((?:[\w-]+\s*\+?\s*)+):\s*([().+\s]+)/)) {
+					var nodeName = parts[1],
+						nodeStrands = _.map(_.compact(_.filter(parts[2].split(/\s/),function(s) { return s != '+' })), function (name) { 
+							if(!(name in strands)) {
+								throw new DynamlError({
+									message: "Unknown strand '<%= strand %>' in PIL structure '<%= structure %>",
+									type: "pil",
+									strand: name,
+									structure: nodeName,
+								})
+							}
+							return strands[name]; 
+						}), 
+						nodeStrandDomains = _.map(nodeStrands, function  (strand) {
+							return strand.domains[0].segments
+						}), 
+						nodeStructure = parts[3], 
+						nodeStructureParts = _.map(nodeStructure.split('+'), function (part) {
+							return part.trim()
+						}), node;
+
+					// calculate total number of domains
+					var len = _.reduce(nodeStrandDomains, function (sum, domains) {
+						return sum + domains.length;
+						// return _.reduce(domains, function (len, dom) {
+						// 	len += dom.length;
+						// },sum)
+					}, 0)
+
+					// calculate number of dot paren parts in strand
+					var structLen = _.reduce(nodeStructureParts, function (sum, part) {
+						return sum + part.length
+					},0)
+
+					// determine if the structure is basewise
+					if(structLen > len) {
+
+						// ugh. if so, we have to loop through and break it up 
+						// into chunks for each domain 
+
+						// for each strand
+						var newStruct = [], part, strand;
+						for (var i = 0; i < nodeStrands.length; i++) {
+							
+							// get info associated with strand i
+							part = nodeStructureParts[i],
+							strand = nodeStrands[i],
+							strandDomains = nodeStrandDomains[i];
+
+							// for each domain in strand i
+							for (var j = 0; j < strandDomains.length; j++) {
+								var dom = strandDomains[j], 
+									domainLen = sequences[dom.identity].length;
+
+								// make sure there's enough structure left
+								if(part.length < domainLen) {
+									throw new DynamlError({
+										message: "Unable to extract dot-paren structure '<%= dotParenStructure %>' in PIL structure '<%= structure %>; structure not long enough",
+										type: "pil",
+										structure: nodeName,
+										dotParenStructure: nodeStructure
+									})
+								}
+
+								// make sure the structure contains the same 
+								// character for the whole domain.
+								for(var k = 0; k < domainLen; k++) {
+									if(part[k] != part[0]) {
+										throw new DynamlError({
+											message: "Unable to extract dot-paren structure '<%= dotParenStructure %>' in PIL structure '<%= structure %>; structure is not aligned to domains",
+											type: "pil",
+											structure: nodeName,
+											dotParenStructure: nodeStructure
+										})		
+									}
+								}
+
+								newStruct[i] += part[0];
+								part = part.slice(domainLen);
+							}
+						}
+
+						nodeStructure = newStruct.join("+")
+					}
+
+					node = {
+						name: nodeName,
+						strands: nodeStrands, 
+						structure: nodeStructure
+					};
+					nodes[node.name] = node
+				}
+			};
+
+			return Library.fromDil({
+				nodes: _.values(nodes),
+				allSegments: _.values(segments)
+			});
+		}
 	});
 	
 	
@@ -3339,9 +3485,9 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 */
 		function parseDomainString(str,parseIdentifier) {
 			parseIdentifier || (parseIdentifier = false)
-			var domains = str.match(/(\w+\[[\w\(\)\*'\s:]+\]\w?[\+-]?)\s?/g);
+			var domains = str.match(/(\w+\[[\w\(\)\*'\s:-]+\]\w?[\+-]?)\s?/g);
 			return _.map(domains,function(dom) {
-				var parts = dom.match(/(\w+)\[([\w\(\)\*'\s:]+)](\w?)([\+-]?)/);
+				var parts = dom.match(/(\w+)\[([\w\(\)\*'\s:-]+)](\w?)([\+-]?)/);
 				//	e.g. "d1[a*(1) b* c(2)]i-"
 				//	->  ["d1[a*(1) b* c(2)]i-", "d1", "a*(1) b* c(2)", "i", "-"]
 				//       0                       1     2                3    4
@@ -3414,9 +3560,9 @@ App.dynamic = module.exports = (function(_,DNA) {
 		function parseSegmentString(str,parseIdentifier) {
 			parseIdentifier || (parseIdentifier = false);
 			var segments = str.split(/\s+/g);
-			return _.map(segments,function(seg) {
+			return _.compact(_.map(segments,function(seg) {
 				seg.trim();
-				var parts = seg.match(/(\w+\*?)(?:\(([aAtTcCgGuUnN\d]+)\))?:?(\w+)?/);
+				var parts = seg.match(/([\w-]+\*?)(?:\(([aAtTcCgGuUnN\d]+)\))?:?(\w+)?/);
 				// e.g.: "a*(6):t"
 				// 	-> ["a*(6):t", "a*", "6",   "t"]
 				//		0			1     2      3
@@ -3440,9 +3586,9 @@ App.dynamic = module.exports = (function(_,DNA) {
 							s.length = parseInt(parts[2])
 						}
 					}
+					return s;
 				}
-				return s;
-			})
+			}))
 		}
 		
 		/**
@@ -3474,9 +3620,9 @@ App.dynamic = module.exports = (function(_,DNA) {
 		 * @return {Object} Domain configuration object (see #parseDomainString)
 		 */
 		function parseDomainOrSegmentString(str,parseIdentifier) {
-			if ((/(\w+\[[\w\(\)\*'\s:]+\]\w?[\+-]?)\s?/g).test(str)) {
+			if ((/(\w+\[[\w\(\)\*'\s:-]+\]\w?[\+-]?)\s?/g).test(str)) {
 				return parseDomainString(str,parseIdentifier);
-			} else if ((/(\w+\*?)(?:\(([aAtTcCgGuUnN\d]+)\))?:?(\w+)?/).test(str)) {
+			} else if ((/([\w-]+\*?)(?:\(([aAtTcCgGuUnN\d]+)\))?:?(\w+)?/).test(str)) {
 				return [{
 					name: 'A',
 					segments: parseSegmentString(str,parseIdentifier),

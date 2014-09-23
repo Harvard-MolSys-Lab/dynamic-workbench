@@ -22,7 +22,7 @@
 Ext.define('App.usr.dil.StrandsGrid',{
 	extend: 'Ext.grid.Panel',
 	alias: 'widget.strandsgrid',
-	requires: ['App.usr.dil.StrandStore'],
+	requires: ['App.usr.dil.StrandStore', 'App.usr.seq.Editor'],
 	mixins: {
 		tip: 'App.ui.TipHelper'
 	},
@@ -51,24 +51,32 @@ Ext.define('App.usr.dil.StrandsGrid',{
 			tooltip: { 
 				html: &quot;Describe the segments that comprise this strand, using the DyNAML short notation. &quot;+
 				&quot;For example, to describe a strand with two domains, an input A containing segments 1, 2, and 3, &quot;+
-				&quot;and an output B (containing segments 4, 5, and 6), you could write: &lt;pre&gt;\tA[1 2 3]i B[4 5 6]o&lt;/pre&gt; &lt;a href=\&quot;&quot;+App.ui.Help.getLink('dynaml#short-notation')+&quot;\&quot;&gt;Details&lt;/a&gt;&quot;,
+				&quot;and an output B (containing segments 4, 5, and 6), you could write: &lt;pre&gt;\tA[1 2 3]i+ B[4 3* 2*]o-&lt;/pre&gt; &quot;+
+				&quot;You can also omit the domain information and just list segments: &lt;pre&gt;\t1 2 3 4 3* 2*&lt;/pre&gt; &quot;+
+				// NOTE: do not change \&quot; to ' or it will screw up the App.ui.Help.getLink() result
+				&quot;&lt;a href=\&quot;&quot;+App.ui.Help.getLink('dynaml#short-notation')+&quot;\&quot;&gt;Details&lt;/a&gt;&quot;,
 				hideDelay: 2000,
 				anchor: &quot;bottom&quot;,
 				anchorToTarget: true,
 			},
 			validator: Ext.bind(function(value) {
 				var segmentMap = this.getSegmentMap();
-				var doms = App.dynamic.Compiler.parseDomainString(value,/*parseIdentifier*/ true);
+				var doms = App.dynamic.Compiler.parseDomainOrSegmentString(value,/*parseIdentifier*/ true);
+				var errors = [];
 				for(var i=0; i&lt;doms.length; i++) {
 					var segs = doms[i].segments;
 					for(var j=0; j&lt;segs.length; j++) {
 						var seg = segs[j];
 						if(!segmentMap[seg.identity]) {
-							return &quot;Unknown segment: '&quot;+seg.identity+&quot;'&quot;;
+							errors.push(&quot;Unknown segment: '&quot;+seg.identity+&quot;'&quot;);
 						}
 					}
 				}
-				return true;
+				if(errors.length &gt; 0) {
+					errors.push(&quot;Did you remember to define all segments that you used? &quot;+
+						&quot;Segments need to be defined using the 'Segments' pane to the right.&quot;)
+				}
+				return errors.length &gt; 0 ? errors.join('&lt;br /&gt;') : true;
 			},this),
 		});
 
@@ -91,13 +99,47 @@ Ext.define('App.usr.dil.StrandsGrid',{
 				handler: this.doDeleteStrand,
 				scope: this,
 				tooltip: &quot;Click to delete the selected strand(s).&quot;
+			},'-',{
+				text: 'Export',
+				iconCls: 'document-export',
+				tooltip: 'Generate various input and output formats, or transform the strands for output',
+				menu: {
+					items:[{
+						text: 'To FASTA',
+						iconCls: 'fasta',
+						handler: function () { this.exportData('fasta'); },
+						scope: this,
+					},{
+						text: 'To NUPACK',
+						iconCls: 'nupack',
+						handler: function () { this.exportData('nupack'); },
+						scope: this,
+					},{
+						text: 'To Excel/TSV',
+						iconCls: 'document-excel',
+						handler: function () { this.exportData('tsv'); },
+						scope: this,
+					},{
+						text: 'To CSV',
+						iconCls: 'document-csv',
+						handler: function () { this.exportData('csv'); },
+						scope: this,
+					},{
+						text: 'To Plain text',
+						iconCls: 'txt',
+						handler: function () { this.exportData(''); },
+						scope: this,
+					}],
+				}
 			}],
-
 			columns: [{
 				text: 'Name',
 				dataIndex: 'name',
 				allowBlank: false,
 				width: 90,
+				editor: {
+	                allowBlank: false
+	            }
 			}, {
 				text: 'Sequence',
 				dataIndex: 'sequence',
@@ -121,9 +163,9 @@ Ext.define('App.usr.dil.StrandsGrid',{
 						var dom = spec[i];
 						for(var j = 0; j &lt; dom.segments.length; j++) {
 							var seg = dom.segments[j],
-								seq = segmentMap[DNA.makeIdentifier(seg.identity, seg.polarity)];
+								seq = segmentMap[DNA.makeIdentifier(seg.identity, seg.polarity)] || '(?)';
 							out.push('&lt;span class=&quot;sequence-segment&quot; data-segment-identity=&quot;' + seg.identity + '&quot; data-segment-polarity=&quot;' + seg.polarity + '&quot;&gt;' + renderer(seq) + '&lt;/span&gt;');
-							pos += seq.length;
+							// pos += seq.length;
 						}
 					}
 					return out.join('');
@@ -137,7 +179,8 @@ Ext.define('App.usr.dil.StrandsGrid',{
 				renderer: function(str) {
 					var spec = App.dynamic.Compiler.parseDomainOrSegmentString(str, /*parseIdentifier*/ true); // App.dynamic.Compiler.parseDomainString(str);
 					return _.map(spec,function(dom) {
-						return '&lt;div class=&quot;domain-glyph domain-glyph-'+dom.role+'&quot;&gt;' + (dom.name ? '&lt;span class=&quot;domain-glyph-name&quot;&gt;'+dom.name+'&lt;/span&gt;':'')+
+						return '&lt;div class=&quot;domain-glyph domain-glyph-'+dom.role+'&quot;&gt;' + 
+							(dom.name ? '&lt;span class=&quot;domain-glyph-name&quot;&gt;'+dom.name+'&lt;/span&gt;':'')+
 							_.map(dom.segments,function(seg) { 
 								return '&lt;span class=&quot;segment-glyph segment-glyph-'+seg.role+'&quot;&gt;'+seg.identity+'&lt;/span&gt;'+(seg.polarity==-1?'&lt;sup&gt;*&lt;/sup&gt;':'') 
 							}).join(' ')+
@@ -166,22 +209,23 @@ Ext.define('App.usr.dil.StrandsGrid',{
 				listeners: {
 					// Change content dynamically depending on which element triggered the show.
 					beforeshow: {
-						fn: function updateTipBody(tip) {
-							var segmentElement = Ext.get(tip.triggerElement).up('span.sequence-segment'),
-								identity = segmentElement.getAttribute('data-segment-identity'),
-								polarity = segmentElement.getAttribute('data-segment-polarity'),
-								index = parseInt(tip.triggerElement.getAttribute('data-base-index'))+1;
-							//tip.setTitle(DNA.makeIdentifier(identity, polarity));
-							//tip.update(index + ' nt');
-							tip.update('Segment: &lt;b&gt;'+DNA.makeIdentifier(identity, polarity) + '&lt;/b&gt; / Base: ' + index);
-							//this.fireEvent('updateSegmentHighlight',identity);
-						},
+						fn: this.updateTipBody,
 						scope: this
 					}
 				}
 			});
 		}, this);
 
+	},
+<span id='App-usr-dil-StrandsGrid-method-updateTipBody'>	updateTipBody: function (tip) {
+</span>		var segmentElement = Ext.get(tip.triggerElement).up('span.sequence-segment'),
+			identity = segmentElement.getAttribute('data-segment-identity'),
+			polarity = segmentElement.getAttribute('data-segment-polarity'),
+			index = parseInt(tip.triggerElement.getAttribute('data-base-index'))+1;
+		tip.update(this.getTipBody(identity,polarity,index));
+	},
+<span id='App-usr-dil-StrandsGrid-method-getTipBody'>	getTipBody: function(identity, polarity, index) {
+</span>		return 'Segment: &lt;b&gt;'+DNA.makeIdentifier(identity, polarity) + '&lt;/b&gt; / Base: ' + index
 	},
 <span id='App-usr-dil-StrandsGrid-method-getSegmentMap'>	getSegmentMap: function () {
 </span>		return this.segmentStore.getSegmentMapWithComplements()
@@ -228,6 +272,29 @@ Ext.define('App.usr.dil.StrandsGrid',{
 	doDeleteStrand: function() {
 		return this.deleteStrand();
 	},
+<span id='App-usr-dil-StrandsGrid-method-exportData'>	exportData: function(mode) {
+</span>		var sequences = this.store.getSequences(),
+			data = DNA.printSequences(sequences,mode);
+
+		this.showExportWindow(data);
+	},
+<span id='App-usr-dil-StrandsGrid-method-showExportWindow'>	showExportWindow: function(data) {
+</span>		if(!this.exportWindow) {
+			this.exportView = Ext.create('App.usr.seq.Editor');
+			this.exportWindow = Ext.create('Ext.window.Window',{
+				title: 'Export Sequences',
+				iconCls: 'export',
+				items: [this.exportView],
+				layout: 'fit', 
+				closeAction: 'hide',
+				border: false, bodyBorder: false,
+				width: 500,
+				height: 400,
+			})
+		}
+		this.exportWindow.show();
+		this.exportView.setValue(data);
+	}
 });
 </pre>
 </body>

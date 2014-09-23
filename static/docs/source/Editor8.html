@@ -232,7 +232,7 @@ Ext.define('App.usr.seq.Editor', {
 							indent: true,
 						},{
 							text: 'Count: ',
-							tooltip: &quot;Specify which how many copies of the above you would like inserted&quot;,
+							tooltip: &quot;Specify how many copies of the above you would like inserted&quot;,
 							canActivate: false,
 						},{
 							xtype: 'numberfield',
@@ -244,7 +244,7 @@ Ext.define('App.usr.seq.Editor', {
 							handler: this.insertNMer,
 							scope: this,
 						}]
-					},{
+					},{	
 						text: 'Generate Poly-X sequence',
 						iconCls: '',
 						tooltip: 'Generates a random sequence according to the base or degenerate base specified (e.g. NNNN -&gt; ATCG; YYYY -&gt; CTCT, etc.)',
@@ -260,7 +260,7 @@ Ext.define('App.usr.seq.Editor', {
 							indent: true,
 						},{
 							text: 'Count: ',
-							tooltip: &quot;Specify which how many copies of the above you would like inserted&quot;,
+							tooltip: &quot;Specify how many copies of the above you would like inserted&quot;,
 							canActivate: false,
 						},{
 							xtype: 'numberfield',
@@ -328,16 +328,39 @@ Ext.define('App.usr.seq.Editor', {
 				tooltip: 'Generate various input and output formats, or transform the strands for output',
 				menu: {
 					items:[{
+						text: 'Convert:',
+						canActivate: false,
+					},{
+						text: 'To FASTA',
+						iconCls: 'fasta',
+						handler: function () { this.convertSelection('fasta'); },
+						scope: this,
+					},{
+						text: 'To NUPACK',
+						iconCls: 'nupack',
+						handler: function () { this.convertSelection('nupack'); },
+						scope: this,
+					},{
+						text: 'To Excel/TSV',
+						iconCls: 'document-excel',
+						handler: function () { this.convertSelection('tsv'); },
+						scope: this,
+					},{
+						text: 'To CSV',
+						iconCls: 'document-csv',
+						handler: function () { this.convertSelection('csv'); },
+						scope: this,
+					},{
+						text: 'To Plain text',
+						iconCls: 'txt',
+						handler: function () { this.convertSelection(''); },
+						scope: this,
+					},{
 						iconCls: 'seq',
 						text: 'Make DD input file',
 						handler: this.insertDD,
 						scope: this,
 						tooltip: 'Generates an input file for DD or WebDD which can be used to mutate the selected domains.'
-					},{
-						text: 'NUPACK out to FASTA',
-						handler: this.nupackToFasta,
-						scope: this,
-						tooltip: 'Convert NUPACK &quot;M1 : ATCG...&quot;-style labels to FASTA &quot;M1&gt; ATCG...&quot;-style labels'
 					},'-',{
 						text: 'Thread sequences to strand',
 						handler: this.threadStrands,
@@ -514,7 +537,11 @@ Ext.define('App.usr.seq.Editor', {
 						}]
 					}]
 				}
-			},'-&gt;',Ext.create('App.ui.SaveButton',{
+			},'-&gt;',{
+				text: 'Help',
+				iconCls: 'help',
+				handler: App.ui.Launcher.makeLauncher('help:sequence-edit'),
+			}, Ext.create('App.ui.SaveButton',{
 				text: this.saveButtonText,
 				iconCls: 'save',
 				app: this,
@@ -888,6 +915,16 @@ Ext.define('App.usr.seq.Editor', {
 			out+=row+' 1 15\n';
 		});
 		return '# Save the following as an input file for DD:\n'+out;
+	},
+<span id='App-usr-seq-Editor-method-convertSelection'>	convertSelection: function(format) {
+</span>		var me = this;
+		this.replace(function(value) {
+			return me.convert(format, value);
+		});
+	},
+<span id='App-usr-seq-Editor-method-convert'>	convert: function(format,value) {
+</span>		var sequences = DNA.parseNamedSequences(value);
+		return DNA.printSequences(sequences,format);
 	},
 <span id='App-usr-seq-Editor-method-replace'>	replace: function(regex,value) {
 </span>		var sel = this.editor.codemirror.getSelection(), v;

@@ -831,6 +831,14 @@ Ext.define('Workspace', {
 <span id='Workspace-method-getContainerEl'>	getContainerEl: function() {
 </span>		return this.containerEl;
 	},
+<span id='Workspace-method-getCanvasMarkup'>	getCanvasMarkup : function() {
+</span>		var el = this.element.down('svg').dom;
+		if(el) {
+			return $('&lt;div&gt;').append($(el).clone()).html(); 
+		}
+		// var html = this.element.getHTML();
+		// return html.replace(/&lt;div\s+id=&quot;[\w-]+&quot;\s+class=&quot;x-clear&quot;\s+role=&quot;presentation&quot;&gt;&lt;\/div&gt;/g,'');
+	},
 <span id='Workspace-method-doAction'>	/**
 </span>	 * doAction
 	 * Performs the passed {@link Workspace.actions.Action} on this Workspace
@@ -1167,7 +1175,7 @@ Workspace.Utils = {
 	 */
 	ideaColor: (function() {
 		var pointers = {};
-		var colors = pv.Colors.category20().range();
+		var colors = d3.scale.category20().range();
 		// _.map(['#FFCC99', '#FFFF99', '#CCFFCC', '#CCFFFF', '#99CCFF', '#CC99FF'],function(color) {
 			// return pv.color(color);
 		// });
@@ -1191,7 +1199,7 @@ Workspace.Utils = {
 				defaultPointer = colorPointer;
 			}
 			
-			return colors[color].darker(darkness).color;
+			return d3.rgb(colors[color]).darker(darkness).toString();
 		};
 	})(),
 <span id='Workspace-Utils-method-bounds'>	/**

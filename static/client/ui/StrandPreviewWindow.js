@@ -12,13 +12,14 @@ Ext.define('App.ui.StrandPreviewWindow',{
 	bodyBorder: false,
 	border: false,
 	closeAction: 'hide',
+	maximizable: true,
 	initComponent: function() {
 		Ext.apply(this,{
 			layout: 'border',
 			items: [{
 				xtype: 'codemirror',
 				mode: 'nupack',
-				
+				iconCls: 'dot-paren-icon',
 				//height: 100,
 				title: 'Structure',
 				//margin: '0 0 5 0',

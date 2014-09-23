@@ -34,24 +34,32 @@ Ext.define('App.usr.dil.StrandsGrid',{
 			tooltip: { 
 				html: "Describe the segments that comprise this strand, using the DyNAML short notation. "+
 				"For example, to describe a strand with two domains, an input A containing segments 1, 2, and 3, "+
-				"and an output B (containing segments 4, 5, and 6), you could write: <pre>\tA[1 2 3]i B[4 5 6]o</pre> <a href=\""+App.ui.Help.getLink('dynaml#short-notation')+"\">Details</a>",
+				"and an output B (containing segments 4, 5, and 6), you could write: <pre>\tA[1 2 3]i+ B[4 3* 2*]o-</pre> "+
+				"You can also omit the domain information and just list segments: <pre>\t1 2 3 4 3* 2*</pre> "+
+				// NOTE: do not change \" to ' or it will screw up the App.ui.Help.getLink() result
+				"<a href=\""+App.ui.Help.getLink('dynaml#short-notation')+"\">Details</a>",
 				hideDelay: 2000,
 				anchor: "bottom",
 				anchorToTarget: true,
 			},
 			validator: Ext.bind(function(value) {
 				var segmentMap = this.getSegmentMap();
-				var doms = App.dynamic.Compiler.parseDomainString(value,/*parseIdentifier*/ true);
+				var doms = App.dynamic.Compiler.parseDomainOrSegmentString(value,/*parseIdentifier*/ true);
+				var errors = [];
 				for(var i=0; i<doms.length; i++) {
 					var segs = doms[i].segments;
 					for(var j=0; j<segs.length; j++) {
 						var seg = segs[j];
 						if(!segmentMap[seg.identity]) {
-							return "Unknown segment: '"+seg.identity+"'";
+							errors.push("Unknown segment: '"+seg.identity+"'");
 						}
 					}
 				}
-				return true;
+				if(errors.length > 0) {
+					errors.push("Did you remember to define all segments that you used? "+
+						"Segments need to be defined using the 'Segments' pane to the right.")
+				}
+				return errors.length > 0 ? errors.join('<br />') : true;
 			},this),
 		});
 
@@ -154,7 +162,8 @@ Ext.define('App.usr.dil.StrandsGrid',{
 				renderer: function(str) {
 					var spec = App.dynamic.Compiler.parseDomainOrSegmentString(str, /*parseIdentifier*/ true); // App.dynamic.Compiler.parseDomainString(str);
 					return _.map(spec,function(dom) {
-						return '<div class="domain-glyph domain-glyph-'+dom.role+'">' + (dom.name ? '<span class="domain-glyph-name">'+dom.name+'</span>':'')+
+						return '<div class="domain-glyph domain-glyph-'+dom.role+'">' + 
+							(dom.name ? '<span class="domain-glyph-name">'+dom.name+'</span>':'')+
 							_.map(dom.segments,function(seg) { 
 								return '<span class="segment-glyph segment-glyph-'+seg.role+'">'+seg.identity+'</span>'+(seg.polarity==-1?'<sup>*</sup>':'') 
 							}).join(' ')+
@@ -260,6 +269,7 @@ Ext.define('App.usr.dil.StrandsGrid',{
 				iconCls: 'export',
 				items: [this.exportView],
 				layout: 'fit', 
+				closeAction: 'hide',
 				border: false, bodyBorder: false,
 				width: 500,
 				height: 400,

@@ -12,6 +12,14 @@
 .pre-release {
 	color: red;
 }
+.app-type {
+	font-weight: lighter;
+	opacity: 0.8;
+}
+.icon {
+	width: 16px; height:16px;
+	display: inline-block;
+}
 .dashboard {
 	font-size: small;
 	font-family: ColaborateLightRegular, Helvetica Neue, Helvetica;
@@ -41,6 +49,10 @@
 	border-bottom: solid 1px silver;
 	padding-bottom: 1px;
 	text-align: center
+}
+.dashboard-getting-started {
+	margin: 10px auto !important;
+	width: 600px;
 }
 .dashboard .hero {
 	font-size: 1.7em;
@@ -341,6 +353,12 @@ ul.dashboard-actions li a:hover {
 }
 .compile {
 	background-image: url(/images/icons/fugue/compile.png) !important;
+}
+.enum-compress {
+	background-image: url(/images/icons/fugue/grid-small.png) !important;
+}
+.enum-full {
+	background-image: url(/images/icons/fugue/grid.png) !important;
 }
 
 .sequence, .seq {
@@ -1005,6 +1023,11 @@ path.resting-state-hull {
 	border-color:#a3bae9;
 }
 
+.complexes-empty {
+	padding: 10px;
+	color: gray;
+}
+
 .strand-glyph-well {
 	border: solid 1px silver;
 	padding: 5px 7px;
@@ -1193,11 +1216,11 @@ color: white;
 	border-radius: 8px;
 	-moz-border-radius: 8px;
 	background: #F6F6F6;
-	background-image: linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%);
-	background-image: -o-linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%);
-	background-image: -moz-linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%);
-	background-image: -webkit-linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%);
-	background-image: -ms-linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%);
+	background-image: linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%) !important;
+	background-image: -o-linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%) !important;
+	background-image: -moz-linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%) !important;
+	background-image: -webkit-linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%) !important;
+	background-image: -ms-linear-gradient(bottom, rgb(241,241,241) 100%, rgb(221,221,221) 0%) !important;
 	
 	background-image: -webkit-gradient(
 		linear,
@@ -1205,7 +1228,7 @@ color: white;
 		left top,
 		color-stop(1, rgb(246,246,246)),
 		color-stop(0, rgb(221,221,221))
-	);
+	) !important;
 	
 	border: 2px solid #ccc;
 	margin-top: 2px;
@@ -1222,3 +1245,6 @@ color: white;
 	margin: 0;
 }
 
+#msg-div .msg.error {
+	border-color: #E00000;
+}

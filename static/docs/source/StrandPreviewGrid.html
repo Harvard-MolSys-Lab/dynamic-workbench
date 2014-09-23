@@ -39,6 +39,9 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 </span><span id='App-usr-dil-StrandPreviewGrid-property-paddingWidth'>	paddingWidth: 6,
 </span><span id='App-usr-dil-StrandPreviewGrid-property-paddingHeight'>	paddingHeight: 14,
 </span>
+<span id='App-usr-dil-StrandPreviewGrid-property-emptyText'>	emptyText: '&lt;div class=&quot;complexes-empty&quot;&gt;No complexes to display&lt;/div&gt;',
+</span><span id='App-usr-dil-StrandPreviewGrid-property-deferEmptyText'>	deferEmptyText: false,
+</span>
 <span id='App-usr-dil-StrandPreviewGrid-cfg-nodeFillMode'>	/**
 </span>	 * @cfg nodeFillMode
 	 * One of `identity`, `segment`, or `domain`
@@ -82,6 +85,19 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 	 */
 	showSegments : true,
 
+<span id='App-usr-dil-StrandPreviewGrid-cfg-structureMode'>	/**
+</span>	 * @cfg {'segment'/'base'} structureMode
+	 * Determines whether the {@link App.usr.dil.Complex#structure} field 
+	 * should be interpreted to be a base-wise or a segment-wise structure.
+	 * If a segment-wise structure, it will be {@link DNA#expandStructure expanded}
+	 * by the underlying StrandPreview.
+	 */
+	structureMode: 'segment',
+
+<span id='App-usr-dil-StrandPreviewGrid-property-createTip'>	createTip: false,
+</span>
+<span id='App-usr-dil-StrandPreviewGrid-property-tipDelegate'>	tipDelegate: 'circle',
+</span>
 <span id='App-usr-dil-StrandPreviewGrid-property-zoom'>	zoom: -1,
 </span>
 <span id='App-usr-dil-StrandPreviewGrid-method-initComponent'>	initComponent: function() {
@@ -109,7 +125,49 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 			}
 		},this,{buffer: 100});
 
+
+		this.on('afterrender', function() {
+			if(this.createTip) { 
+				this.tip = Ext.create('Ext.tip.ToolTip', {
+					target: this.getEl(),
+					delegate: this.tipDelegate,
+					trackMouse: true,
+					showDelay: false,
+					renderTo: Ext.getBody(),
+					listeners: {
+						// Change content dynamically depending on which element triggered the show.
+						beforeshow: {
+							fn: this.updateTipBody,
+							scope: this
+						}
+					}
+				});
+
+				this.sequenceRenderer = CodeMirror.modeRenderer('sequence');
+			}
+		}, this);
+
 		this.callParent(arguments);
+	},
+<span id='App-usr-dil-StrandPreviewGrid-method-updateTipBody'>	updateTipBody: function(tip) {
+</span>		var targetEl = Ext.get(tip.triggerElement).up('g');
+		if(targetEl) { 
+			targetEl = d3.select(targetEl.dom);
+			var data = targetEl.datum()
+			tip.update(this.getTipBody(data));
+		}
+	},
+<span id='App-usr-dil-StrandPreviewGrid-method-getTipBody'>	getTipBody: function (data) {
+</span>		var out = '&lt;b&gt;'+this.sequenceRenderer(data.base)+'&lt;/b&gt; | &lt;b&gt;'+data.strand+'&lt;/b&gt; / &lt;b&gt;'+data.segment+'&lt;/b&gt; / '+data.segment_index+'&lt;br /&gt;';
+		if(data.immutable) { out+='&lt;b&gt;Immutable&lt;/b&gt;&lt;br /&gt;'; }
+		if(data.prevented) { 
+			out+=_.map(data.prevented,function(p) {
+				return '&lt;b&gt;Prevented&lt;/b&gt; '+this.sequenceRenderer(p.seq)+' ('+p.index+'/'+p.length+') &lt;br /&gt;';
+			},this).join('')
+			
+		}
+		if(data.changed) { out+='&lt;b&gt;Changed&lt;/b&gt; ('+data.changed.reason+')'; }
+		return out;
 	},
 <span id='App-usr-dil-StrandPreviewGrid-method-getChart'>	/**
 </span>	 * Returns a StrandPreview chart object
@@ -122,15 +180,17 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 		update || (update = false);
 		if(!this.chart || update) {
 			this.chart = StrandPreview().width(this.cellWidth - this.paddingWidth).height(this.cellHeight - this.paddingHeight)
-			.showBubbles(this.showBubbles)
-			.showBases(this.showBases)
-			.showIndexes(this.showIndexes)
-			.showSegments(this.showSegments)
-			.loopMode(this.loopMode)
-			.nodeStrokeMode(this.nodeStrokeMode)
-			.nodeFillMode(this.nodeFillMode)
-			.lineStrokeMode(this.lineStrokeMode)
-			.textFillMode(this.textFillMode);
+			.options(this);
+			// .showBubbles(this.showBubbles)
+			// .showBases(this.showBases)
+			// .showIndexes(this.showIndexes)
+			// .showSegments(this.showSegments)
+			// .loopMode(this.loopMode)
+			// .nodeStrokeMode(this.nodeStrokeMode)
+			// .nodeFillMode(this.nodeFillMode)
+			// .lineStrokeMode(this.lineStrokeMode)
+			// .textFillMode(this.textFillMode);
+
 			this.chart.segmentColors(this.getSegmentColorScale());
 
 			//if(!!this.segmentColors) this.chart.segmentColors(this.segmentColors)
@@ -161,6 +221,8 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 </span>	 * Rebuilds the view based on data in the #store
 	 */
 	refresh: function() {
+		if(this.pauseUpdates) return;
+
 		this.callParent(arguments);
 
 		var me = this,
@@ -179,15 +241,7 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 			}
 		}
 
-		if(nodes.length &gt; 0) {
-			// Configure chart prototype
-			var chart = me.getChart();
-
-			// Build selection and chart
-			var nodeData = d3.selectAll(nodes).data(data).append('svg');
-			this.preview = chart(nodeData);
-
-		}
+		this.runChart(nodes,data)
 	},
 <span id='App-usr-dil-StrandPreviewGrid-method-addComplexes'>	/**
 </span>	 * Adds the passed complexes to the view. Called by the underlying view on the #itemadd event
@@ -196,6 +250,7 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 	 * @param {HTMLElement[]} nodes Array of nodes corresponding to the complexes to be added
 	 */
 	addComplexes: function(records, index, nodes) {
+		if(this.pauseUpdates) return;
 
 		var me = this,
 			data = [],
@@ -206,14 +261,20 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 			data.push(me.getComplexData(rec, segmentMap));
 		}
 
-		if(nodes.length &gt; 0) {
+		this.runChart(nodes, data)
+	},
+<span id='App-usr-dil-StrandPreviewGrid-method-runChart'>	runChart: function(nodes, data) {
+</span>		if(nodes.length &gt; 0) {
 			// Configure chart prototype
-			var chart = me.getChart();
+			var chart = this.getChart();
 
 			// Build selection and chart
 			var nodeData = d3.selectAll(nodes).data(data).append('svg');
-			this.preview = chart(nodeData);
-
+			try {
+				this.preview = chart(nodeData);
+			} catch(e) {
+				console.log(&quot;Error rendering strand preview. Error details:&quot;,e);
+			}
 		}
 	},
 <span id='App-usr-dil-StrandPreviewGrid-method-updateComplex'>	/**
@@ -223,6 +284,8 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 	 * @param {HTMLElement[]} node Node corresponding to the complexes to be added
 	 */
 	updateComplex: function(record, index, node) {
+		if(this.pauseUpdates) return;
+
 		var me = this,
 			rec = record,
 			segmentMap = this.getSegmentMap(),
@@ -230,12 +293,14 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 		var chart = me.getChart();
 
 		var nodeData = d3.select(node).data(data).append('svg');
-		chart(nodeData);
-		this.preview.expandSelection(nodeData);
+		try {
+			chart(nodeData);
+			this.preview.expandSelection(nodeData);
+		} catch(e) {}
 
 	},
 <span id='App-usr-dil-StrandPreviewGrid-method-removeComplex'>	removeComplex: function(record, index) {
-</span>
+</span>		if(this.pauseUpdates) return;
 	},
 
 <span id='App-usr-dil-StrandPreviewGrid-method-getComplexData'>	/**
@@ -256,8 +321,10 @@ Ext.define('App.usr.dil.StrandPreviewGrid', {
 					domains: me.strandStore.findRecord('name', strandName).getParsedSpec()
 				}
 			}),
-			structure: rec.get('structure'),
+			structure: this.structureMode == 'segment' ? rec.get('structure') : undefined,
+			dotParen: this.structureMode == 'base' ? rec.get('structure') : undefined,
 			sequences: segmentMap,
+			extraData: rec.get('extraData') || null, //this.extraData || null,
 		}
 	},
 <span id='App-usr-dil-StrandPreviewGrid-method-getSegmentMap'>	/**

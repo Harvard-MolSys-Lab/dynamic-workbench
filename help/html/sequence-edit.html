@@ -1,3 +1,202 @@
 <h1 id="sequence-editor">Sequence Editor</h1>
-<p>TBD.</p>
-<p>See <a href="sequence">Working with sequences</a> for now.</p>
+<p>Workbench features a powerful text editor for working with DNA sequences. The sequence editor can be accessed from within sequence designers like DD and Multisubjective, by <a href="files">creating</a> a <code>.seq</code> file, or by opening <em>Tools</em> &gt; <em>Sequence Editor</em> from the main toolbar.</p>
+<p>Most operations in the sequence editor operate on a set of strands. Each separate line is assumed to be on a separate strand; if a single line is selected, sequences separated by spaces or tabs will be treated as different strands. Most operations will replace the selection with the indicated transformation (e.g. selecting &quot;Transform&quot;, then &quot;Reverse&quot; will replace the selected sequence with its bases in reverse order). For operations in the &quot;Transform&quot; menu, this can be disabled by unchecking &quot;Replace Selection&quot;; this will cause the transformation to be inserted below each strand.</p>
+<p>Within the sequence editor, all operations can be accessed by the menus in the toolbar:</p>
+<h2 id="sequence-editor-tools">Sequence Editor Tools</h2>
+<div class="figure">
+<img src="images/seq-toolbar.png" alt="Sequence Editor toolbar" /><p class="caption">Sequence Editor toolbar</p>
+</div>
+<ul>
+<li>Metrics -- calculate various properties between sequences. Select one or two sequences (separated by newlines, tabs, or spaces), then choose one of these options:
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein distance</a> -- Measures the difference between two strings, allowing for substitutions, insertions, and deletions</li>
+<li><a href="http://en.wikipedia.org/wiki/Hamming_distance">Hamming distance</a> -- Measures the difference between two strings, allowing only for substitutions</li>
+<li><a href="http://en.wikipedia.org/wiki/Entropy_(information_theory)">Shannon entropy</a> -- Measures the information entropy of a sequence, giving a metric of base diversity</li>
+</ul></li>
+<li>Transform -- modifies the selected sequence. If &quot;Replace selection&quot; is checked, the selection will be replaced with the result of the transformation; else, the result will be inserted on the line below the selection. If multiple lines, or sequences separated by spaces or tabs are selected, each will be handled individually.
+<ul>
+<li>Reverse -- reverses the order of a sequence</li>
+<li>Complement -- gives the Watson-Crick complement of a sequence</li>
+<li>Reverse Complement -- reverses and complements the sequence</li>
+<li>Duplicate -- duplicates the sequence</li>
+<li>Truncate -- removes bases from the beginning or end of a sequence. Use a positive number to truncate from the left (5' end), use a negative number to truncate from the right (3' end)</li>
+<li>To DNA -- replaces uracil (U) bases with thymine (T)</li>
+<li>To RNA -- replaces thymine (T) bases with uracil (U)</li>
+<li>Pairwise Align -- attempts to align two sequences to minimize the Levenshtein distance</li>
+</ul></li>
+<li>Insert
+<ul>
+<li>Insert Poly-X Sequence -- inserts the provided sequence, repeated several times. For instance, specify <code>N</code> and <code>6</code> to insert <code>NNNNNN</code>, or <code>AT</code> and <code>4</code> to insert <code>ATATATAT</code></li>
+<li>Generate Poly-X Sequence -- generates a random sequence according to a pattern of <a href="#iupac-degenerate-bases">bases or degenerate bases</a> specified (e.g. <code>NNNN</code> -&gt; <code>ATCG</code>; <code>YYYY</code> -&gt; <code>CTCT</code>, etc. Specify which base(s) (e.g. A, T, C, G, N, ...) you would like to use; degenerate bases following the IUPAC nucleotide codes are allowed and will be replaced by randomly selected bases matching the specification (e.g N becomes any base, R becomes A or G, Y becomes C or T, etc.). Then specify how many copies of the pattern you would like generated.</li>
+</ul></li>
+<li>Format
+<ul>
+<li>Strip Extra Characters -- Removes characters other than A, T, C, G, U, and whitespace from the selection</li>
+<li>Strip Whitespace -- Removes whitespace characters (spaces, tabs, line returns) from the selection</li>
+<li>Strip Newlines -- Removes line return characters from the selection</li>
+<li>Insert Line Breaks -- Replaces spaces in the selection with line returns</li>
+<li>Uppercase -- Converts the selection to uppercase</li>
+<li>Lowercase -- Converts the selection to lowercase</li>
+<li>Comment/Uncomment -- Adds/removes comment characters (<code>#</code> or <code>%</code>); that is, if the selected line(s) begin with a <code>#</code> or <code>%</code>, removes them; otherwise, inserts a <code>#</code> sign before each line.</li>
+</ul></li>
+<li>Export
+<ul>
+<li>To FASTA -- converts strands named in any format to the <a href="http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml">FASTA format</a> used by the NCBI.</li>
+<li>To NUPACK -- converts strands named in any format to the NUPACK script format (e.g. <code>domain NAME = SEQUENCE</code>)</li>
+<li>To Excel/TSV -- converts strands named in any format to a tab-separated values format, suitable for copy-and-paste into Excel</li>
+<li>To CSV -- converts strands named in any format to a comma-separated values format, suitable for reading by many spreadsheet programs</li>
+<li>To Plain Text -- removes strand naming</li>
+<li>Make DD Input File -- generates an input file for classic DD</li>
+<li>Thread Sequences to Strand -- Opens the <a href="utilities#sequence-threading-tool">sequence threader</a></li>
+<li>Name Strands -- automatically prepends a name, consisting of a prefix and a number, to each sequence on a line. For instance, if the prefix were <code>n</code>, lines would be prefixed with <code>n1 :</code>, <code>n2 :</code>, <code>n3 :</code>, etc.</li>
+<li>Prepend strands -- prepends each line with some prefix text</li>
+</ul></li>
+<li>Calculate -- Allows the partition function and/or MFE secondary structure(s) to be calculated using one of several thermodynamic analysis web servers. See <a href="simulation-analysis">Analysis and Simulation</a> for details.</li>
+</ul>
+<h2 id="iupac-degenerate-bases">IUPAC Degenerate Bases</h2>
+<p>The following table lists the IUPAC degenerate base codes recognized by DyNAMiC:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Code</th>
+<th align="left">A</th>
+<th align="left">C</th>
+<th align="left">G</th>
+<th align="left">T</th>
+<th align="left">Mneumonic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">A</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">adenosine</td>
+</tr>
+<tr class="even">
+<td align="left">C</td>
+<td align="left"></td>
+<td align="left">C</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">cytidine</td>
+</tr>
+<tr class="odd">
+<td align="left">G</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">G</td>
+<td align="left"></td>
+<td align="left">guanine</td>
+</tr>
+<tr class="even">
+<td align="left">T</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">T</td>
+<td align="left">thymidine</td>
+</tr>
+<tr class="odd">
+<td align="left">U</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">U</td>
+<td align="left">uridine</td>
+</tr>
+<tr class="even">
+<td align="left">K</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">G</td>
+<td align="left">T</td>
+<td align="left">keto</td>
+</tr>
+<tr class="odd">
+<td align="left">S</td>
+<td align="left"></td>
+<td align="left">C</td>
+<td align="left">G</td>
+<td align="left"></td>
+<td align="left">strong</td>
+</tr>
+<tr class="even">
+<td align="left">Y</td>
+<td align="left"></td>
+<td align="left">C</td>
+<td align="left"></td>
+<td align="left">T</td>
+<td align="left">pyrimidine</td>
+</tr>
+<tr class="odd">
+<td align="left">M</td>
+<td align="left">A</td>
+<td align="left">C</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">amino</td>
+</tr>
+<tr class="even">
+<td align="left">W</td>
+<td align="left">A</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">T</td>
+<td align="left">weak</td>
+</tr>
+<tr class="odd">
+<td align="left">R</td>
+<td align="left">A</td>
+<td align="left"></td>
+<td align="left">G</td>
+<td align="left"></td>
+<td align="left">purine</td>
+</tr>
+<tr class="even">
+<td align="left">B</td>
+<td align="left"></td>
+<td align="left">C</td>
+<td align="left">G</td>
+<td align="left">T</td>
+<td align="left">not A</td>
+</tr>
+<tr class="odd">
+<td align="left">D</td>
+<td align="left">A</td>
+<td align="left"></td>
+<td align="left">G</td>
+<td align="left">T</td>
+<td align="left">not C</td>
+</tr>
+<tr class="even">
+<td align="left">H</td>
+<td align="left">A</td>
+<td align="left">C</td>
+<td align="left"></td>
+<td align="left">T</td>
+<td align="left">not G</td>
+</tr>
+<tr class="odd">
+<td align="left">V</td>
+<td align="left">A</td>
+<td align="left">C</td>
+<td align="left">G</td>
+<td align="left"></td>
+<td align="left">not T</td>
+</tr>
+<tr class="even">
+<td align="left">N</td>
+<td align="left">A</td>
+<td align="left">C</td>
+<td align="left">G</td>
+<td align="left">T</td>
+<td align="left">A/G/C/T (any)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="sequence-editor-interactivity">Sequence Editor interactivity</h2>
+<p>In addition to the utilities, the sequence editor will interactively highlight other instances within the design of the selected sequence. The status bar in the lower-right hand corner will show the number of bases and strands (lines) selected.</p>
+<p>See also <a href="sequence">Working with sequences</a>.</p>

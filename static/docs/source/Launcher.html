@@ -16,7 +16,7 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='App-ui-Launcher'>/**
-</span> * Manages launching and running {@link App.ui.Application}s. Applications can be launched programattically by calling
+</span> * Manages launching and running {@link App.ui.Application}s. Applications can be launched programmatically by calling
  * {@link App.ui.Launcher#launch}, or simply {App.ui#launch} with a trigger. Triggers identify particular
  * applications
  * @singleton
@@ -30,7 +30,16 @@ Ext.define('App.ui.Launcher', {
 	triggerDelimiter : ':',
 <span id='App-ui-Launcher-property-_triggers'>	_triggers : {},
 </span><span id='App-ui-Launcher-property-_openTabs'>	_openTabs : {},
-</span><span id='App-ui-Launcher-method-register'>	/**
+</span><span id='App-ui-Launcher-property-_unsavedChanges'>	_unsavedChanges: {},
+</span><span id='App-ui-Launcher-property-_lastAppId'>	_lastAppId: 0,
+</span><span id='App-ui-Launcher-method-constructor'>	constructor: function () {
+</span>		window.onbeforeunload = Ext.bind(this.promptUnsaved,this);	
+	},
+<span id='App-ui-Launcher-method-getId'>	getId: function() {
+</span>		this._lastAppId++;
+		return this._lastAppId;
+	},
+<span id='App-ui-Launcher-method-register'>	/**
 </span>	 * Registers a trigger with the provided {@link App.ui.Application} subclass
 	 * @param {String} name Name of the trigger
 	 * @param {String} className Name of the {@link App.ui.Application} subclass
@@ -116,7 +125,7 @@ Ext.define('App.ui.Launcher', {
 					}));
 				} catch(e) {
 					App.msg('Application failed to load','An error occurred loading application {0}, see console for details. ',{params: [rootTrigger]});
-					App.log('Failed to launch application with trigger ' + trigger+'. Error details: '+e, {
+					console.log('Failed to launch application with trigger ' + trigger+'. Error details: ',e, {
 						iconCls : 'application',
 						level: 'error',
 						silent : true
@@ -149,7 +158,7 @@ Ext.define('App.ui.Launcher', {
 				tab.on('close', function(tab) { 
 					delete this._openTabs[tab.initialTrigger];
 				}, this);
-				App.log('Launched application with trigger: ' + trigger, {
+				console.log('Launched application with trigger: ' + trigger, {
 					iconCls : 'application',
 					silent : true
 				});
@@ -209,6 +218,31 @@ Ext.define('App.ui.Launcher', {
 	},
 <span id='App-ui-Launcher-method-updateAppMenu'>	updateAppMenu: function(menu,handler) {
 </span>
+	},
+<span id='App-ui-Launcher-method-markUnsaved'>	markUnsaved: function(app) {
+</span>		var id = app.getId();
+		if(!this._unsavedChanges[id])
+			this._unsavedChanges[id] = app
+	},
+<span id='App-ui-Launcher-method-markSaved'>	markSaved: function(app) {
+</span>		var id = app.getId();
+		if(this._unsavedChanges[id])
+			delete this._unsavedChanges[id];
+
+		// var i = this._unsavedChanges.indexOf(app);
+		// if (i != -1) {
+		// 	this._unsavedChanges.splice(i,1);
+		// }
+	},
+<span id='App-ui-Launcher-method-promptUnsaved'>	promptUnsaved: function () {
+</span>		// debugger;
+		if(_.keys(this._unsavedChanges).length &gt; 0) {
+			return &quot;You have unsaved changes: \n\n&quot; + _.map(this._unsavedChanges, function(app,id) {
+				return Ext.util.Format.stripTags(app.title);
+			}).join(&quot;\n&quot;)+&quot;\n\nYour changes will be lost if you reload without saving&quot;;
+		} else {
+			return;
+		}
 	}
 }, function() {
 	App.ui.Launcher.register('help', 'App.ui.Help', {
@@ -268,7 +302,6 @@ Ext.define('App.ui.Launcher', {
 	});
 	App.ui.Launcher.register('nupackedit', 'App.usr.nupack.Editor', {});
 	App.ui.Launcher.register('msedit', 'App.usr.ms.Editor');
-	App.ui.Launcher.register('msview', 'App.usr.ms.Viewer');
 	
 	App.ui.Launcher.register('enumedit', 'App.usr.enum.Editor');
 	
@@ -315,7 +348,7 @@ Ext.define('App.ui.Launcher', {
 		editorType : 'ReStructuredText',
 		mode : 'rst',
 	});
-	App.ui.Launcher.register('pil', 'App.usr.text.Editor', {
+	App.ui.Launcher.register('pil', 'App.usr.pepper.PilEditor', {
 		iconCls : 'pil',
 		editorType : 'PIL',
 		mode : 'pepper',
@@ -325,6 +358,12 @@ Ext.define('App.ui.Launcher', {
 		editorType : 'Pepper',
 		mode : 'pepper',
 	});
+	App.ui.Launcher.register('crn', 'App.usr.text.Editor', {
+		iconCls : 'crn',
+		editorType : 'CRN',
+		mode : '',
+	});
+
 	App.ui.Launcher.register('strandedit','App.usr.dil.DilEditor',{
 	});
 	App.ui.Launcher.register('dil','App.usr.dil.DilEditor',{

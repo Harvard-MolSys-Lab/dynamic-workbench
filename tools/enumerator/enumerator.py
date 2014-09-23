@@ -4,14 +4,15 @@
 #
 #  Created by Karthik Sarma on 4/18/10.
 #
-
+import os
 import sys
 import utils
+from utils import RestingState
 import reactions
 import logging
 import itertools
 import argparse
-from reactions import *
+import reactions
 
 # These are sanity checks to prevent infinite looping
 MAX_COMPLEX_SIZE = 6
@@ -19,18 +20,31 @@ MAX_REACTION_COUNT = 1000
 MAX_COMPLEX_COUNT = 200
 
 
-# Fast reactions cannot be bimolecular!
-fast_reactions = {
-	1: [bind11, open, branch_3way, branch_4way]
-}
 
-# Slow reactions can only be unimolecular or bimolecular, though
-# make_slow_reactions below could be changed in order to lift this
-# restriction
+fast_reactions = {
+	1: [reactions.bind11, reactions.open, reactions.branch_3way, reactions.branch_4way]
+}
+"""
+Dictionary of reaction functions considered *fast* for a given "arity". 
+Keys are arities (e.g. 1 = unimolecular, 2 = bimolecular, 3 = trimolecular, 
+etc.), and values are lists of reaction functions. Currently, only 
+unimolecular fast reactions (arity = 1) are supported.  
+"""
+
 slow_reactions = {
 	1: [],
-	2: [bind21]
+	2: [reactions.bind21]
 }
+"""
+Similar to :py:func:`.fast_reactions` above, 
+a dictionary of reaction functions considered *slow* for a given "arity". 
+Keys are arities (e.g. 1 = unimolecular, 2 = bimolecular, 3 = trimolecular, 
+etc.), and values are lists of reaction functions. Currently, only 
+unimolecular fast reactions (arity = 1) are supported.  
+Slow reactions can only be unimolecular or bimolecular, though
+:py:func:`Enumerator.make_slow_reactions` below could be changed in 
+order to lift this restriction.
+"""
 
 class Enumerator(object):
 	"""
@@ -45,6 +59,10 @@ class Enumerator(object):
 		Initializes the enumerator. Takes a list of domains, a list of strands
 		made up of those domains, and a list of the initial complexes, made
 		of the strands.		
+
+		:param list domains: Domain objects in the ensemble
+		:param list strands: Strand objects in the ensemble
+		:param list initial_complexes: Complex objects in the system starting configuration. 
 		"""
 		self._domains = domains
 		self._strands = strands
@@ -61,6 +79,7 @@ class Enumerator(object):
 		self.MAX_COMPLEX_SIZE = MAX_COMPLEX_SIZE
 		self.MAX_REACTION_COUNT = MAX_REACTION_COUNT
 		self.MAX_COMPLEX_COUNT = MAX_COMPLEX_COUNT
+		self.DFS = True
 		
 	@property 
 	def auto_name(self):
@@ -79,34 +98,58 @@ class Enumerator(object):
 	
 	@property
 	def initial_complexes(self):
+		"""
+		Complexes present in the system's initial configuration
+		"""
 		return self._initial_complexes[:]
 		
 	@property
 	def reactions(self):
+		""""
+		List of reactions enumerated. :py:meth:`.enumerate` must be
+		called before access.
+		"""
 		if self._reactions == None:
 			raise Exception("enumerate not yet called!")
 		return self._reactions[:]
 		
 	@property
 	def resting_states(self):
+		""""
+		List of resting states enumerated. :py:meth:`.enumerate` must be
+		called before access.
+		"""
 		if self._resting_states == None:
 			raise Exception("enumerate not yet called!")
 		return self._resting_states[:]
 		
 	@property
 	def complexes(self):
+		""""
+		List of complexes enumerated. :py:meth:`.enumerate` must be
+		called before access.
+		"""
 		if self._complexes == None:
 			raise Exception("enumerate not yet called!")
 		return self._complexes[:]
 			
 	@property
 	def resting_complexes(self):
+		""""
+		List of complexes enumerated that are within resting states. 
+		:py:meth:`.enumerate` must be called before access.
+		"""
 		if self._resting_complexes == None:
 			raise Exception("enumerate not yet called!")
 		return self._resting_complexes[:]
 		
 	@property
 	def transient_complexes(self):
+		""""
+		List of complexes enumerated that are not within resting states (e.g. 
+		complexes which are transient). :py:meth:`.enumerate` must be
+		called before access.
+		"""
 		if self._transient_complexes == None:
 			raise Exception("enumerate not yet called!")
 		return self._transient_complexes[:]
@@ -125,15 +168,27 @@ class Enumerator(object):
 	def enumerate(self):
 		"""
 		Generates the reaction graph consisting of all complexes reachable from
-		the initial set of complexes. Produces a full list of complexes, resting
-		states, and reactions.
+		the initial set of complexes. Produces a full list of :py:meth:`complexes`, resting
+		states, and :py:meth:`reactions, which are stored in the associated members of this
+		class.
 		"""
-		
+	
+		# handle release cutoff
+		old_release_cutoff = reactions.RELEASE_CUTOFF
+		if (hasattr(self,'RELEASE_CUTOFF')):
+			reactions.RELEASE_CUTOFF = self.RELEASE_CUTOFF
+
+
 		# Will be called once enumeration halts, either because it's finished or
 		# because too many complexes/reactions have been enumerated
 		def finish(premature=False):
-			self._complexes.extend(self._E)
-			self._complexes.extend(self._T)
+			reactions.RELEASE_CUTOFF = old_release_cutoff
+
+			# copy E and T into #complexes
+			self._complexes += (self._E)
+			self._complexes += (self._T)
+			
+			# preserve resting and transient complexes separately
 			self._transient_complexes = self._T
 			self._resting_complexes = self._E
 			
@@ -143,26 +198,36 @@ class Enumerator(object):
 			# TODO: this is ugly and Om(n*m*p)... should we just go thru self._B
 			# and try to classify?
 			if premature:
+				self._resting_complexes += self._S
+				self._complexes += self._S
+				complexes = set(self._complexes)
+
 				new_reactions = []
 				for reaction in self.reactions:
-					reaction_ok = True
-					for product in reaction.products:
-						#if (product in self._B) and not (product in self._complexes):
-						if not (product in self._complexes):
-							reaction_ok = False
+					reaction_ok = all( (product in complexes) for product in reaction.products ) and \
+						all( (reactant in complexes) for reactant in reaction.reactants )
+
+					# reaction_ok = True
+					# for product in reaction.products:
+					# 	#if (product in self._B) and not (product in self._complexes):
+					# 	if not (product in self._complexes):
+					# 		reaction_ok = False
+					
 					if reaction_ok:
 						new_reactions.append(reaction)
 				
-				self._reactions[:] = new_reactions
+				self._reactions = new_reactions
+
 		
-		# List E contains enumerated resting states. Only cross-reactions with
-		# other end states need to be considered for these complexes. These
-		# complexes will remain in this list throughout function execution.
+		# List E contains enumerated resting state complexes. Only cross-
+		# reactions  with other end states need to be considered for these
+		# complexes. These complexes will remain in this list throughout
+		# function execution.
 		self._E = []
 		
-		# List S contains resting states which have not yet had cross-reactions
-		# with set E enumerated yet. All self-interactions for these complexes
-		# have been enumerated
+		# List S contains resting state complexes which have not yet had cross-
+		# reactions with set E enumerated yet. All self-interactions for these
+		# complexes have been enumerated
 		self._S = []
 		
 		# List T contains transient states which have had their self-reactions
@@ -171,7 +236,7 @@ class Enumerator(object):
 		self._T = []
 		
 		# List N contains self-enumerated components of the current 
-		# 'neighborhood' consisting of states which are connected via fast 
+		# 'neighborhood'---consisting of states which are connected via fast 
 		# reactions to the current complex of interest, but have not yet been 
 		# characterized as transient or resting states.
 		self._N = []
@@ -192,36 +257,44 @@ class Enumerator(object):
 		
 		# We first generate the states reachable by fast reactions from the
 		# initial complexes
-		while (len(self._B) > 0):
-			# source is the complex from which we will generate a neighborhood
+		while len(self._B) > 0:
+			# Generate a neighborhood from `source`
 			source = self._B.pop()			
 			self.process_neighborhood(source)
 		
-		# We now consider slow reactions
+		# Consider slow reactions between resting state complexes
 		while len(self._S) > 0:
-			# element is the complex for which we will consider slow reactions
-			element = self._S.pop()
-				
+
+			# Find slow reactions from `element`
+			if self.DFS:
+				element = self._S.pop()
+			else:
+				element = self._S.pop(0)
+
 			slow_reactions = self.get_slow_reactions(element)
 			self._E.append(element)
 			
 			# Find the new complexes which were generated
 			self._B = self.get_new_products(slow_reactions)
-			self._reactions.extend(slow_reactions)
+			self._reactions += (slow_reactions)
 			
+			# Now find all complexes reachable by fast reactions from these 
+			# new complexes
 			while len(self._B) > 0:
+
+				# Check whether too many complexes have been generated
 				if (len(self._E) + len(self._T) + len(self._S) > self.MAX_COMPLEX_COUNT):
 					logging.error("Too many complexes enumerated!")
-					# raise Exception("Too many complexes generated, aborting...")
 					finish(premature=True)
 					return
-					
+				
+				# Check whether too many reactions have been generated
 				if (len(self._reactions) > self.MAX_REACTION_COUNT):
 					logging.error("Too many reactions enumerated!")
-					#raise Exception("Too many reactions generated, aborting...")
 					finish(premature=True)
 					return
 					
+				# Generate a neighborhood from `source`
 				source = self._B.pop()
 				self.process_neighborhood(source)
 		
@@ -234,6 +307,8 @@ class Enumerator(object):
 		reachable from that complex through fast reactions, classifies these
 		complexes as transient or resting state, and modifies the lists and
 		list of reactions accordingly.
+
+		:param utils.Complex source: Complex from which to generate a neighborhood
 		"""
 		
 		# N_reactions holds reactions which are part of the current
@@ -242,32 +317,36 @@ class Enumerator(object):
 		
 		self._F = [source]
 		
-		# First we find all of the complexes accessible through fast
+		# First find all of the complexes accessible through fast
 		# reactions starting with the source
 		while (len(self._F) > 0):
-			curr_element = self._F.pop()
-			curr_reactions = self.get_fast_reactions(curr_element)		
+			# Find fast reactions from `element`
+			element = self._F.pop()
+			reactions = self.get_fast_reactions(element)		
 			
-			new_products = self.get_new_products(curr_reactions)
-			self._F.extend(new_products)
-			N_reactions.extend(curr_reactions)			
-			self._N.append(curr_element)
+			# Add new products to F
+			new_products = self.get_new_products(reactions)
+			self._F += (new_products)
+
+			# Add new reactions to N_reactions
+			N_reactions += (reactions)			
+			self._N.append(element)
 		
-		# Now we segment the neighborhood into transient and resting states
+		# Now segment the neighborhood into transient and resting states
 		# by finding the strongly connected components
 		segmented_neighborhood = self.segment_neighborhood(self._N, N_reactions)
 		
 		# Resting state complexes are added to S
-		self._S.extend(segmented_neighborhood['resting_state_complexes'])
+		self._S += (segmented_neighborhood['resting_state_complexes'])
 		
 		# Transient state complexes are added to T
-		self._T.extend(segmented_neighborhood['transient_state_complexes'])
+		self._T += (segmented_neighborhood['transient_state_complexes'])
 		
 		# Resting states are added to the list
-		self._resting_states.extend(segmented_neighborhood['resting_states'])
+		self._resting_states += (segmented_neighborhood['resting_states'])
 		
-		# Reactions are added to the list
-		self._reactions.extend(N_reactions)
+		# Reactions from this neighborhood are added to the list
+		self._reactions += (N_reactions)
 		
 		# Reset neighborhood
 		self._N = []
@@ -285,24 +364,29 @@ class Enumerator(object):
 		
 		# Do unimolecular reactions
 		for function in slow_reactions[1]:
-			reactions.extend(function(complex))
+			reactions += (function(complex))
 			
 		# Do bimolecular reactions
 		for function in slow_reactions[2]:
-			reactions.extend(function(complex, complex))
+			reactions += (function(complex, complex))
 			for complex2 in self._E:
-				reactions.extend(function(complex, complex2))
+				reactions += (function(complex, complex2))
 				
 		return reactions			
 
 	def get_fast_reactions(self, complex):
 		"""
 		Returns a list of fast reactions possible using complex as a reagent.
+
+		This only supports unimolecular reactions. Could be extended to support
+		arbitrary reactions.
 		"""
 	
 		reactions = []
+
+		# Do unimolecular reactions
 		for reaction in fast_reactions[1]:
-			reactions.extend(reaction(complex))
+			reactions += (reaction(complex))
 		return reactions
 	
 	def get_new_products(self, reactions):
@@ -316,6 +400,10 @@ class Enumerator(object):
 		"""
 		new_products = []
 		new_reactions = []
+
+		ESTNF = { c:c for c in self._E + self._S + self._T + self._N + self._F }
+		B = { c:c for c in self._B}
+
 		
 		# Loop over every reaction
 		for reaction in reactions:
@@ -336,22 +424,34 @@ class Enumerator(object):
 				
 				# If the product is in any of these lists, we don't need to
 				# deal with it, so just update the reaction to point correctly
-				for complex in self._E + self._S + self._T + self._N + self._F:
-					if (product == complex):
-						enumerated = True
-						reaction.products[i] = complex
-						break
+				# TODO: This could benefit from a substantial speedup if _E, _S, 
+				#	_T, _N, _F were implemented as sets. Other parts of the 
+				#	algorithm benefit from their representation as queues though... 
+				
+				if product in ESTNF: reaction.products[i] = ESTNF[product]; enumerated = True
+				# for complex in self._E + self._S + self._T + self._N + self._F:
+				# 	if (product == complex):
+				# 		enumerated = True
+				# 		reaction.products[i] = complex
+				# 		break
 												
 				if not enumerated:
 					# If the product is in list B, then we need to remove it from
 					# that list so that it can be enumerated for self-interactions
 					# as part of this neighborhood
-					for complex in self._B:
-						if (product == complex):
-							reaction.products[i] = complex
-							self._B.remove(complex)
-							product = complex
-							break
+
+					if product in B: 
+						reaction.products[i] = B[product]; 
+						self._B.remove(B[product])
+						product = B[product]
+						del B[product]
+
+					# for complex in self._B:
+					# 	if (product == complex):
+					# 		reaction.products[i] = complex
+					# 		self._B.remove(complex)
+					# 		product = complex
+					# 		break
 							
 					# If the product has already been seen in this loop, update
 					# the pointer appropriately
@@ -379,6 +479,15 @@ class Enumerator(object):
 		neighborhood into resting states and transient states. Returns the set
 		of complexes which are transient states, complexes which are in resting
 		states, and the set of resting states, all in a dictionary.
+		
+		:param complexes: set of complexes
+		:param reactions: set of reactions
+		:returns: dictionary with keys:
+
+			*	``resting_states``: set of resting states 
+			*	``resting_state_complexes``: set of resting state complexes
+			*	``transient_state_complexes``: set of transient complexes
+
 		"""
 				
 		# First we initialize the graph variables that will be used for
@@ -413,7 +522,7 @@ class Enumerator(object):
 				if product_in_N:
 					# We know all these reactions are unimolecular
 					reaction.reactants[0]._outward_edges.append(product)
-				reaction.reactants[0]._full_outward_edges.extend(reaction.products)
+				reaction.reactants[0]._full_outward_edges += (reaction.products)
 
 					
 			node._lowlink = -1			
@@ -449,12 +558,12 @@ class Enumerator(object):
 					break
 			
 			if is_resting_state:
-				resting_state_complexes.extend(scc)
+				resting_state_complexes += (scc)
 				resting_state = RestingState(self.get_auto_name(), scc[:])
 				resting_states.append(resting_state)
 				
 			else:
-				transient_state_complexes.extend(scc)
+				transient_state_complexes += (scc)
 		resting_states.sort()
 		resting_state_complexes.sort()
 		transient_state_complexes.sort()
@@ -503,29 +612,44 @@ class Enumerator(object):
 def main(argv):
 	import input, output
 
-	parser = argparse.ArgumentParser(description="Domain-level nucleic acid reaction enumerator")
-	parser.add_argument('--infile', action='store', dest='input_filename', default=None, help="Path to the input file")
-	parser.add_argument('--outfile', action='store', dest='output_filename', default=None, help="Path to the output file")
-	parser.add_argument('-o', action='store', dest='output_format', default='standard', help="Desired format for the output file")
-	parser.add_argument('-i', action='store', dest='input_format', default='standard', help="Desired format for the input file")
-	parser.add_argument('-c', action='store_true', dest='condensed', default=False, help="Condense reactions into only resting complexes")
+	# Parse command-line arguments
+	parser = argparse.ArgumentParser(description="Domain-level nucleic acid reaction enumerator", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+	parser.add_argument('--infile', action='store', dest='input_filename', default=None, \
+		help="Path to the input file")
+	parser.add_argument('--outfile', action='store', dest='output_filename', default=None, \
+		help="Path to the output file")
+	parser.add_argument('-o', action='store', dest='output_format', default='standard', \
+		help="Desired format for the output file; one of: "+", ".join(output.text_output_functions.keys() + output.graph_output_functions.keys())) 
+	parser.add_argument('-i', action='store', dest='input_format', default='standard', \
+		help="Desired format for the input file; one of: "+", ".join(input.text_input_functions.keys() + input.load_input_functions.keys()))
+	parser.add_argument('-c', action='store_true', dest='condensed', default=False, \
+		help="Condense reactions into only resting complexes")
 	
-	parser.add_argument('--max-complex-size', action='store', dest='MAX_COMPLEX_SIZE', default=None, type=int, help="Maximum number of strands allowed in a complex (used to prevent polymerization)")
-	parser.add_argument('--max-complexes', action='store', dest='MAX_COMPLEX_COUNT', default=None, type=int, help="Maximum number of complexes that may be enumerated before the enumerator halts.")
-	parser.add_argument('--max-reactions', action='store', dest='MAX_REACTION_COUNT', default=None, type=int, help="Maximum number of reactions that may be enumerated before the enumerator halts.")
+	parser.add_argument('--max-complex-size', action='store', dest='MAX_COMPLEX_SIZE', default=None, type=int, \
+		help="Maximum number of strands allowed in a complex (used to prevent polymerization)")
+	parser.add_argument('--max-complex-count', action='store', dest='MAX_COMPLEX_COUNT', default=None, type=int, \
+		help="Maximum number of complexes that may be enumerated before the enumerator halts.")
+	parser.add_argument('--max-reaction-count', action='store', dest='MAX_REACTION_COUNT', default=None, type=int, \
+		help="Maximum number of reactions that may be enumerated before the enumerator halts.")
+	parser.add_argument('--release-cutoff', action='store', dest='RELEASE_CUTOFF', default=None, type=int, \
+		help="Maximum number of bases that will be released spontaneously in an `open` reaction.")
+	parser.add_argument('--bfs', action='store_true', dest='bfs', \
+		help="Perform a breadth-first search instead of a depth-first search")
 	
 
 	cl_opts = parser.parse_args()
 	
 	print "Domain-level Reaction Enumerator (v0.2.0)"
 	print "========================================="
-	
-	
-	condensed = cl_opts.condensed
-	
-	if (cl_opts.input_format in input.new_input_functions):
+
+	if(cl_opts.input_filename is None):
+		print "No input file specified. Exiting."
+		raise Exception('Error!')
+
+	# Attempt to load an input parser to generate an enumerator object
+	if (cl_opts.input_format in input.text_input_functions):
 		print "Reading Input file : %s" % cl_opts.input_filename
-		enum = input.new_input_functions[cl_opts.input_format](cl_opts.input_filename)
+		enum = input.text_input_functions[cl_opts.input_format](cl_opts.input_filename)
 	else:
 		print "Unrecognized input format '%s'. Exiting." % cl_opts.input_format
 		raise Exception('Error!')
@@ -538,26 +662,56 @@ def main(argv):
 	
 	if cl_opts.MAX_COMPLEX_SIZE is not None:
 		enum.MAX_COMPLEX_SIZE = cl_opts.MAX_COMPLEX_SIZE
-	
 
+	if cl_opts.RELEASE_CUTOFF is not None:
+		reactions.RELEASE_CUTOFF = cl_opts.RELEASE_CUTOFF
+	
+	enum.DFS = not cl_opts.bfs
+
+	# Run reaction enumeration
 	print "Enumerating reactions..."
-
 	enum.enumerate()
-	
 	print "Done."
 	
+	# Handle condensed reactions
+	condensed = cl_opts.condensed
 	if(condensed):
-		print "Condensing output to remove transient complexes."
-		
-	if (cl_opts.output_format in output.text_output_functions):
-		print "Writing text output to file %s" % cl_opts.output_filename
-		output.text_output_functions[cl_opts.output_format](enum, cl_opts.output_filename,output_condensed=condensed)
-	elif (cl_opts.output_format in output.graph_output_functions):
-		print "Writing graph output to file %s" % cl_opts.output_filename
-		output.graph_output_functions[cl_opts.output_format](enum, cl_opts.output_filename,output_condensed=condensed)
+		print "Output will be condensed to remove transient complexes."
+	
+	# More robustly/conveniently guess the output filename(s)
+	output_filename = cl_opts.output_filename	
+	output_formats = [of.strip() for of in cl_opts.output_format.split(",")]
+
+	# if there were multiple output formats
+	if(len(output_formats) > 1):
+
+		# if there was no output filename given, tack a new suffix on the input filename
+		if output_filename == None:
+			output_prefix  = os.path.splitext(cl_opts.input_filename)[0] + "-enum"
+		else:
+			# we're going to ignore the suffix of the provided 
+			output_prefix = os.path.splitext(output_filename)[0]
+
+		# come up with a list of (format, filename) pairs
+		outputs = [ (fmt, output_prefix + "." + fmt) for fmt in output_formats ]
 	else:
-		print "Unrecognized output format '%s'. Exiting." % cl_opts.output_format
-		raise Exception('Error!')
+		if output_filename == None:
+			output_filename = os.path.splitext(cl_opts.input_filename)[0] + "-enum" + "." + output_formats[0]
+		outputs = [(output_formats[0], output_filename)]
+
+	# Print each requested output format
+	for (output_format, output_filename) in outputs:
+
+		# Attempt to load an output generator to serialize the enumerator object to an output file	
+		if (output_format in output.text_output_functions):
+			print "Writing text output to file %s" % output_filename
+			output.text_output_functions[output_format](enum, output_filename,output_condensed=condensed)
+		elif (output_format in output.graph_output_functions):
+			print "Writing graph output to file %s" % output_filename
+			output.graph_output_functions[output_format](enum, output_filename,output_condensed=condensed)
+		else:
+			print "Unrecognized output format '%s'. Exiting." % output_format
+			raise Exception('Error!')
 
 if __name__ == '__main__':
 	sys.exit(main(sys.argv))

@@ -584,12 +584,13 @@ Ext.define('App.TaskRunner.Task', {
 	 * @param  {Boolean} success 
 	 * true if the task completed successfully, false otherwise
 	 */
-	onEnd : function(out, st, args) {
+	onEnd : function(out, args, success) {
 		this.log(out);
 		this.log(Ext.String.format("Completed task '{0}' at {1} on '{2}'",this.name,this.get('endDate'),this.get('target')),{});
 		if(this.arguments && this.arguments.node) {
 			var path = App.Path.pop(this.arguments.node);
-			App.ui.filesTree.refreshDocument(App.DocumentStore.tree.getNodeById(path),function(recs,operation,success) {
+			var node = App.DocumentStore.tree.getNodeById(path) || App.DocumentStore.tree.root.findChild('node', path, /* deep */ true)
+			App.ui.filesTree.refreshDocument(node,function(recs,operation,success) {
 				/**
 				 * @event refresh
 				 * Fires after the task has completed if files in the `node` parameter were reloaded.
@@ -599,13 +600,15 @@ Ext.define('App.TaskRunner.Task', {
 				 * @param {Boolean} success True if the reload was successful
 				 */
 				this.fireEvent('refresh',recs,operation,success);
+				
+				if(success) {
+					if(this.loadOnEnd && success) {
+						this.loadFiles(this.loadOnEnd, recs);
+					}
 
-				if(this.loadOnEnd && success) {
-					this.loadFiles(this.loadOnEnd, recs);
-				}
-
-				if(this.openOnEnd && success) {
-					this.openFiles(this.openOnEnd,recs);
+					if(this.openOnEnd && success) {
+						this.openFiles(this.openOnEnd,recs);
+					}
 				}
 			},this);
 		}

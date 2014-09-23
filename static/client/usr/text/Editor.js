@@ -15,19 +15,18 @@ Ext.define('App.usr.text.Editor', {
 	mode:'',
 	layout: 'fit',
 	editorType: '',
+	suggestedFilename: '',
+
 	constructor: function(config) {
 		this.callParent(arguments);
+		this.saveOptions = _.clone(config ? config.saveOptions || {} : {})
 		this.mixins.app.constructor.apply(this,arguments);
 	},
 	initComponent: function() {
 		Ext.applyIf(this, {
-			tbar: ['->',Ext.create('App.ui.SaveButton',{
+			tbar: ['->',Ext.create('App.ui.SaveButton',Ext.apply({
 				app: this,
-				// handler: function() {
-					// this.saveFile();
-				// },
-				// scope: this,
-			})],
+			},this.saveOptions))],
 			items: [{
 				xtype: 'codemirror',
 				itemId: 'editor',
@@ -38,6 +37,14 @@ Ext.define('App.usr.text.Editor', {
 		this.callParent(arguments);
 		this.editor = this.down('.codemirror');
 		this.on('afterrender',this.loadFile,this);
+
+		// Mark unsaved state when the editor changes
+		this.editor.on('change',function (ed, changes, cm) {
+			var hs = cm.historySize();
+			if(hs.undo > 0) {
+				this.markUnsaved();
+			}
+		},this,{ buffer: 1000 })
 	},
 	onLoad: function() {
 		this.editor.setValue(this.data);

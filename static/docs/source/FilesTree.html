@@ -164,8 +164,8 @@ Ext.define('App.ui.FilesTree', {
 						                	desc = App.Files.getTypeDesc(ext);
 						                
 						                if(desc || title) {
-							                tip.setTitle(title+'&amp;nbsp;&amp;nbsp;');
-							                tip.update(desc);
+							                if(title) tip.setTitle(title+'&amp;nbsp;&amp;nbsp;');
+							                tip.update(desc || title);
 						                } else {
 						                	return false;
 						                }

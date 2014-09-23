@@ -33,11 +33,23 @@ Ext.define('App.ui.Application', {
 	 * Message to display when the application pane is masked while loading a file
 	 */
 	savingMsg : 'Saving File...',
+
+	/**
+	 * @cfg
+	 * `true` to prompt the user if they try to close the page with unsaved changes in this application,
+	 * `false` otherwise; allows embedded applications not to trigger save warnings
+	 */
+	trackSaves: true,
+	preventUpdateTitle: false,
+	disableFancyTitles: false,
+	unsaved: false,
 	/**
 	 * @constructor
 	 */
 	constructor : function(config) {
 		this.bindDocument( config ? (config.document ? config.document : null) : null, true);
+		Ext.util.Observable.prototype.constructor.apply(this)
+		this.on('destroy', this.markSaved, this);
 	},
 	requestDocument: function(callback,scope) {
 		if(this.document) {
@@ -116,12 +128,15 @@ Ext.define('App.ui.Application', {
 	updateTitle : function() {
 		var title = this.editorType;
 		if(this.doc) {
-			title = this.doc.getBasename() + ' (' + title + ')';
+			title = this.doc.getBasename() + ' <span class="app-type">(' + title + ')</span>' + (this.unsaved ? '*' : '');
 		}
-		try {
+		if(this.disableFancyTitles) {
+			title = Ext.util.Format.stripTags(title);
+		}
+		if(this.rendered && !this.preventUpdateTitle) 
 			this.setTitle(title);
-		} catch (e) {
-		}
+		else
+			this.title = title;
 	},
 	/**
 	 * Returns the path to the currently open doc
@@ -224,6 +239,8 @@ Ext.define('App.ui.Application', {
 			iconCls : 'save',
 		});
 		Ext.msg('File', '<strong>{0}</strong> saved to server.', this.document.get('text'));
+
+		this.markSaved();
 	},
 	/**
 	 * Internal callback from {@link #save} to inform the user of failed save
@@ -249,5 +266,18 @@ Ext.define('App.ui.Application', {
 	 */
 	getSaveData : function() {
 		return '';
+	},
+
+	markUnsaved: function () {
+		this.unsaved = true;
+		if(this.trackSaves)
+			App.ui.Launcher.markUnsaved(this);
+		this.updateTitle();
+	},
+	markSaved: function () {
+		this.unsaved = false;
+		if(this.trackSaves)
+			App.ui.Launcher.markSaved(this);
+		this.updateTitle();
 	},
 });

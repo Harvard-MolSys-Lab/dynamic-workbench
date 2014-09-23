@@ -22,15 +22,17 @@ Ext.define('App.ui.TaskManager', {
 	extend: 'Ext.panel.Panel',
 <span id='App-ui-TaskManager-method-initComponent'>	initComponent: function() {
 </span>		this.grid = Ext.create('Ext.grid.Panel', {
+			border: false, bodyBorder: false,
 			store: App.TaskRunner.taskStore,
 			columns: [{
 				dataIndex: 'tool',
-				// renderer: function(tool) {
-				// 	return '&lt;img src=&quot;'+Ext.BLANK_IMAGE_URL+'&quot; style=&quot;width:18px;height:18px;&quot; class=&quot;'+App.TaskRunner.serverTools[tool].iconCls+'&quot; /&gt;';
-				// }
+				renderer: function(tool) {
+					return '&lt;div style=&quot;width:18px;height:18px;&quot; class=&quot;'+App.TaskRunner.getToolProperty(tool,'iconCls')+'&quot;&gt;&amp;nbsp;&lt;/div&gt;';
+				}
 			},{
 				header: 'Tool',
-				dataIndex: 'tool'
+				dataIndex: 'tool',
+				flex: 1,
 			},{
 				header: 'Date Submitted',
 				dataIndex: 'startDate'

@@ -1,0 +1,138 @@
+<h1 id="domain-level-reaction-enumeration">Domain-level reaction enumeration</h1>
+<p><em>Reaction enumeration</em> is the process of calculating all possible reactions between, and intermediate complexes formed, from an initial set of complexes. The process proceeds essentially as follows: we beginning with a pool of starting complexes, then calculate all possible &quot;fast&quot; (unimolecular) reactions within this pool. Any complexes (or cycles of complexes) without any outgoing &quot;fast&quot; reactions is deemed a &quot;resting complex;&quot; all other species are designated &quot;transient&quot; Subsequently, &quot;slow&quot; (bimolecular or higher-arity) reactions are then computed between these resting complexes. In DyNAMiC, this process is performed between <em>domains</em> (known elsewhere within DyNAMiC as <em>segments</em>)---continuous regions of complementarity.<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> That is, rather than considering each distinct base pairing as a different secondary structure, reactions are only considered between longer regions of nucleotides. Pseudoknotted intermediates are not considered.</p>
+<p>Once reactions have been enumerated, the enumerator can also generate a &quot;condensed&quot; network of reactions; this network groups all &quot;resting states&quot; (individual resting complexes or cycles of resting complexes connected by fast reactions), and shows only reactions between these resting states. Such a network helps visualize more complex reaction networks by occluding some detail.</p>
+<p>The reaction enumerator was originally developed by Karthik Sarma, Brian Wolfe, and Erik Winfree at Caltech, and was also based on algorithms developed by Seung Woo Shin; it has been debugged and extended by Casey Grun at Harvard.</p>
+<h2 id="preparing-input-for-the-enumerator">Preparing input for the enumerator</h2>
+<p>The enumerator accepts several text-based input formats:</p>
+<ul>
+<li><em>Standard input format</em> (<code>.enum</code>) – This is a simple format that is specific to the enumerator. A simple example of the format is included below. The format has three types of statements:
+<ul>
+<li><code>domain</code> statements declare individual domains, as follows: <code>domain name : specification</code>, where:
+<ul>
+<li><code>name</code> is the name of the domain (e.g. <code>a</code>, <code>1</code>, <code>th</code>, etc.)</li>
+<li><code>specification</code> is either the length of the domain (e.g. a number of bases, or just <code>long</code> or <code>short</code>) or a sequence (e.g. <code>NNNNNNN</code> or <code>ATTACG</code> or even a mixture of specific and degenerate bases <code>AANATCY</code>)</li>
+</ul></li>
+<li><code>strand</code> statements group domains into strands, as follows: <code>strand name : domains</code>, where:
+<ul>
+<li><code>name</code> is the name of the strand</li>
+<li><code>domains</code> is a space-separated list of domains</li>
+</ul></li>
+<li><p><code>complex</code> statements group strands into complexes and assign them a secondary structure, as follows:</p>
+<pre><code>complex name :
+strands
+structure</code></pre>
+where:
+<ul>
+<li><code>name</code> is the name of the complex</li>
+<li><code>strands</code> is a space-separated list of strands</li>
+<li><code>structure</code> is a domain-wise description of the structure in dot-parenthesis notation</li>
+</ul></li>
+</ul></li>
+<li><a href="pil">Pepper Intermediate Language</a> (<code>.pil</code>) – PIL is a general-purpose format for describing domain-level secondary structures. See the <a href="pil">PIL</a> page for details.</li>
+</ul>
+<p>Input files for the enumerator can also be generated automatically by the <a href="dil">graphical DIL editor</a>.</p>
+<p>Here is a simple example of the standard input format:</p>
+<pre><code># This file describes the catalytically generated 3 arm junction
+# described in Yin et. al. 2008
+
+domain a : 6
+domain b : 6
+domain c : 6
+domain x : 6
+domain y : 6
+domain z : 6
+
+strand I : y* b* x* a*
+strand A : a x b y z* c* y* b* x*
+strand B : b y c z x* a* z* c* y*
+strand C : c z a x y* b* x* a* z*
+
+complex I :
+I
+....
+
+complex A :
+A
+.(((..)))
+
+complex B :
+B
+.(((..)))
+
+complex C :
+C
+.(((..)))
+
+complex ABC :
+A B C
+((((((((. + ))))((((. + )))))))).</code></pre>
+<h2 id="running-the-enumerator">Running the enumerator</h2>
+<p>Once <a href="files">an input file has been created</a>, you can use the &quot;Run enumerator&quot; button to invoke the enumerator. Click the arrow next to the button to select a specific input format or set advanced options:</p>
+<div class="figure">
+<img src="images/enum.png" alt="Run enumerator button and menu" /><p class="caption">Run enumerator button and menu</p>
+</div>
+<p>There are 6 output formats available; you may click any of these menu items to generate output in that format, which will open in a new window:</p>
+<ul>
+<li>Graphical results (ENJS) – produces a file which can be rendered into a graphical, interactive network by DyNAMiC and exported to SVG. This file is also a valid <a href="http://www.json.org/">JSON</a> file and may be suitable for consumption by other tools.</li>
+<li>Pepper Intermediate Language (PIL) – produces a representation of the network, including reactions, in the <a href="pil">Pepper Intermediate Language</a></li>
+<li>Chemical Reaction Network (CRN) – produces a list of simple reactions between chemical species</li>
+<li>Systems Biology Markup Language (SBML) – produces a representation using the Systems Biology Markup Language, an industry standard format for modeling biological and chemical networks. SBML can be consumed by a reaction simulator, such as <a href="http://www.copasi.org/">COPASI</a></li>
+<li>Legacy – produces output in the format of Brian Wolfe's old enumerator</li>
+<li>Graph (EPS) – produces an EPS file showing the reaction network, laid out using <a href="http://www.graphviz.org/">Graphviz</a></li>
+</ul>
+<p>In addition, the following options may be set:</p>
+<ul>
+<li>Condense output – Check this box to generate the condensed version of the reaction graph. For the ENJS output format, both the condensed network and the full network of reactions will be viewable; for all other output formats, only the condensed network will be written.</li>
+<li>Maximum complex size – Select a maximum number of complexes (beyond which the enumeration should be truncated); this allows systems e.g. with potentially infinite polymers to be enumerate in finite time.</li>
+</ul>
+<h2 id="viewing-enumeration-results">Viewing enumeration results</h2>
+<p>Once enumeration is completed, results should open in a new tab automatically. For the text-based output formats (PIL, CRN, SBML, etc.), this tab will show a text editor. For the graphical output format (ENJS), you should see an interactive, graphical representation of the network:</p>
+<div class="figure">
+<img src="images/enum-results.png" alt="Graphical enumeration results" /><p class="caption">Graphical enumeration results</p>
+</div>
+<ul>
+<li>Complexes are represented by rectangles, while reactions are represented by colored circles (<em>nodes</em>). Complexes and reactions are connected by grey lines (<em>links</em>). Complexes are colored and outlined colored to indicate whether they are initial, resting or transient.</li>
+<li>You can grab and drag the white background to navigate, and use the mouse wheel to zoom in and out.</li>
+<li>Mouse-over a complex or reaction to view a description in a tooltip, and to highlight incoming and outgoing links; cool colors show incoming links, while warm colors show outgoing links.</li>
+<li>Click a complex to show its secondary structure; double-click a complex name or a reaction node to view details of the complex or reaction (see <a href="#viewing-complex-and-reaction-details">below</a>)</li>
+<li>Complexes, reactions, and lines may be dragged to re-arrange the graph for readability.</li>
+<li>Resting states (groups of resting complexes) are outlined in grey</li>
+</ul>
+<h3 id="enumeration-results-toolbar">Enumeration results toolbar</h3>
+<div class="figure">
+<img src="images/enum-toolbar.png" alt="Enumeration results toolbar" /><p class="caption">Enumeration results toolbar</p>
+</div>
+<ul>
+<li><em>Show Details</em> – if you click to select a complex or reaction, it will be outlined in red; you can then click &quot;Show Details&quot; to view the complex or reaction details (see <a href="#viewing-complex-and-reaction-details">below</a>)</li>
+<li><em>Export</em> – you can export the entire reaction graph, in its current view, as a <a href="http://www.w3.org/Graphics/SVG/">Scalable Vector Graphics</a> (SVG) file which can be viewed or edited in <a href="http://www.adobe.com/illustrator">Adobe Illustrator</a>, <a href="http://www.inkscape.org/">Inkscape</a>, or similar vector graphics programs.</li>
+<li><em>View</em> – you can choose to view all secondary structures in the network according to various coloring schemes (e.g. by domain, by strand, or by base identity ) and view options; for instance, you can choose to view or hide labels for all domains and strands, number bases on the backbone, and view bases as lines, text, or circles (&quot;bubbles&quot;).</li>
+<li><em>Show Full</em> – you can toggle whether the full network of uncondensed reactions is displayed</li>
+<li><em>Show Condensed</em> – you can toggle whether the condensed network of reactions between resting states is displayed</li>
+</ul>
+<h3 id="viewing-complex-and-reaction-details">Viewing complex and reaction details</h3>
+<p>If you double-click on a complex name or a reaction node, a small window will open showing details of the object; this is useful if you would like to compare objects on different parts of the network.</p>
+<div class="figure">
+<img src="images/enum-complex.png" alt="Complex details" /><p class="caption">Complex details</p>
+</div>
+<p>In complex detail view, you can view the secondary structure of the complex and the constituent strands. You can copy the structure in dot-parenthesis or DU+ notation, or download it as an SVG file. You can apply several view options to the complex as well.</p>
+<div class="figure">
+<img src="images/enum-rxn.png" alt="Reaction details" /><p class="caption">Reaction details</p>
+</div>
+<p>In reaction detail view, you can see a complex preview for each complex in a reaction.</p>
+<h3 id="viewing-full-and-condensed-reactions">Viewing full and condensed reactions</h3>
+<p>Using the <em>Show Full</em> and <em>Show Condensed</em> buttons in the toolbar, you can choose to view the full reaction graph, the condensed reaction graph, or both overlaid. For the condensed reaction graph, reaction nodes are larger and shown in a lighter color, while links are darker.</p>
+<div class="figure">
+<img src="images/enum-results-full.png" alt="Full reaction graph" /><p class="caption">Full reaction graph</p>
+</div>
+<div class="figure">
+<img src="images/enum-results-condensed.png" alt="Condensed reaction graph" /><p class="caption">Condensed reaction graph</p>
+</div>
+<div class="figure">
+<img src="images/enum-results-both.png" alt="Both reaction graphs overlaid" /><p class="caption">Both reaction graphs overlaid</p>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>In the <a href="nodal">Nodal</a> compiler and formalism, a distinction is drawn between <em>segments</em> (continuous regions of complementarity), and <em>domains</em> (groups of segments with a particular behavioral function, such as input or output). In this sense, the reaction enumerator operates on <em>segments</em>; here we use the terms <em>domain</em> and <em>segment</em> interchangeably to refer to a continuous region of complementary bases.<a href="#fnref1">↩</a></p></li>
+</ol>
+</div>

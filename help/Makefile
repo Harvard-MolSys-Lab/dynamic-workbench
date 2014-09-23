@@ -1,8 +1,12 @@
-SOURCES=index overview install quickstart server files applications behavioral nodal dynaml dil pepper sequence sequence-edit web-dd simulation-analysis nupack customization scripting application-development
+SOURCES=manual quickstart overview files applications behavioral nodal pepper segment dil pil sequence sequence-edit nupack multisubjective simulation-analysis enumerator nupack rnafold mfold utilities customization server scripting application-development
 SOURCES_MD=$(addsuffix .md,$(SOURCES))
 HTML_OUTS=$(addprefix html/,$(SOURCES))
 
 .PHONY: html
+.PHONY: all
+
+all : html manual.pdf
+	
 
 html: $(SOURCES_MD)
 	mkdir -p ./html

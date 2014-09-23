@@ -32,19 +32,18 @@ Ext.define('App.usr.text.Editor', {
 	mode:'',
 <span id='App-usr-text-Editor-property-layout'>	layout: 'fit',
 </span><span id='App-usr-text-Editor-property-editorType'>	editorType: '',
-</span><span id='App-usr-text-Editor-method-constructor'>	constructor: function(config) {
+</span><span id='App-usr-text-Editor-property-suggestedFilename'>	suggestedFilename: '',
+</span>
+<span id='App-usr-text-Editor-method-constructor'>	constructor: function(config) {
 </span>		this.callParent(arguments);
+		this.saveOptions = _.clone(config ? config.saveOptions || {} : {})
 		this.mixins.app.constructor.apply(this,arguments);
 	},
 <span id='App-usr-text-Editor-method-initComponent'>	initComponent: function() {
 </span>		Ext.applyIf(this, {
-			tbar: ['-&gt;',Ext.create('App.ui.SaveButton',{
+			tbar: ['-&gt;',Ext.create('App.ui.SaveButton',Ext.apply({
 				app: this,
-				// handler: function() {
-					// this.saveFile();
-				// },
-				// scope: this,
-			})],
+			},this.saveOptions))],
 			items: [{
 				xtype: 'codemirror',
 				itemId: 'editor',
@@ -55,6 +54,14 @@ Ext.define('App.usr.text.Editor', {
 		this.callParent(arguments);
 		this.editor = this.down('.codemirror');
 		this.on('afterrender',this.loadFile,this);
+
+		// Mark unsaved state when the editor changes
+		this.editor.on('change',function (ed, changes, cm) {
+			var hs = cm.historySize();
+			if(hs.undo &gt; 0) {
+				this.markUnsaved();
+			}
+		},this,{ buffer: 1000 })
 	},
 <span id='App-usr-text-Editor-method-onLoad'>	onLoad: function() {
 </span>		this.editor.setValue(this.data);

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='App-usr-dil-Strand'>/**
+</span> * Record representing a single strand in a DIL system; use with App.usr.dil.StrandStore
+ */
+Ext.define('App.usr.dil.Strand', {
+	extend: 'Ext.data.Model',
+<span id='App-usr-dil-Strand-property-fields'>	fields: [{
+</span>		name: 'id',
+		type: 'int'
+	}, {
+		name: 'name'
+	}, {
+		name: 'prefix'		
+	},{
+		name: 'polarity',
+		type: 'int'
+	}, {
+		name: 'sequence'
+	}, {
+		name: 'domains'
+	}, {
+		name: 'spec'
+	}, ],
+<span id='App-usr-dil-Strand-property-idgen'>	idgen: 'sequential',
+</span><span id='App-usr-dil-Strand-method-set'>	set: function(fieldName,newValue) {
+</span>		if(fieldName == 'spec') {
+			if(newValue!=this.get('spec')) {
+				this.updateCachedSpec(newValue);	
+			}
+		}
+		this.callParent(arguments);
+		
+	},
+<span id='App-usr-dil-Strand-method-getDynaml'>	getDynaml: function(lib) {
+</span>		return lib.getStrand(this.get('name'));
+	},
+<span id='App-usr-dil-Strand-method-diffSpec'>	diffSpec: function(spec) {
+</span>		var oldSpec = spec,
+			newSpec = this.parsedSpec;
+		var oldSegments = _.comprehend(oldSpec,function(dom) { return dom.segments; }),
+			newSegments = _.comprehend(newSpec,function(dom) { return dom.segments; });
+		var removed = _.difference(oldSegments,newSegments),
+			added = _.difference(newSegments,oldSegments);
+		var removedIndices = _.map(removed,function(seg) { return oldSegments.indexOf(seg)}),
+			addedIndices = _.map(added,function(seg) { return newSegments.indexOf(seg)});			
+		return {
+			removed: removed,
+			added: added,
+			removedIndices: removedIndices, 
+			addedIndices: addedIndices,
+		}
+	},
+<span id='App-usr-dil-Strand-method-updateCachedSpec'>	updateCachedSpec: function(newValue,oldValue) {
+</span>		// if(newValue &amp;&amp; oldValue) {
+		// 	var oldSpec = this.parsedSpec,
+		// 		newSpec = App.dynamic.Compiler.parseDomainString(newValue);
+		// 	var oldSegments = _.comprehend(oldSpec,function(dom) { return dom.segments; }),
+		// 		newSegments = _.comprehend(newSpec,function(dom) { return dom.segments; });
+		// 	var removed = _.difference(oldSegments,newSegments),
+		// 		added = _.difference(newSegments,oldSegments);
+		// 	var removedIndices = _.map(removed,function(seg) { return oldSegments.indexOf(seg)}),
+		// 		addedIndices = _.map(added,function(seg) { return newSegments.indexOf(seg)});			
+
+		// 	this.parsedSpec = App.dynamic.Compiler.parseDomainString(newValue, /*parseIdentifier*/ true);
+		//} else 
+		if(newValue) {
+			this.parsedSpec = App.dynamic.Compiler.parseDomainOrSegmentString(newValue, /*parseIdentifier*/ true);
+		} else {
+			this.parsedSpec = App.dynamic.Compiler.parseDomainOrSegmentString(this.get('spec'), /*parseIdentifier*/ true);
+		}
+	},
+<span id='App-usr-dil-Strand-method-getParsedSpec'>	getParsedSpec: function() {
+</span>		if(!this.parsedSpec) {
+			this.updateCachedSpec();
+		}
+		return this.parsedSpec;
+	},
+<span id='App-usr-dil-Strand-method-getFlatSpec'>	getFlatSpec: function() {
+</span>		return _.comprehend(this.getParsedSpec(), function(dom) {
+			return dom.segments
+		});
+	},
+<span id='App-usr-dil-Strand-property-proxy'>	proxy: 'memory',
+</span>})</pre>
+</body>
+</html>

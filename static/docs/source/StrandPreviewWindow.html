@@ -29,13 +29,14 @@ Ext.define('App.ui.StrandPreviewWindow',{
 </span><span id='App-ui-StrandPreviewWindow-property-bodyBorder'>	bodyBorder: false,
 </span><span id='App-ui-StrandPreviewWindow-property-border'>	border: false,
 </span><span id='App-ui-StrandPreviewWindow-property-closeAction'>	closeAction: 'hide',
+</span><span id='App-ui-StrandPreviewWindow-property-maximizable'>	maximizable: true,
 </span><span id='App-ui-StrandPreviewWindow-method-initComponent'>	initComponent: function() {
 </span>		Ext.apply(this,{
 			layout: 'border',
 			items: [{
 				xtype: 'codemirror',
 				mode: 'nupack',
-				
+				iconCls: 'dot-paren-icon',
 				//height: 100,
 				title: 'Structure',
 				//margin: '0 0 5 0',

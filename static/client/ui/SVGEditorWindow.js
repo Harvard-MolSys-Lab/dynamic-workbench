@@ -8,7 +8,7 @@ Ext.define('App.ui.SVGEditorWindow',{
 	border: false,
 	plain: true,
 	headerPosition: 'left',
-
+	suggestedFileName: '',
 	/**
 	 * @cfg {String}
 	 * URL of the stylesheet to fetch
@@ -16,7 +16,7 @@ Ext.define('App.ui.SVGEditorWindow',{
 	stylesUrl: '',
 
 	initComponent: function () {
-		this.editor = Ext.create('App.usr.text.Editor');
+		this.editor = Ext.create('App.usr.text.Editor', { saveOptions: { defaultExtension: 'svg', forceDefaultExtension: true, initialValue: this.suggestedFileName } });
 		Ext.apply(this,{
 			items: [this.editor]
 		});

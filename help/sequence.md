@@ -6,11 +6,9 @@ Workbench has many powerful tools for working with sequences of bases.
 Sequence Editor
 ---------------
 
-The sequence editor provides lots of tools for working with sequences as standard text files: The editor color-codes bases in the sequence, allows various metrics to be easily calculated, and exposes functions for formatting, transforming, and manipulating sequences.
+The sequence editor provides lots of tools for working with sequences as standard text files: The editor color-codes bases in the sequence, allows various metrics to be easily calculated, and exposes functions for formatting, transforming, and manipulating sequences. To view details about each of the menu items in the sequence editor, just hover your mouse over it; help will appear in a tooltip.
 
-Most operations in the sequence editor operate on a set of strands. Each separate line is assumed to be on a separate strand. Most operations will replace the selection with the indicated transformation (e.g. selecting "Transform", then "Reverse" will replace the selected sequence with its bases in reverse order). For operations in the "Transform" menu, this can be disabled by unchecking "Replace Selection"; this will cause the transformation to be inserted below each strand.
-
-To view details about each of the menu items in the sequence editor, just hover your mouse over it; help will appear in a tooltip.
+Read more about the [sequence editor](sequence-edit)
 
 Sequence Designers
 ------------------

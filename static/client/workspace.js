@@ -1158,7 +1158,7 @@ Workspace.Utils = {
 	 */
 	ideaColor: (function() {
 		var pointers = {};
-		var colors = pv.Colors.category20().range();
+		var colors = d3.scale.category20().range();
 		// _.map(['#FFCC99', '#FFFF99', '#CCFFCC', '#CCFFFF', '#99CCFF', '#CC99FF'],function(color) {
 			// return pv.color(color);
 		// });
@@ -1182,7 +1182,7 @@ Workspace.Utils = {
 				defaultPointer = colorPointer;
 			}
 			
-			return colors[color].darker(darkness).color;
+			return d3.rgb(colors[color]).darker(darkness).toString();
 		};
 	})(),
 	/**

@@ -21,9 +21,9 @@ Ext.define('App.usr.dil.DilEditor', {
 
 		this.callParent(arguments);
 	},
-	title: 'Strand Editor',
+	title: 'DIL Editor',
 	iconCls: 'domains',
-	editorType: 'System',
+	editorType: 'DIL',
 	initComponent: function() {
 		/**
 		 * Stores segments in the system
@@ -231,7 +231,7 @@ Ext.define('App.usr.dil.DilEditor', {
 					labelWidth: 40,
 					width: 100,
 					minValue: 100,
-					maxValue: 400,
+					maxValue: 500,
 					value: 200,
 					increment: 10,
 					listeners: {
@@ -551,16 +551,16 @@ Ext.define('App.usr.dil.DilEditor', {
 					sequence: strand.getSequence(),
 					complex: strand.getNode().getName(),
 					spec: strand.printDomains( /* omitLengths */ true),
-					polarity: strand.getPolarity()
+					// polarity: strand.getPolarity()
 				};
 			}));
 
 			return {
 				name: node.getName(),
-				polarity: node.getPolarity(),
+				// polarity: node.getPolarity(),
 				type: node.type,
 				structure: node.getOrderedSegmentwiseStructure().toDotParen(),
-				strands: _.map(node.getStrands(), function(strand) {
+				strands: _.map(node.getOrderedStrands(), function(strand) {
 					return strand.getQualifiedName()
 				})
 			};
@@ -613,7 +613,8 @@ Ext.define('App.usr.dil.DilEditor', {
 
 			strand = {
 				name: name,//rec.get('name'),
-				domains: doms
+				domains: doms,
+				polarity: rec.get('polarity')
 			};
 			strands.push(strand);
 			//strandMap[strand.name] = strand;
@@ -646,6 +647,7 @@ Ext.define('App.usr.dil.DilEditor', {
 		});
 	},
 	getStrandSequences: function() {
+		this.strandStore.updateStrandSequences();
 		return this.strandStore.getSequences();
 	},
 	buildThermMFE: function () {

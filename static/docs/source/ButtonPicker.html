@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='App-ui-ButtonPicker'>/**
+</span> * Menu allowing the user to select several display options for a {@link App.ui.StrandPreview}
+ */
+Ext.define('App.ui.ButtonPicker',{
+	extend: 'Ext.button.Button',
+<span id='App-ui-ButtonPicker-method-initComponent'>	initComponent: function() {
+</span>		Ext.apply(this,{
+		});
+
+		this.callParent(arguments);
+		if(this.menu) {
+			// update value when item is selected
+			this.menu.on('click',this.update,this);
+
+			// find all menu items
+			var items = this.menu.query('menuitem');
+
+			// record items and icons associated with each possible value
+			this.iconMap = {};
+			this.itemMap = {};
+			for(var i=0; i&lt;items.length; i++) {
+				this.iconMap[items[i].value] = items[i].iconCls;
+				this.itemMap[items[i].value] = items[i];
+			}
+		}
+
+		this.setValue(this.value);
+	},
+<span id='App-ui-ButtonPicker-method-update'>	update: function (menu, item, e) {
+</span>		if(item) {
+			this.setValue(item.value);
+		}		
+	},
+<span id='App-ui-ButtonPicker-method-setValue'>	setValue: function (value) {
+</span>		this.value = value;
+		this.setIconCls(this.iconMap[value]);
+	},
+<span id='App-ui-ButtonPicker-method-getValue'>	getValue: function() {
+</span>		return this.value;
+	}
+
+});</pre>
+</body>
+</html>

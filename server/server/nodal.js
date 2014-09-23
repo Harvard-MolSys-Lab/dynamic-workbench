@@ -287,6 +287,23 @@ exports.start = function(req, res, params) {
 		outputTarget('dil','DIL output complete.')(null,lib,input);
 	}
 
+	function nodalSaveDynaml () {
+		var input = params["data"]
+		fs.writeFile(postfix(fullPath, 'dynaml'),input,'utf8',function(err) {
+			if(err) {
+				utils.log({
+					level: "error",
+					source: "nodal",
+					message: "Unable to save data as DyNAML.",
+					err: e,
+					data: data,
+				});
+				return sendError(res, JSON.stringify({message: 'Unable to save data as DyNAML.'}), 500);
+			}
+			return res.send(JSON.stringify({message:"Build completed."}));
+		});
+	}
+
 	function nodalOutputAllTargets(lib,input) {
 		var allTargets = _.map(targets,function(f,key) {
 			return f(lib,input,fullPath);
@@ -311,7 +328,7 @@ exports.start = function(req, res, params) {
 			}
 		})
 	
-}
+	}
 
 
 	switch(params.action) {
@@ -343,11 +360,15 @@ exports.start = function(req, res, params) {
 		case 'dil':
 			return acquireData('dynaml',nodalCompileDil);
 
+		case 'dynaml':
+			return nodalSaveDynaml()
+
 		case 'output':
 			// Load DIL system, output all targets
 			return acquireData('dil',function(data) {
 				nodalLoadLibrary(data,nodalOutputAllTargets);
 			});
+
 		case 'nupack':
 			return acquireData('dil',loadLibraryOutputTarget('nupack','NUPACK output complete.'));
 		case 'ms':

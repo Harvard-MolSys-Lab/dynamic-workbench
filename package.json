@@ -34,7 +34,7 @@
     "winston": "0.5.10"
     },
   "devDependencies": {
-    "node-inspector": "0.1.10",
+    "node-inspector": "0.1.10"
     },
   "optionalDependencies": {}
 }

@@ -121,9 +121,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #   chef.validation_client_name = "ORGNAME-validator"
 
   # provision shared folder
-  config.vm.synced_folder ".", "/mnt/infomachine2"
-  config.vm.synced_folder "../logs", "/mnt/dynamic-logs", create: true
-  config.vm.synced_folder "../../fileshare", "/mnt/dynamic-user-data"
+  config.vm.synced_folder ".", "/mnt/infomachine2" #, owner: 'webserver-user'
+  config.vm.synced_folder "../logs", "/mnt/dynamic-logs", create: true #, owner: 'webserver-user'
+  config.vm.synced_folder "../../fileshare", "/mnt/dynamic-user-data", create: true #, owner: 'webserver-user'
 
   # provision with shell script
   config.vm.provision :shell, path: "bootstrap.sh"

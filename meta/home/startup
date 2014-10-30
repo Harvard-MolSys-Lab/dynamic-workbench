@@ -11,10 +11,11 @@ echo "`date` - Working directory:"
 pwd
 
 export MONGOPATH=/usr/bin/mongod
-export NODEPATH=$HOME/local/node/bin/node
+# export NODEPATH=$HOME/local/node/bin/node
+export NODEPATH=/usr/bin/node
 
-echo "`date` - Starting MongoDB (${MONGOPATH})..."
-${MONGOPATH} --logappend --logpath ${CODEPATH}/logs/mongod.log & 
+# echo "`date` - Starting MongoDB (${MONGOPATH})..."
+# su mongodb ${MONGOPATH} --logappend --logpath ${CODEPATH}/logs/mongod.log & 
 
 echo "`date` - Starting nodejs (${NODEPATH})"
 ${NODEPATH} --debug app.js

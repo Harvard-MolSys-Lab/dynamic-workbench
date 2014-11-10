@@ -1495,7 +1495,6 @@ var DNA = module.exports.DNA = (function(_) {
 				if (struct.length == 2) {
 					switch(struct[0][0] + struct[1][0]) {
 
-						//  ??
 						//  __|/
 						//  __|
 						//    |
@@ -1508,7 +1507,6 @@ var DNA = module.exports.DNA = (function(_) {
 							out = out.concat(drawLine(len,firstBase,theta_line));
 							break;
 						
-						//  ??
 						//  __|
 						//  __|
 						//    |\
@@ -1518,7 +1516,7 @@ var DNA = module.exports.DNA = (function(_) {
 							theta_line = theta+phi; 
 							len = struct[1][1];
 							firstBase = start.addPolar(theta+piHalf,stemWidth/2).addPolar(theta_line,baseLength);
-							out = out.concat(drawLine(len,firstBase,theta_line));
+							out = out.concat(drawLine(-len,firstBase,theta_line));
 							break;
 
 						default:

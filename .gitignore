@@ -12,7 +12,7 @@ test.html
 logs
 src
 src/*
-
+./logs
+./node_modules
 build/vm/*
-
 .vagrant/*

@@ -1,14 +1,13 @@
 #!/bin/sh
 
 export CODEPATH=$HOME/app  #$HOME/share/infomachine2  # use ~/app for forwards-compatibility
-echo ${CODEPATH}
+# echo ${CODEPATH}
 cd ${CODEPATH}
 echo "-------------------------------------"
 echo "| DyNAMiC Workbench                 |"
 echo "-------------------------------------"
 echo "`date` - Starting server..."
-echo "`date` - Working directory:"
-pwd
+echo "`date` - Working directory: `pwd`"
 
 export MONGOPATH=/usr/bin/mongod
 # export NODEPATH=$HOME/local/node/bin/node
@@ -20,8 +19,8 @@ export NODEPATH=/usr/bin/node
 echo "`date` - Starting nodejs (${NODEPATH})"
 ${NODEPATH} --debug app.js
 
-trap '{echo "`date` - !!! Workbench error"; exit}' ERR #; killall -2 background; exit}' ERR
-trap '{echo "`date` - Killing Mongod"; killall -2 background; echo "`date` - Exiting Workbench"; exit}' SIGINT SIGTERM EXIT
+# trap '{echo "`date` - !!! Workbench error"; exit}' ERR #; killall -2 background; exit}' ERR
+# trap '{echo "`date` - Killing Mongod"; killall -2 background; echo "`date` - Exiting Workbench"; exit}' SIGINT SIGTERM EXIT
 #trap 'killall -2 background' SIGTERM
 #trap 'killall -2 background' EXIT
 

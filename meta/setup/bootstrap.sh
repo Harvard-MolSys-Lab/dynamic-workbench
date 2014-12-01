@@ -23,12 +23,8 @@ echo 'Install MongoDB...'
 sudo apt-get install -y mongodb-org
 echo 'MongoDB install completed.'
 
-# Setup user
-echo 'Setting up webserver-user...'
-sudo useradd webserver-user -m
-sudo echo $'\nvagrant\tALL=(webserver-user) NOPASSWD:ALL\n' >> /etc/sudoers
-
 # Create and link relevant directories
+echo 'Creating and linking user directories...'
 sudo mkdir -p /mnt/dynamic-logs/logs
 sudo mkdir -p /mnt/dynamic-user-data/files
 sudo mkdir -p /home/webserver-user/share
@@ -40,9 +36,12 @@ sudo ln -s /home/webserver-user/share/infomachine2 /home/webserver-user/app
 
 # Change ownership
 sudo chown -R webserver-user /mnt/infomachine2
+sudo chown -R webserver-user /mnt/infomachine2/*
 sudo chown -R webserver-user /mnt/dynamic-user-data
+sudo chown -R webserver-user /mnt/dynamic-user-data/*
 sudo chown -R webserver-user /mnt/dynamic-logs 
 sudo chown -R webserver-user /home/webserver-user/app/
+sudo chown -R webserver-user /home/webserver-user/app/*
 sudo chown -R webserver-user /home/webserver-user/logs/
 sudo chown -R webserver-user /home/webserver-user/fileshare/
 echo 'User setup completed.'
@@ -61,9 +60,14 @@ sudo chown mongodb:mongodb /data/db
 
 # Install dependencies with NPM
 echo 'Installing dependencies with NPM'
-# uncomment to force installation of latest dependencies from package.json
-sudo -u webserver-user sh -c 'cd /home/webserver-user/app && npm install'
-echo '(Skipping)'
+# force installation of latest dependencies from package.json
+# use sudo so we can execute in context of webserver-user
+# use -H to export home directory to subshell
+# http://askubuntu.com/questions/338447/why-doesnt-home-change-if-i-use-sudo
+sudo -H -u webserver-user sh -c 'cd /home/webserver-user/app && npm install && npm update'
+# fix a random symbolic link that npm refuses to create for some reason
+sudo -H -u webserver-user sh -c 'cd /home/webserver-user/app/node_modules/connect-form && ln -s ./lib/connect-form.js ./index.js'
+# echo '(Skipping)'
 echo 'Dependency installation completed.'
 
 # Setup auto-start
@@ -76,4 +80,7 @@ echo 'Starting workbench...'
 sudo start workbench
 echo 'Completed.'
 
-echo 'Setup completed. Use vagrant ssh to enter the virtual machine.'
+export IP="`ifconfig eth1 2>/dev/null|awk '/inet addr:/ {print $2}'|sed 's/addr://'`"
+echo "IP address: ${IP}"
+echo "Setup completed. Use vagrant ssh to enter the virtual machine, or open http://$IP in a browser."
+

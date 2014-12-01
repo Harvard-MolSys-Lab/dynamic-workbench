@@ -8,7 +8,9 @@
 var express = require('express'), 
 app = express.createServer(), 
 winston = require('winston'), 
-fm = require('./server/file-manager'), tools = require('./server/server-tools'), auth = require('./server/node_modules/auth');
+fm = require('./server/file-manager'), 
+tools = require('./server/server-tools'), 
+auth = require('./server/node_modules/auth');
 
 // var Schema = mongoose.Schema,
 // UserSchema = new Schema({});
@@ -96,5 +98,6 @@ app.configure(function() {
 	// configure server-side tools
 	tools.configure(app, express);
 });
-app.listen(3000);
-console.log('Server running from ' + __dirname + ' at http://192.168.56.10:3000');
+port = 3000;
+app.listen(port);
+console.log('Server running from ' + __dirname + ' at on port ' + port);

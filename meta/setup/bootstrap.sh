@@ -84,6 +84,12 @@ sudo -H -u webserver-user sh -c 'cd /home/webserver-user/app/node_modules/connec
 # echo '(Skipping)'
 echo 'Dependency installation completed.'
 
+# Build bundled tools
+echo 'Building tools...'
+sudo -H -u webserver-user sh /home/webserver-user/app/meta/setup/tools.sh 
+echo 'Building tools completed.'
+
+
 # Setup auto-start
 echo 'Setting up Workbench to auto-start...'
 sudo cp /home/webserver-user/app/meta/etc/init/workbench.conf /etc/init/workbench.conf

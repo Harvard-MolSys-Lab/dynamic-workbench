@@ -99,8 +99,7 @@ echo 'Completed.'
 echo 'Starting workbench...'
 sudo start workbench
 echo 'Completed.'
-
+echo "Workbench status: `sudo status workbench`"
 export IP="`ifconfig eth1 2>/dev/null|awk '/inet addr:/ {print $2}'|sed 's/addr://'`"
 echo "IP address: ${IP}"
-echo "Setup completed. Use vagrant ssh to enter the virtual machine, or open http://$IP in a browser."
-
+echo "Setup completed. Use vagrant ssh to enter the virtual machine, or open http://$IP:3000 in a browser."

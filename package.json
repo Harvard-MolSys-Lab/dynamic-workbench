@@ -15,7 +15,7 @@
     "async": "0.1.16",
     "commander": "0.5.2",
     "connect": "1.8.5",
-    "connect-form": "^0.2.1",
+    "connect-form": "0.2.1",
     "ejs": "0.6.1",
     "express": "2.5.9",
     "format": "0.1.4",
@@ -26,11 +26,10 @@
     "mime": "1.2.5",
     "mkdirp": "0.3.0",
     "mongoose": "1.7.3",
-    "pkginfo": "^0.2.3",
     "uglify-js": "1.2.6",
     "underscore": "1.4.4",
     "validator": "0.4.1",
-    "winston": "^0.5.10"
+    "winston": "0.5.10"
   },
   "devDependencies": {
     "jake": "0.2.33",

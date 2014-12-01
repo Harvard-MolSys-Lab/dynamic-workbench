@@ -4,24 +4,37 @@ echo 'Add MongoDB Package...'
 sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
 echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list
 sudo apt-get update
-echo 'MongoDB Package completed'
+echo 'MongoDB Package added.'
 
 # Update System
 echo 'Update system packages...'
 apt-get -y update
-echo 'Update completed'
+echo 'Update completed.'
 
 # Install other helper apps
 apt-get -y install libssl-dev git-core pkg-config build-essential curl gcc g++
 
 # Install NodeJS
-curl -sL https://deb.nodesource.com/setup | sudo bash -
-sudo apt-get install -y nodejs
+echo 'Installing NodeJS...'
+# To install the current version, you'd want to use these commands instead.
+# curl -sL https://deb.nodesource.com/setup | sudo bash -
+# sudo apt-get install -y nodejs
+echo 'Building from source...'
+NODE_VERSION="0.6.19"
+wget "http://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}.tar.gz"
+tar -xvf node-v${NODE_VERSION}.tar.gz
+cd node-v${NODE_VERSION}
+./configure
+make
+sudo make install
+echo "NodeJS install completed. Installed version: `node -v`"
+echo "NodeJS installed to: `which node`"
+echo "npm installed to: `which npm`"
 
 # Install MongoDB
 echo 'Install MongoDB...'
 sudo apt-get install -y mongodb-org
-echo 'MongoDB install completed.'
+echo "MongoDB install completed. Installed: `mongo --version`"
 
 # Create and link relevant directories
 echo 'Creating and linking user directories...'
@@ -33,6 +46,7 @@ sudo ln -s /mnt/dynamic-logs/logs /home/webserver-user/logs
 sudo ln -s /mnt/dynamic-user-data/files /home/webserver-user/fileshare/files
 sudo ln -s /mnt/infomachine2 /home/webserver-user/share/infomachine2
 sudo ln -s /home/webserver-user/share/infomachine2 /home/webserver-user/app
+sudo ln -s /home/webserver-user/logs /home/webserver-user/app/logs
 
 # Change ownership
 sudo chown -R webserver-user /mnt/infomachine2
@@ -51,7 +65,7 @@ echo 'Setting up home directory for webserver-user...'
 sudo cp -r /home/webserver-user/app/meta/home/* /home/webserver-user
 sudo chown -R webserver-user /home/webserver-user
 sudo chmod a+x /home/webserver-user/{repair,startup}
-echo 'Completed.'
+echo 'Home directory setup completed.'
 
 echo 'Setting up Mongo data directory...'
 sudo mkdir -p /data/db

@@ -1,0 +1,14 @@
+{
+	"mongo": {
+		"host": "mongodb://localhost/test"
+	},
+	"files": {
+		"path": "/home/webserver-user/fileshare/files"
+	},
+	"tools": {
+		"path": "/home/webserver-user/app/tools"
+	},
+	"client": {
+		"baseUrl": ""
+	}
+}

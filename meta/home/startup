@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export CODEPATH=$HOME/app  #$HOME/share/infomachine2  # use ~/app for forwards-compatibility
+CODEPATH=$HOME/app  #$HOME/share/infomachine2  # use ~/app for forwards-compatibility
 # echo ${CODEPATH}
 cd ${CODEPATH}
 echo "-------------------------------------"
@@ -8,11 +8,12 @@ echo "| DyNAMiC Workbench                 |"
 echo "-------------------------------------"
 echo "`date` - Starting server..."
 echo "`date` - Working directory: `pwd`"
+echo "`date` - Environment ${NODE_ENV}"
 
-export MONGOPATH=/usr/bin/mongod
+MONGOPATH=/usr/bin/mongod
 # export NODEPATH=$HOME/local/node/bin/node
 # export NODEPATH=/usr/bin/node
-export NODEPATH="`which node`"
+NODEPATH="`which node`"
 
 # echo "`date` - Starting MongoDB (${MONGOPATH})..."
 # su mongodb ${MONGOPATH} --logappend --logpath ${CODEPATH}/logs/mongod.log & 

@@ -23,8 +23,10 @@ echo "Installed JSDuck: `jsduck --version`"
 
 # Install Pandoc
 echo 'Installing Pandoc...'
-sudo apt-get -y install Pandoc
+sudo apt-get -y install pandoc texlive
 echo "Installed Pandoc: `which pandoc`"
+echo "Installed xelatex: `which xelatex`"
+
 
 # Install NodeJS
 echo 'Installing NodeJS...'

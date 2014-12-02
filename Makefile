@@ -6,6 +6,7 @@
 .PHONY : js
 .PHONY : docs
 .PHONY : clean
+.PHONY : help
 
 all : js docs
 
@@ -17,6 +18,9 @@ js :
 	# sencha create jsb -a http://192.168.56.10:3000/build.html -p build/app.jsb3 
 	vagrant ssh --command "sudo -H -u webserver-user sh -c 'cd /home/webserver-user/app/ && ./meta/build/phantomjs ./meta/build/appbuilder/ext-app-builder.js --app-entry http://localhost:3000/build.html --project build/app.jsb3 --verbose'"
 	vagrant ssh --command "sudo -H -u webserver-user sh -c 'cd /home/webserver-user/app && ./node_modules/.bin/jake'"  	
+
+help :
+	vagrant ssh --command "sudo -H -u webserver-user sh -c 'cd /home/webserver-user/app/help && make'"
 
 clean :
 	rm build/*.js

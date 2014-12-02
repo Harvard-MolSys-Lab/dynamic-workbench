@@ -12,7 +12,19 @@ apt-get -y update
 echo 'Update completed.'
 
 # Install other helper apps
+echo 'Install system dependencies...'
 apt-get -y install libssl-dev git-core pkg-config build-essential curl gcc g++
+echo 'Install completed.'
+
+# Install JSDuck
+echo 'Installing JSDuck...'
+sudo gem install jsduck
+echo "Installed JSDuck: `jsduck --version`"
+
+# Install Pandoc
+echo 'Installing Pandoc...'
+sudo apt-get -y install Pandoc
+echo "Installed Pandoc: `which pandoc`"
 
 # Install NodeJS
 echo 'Installing NodeJS...'
@@ -72,16 +84,16 @@ sudo mkdir -p /data/db
 sudo chmod 0755 /data/db
 sudo chown mongodb:mongodb /data/db
 
-# Install dependencies with NPM
-echo 'Installing dependencies with NPM'
+# Install dependencies with npm
+echo 'Installing dependencies with npm'
+# tell npm to use known registrars, avoiding SSL errors
+# https://github.com/npm/npm/wiki/Troubleshooting#ssl-error
+sudo -H -u webserver-user sh -c 'cd /home/webserver-user/app && npm config set ca=""'
 # force installation of latest dependencies from package.json
 # use sudo so we can execute in context of webserver-user
 # use -H to export home directory to subshell
 # http://askubuntu.com/questions/338447/why-doesnt-home-change-if-i-use-sudo
 sudo -H -u webserver-user sh -c 'cd /home/webserver-user/app && npm install && npm update'
-# fix a random symbolic link that npm refuses to create for some reason
-sudo -H -u webserver-user sh -c 'cd /home/webserver-user/app/node_modules/connect-form && ln -s ./lib/connect-form.js ./index.js'
-# echo '(Skipping)'
 echo 'Dependency installation completed.'
 
 # Build bundled tools

@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "jake": "0.2.33",
-    "jake-uglify": "1.0.1",
+    "jake-uglify": "https://github.com/caseygrun/node-jake-uglify/tarball/master",
     "node-inspector": "0.1.10"
   },
   "optionalDependencies": {}

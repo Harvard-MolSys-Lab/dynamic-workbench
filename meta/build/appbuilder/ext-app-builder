@@ -1,0 +1,3 @@
+#!/bin/sh
+DIR=$(dirname $(which $0))
+phantomjs $DIR/ext-app-builder.js $*

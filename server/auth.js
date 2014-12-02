@@ -137,9 +137,10 @@ restrictors = {
 	jsonAdmin: restrictJsonAdmin,
 }
 
-exports.restrict = function restrict(type) {
+function restrict(type) {
 	return type ? restrictors[type] : restrictors[html];
 }
+exports.restrict = restrict;
 
 function userData(req, proto) {
 	proto = proto || {};

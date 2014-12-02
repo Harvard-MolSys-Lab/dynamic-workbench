@@ -23,11 +23,13 @@ app.configure('production',function() {
 	app.set('env','production');
 });
 
-app.configure('debug',function() {
-	app.set('env','debug');
+app.configure('development', function () {
+	app.set('env','development');	
 })
 
 app.configure(function() {
+	console.log('Environment: ' + app.set('env'));
+
 	app.set('invite', ['yinlab-workbench','mpp']);
 	app.set('views', __dirname + '/views');
 	app.set('baseRoute', '/');
@@ -64,7 +66,24 @@ app.configure(function() {
 			layout : false
 		});
 	});
+
+	app.get('/popup.html', function (req, res) {
+		res.render('popup.jade', {
+			manifest: require('./server/manifest'),
+			env: app.set('env'),
+			layout : false
+		});
+	})
 	
+	// configure file manager
+	fm.configure(app, express);
+
+	// configure server-side tools
+	tools.configure(app, express);
+});
+
+app.configure('development', function () {
+
 	// TODO: Add to local configuration environment
 	app.get('/build.html', function(req, res) {
 		res.render('build.jade', {
@@ -84,20 +103,9 @@ app.configure(function() {
 		});
 	});
 
-	app.get('/popup.html', function (req, res) {
-		res.render('popup.jade', {
-			manifest: require('./server/manifest'),
-			env: app.set('env'),
-			layout : false
-		});
-	})
-	
-	// configure file manager
-	fm.configure(app, express);
+})
 
-	// configure server-side tools
-	tools.configure(app, express);
-});
+
 port = 3000;
 app.listen(port);
 console.log('Server running from ' + __dirname + ' at on port ' + port);

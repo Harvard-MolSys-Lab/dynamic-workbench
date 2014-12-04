@@ -8,7 +8,10 @@ Workbench server is the part of the Workbench suite which is responsible for man
 
 -	Hosted installation - Workbench server is intended to be installed on a cluster computing platform and made available via the web. In this case, you need only interact with the web-based Workbench client interface. You'll just need an invitation code from whoever runs the server, and you'll be able to create an 
 	account and begin using Workbench. The only hosted installation currently available is at provided by the [Molecular Systems lab at Harvard](http://www.molecular-systems.net/workbench).
+
 -	Local installation (hosting your own server) - For testing purposes, you may wish to host your own Workbench server. This requires a bit more effort, but you have full control over the entire system. See below for details about how to set up your own server.
+
+**Note:** You only need to read this chapter if you're interested in setting up your own local installation. If you're accessing Workbench from a hosted installation (such as from [http://www.molecular-systems.net/workbench]), you can skip this section.
 
 Server Tools
 ------------
@@ -43,8 +46,8 @@ To log in to the server, you use a serparate set of user credentials (different 
 
 There are two pre-defined user accounts:
 
-	- `vagrant` (password: '`vagrant`') -- this is a privileged account which can execute commands with `sudo`
-	- `webserver-user` (password: '` `'; a single space) -- this is an unprivileged account which is used to run the server process.
+- `vagrant` (password: '`vagrant`') -- this is a privileged account which can execute commands with `sudo`
+- `webserver-user` (password: '` `'; a single space) -- this is an unprivileged account which is used to run the server process.
 
 (single quotes are not part of the username or password; the password is a singe space: `' '`). 
 
@@ -52,12 +55,11 @@ The recommended method for logging in to the virtual machine is via [SSH](http:/
 
 To connect to the server via SSH:
 
--	On Mac OS X or Linux, open a Terminal, and enter the following command:
+- On Mac OS X or Linux, open a Terminal, and enter the following command:
 	- For `webserver-user`: `ssh webserver-user@192.168.56.10`. You will be prompted to enter `webserver-user@192.168.56.10's password:`; enter the password. 
 	- For `vagrant`: change to the directory where Workbench is installed, and enter `vagrant ssh`. You won't need to enter a password
 
--	On Windows: you'll need to download an SSH client, such as [PuTTY](http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html). Open your SSH client, and 
-	login using credentials like this:
+- On Windows: you'll need to download an SSH client called `ssh.exe`, which must be in your `%PATH`; [`git`](http://git-scm.com/download/) comes with one, which you just need to add it to the `%PATH%` environment variable. You can also use a graphical SSH client such as [PuTTY](http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html), but you'll need to [configure it for use with Vagrant](http://stackoverflow.com/questions/9885108/ssh-to-vagrant-box-in-windows). Open your SSH client, and login using credentials like this:
 	
 	- For `webserver-user`: 
 
@@ -99,7 +101,9 @@ Note: `sudo` is required because administering Upstart processes requires admini
 
 To shut down the server and avoid damaging the database, simply shut down the virtual machine by:
 
-*	Entering `vagrant halt` from the command line in your host machine (in the same directory as Workbench is installed)
 *	Entering `vagrant suspend` from the command line in your host machine (in the same directory as Workbench is installed); rather than shutting down the virtual machine, this will simply pause its execution. 
-* 	Entering `sudo shutdown 0` on the command line in the VM
+*	Entering `vagrant halt` from the command line in your host machine (in the same directory as Workbench is installed)
+
+### Managing users
+
 

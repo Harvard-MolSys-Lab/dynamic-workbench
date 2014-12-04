@@ -49,7 +49,7 @@ sequence  c = tc1 cc1 dc1 : 36</code></pre>
 <pre><code>structure &lt;name&gt; = &lt;list of strands&gt; : &lt;secondary structure&gt;</code></pre>
 <p>So continuing the above example:</p>
 <pre><code>structure Gate = X + C + S + Y : U6 H15(+ H15(U29 + U14 H15(+)))</code></pre>
-<p>using [Joe Zadeh's (H)elix (U)npaired notation](Joe Zadeh's (H)elix (U)npaired notation &quot;wikilink&quot;) or, say</p>
+<p>using <a href="Joe%20Zadeh&#39;s%20(H)elix%20(U)npaired%20notation" title="wikilink">Joe Zadeh's (H)elix (U)npaired notation</a> or, say</p>
 <pre><code>structure Gate = X + C + S + Y : 6. 15( + 15( 29. + 14. 15( + 45)</code></pre>
 <p>in a sort of shorthand dot-paren notation (where each number is a multiplier on the symbol following it).</p>
 <p>By default it is assumed that you want to optimize the thermodynamics of the structure to be as close to the specified secondary structure as possible. If not, you can tell the compiler not to optimize a specific structure. For example:</p>

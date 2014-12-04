@@ -1,10 +1,15 @@
+##############################################
 # help/Makefile
 # TO BE RUN ON GUEST VM
+##############################################
+
 # From host, run:
 # 
 #    make help
+#    
+# to build the targets of this Makefile.
 
-SOURCES=manual quickstart overview files applications behavioral nodal pepper segment dil pil sequence sequence-edit nupack multisubjective simulation-analysis enumerator nupack rnafold mfold utilities customization server scripting application-development
+SOURCES=manual quickstart overview files applications behavioral nodal pepper segment dil pil sequence sequence-edit nupack multisubjective simulation-analysis enumerator nupack rnafold mfold utilities customization install server scripting application-development
 SOURCES_MD=$(addsuffix .md,$(SOURCES))
 HTML_OUTS=$(addprefix html/,$(SOURCES))
 

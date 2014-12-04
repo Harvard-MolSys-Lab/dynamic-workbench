@@ -18,10 +18,9 @@ The Workbench server has two main parts:
 
 -	The *server* manages computationally intensive tasks and user files, and serves application code to the client. The server includes:
 	-	*Server tools* - set of low-level computational utilities (for instance, sequence designers, behavioral designers, thermodynamic simulators, etc.). These server tools execute *computational tasks*.
-	-	*Realtime Services* - a set of components which respond to specific user interactions (for instance, requesting creation or modification of files, execution of a computational task, etc.). Each Realtime service may respond to "normal" requests via HTTP, or to events raised via WebSockets. 
+	-	*Services* - a set of components which respond to specific user interactions (for instance, requesting creation or modification of files, execution of a computational task, etc.). Each Realtime service may respond to "normal" requests via HTTP, or to events raised via WebSockets. 
 		-	*File service* - provides access to user files
 		-	*Task service* - initiates and manages computational tasks
-		-	*Auth service* - authenticates users
 	-	*Web server* - the server also serves application code and static resources (such as images and CSS files) to the client. 
 -	The *client* provides a rich, graphical interface with which the user can interact through their web browser. The client includes:
 	-	*Core services* and *Core components* - a set of shared functionality and interface components for interacting with the server (e.g. for managing files and starting computational tasks)
@@ -112,9 +111,18 @@ As discussed, the server code is executed by the Node.js Javascript runtime. Nod
 
 -	[Connect](http://www.senchalabs.org/connect/) - a middleware library for error handling, static file serving, etc.
 -	[Express](http://expressjs.com/) - a web application framework which provides several features: routing HTTP requests to application code based on the request URL; storage of user "session" data; HTTP response handling, etc.
--	[Socket.io](http://socket.io/) - a WebSockets framework for real-time communication with the server
 -	[Jade](http://jade-lang.com/) - a templating language
 -	[Mongoose](http://mongoosejs.com/) - an Object modeling library for the MongoDB NoSQL database.
+
+### Old dependencies
+
+**Note**: Workbench relies on very old oversions of several of these dependencies; these should be upgraded to the latest available version whenever time allows. This section briefly describes, for each old dependency, why it is still used and possible problems:
+
+-	Node (`v0.6.x`) -- Many breaking changes since this version, including a revamped `Stream` API, some changes to the `path` and `fs` APIs.
+-	npm (`v1.x.x`) -- Many breaking changes, but importantly, the old version of `npm` (before `~2.x.x`) doesn't support 
+-	Express (`v2.x.x`)
+-	Jade (`v0.x.x`)
+-	Mongoose (`v1.7.x`)
 
 ## Bootstrapping process
 
@@ -125,11 +133,9 @@ This section describes the process by which server code is loaded and executed.
 -	`app.js` - Loads `connect`, `express`, and a number of other modules, and sets up an HTTP server. Serves a few routes, including the main application page. Loads the following files:
 	-	`config.js` - Contains configuration variables.
 	-	`utils.js` - Contains a number of utility functions.
-	-	`realtime.js` - Contains the Realtime class, which provides an API to configure the Realtime Services. Each of these services is represented as a class which is loaded by `app.js` and passed to the global instance of the Realtime class. Each of the services registers handlers for HTTP requests to some number of URLs, and may register handlers for incoming socket.io events. 
-		-	`task-service.js` - Contains the service which executes computational tasks. The TaskService class communicates with the Realtime class and associates users with the particular tasks that those users(s) are running.
-			-	`dispatcher.js` - Contains the class responsible for actually _running_ the tasks; the Dispatcher class has no knowledge of particular users; it depends on a simple API for connecting the streams exposed by particular task instances to downstream outputs (which, in the case of the Dispatcher instance that runs as part of the TaskService, are socket.io connections to clients.)
-		-	`file-service.js` - Contains the service which serves user files in response to HTTP requests. Also responds to HTTP requests instructing creation, renaming/moving, updating, and deletion of files.
-		-	`auth.js` - Contains the service which responds to user authentication requests.
+	-	`file-manager.js` - Contains the service which serves user files in response to HTTP requests. Also responds to HTTP requests instructing creation, renaming/moving, updating, and deletion of files.
+	-	`server-tools.js` - Contains the service which starts computational tasks in response to HTTP requests.
+	-	`auth.js` - Contains the service which responds to user authentication requests.
 	
 ## Realtime services
 

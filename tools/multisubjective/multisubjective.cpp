@@ -1,17 +1,17 @@
-// Multisubjective, a nucleic acid sequence design platform - version 1.0.10b, 2013-10-03
+// Multisubjective, a nucleic acid sequence design platform - version 1.1.2a, 2014-12-02
 // by John P. Sadowski
 // Do not distribute
 
 // TO DO:
-// - libcurl
 // - dot-paren notation fix
+// - libcurl
 // - internal analysis ("Simulacrum")
 // - internal DD
 // - intermittent intermolecular
 // - open desired base pairs
 // - strong AI
 
-#if defined __GNUG__	// G++ formatting
+//#if defined __GNUG__	// G++ formatting
 #include <iostream>
 #include <fstream>
 #include <sys/stat.h>
@@ -20,18 +20,21 @@
 #include <string.h>
 #include <errno.h>
 #include <cstdlib>
+#include <unistd.h>
 using namespace std;
 
-#else					// XCode formatting
+/*#else					// XCode formatting
 #include <iostream.h>
 #include <fstream.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <errno.h>
 
-#endif
+#endif*/
 
-const char vers[13] = "1.0.10b     ";
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+
+const char vers[13] = "1.1.2       ";
 
 const int stringsize = 1024;	// for filenames and system commands and buffers
 
@@ -59,6 +62,7 @@ int intermode = 0;
 float strandconc = 1E-7;
 int immutablemode = 0;
 int worstmode = 0;
+bool nohairpins = false, nobridges = false;
 //float interthreshold = 0.01;
 int preventlimit[15] = {0,4,4,6,4,6,6,100,4,6,6,100,6,100,100};
 //						X,A,C,M,G,R,S,V  ,T,W,Y,H,  K,D,  B
@@ -129,6 +133,14 @@ class JChunkList
 		{
 			return numchunks * chunksize;
 		}
+    
+        void push(T item)
+        {
+            int i = size() - 1;
+            while (i >= 0 && (*this)[i] == defaultvalue)
+                i--;
+            (*this)[i+1] = item;
+        }
 	
 		void clear()
 		{
@@ -140,6 +152,11 @@ class JChunkList
 		{
 			defaultvalue = newdefault;
 		}
+    
+        T getdefault()
+        {
+            return defaultvalue;
+        }
 };
 
 template <class T>
@@ -257,9 +274,15 @@ struct des_pair
 {
 	int nums[2];
 	des_pair() { nums[0] = 0; nums [1] = 0; }
-	int& operator[](int pos) { return nums[pos]; }
+	int &operator[](int pos) { return nums[pos]; }
+    bool operator==(des_pair rhs) { return( rhs[0] == nums[0] && rhs[1] == nums[1] ); }
 } default_pair;
 JChunkList<des_pair> desiredbases(default_pair);
+
+JChunkList<int> spuriousbases(0);      // used for srinivas' criterion
+
+JChunkList<int> bridge(0);
+int numbridgestrands = 0;
 
 JStringList strandtoken;
 JStringList blocktoken;
@@ -307,7 +330,7 @@ void copyfile(char source[], char destination[], bool nofail = false);
 void outputlog();
 void outputlog_json();
 void loadspecification(char filename[]);
-int tokenid(char symbol[]);
+int tokenid(char symbol[], bool nonew = false);
 int bltokenid(char symbol[], bool nonew = false);
 bool checktoken(char symbol[], bool includebridges = false);
 int parseDU(int id);
@@ -334,11 +357,15 @@ score meta_analyze();
 bool isundesired_c(int first, int second);
 bool isundesired_o(int first, int second);
 bool isimmutable(int tpos);
+bool isspurious(int tpos);
 bool istoehold(int tpos);
 void clearpair(int first, int second);
 void assigntosequence(int pos, base input);
 base getfromsequence(int tpos);
 int opostotpos(int opos);
+int bpostotpos(int bpos, int strandnum);
+void tpostostrand(int tpos, int &strand, int &pos);
+void tpostosegment(int tpos, int &strand, int &pos);
 
 void prevented();
 
@@ -346,7 +373,7 @@ void assignseqtoblock();
 base basecollide(base first, base second, int pos1, int pos2);
 
 void outputblocks(int mode, int round = -1, int trial = -1);
-char* outputMOpost();
+void outputMOpost();
 void outputblockspost(ofstream &outfile);
 
 char basetochar(base input);
@@ -375,7 +402,7 @@ int main(int argc, char **argv)
 		// ===== INITIALIZE EVERYTHING =====
 		
 		cout.precision(4);
-		srand(time(NULL));
+		srand( int(time(NULL)) );
 		
 		signal(SIGSEGV, &handlesignal);	// register signal handlers
 		signal(SIGBUS, &handlesignal);
@@ -427,7 +454,7 @@ int main(int argc, char **argv)
 			{
 				cout << "d - Load a DD file                      n - Load a NUPACK-MO file               " << endl;
 				cout << "m - Load multiple DD files              a - Autofill from last MO web submission" << endl;
-				cout << "f - Fill with random bases              s - Set directory and other options     " << endl;
+				cout << "f - Fill from specification file        s - Set directory and other options     " << endl;
 				cout << "i - Seed with independent DD sequences  Or input a NUPACK job number            " << endl;
 				cout << "Choose wisely: ";
 				cin >> job;
@@ -462,7 +489,7 @@ int main(int argc, char **argv)
 		
 		if (designer == 'l' || designer == 'r')
 		{
-			rounds = 10;
+			rounds = 25;
 			roundnum = 0;
 			remove(fullpath(outfile_prefix, ".log", 0));	// remove old log file, so it can be output if an early exception is thrown
 		}
@@ -623,6 +650,11 @@ int main(int argc, char **argv)
 		
 		// ===== RUN ANALYSIS =====
 		
+        log.open(fullpath("favorites.txt"), ios::app);
+        time_t rawtime = time(NULL);
+        log << "Began at " << ctime(&rawtime);
+        log.close();
+        
 		while (roundnum < rounds)
 		{		
 			//cout << "\nExtracting sequences...\n";
@@ -630,7 +662,7 @@ int main(int argc, char **argv)
 			score result;
 			int favoritetrial = -1;
 			int favoritescore = 1000000;	// dummy values
-			float favoritened;
+			float favoritened = 0.;
 			int favhisto[histosize+1];
 			int currscore = 0;
 			
@@ -787,58 +819,45 @@ int main(int argc, char **argv)
 				strcpy(cmd[12], "-cutoff");
 				strcpy(cmd[13], ".001");
 				strcpy(cmd[14], "-quiet");
-				if (workbench)
-				{
-					strcpy(cmd[15], "-mfe");
-					strcpy(cmd[16], fullpath("nupack/ms0"));
-					forkexec(path, cmd, 17);
-				}
-				else
-				{
-					strcpy(cmd[15], fullpath("nupack/ms0"));
-					forkexec(path, cmd, 16);
-				}
+				strcpy(cmd[15], fullpath("nupack/ms0"));
+				forkexec(path, cmd, 16);
 				
 				cout << "\b\b\b\b    ";
 				fflush(stdout);
 				
+                //cout << "Running NUPACK analysis on open bridges...\n";
+				outputINfile(1);
+				if (!nobridges && intermode)         // if there are bridges
+				{
+					strcpy(cmd[15], fullpath("nupack/ms1"));
+					forkexec(path, cmd, 16);
+				}
+                
 				//cout << "Running NUPACK analysis on open hairpins...\n";
 				outputINfile(2);
-				if (workbench)
-				{
-					strcpy(cmd[16], fullpath("nupack/ms2"));		// keep other arguments from last call
-					forkexec(path, cmd, 17);
-				}
-				else
+				if (!nohairpins)		// if there are hairpins
 				{
 					strcpy(cmd[15], fullpath("nupack/ms2"));
 					forkexec(path, cmd, 16);
-				}
 		
-				if (intermode)
-				{
-					strcpy(path, getenv("NUPACKHOME"));
-					strcat(path, "/bin/concentrations");
-					if (stat(path, &st) != 0)				// check to see whether NUPACKHOME is correctly set
-						throw 122;
-					strcpy(cmd[0], "concentrations");
-					strcpy(cmd[1], "-pairs");
-					strcpy(cmd[2], "-quiet");
-					strcpy(cmd[3], fullpath("nupack/ms2"));
-					forkexec(path, cmd, 4);
+					if (intermode)
+					{
+						strcpy(path, getenv("NUPACKHOME"));
+						strcat(path, "/bin/concentrations");
+						if (stat(path, &st) != 0)				// check to see whether NUPACKHOME is correctly set
+							throw 122;
+						strcpy(cmd[0], "concentrations");
+						strcpy(cmd[1], "-pairs");
+						strcpy(cmd[2], "-quiet");
+						strcpy(cmd[3], fullpath("nupack/ms2"));
+						forkexec(path, cmd, 4);
+					}
 				}
 				
 				cout << "\b\b\b\b";
 				fflush(stdout);
 				
 				//cout <<"Tabulating undesired secondary structure...\n";
-				/*if (worstmode)
-				{
-					currscore = setthreshold();
-					meta_analyze();
-				}
-				else
-					currscore = meta_analyze();*/
 				
 				if (worstmode)
 					setthreshold();
@@ -906,10 +925,11 @@ int main(int argc, char **argv)
 				cout << "\nFavorite trial was " << favoritetrial << endl;
 				
 				log.open(fullpath("favorites.txt"), ios::app);
-				log << roundnum << '\t' << favoritened << "%\t" << favoritescore << '\t' << favoritetrial;
+				log << roundnum << '\t' << favoritescore << '\t' << favoritened << "%\t" << favoritetrial;
 				for (int i = 0; i < histosize+1; i++)
 					log << '\t' << favhisto[i];
-				log << '\n';
+                time_t rawtime = time(NULL);
+                log << '\t' << ctime(&rawtime);
 				log.close();
 			}
 			
@@ -918,7 +938,7 @@ int main(int argc, char **argv)
 				cout << "Do more rounds (y/n)? ";
 				cin >> job[1];
 				
-				if (job[1] == 'n' || job[1] == 'N')
+				if (job[1] == 'n')
 				{
 					strcpy(path, "/bin/cp");		// copy final files out of subdirectory
 					copyfile( fullpath(seqfile_prefix, ".dd", roundnum, favoritetrial), fullpath("final.dd") );
@@ -1131,7 +1151,7 @@ void forkexec(char *path, char **cmd, int count)
 		cout << cmd[i] << ' ';
 	cout << endl;
 	//*/
-	
+    
 	pid = fork();
 	
 	if (pid < 0) 
@@ -1159,17 +1179,22 @@ void forkexec(char *path, char **cmd, int count)
 	}
 	else
 		do
+        {
+            errno = 0;
 			wstatus = waitpid(pid, &cstatus, 0);
+        }
 		while (wstatus == -1 && errno == EINTR);
 
-	if (errno == ECHILD || errno == EINVAL)			// invalid pid for child
+	if (errno == ECHILD)			// invalid pid for child
 		throw 65;
+    if (errno == EINVAL)            // invalid waitpid options
+        throw 143;
 	
-	/*if (WIFSIGNALED(cstatus))
+	if (WIFSIGNALED(cstatus))
 	{
 		cout << "\nChild process exited on signal " << WTERMSIG(cstatus) << endl;
 		//raise(WTERMSIG(cstatus));
-	}*/
+	}
 	
 	if (!WIFEXITED(cstatus))
 		throw 66;
@@ -1349,9 +1374,7 @@ void commandline(int argc, char **argv, char *job, char &designer, char *trial, 
 	trial[0] = '\0';
 	token[0] = '\0';
 	designer = '\0';
-	
-	int pos = 0, num;
-	
+		
 	for (int i = 1; i < argc; i += 2)
 	{
 		if (argv[i][0] != '-')
@@ -1547,6 +1570,13 @@ void outputlog()
 			log << strandblocks[i][j] << ' ';
 		log << endl;
 	}
+    
+    log << "\n\nbridge:\n";
+    for (i=0; i < bridge.size(); i+=2)
+	{
+		log << bridge[i] << ',';
+		log << bridge[i+1] << ' ';
+	}
 	
 	log << "\n\nblocktoken:\n";	
 	for (i = 0; i < blocktoken.size(); i++)
@@ -1673,6 +1703,9 @@ void loadspecification(char filename[])
 			continue;
 		}
 		
+		if (buffer[0] == '#' && buffer[1] == '!')				// don't discard Multisubjective directives, which may start with #!
+			buffer[0] = ' ';
+		
 		if (buffer[0] == '#' || buffer[0] == '`')				// discard comments, blank lines
 		{
 			do
@@ -1718,15 +1751,24 @@ void loadspecification(char filename[])
 			//if (numstrands >= strandsize)
 			//	throw 49;
 		}
-		/*else if (!strcmp(currsymbol, "!bridge"))
-		 {
-		 currsymbol = strtok(NULL, " ");
-		 bridgetemp[bridgecounter].id1 = tokenid(currsymbol);
+		else if (!strcmp(currsymbol, "!bridge"))
+        {
+            currsymbol = strtok(NULL, " ");
+            bridge[numbridgestrands] = tokenid(currsymbol, true);           //nonew = true
 		 
-		 currsymbol = strtok(NULL, " ");
-		 bridgetemp[bridgecounter].id2 = tokenid(currsymbol);
+            currsymbol = strtok(NULL, " ");
+            bridge[numbridgestrands+1] = tokenid(currsymbol, true);
+             
+            if (bridge[numbridgestrands] > bridge[numbridgestrands+1])
+            {                                                               //switch them
+                bridge[numbridgestrands]   +=  bridge[numbridgestrands+1];  //a,b -> a+b,b
+                bridge[numbridgestrands+1] -= -bridge[numbridgestrands];    // -> a+b,a
+                bridge[numbridgestrands]   -=  bridge[numbridgestrands+1];  // -> b,a
+            }
+            
+            numbridgestrands += 2;
 		 
-		 curroperator = *strtok(NULL, " ");
+		 /*curroperator = *strtok(NULL, " ");
 		 currvalue = strtok(NULL, " ");			
 		 
 		 if (curroperator == ':')
@@ -1750,8 +1792,8 @@ void loadspecification(char filename[])
 		 else
 		 throw 29;
 		 
-		 bridgecounter++;
-		 }*/
+         bridgecounter++;*/
+        }
 		else if (!strcmp(currsymbol, "!static"))
 		{
 			currsymbol = strtok(NULL, " ");
@@ -1852,7 +1894,7 @@ void loadspecification(char filename[])
 			if (curroperator != '=')
 				throw 141;
 			
-			srinivas = atof(currvalue);
+			srinivas = 1. - atof(currvalue);
 			if (srinivas < 0. || srinivas > 1.)
 				throw 142;
 		}
@@ -1899,7 +1941,7 @@ void loadspecification(char filename[])
 				immutablemode = 1;
 			else if (!strcmp(currvalue, "blocks"))
 			{
-				immutablemode = 0;
+				immutablemode = 2;
 				currvalue = strtok(NULL, " ");
 				while (currvalue != NULL)
 				{
@@ -1937,15 +1979,15 @@ void loadspecification(char filename[])
 			curroperator = *strtok(NULL, " ");
 			
 			if (checktoken(currsymbol, true))
+				currid = tokenid(currsymbol);
+			else				// treat structures not previously defined as static
 			{
 				currid = tokenid(currsymbol);
-				//if (currid < strandsize)	//hairpin
-					strandlength[currid] = parseDU(currid);
-				//else
-				//	parseDU(currid);	// don't try to set standlength for bridges, it will cause an overflow!
+				offset[currid] = 0;
+				numstrands++;
 			}
-			else // ignore structures not defined in ms.txt
-			{}
+			
+			strandlength[currid] = parseDU(currid);
  		}
 		else if (!strcmp(currsymbol, "material") || 
 				 !strcmp(currsymbol, "temperature") || 
@@ -2003,7 +2045,7 @@ void loadspecification(char filename[])
 	infile.close();
 }
 
-int tokenid(char symbol[])
+int tokenid(char symbol[], bool nonew /*= false*/)
 {
 	int id = 0;
 	while (id < strandtoken.size())			// check all records
@@ -2021,6 +2063,9 @@ int tokenid(char symbol[])
 		id++;
 	}*/
  
+    if (nonew)
+        throw 144;
+    
  	// if not found, start a new record
 	id = 0;
 	while (strandtoken[id][0] != '\0')
@@ -2138,10 +2183,10 @@ int parseDU(int id)		// goal: get strand lengths, get desired bases, fill offset
 			
 			if ( currtoken[0] == '(' )							
 				len += parseDU(-1);					// recurse to get what's in parens
-			else
+			else if (currtoken[0] == 'U')
 			{				
-				if (currtoken[0] != 'U')
-					throw 44;
+				//if (currtoken[0] != 'U')
+				//	throw 44;
 				
 				currtoken[0] = ' ';
 				if (!atoi(currtoken))
@@ -2268,22 +2313,13 @@ void storedesired (int id, int pos1, int pos2, int size)
 {
 	static int hairpincounter = 0;
 	
-	//if (id < strandsize)		// hairpin
-	//{
-		hairpintemp[hairpincounter].id = id;
-		hairpintemp[hairpincounter].pos1 = pos1;
- 		hairpintemp[hairpincounter].pos2 = pos2;
- 		hairpintemp[hairpincounter].size = size;
+	hairpintemp[hairpincounter].id = id;
+	hairpintemp[hairpincounter].pos1 = pos1;
+	hairpintemp[hairpincounter].pos2 = pos2;
+	hairpintemp[hairpincounter].size = size;
 		
-		hairpincounter++;
-	/*}
-	else		// bridge, used for autofilling bridge data
-	{
-		id -= strandsize;
-		bridgetemp[id].pos1 = pos1 + offset[bridgetemp[id].id1];
-		bridgetemp[id].pos2 = pos2 - strandlength[bridgetemp[id].id1] + offset[bridgetemp[id].id1];
-		bridgetemp[id].size = size;
-	}*/	
+	hairpincounter++;
+
 }
 
 void resolvebases()		// desired and immutable
@@ -2303,28 +2339,9 @@ void resolvebases()		// desired and immutable
 			//	throw 32;
 		}
 	}
- 
-	/*for (i = 0; bridgetemp[i].size != 0; i++)
-	{
-		startpos1 = getstartpos(bridgetemp[i].id1);
- 		startpos2 = getstartpos(bridgetemp[i].id2);
-		for (j = 0; j < bridgetemp[i].size; j++)
-		{
-			desiredbases[counter][0] = startpos1 + bridgetemp[i].pos1 + j;
-			desiredbases[counter][1] = startpos2 + bridgetemp[i].pos2 + bridgetemp[i].size -1 - j;
-			
-			if (desiredbases[counter][0] > desiredbases[counter][1])	// they need to be in the right order
-			{
-				desiredbases[counter][0] += desiredbases[counter][1];  // switch them
-				desiredbases[counter][1] = desiredbases[counter][0] - desiredbases[counter][1];
-				desiredbases[counter][0] += desiredbases[counter][1];
-			}
-		
-			counter++;
-			//if (counter == desiredsize)
-			//	throw 33;
-		}
-	}*/
+    
+    if (immutablemode == 0)
+        return;                         // no immutable bases
  
 	counter = 0;
 	startpos2 = 1;   // = tpos
@@ -2335,6 +2352,12 @@ void resolvebases()		// desired and immutable
 		
 		for (j = 0; strandblocks[i][j] != 0; j++)  // for each block
 		{
+            if (immutablemode == 2 && block[ abs(strandblocks[i][j]) ].getdefault() == X)
+            {
+                startpos2 += blocklength[ abs(strandblocks[i][j]) ];
+                continue;
+            }
+            
 			for (k = 0; k < blocklength[ abs(strandblocks[i][j]) ]; k++)	// for each base
 			{
 				//cout << i << ' ' << j << ' ' << k << "  " << startpos2 << endl;
@@ -2568,7 +2591,7 @@ void parseconditions(char currsymbol[])
 
 void loadsequences_MO(char filename[])
 {
-	int strand, pos;
+	int blocknum, pos;
 	char currbase, buffer[stringsize];
 	ifstream infile;
 	
@@ -2585,7 +2608,7 @@ void loadsequences_MO(char filename[])
 	
 	do
 		infile >> buffer;
-	while (strcmp(buffer, "Objectives"));
+	while (strcmp(buffer, "Domains"));
 	
 	while (1)							// BEGIN strandwise while-loop
 	{
@@ -2605,8 +2628,8 @@ void loadsequences_MO(char filename[])
 		
 		infile >> buffer;
 		
-		if (checktoken(buffer))
-			strand = tokenid(buffer);
+		if (bltokenid(buffer, true))
+			blocknum = bltokenid(buffer);
 		else
 			continue;					// ignore strands not in Multisubjective table
 		
@@ -2636,17 +2659,19 @@ void loadsequences_MO(char filename[])
 				
 			if (currbase != '+' && currbase != ' ')
 			{
-				sequence[strand][pos] = chartobase(currbase);
+				block[blocknum][pos] = chartobase(currbase);
 				pos++;
 					
 				//if (pos >= arraysize)
 				//	throw 9;
 			}
 		}
-		sequence[strand][pos] = X;
+		block[blocknum][pos] = X;
 	}										// END strandwise while-loop
 	
 	infile.close();
+    
+    assignblocktoseq();
 }
 
 void loadsequences_MO_old(char filename[])
@@ -2941,15 +2966,17 @@ char* fullpath(char filename[], char *extension /*= NULL*/, int round /*= -1*/, 
 
 /****************** UNDESIRED SECONDARY STRUCTURE CHECK *********************/
 
-void outputINfile(int mode)					// 0 = closed, 2 = open
+void outputINfile(int mode)					// 0 = closed, 1 = bridges, 2 = open
 {
-	int strand, pos;
+	int strand, pos = 0;
 	
-	if (mode != 0 && mode != 2) throw 10;
+	if (mode != 0 && mode != 1 && mode != 2) throw 10;
 	
 	char *filename;
 	if (mode == 0)
 		filename = fullpath("nupack/ms0.in");
+    else if (mode == 1)
+		filename = fullpath("nupack/ms1.in");
 	else if (mode == 2)
 		filename = fullpath("nupack/ms2.in");
 	
@@ -2960,7 +2987,9 @@ void outputINfile(int mode)					// 0 = closed, 2 = open
 	
 	if (mode == 0)
 		outfile << numstrands << '\n';
-	else
+    if (mode == 1)
+		outfile << numbridgestrands << '\n';
+	else if (mode == 2)
 	{
 		pos = numstrands;
 		for (strand = 0; strand < numstrands; strand++)							// skip static strands
@@ -2969,24 +2998,44 @@ void outputINfile(int mode)					// 0 = closed, 2 = open
 		outfile << pos << '\n';
 	}
 	
-	for (strand = 0; strand < numstrands; strand++)							// BEGIN strandwise while-loop
-	{
-		if (mode == 2 && offset[strand] == 0)		// skip static strands
-			continue;
-		
-		if (mode == 0 || offset[strand] < 0)
-			pos = 0;
-		else
-			pos = offset[strand];
-		
-		while (sequence[strand][pos] != X && (mode == 0 || offset[strand] > 0 || pos < -offset[strand]))	// BEGIN basewise while-loop
-		{			
-			outfile << basetochar(sequence[strand][pos]);
-			pos++;
-		}
-		outfile << '\n';
-	}										// END strandwise while-loop
-	
+    if (mode == 1)
+    {
+        for (strand = 0; strand < numbridgestrands; strand++)     // open bridges
+        {
+            if (offset[bridge[strand]] < 0)
+                pos = 0;
+            else
+                pos = offset[bridge[strand]];
+            
+            while (sequence[bridge[strand]][pos] != X && (offset[bridge[strand]] > 0 || pos < -offset[bridge[strand]]))	// BEGIN basewise while-loop
+            {
+                outfile << basetochar(sequence[bridge[strand]][pos]);
+                pos++;
+            }
+            outfile << '\n';
+        }
+    }
+    else
+    {
+        for (strand = 0; strand < numstrands; strand++)							// BEGIN strandwise while-loop
+        {
+            if (mode == 2 && offset[strand] == 0)		// skip static strands
+                continue;
+            
+            if (mode == 0 || offset[strand] < 0)
+                pos = 0;
+            else
+                pos = offset[strand];
+            
+            while (sequence[strand][pos] != X && (mode == 0 || offset[strand] > 0 || pos < -offset[strand]))	// BEGIN basewise while-loop
+            {			
+                outfile << basetochar(sequence[strand][pos]);
+                pos++;
+            }
+            outfile << '\n';
+        }										// END strandwise while-loop
+	}
+    
 	if (mode == 2 && intermode)
 		outfile << '2' << endl;					// only want complexes of N strands
 	else
@@ -3007,9 +3056,9 @@ void outputINfile(int mode)					// 0 = closed, 2 = open
 		outfile.close();
 	}
 	
-	if (mode == 2)
+	/*if (mode == 2)
 	{
-		/*outfile.open(fullpath("nupack/ms2.list"));
+		outfile.open(fullpath("nupack/ms2.list"));
 		if (outfile.fail())
 			throw 5;
 		
@@ -3017,8 +3066,13 @@ void outputINfile(int mode)					// 0 = closed, 2 = open
 			if (bridgetemp[pos].id1 != 0)
 				outfile << bridgetemp[pos].id1 + 1 << ' ' << bridgetemp[pos].id2 + 1 << endl;		// +1 because MS is 0-relative while NUPACK is 1-relative
 			
-		outfile.close();*/
-	}
+		outfile.close();
+	}*/
+	
+	if (mode == 2 && pos == 0)
+		nohairpins = true;
+    if (mode == 1 && pos == 0)
+		nobridges = true;
 }
 
 int setthreshold()
@@ -3087,16 +3141,19 @@ int setthreshold()
 		}		
 	}
 	
-	infile.close();
+	infile.close();		
 	if (intermode)
 		infile.open(fullpath("nupack/ms2.fpairs"));
 	else
 		infile.open(fullpath("nupack/ms2.cx-epairs"));
-	if (infile.fail())
+	if (!nohairpins && infile.fail())
 		throw 138;
 	
 	while (1)
 	{
+		if (nohairpins)
+			break;
+		
 		do								// skip extraneous characters between data blocks
 			infile >> buffer;
 		while (!infile.eof() && atoi(buffer) != oposmax);
@@ -3157,8 +3214,11 @@ score meta_analyze()
 {
 	ifstream infile;
 	char buffer[stringsize];
-	int first, second, lastfirst, lastsecond, counter=0, tposmax=0, oposmax=0, totalpairs=0;
-	float currprob, ensdefect;
+	int first, second, lastfirst, lastsecond, counter=0, tposmax=0, oposmax=0, bposmax=0, totalpairs=0;
+    int x, y;
+	float currprob = 0., ensdefect;
+    
+    spuriousbases.clear();
 	
 	log.open(fullpath(outfile_prefix, ".log", roundnum), fstream::app);
 	if (log.fail())
@@ -3175,23 +3235,34 @@ score meta_analyze()
 	}
 	
 	// count tposmax and oposmax
-	for (first = 0; first < numstrands; first++)
+	for (int i = 0; i < numstrands; i++)
 	{
-		tposmax += strandlength[first];
-		if (offset[first] > 0)
-			oposmax += strandlength[first] - offset[first];
+		tposmax += strandlength[i];
+		if (offset[i] > 0)
+			oposmax += strandlength[i] - offset[i];
 		else
-			oposmax += - offset[first];
+			oposmax += - offset[i];
 	}
-	//cout << "max: " << tposmax << ',' << oposmax << " (" << opostotpos(oposmax+1) << ')' << endl;
+    
+    // count bposmax
+    for (int i = 0; i < numbridgestrands; i++)
+    {
+        if (offset[bridge[i]] > 0)
+            bposmax += strandlength[bridge[i]] - offset[bridge[i]];
+        else
+            bposmax += - offset[bridge[i]];
+    }
+    //cout << "\nmax: " << tposmax << ',' << oposmax << " (" << opostotpos(oposmax+1) << ')' << endl;
 	
 	lastfirst = tposmax+1;
 	lastsecond = tposmax+1;
-	ensdefect = tposmax + oposmax;
+	ensdefect = tposmax + oposmax + bposmax;
 	//enscount = tposmax + oposmax;
 	for (int i = 0; i < histosize+1; i++)
 		histogram[i] = 0;
 	
+    // ================ ms0
+    
 	infile.open(fullpath("nupack/ms0.cx-epairs"));
 	if (infile.fail())
 		throw 11;
@@ -3204,11 +3275,14 @@ score meta_analyze()
 	while (1)
 	{
 		do								// skip extraneous characters between data blocks
-			infile >> buffer;
-		while (!infile.eof() && atoi(buffer) != tposmax);
+			infile.getline(buffer, stringsize);
+		while (!infile.eof() && atoi(buffer) == 0);
 		
-		if (infile.eof())				// end of file
+        if (infile.eof())				// end of file
 			break;
+        
+        if (atoi(buffer) != tposmax)
+            throw 146;
 		
 		//the first thing that's not the comment is the line containing tposmax
 		while (1)
@@ -3238,12 +3312,23 @@ score meta_analyze()
 			}
 			else if (second != tposmax+1 && (currprob >= threshold || ( (istoehold(first) || istoehold(second)) && currprob >= toethreshold )))
 			{
-				log << first << ' ' << second;
+				log << first << ' ' << second << ' ' << currprob;
 				if (currprob < threshold)
 					log << '*';
+                tpostosegment(first, x, y);
+                log << " (" << blocktoken[x] << '-' << y;
+                tpostostrand(first, x, y);
+                log << " ["  << strandtoken[x];
+                tpostosegment (second, x, y);
+                log << "], " << blocktoken[x] << '-' << y;
+                tpostostrand(second, x, y);
+                log << " ["  << strandtoken[x] << "])";
 				log << endl;
 				if (workbench)
 					json << "\t\t{\"pair\":[" << first << "," << second << "]},\n";
+                
+                spuriousbases.push(first);
+                spuriousbases.push(second);
 				
 				totalpairs++;
 			}
@@ -3272,17 +3357,28 @@ score meta_analyze()
 				lastsecond = second;
 			}
 			
-			if (second == tposmax+1 && currprob < srinivas && !isundesired_c(first, second))
+            //if (second == tposmax+1)
+            //    cout << first << ' ' << currprob << ' ' << !isundesired_c(first, second) << !isspurious(first) << endl;
+            
+			if (second == tposmax+1 && currprob < srinivas && !isundesired_c(first, second) && !isspurious(first))
 			{
-				log << first << " -";
-				clearpair(first, first);
+				log << first << " - " << 1.-currprob;
+                tpostosegment(first, x, y);
+                log << " (" << blocktoken[x] << '-' << y;
+                tpostostrand(first, x, y);
+                log << " ["  << strandtoken[x] << "])" << endl;
+				if (workbench)
+					json << "\t\t{\"single\":\"" << first << "\"},\n";
+                
+                clearpair(first, first);
+                totalpairs++;
 			}
 			
 			infile.get();  // get rid of return character
 			//cout << char(infile.peek()) << endl;
 			if (infile.eof() || infile.peek() == '%')		// end of data block
 				break;
-		}		
+		}
 	}
 
 	if (counter == 1)						// in case the final undesired base pair was isolated
@@ -3291,11 +3387,139 @@ score meta_analyze()
 	log << '-' << endl;
 	infile.close();
 	
+    // ================ ms1
+    
+    infile.open(fullpath("nupack/ms1.cx-epairs"));
+	if (!nobridges && infile.fail())
+		throw 145;
+	
+	/*cout << endl;
+     for (int i = 0; i < tposmax; i++)
+     if (found[i] == false)
+     cout << i << ' ';
+     cout << endl;
+     
+     for (int i = 0; i < 1000; i++)
+     found[i] = false;*/
+	
+	lastfirst = tposmax+1;
+	lastsecond = tposmax+1;
+	counter = 0;
+    int strandnum = 0;
+    
+	while (1)
+	{
+		if (nobridges || intermode)
+			break;
+		
+		do
+			infile.getline(buffer, stringsize);
+		while (!infile.eof() && atoi(buffer) == 0);
+		
+        if (infile.eof())				// end of data
+			break;
+        
+        if (atoi(buffer) != bposmax)
+            throw 147;
+        
+		//the first thing that's not the comment is the line containing bposmax
+		while (1)
+		{
+			infile >> first;
+			infile >> second;
+			infile >> currprob;
+			
+			if (second != bposmax+1 /*&& isundesired_b(first, second)*/)
+				histogram[int(currprob*histosize)]++;
+			
+			if (/*!isundesired_o(first, second)*/second == bposmax+1)			// all base pairs are undesired, for now
+			{
+				//cout << first << ' ' << second << ' ' << currprob << ' ' << ensdefect << ' ' << enscount<< endl;
+				/*found[first] = true;
+                 found[second] = true;
+                 enscount -= 1;*/
+				ensdefect -= currprob;
+			}
+			else if (currprob >= threshold)
+			{
+				log << bpostotpos(first, strandnum) << ' ' << bpostotpos(second, strandnum) << ' ' << currprob;
+                tpostosegment(bpostotpos(first, strandnum), x, y);
+                log << " (" << blocktoken[x] << '-' << y;
+                tpostostrand(bpostotpos(first, strandnum), x, y);
+                log << " ["  << strandtoken[x];
+                tpostosegment (bpostotpos(second, strandnum), x, y);
+                log << "], " << blocktoken[x] << '-' << y;
+                tpostostrand(bpostotpos(second, strandnum), x, y);
+                log << " ["  << strandtoken[x] << "])";
+				if (workbench)
+					json << "\t\t{\"pair\":[" << bpostotpos(first, strandnum) << "," << bpostotpos(second, strandnum) << "]},\n";
+                
+                spuriousbases.push(bpostotpos(first, strandnum));
+                spuriousbases.push(bpostotpos(second, strandnum));
+                
+				totalpairs++;
+			}
+			
+			if (second != bposmax+1 && currprob >= threshold)
+			{
+				if (/*isundesired_b(first, second) &&*/ first == lastfirst+1 && second == lastsecond-1)
+					counter++;
+				else
+				{
+					if (counter == 1) // isolated base pair
+						clearpair(bpostotpos(lastfirst, strandnum), bpostotpos(lastsecond, strandnum));
+                    
+					//if (isundesired_b(first, second))
+						counter = 1;
+					//else
+					//	counter = 0;
+				}
+                
+				if (counter == 2)
+					clearpair(bpostotpos(first, strandnum), bpostotpos(second, strandnum));
+				else if (counter > 3)
+					clearpair(bpostotpos(lastfirst, strandnum), bpostotpos(lastsecond, strandnum));
+                
+				lastfirst = first;
+				lastsecond = second;
+			}
+			
+			if ( second == bposmax+1 && currprob < srinivas /*&& !isundesired_b(first, second)*/ && !isspurious(bpostotpos(first, strandnum)) )	// if it is desired to be unpaired
+			{
+                log << bpostotpos(first, strandnum) << " - " << 1.-currprob;
+                tpostosegment(bpostotpos(first, strandnum), x, y);
+                log << " (" << blocktoken[x] << '-' << y;
+                tpostostrand(bpostotpos(first, strandnum), x, y);
+                log << " ["  << strandtoken[x] << "])" << endl;
+                if (workbench)
+					json << "\t\t{\"single\":\"" << first << "\"},\n";
+                
+                clearpair(bpostotpos(first, strandnum), bpostotpos(first, strandnum));
+                totalpairs++;
+			}
+            
+            infile.get();  // get rid of return character
+			//cout << char(infile.peek()) << endl;
+			if (infile.eof() || infile.peek() == '%')		// end of data block
+				break;
+		}
+        
+        strandnum++;
+	}
+    
+    if (counter == 1 && lastsecond != bposmax+1 && currprob >= threshold) // in case the last undesired base pair was isolated
+		clearpair(bpostotpos(lastfirst, strandnum), bpostotpos(lastsecond, strandnum));
+    
+    log << '-' << endl;
+    infile.close();
+    
+    // ================ ms2
+
 	if (intermode)
 		infile.open(fullpath("nupack/ms2.fpairs"));
 	else
 		infile.open(fullpath("nupack/ms2.cx-epairs"));
-	if (infile.fail())
+	if (!nohairpins && infile.fail())
 		throw 12;
 	
 	/*cout << endl;
@@ -3310,21 +3534,26 @@ score meta_analyze()
 	lastfirst = tposmax+1;
 	lastsecond = tposmax+1;
 	counter = 0;
-	// Now do second file
+
 	while (1)
 	{
-		do
-			infile >> buffer;
-		while (!infile.eof() && atoi(buffer) != oposmax);
-		
-		if (infile.eof())				// end of data
+		if (nohairpins)
 			break;
+		
+		do
+			infile.getline(buffer, stringsize);
+		while (!infile.eof() && atoi(buffer) == 0);
+		
+        if (infile.eof())				// end of data
+			break;
+        
+        if (atoi(buffer) != oposmax)
+            throw 148;
 						
 		//the first thing that's not the comment is the line containing oposmax
 		while (1)
 		{
-			infile.get();								// get rid of return character(s)
-			if (infile.peek() == '\n')
+			if (infile.peek() == '\n')                      // this is for last return character at eof
 				infile.get();
 			//cout << char(infile.peek()) << endl;
 			if (infile.eof() || infile.peek() == '%')		// end of data block
@@ -3336,6 +3565,15 @@ score meta_analyze()
 			
 			if (second < first)
 				continue;					// ignore inverted pairs
+            
+            bool skip = false;              // ignore pairs part of complexes with bridge region
+            for (int i = 0; i < numbridgestrands; i+=2)
+                if (opostotpos(first) >= getstartpos(bridge[i]) && opostotpos(first) < getstartpos(bridge[i]) + strandlength[bridge[i]]
+                  && ( second == oposmax+1
+                  || (opostotpos(second) >= getstartpos(bridge[i+1]) && opostotpos(second) < getstartpos(bridge[i+1]) + strandlength[bridge[i+1]]) ))
+                    skip = true;
+            if (skip)
+                continue;
 			
 			if (second != oposmax+1 /*&& isundesired_o(first, second)*/)
 				histogram[int(currprob*histosize)]++;
@@ -3350,10 +3588,22 @@ score meta_analyze()
 			}
 			else if (currprob >= threshold)
 			{
-				log << opostotpos(first) << ' ' << opostotpos(second) << endl;
-				if (workbench)
+				log << opostotpos(first) << ' ' << opostotpos(second) << ' ' << currprob;
+                tpostosegment(opostotpos(first), x, y);
+                log << " (" << blocktoken[x] << '-' << y;
+                tpostostrand(opostotpos(first), x, y);
+                log << " ["  << strandtoken[x];
+                tpostosegment (opostotpos(second), x, y);
+                log << "], " << blocktoken[x] << '-' << y;
+                tpostostrand(opostotpos(second), x, y);
+                log << " ["  << strandtoken[x] << "])";
+                log << endl;
+                if (workbench)
 					json << "\t\t{\"pair\":[" << opostotpos(first) << "," << opostotpos(second) << "]},\n";
 
+                spuriousbases.push(opostotpos(first));
+                spuriousbases.push(opostotpos(second));
+                
 				//cout << first << '/' << opostotpos(first) << ' ' << second << '/' << opostotpos(second) << endl;
 				totalpairs++;
 			}
@@ -3381,11 +3631,22 @@ score meta_analyze()
 				lastfirst = first;
 				lastsecond = second;
 			}
+            
+            //if (second == oposmax+1)
+            //    cout << first << ' ' << currprob << ' ' << !isundesired_c(first, second) << !isspurious(first) << endl;
 			
-			if (second == oposmax+1 && currprob < srinivas && !isundesired_o(first, second))	// if it is desired to be unpaired
+			if ( second == oposmax+1 && currprob < srinivas && !isundesired_o(first, second) && !isspurious(opostotpos(first)) )	// if it is desired to be unpaired
 			{
-				log << opostotpos(first) << " -";
-				clearpair(opostotpos(first), opostotpos(first));
+				log << opostotpos(first) << " - " << 1.-currprob;
+                tpostosegment(opostotpos(first), x, y);
+                log << " (" << blocktoken[x] << '-' << y;
+                tpostostrand(opostotpos(first), x, y);
+                log << " ["  << strandtoken[x] << "])" << endl;
+                if (workbench)
+					json << "\t\t{\"single\":\"" << first << "\"},\n";
+                
+                clearpair(opostotpos(first), opostotpos(first));
+                totalpairs++;
 			}
 		}
 	}
@@ -3393,11 +3654,15 @@ score meta_analyze()
 	if (counter == 1 && lastsecond != oposmax+1 && currprob >= threshold) // in case the last undesired base pair was isolated
 		clearpair(opostotpos(lastfirst), opostotpos(lastsecond));
 	
+    infile.close();
+
 	/*for (int i = 0; i < oposmax; i++)
 		if (found[i] == false)
 			cout << i << ' ';
 	cout << endl;*/
-	
+
+	// ================ finally
+    
 	ensdefect /= (tposmax+oposmax);
 	ensdefect *= 100.;
 	
@@ -3413,7 +3678,6 @@ score meta_analyze()
 	log << endl;
 	//cout << "(" << enscount << ") ";
 	
-	infile.close();
 	log.close();
 	
 	if (workbench)
@@ -3463,6 +3727,17 @@ bool isimmutable(int tpos)
 	
 	for (i = 0; i < immutablebases.size(); i++)
 		if (tpos == immutablebases[i])
+			return true;
+	
+	return false;
+}
+
+bool isspurious(int tpos)
+{
+	int i;
+	
+	for (i = 0; i < spuriousbases.size(); i++)
+		if (tpos == spuriousbases[i])
 			return true;
 	
 	return false;
@@ -3570,8 +3845,62 @@ int opostotpos(int opos)
 	if (offset[strand] > 0)
 		totaloffset += offset[strand]; // for strand that base is in; offset only counts if it's positive (i.e. at beginning of strand)
 	
-	//cout << strand << ' ' << totaloffset << ' ';
+	//cout << opos << "->" << opos+totaloffset << " (" << strand << ' ' << totaloffset << ')' << endl;
 	return (opos + totaloffset);
+}
+
+int bpostotpos(int bpos, int strandnum)
+{
+    //cout << bpos << "->";
+    int i;
+    for (i = 0; i < strandnum; i++)
+    {
+        if (offset[bridge[i]] > 0)
+            bpos -= (strandlength[bridge[i]] - offset[bridge[i]]);
+        else
+            bpos -= - offset[bridge[i]];
+    }
+    
+    bpos += getstartpos(bridge[strandnum]);      // remember, getstartpos(...) gives putative 0 position
+    
+    if (offset[bridge[i]] > 0)
+        bpos += offset[bridge[strandnum]];
+    
+    //cout << bpos << " (" << strandnum << ")\n";
+    return bpos;
+}
+
+void tpostostrand(int tpos, int &strand, int &pos)
+{
+    strand = 0;
+    pos = tpos - 1;                                  // 1-relative to 0-relative
+    
+    while (pos >= strandlength[strand])
+    {
+        pos -= strandlength[strand];
+        strand++;
+        if (strand >= numstrands)
+            throw 149;
+    }
+}
+
+void tpostosegment(int tpos, int &segment, int &pos)
+{
+    int strand;
+    segment = 0;
+    tpostostrand(tpos, strand, pos);
+    
+    while (pos >= blocklength[ abs(strandblocks[strand][segment]) ])
+    {
+        pos -= blocklength[ abs(strandblocks[strand][segment]) ];
+        segment++;
+        if (strandblocks[strand][segment] == 0)
+            throw 150;
+    }
+    
+    if (strandblocks[strand][segment] < 0)
+        pos = blocklength[ abs(strandblocks[strand][segment]) ] - 1 - pos;
+    segment = abs(strandblocks[strand][segment]);
 }
 
 /****************** PREVENTED SEQUENCES CHECK *********************/
@@ -3696,10 +4025,10 @@ void assignseqtoblock()
 		for (int j = 0; j < blockcolor[i].size(); j++)
 			blockcolor[i][j] = 0;
 	
-	log.open(fullpath(outfile_prefix, ".log", roundnum), fstream::app);
+	/*log.open(fullpath(outfile_prefix, ".log", roundnum), fstream::app);
 	if (log.fail())
 		throw 62;
-	log << "\nStrand-to-block sequence assignments:";
+	log << "\nStrand-to-block sequence assignments:";*/
 	
 	if (workbench)
 	{
@@ -3719,9 +4048,9 @@ void assignseqtoblock()
 	for (strandnum = 0; strandnum < numstrands; strandnum++)
 		for (blocknum = 0; strandblocks[strandnum][blocknum] != 0; blocknum++)
 		{
-			log << "\nBefore: block " << blocktoken[ abs(strandblocks[strandnum][blocknum]) ] << ": ";
+			/*log << "\nBefore: block " << blocktoken[ abs(strandblocks[strandnum][blocknum]) ] << ": ";
 			for (pos = 0; pos < blocklength[ abs(strandblocks[strandnum][blocknum]) ]; pos++)
-				log << basetochar(block[ abs(strandblocks[strandnum][blocknum]) ][pos]);
+				log << basetochar(block[ abs(strandblocks[strandnum][blocknum]) ][pos]);*/
 		
 			if (strandblocks[strandnum][blocknum] >= 0)						// if positive blockid
 				for (pos = 0; pos < blocklength[strandblocks[strandnum][blocknum]]; pos++)
@@ -3735,14 +4064,14 @@ void assignseqtoblock()
 					= basecollide(block[ -strandblocks[strandnum][blocknum] ][ blocklength[-strandblocks[strandnum][blocknum]]-1-pos ]
 								  , !getfromsequence(tpos+pos), -strandblocks[strandnum][blocknum], blocklength[-strandblocks[strandnum][blocknum]]-1-pos);
 		
-			log << "\nAfter:  block " << blocktoken[ abs(strandblocks[strandnum][blocknum]) ] << ": ";
+			/*log << "\nAfter:  block " << blocktoken[ abs(strandblocks[strandnum][blocknum]) ] << ": ";
 			for (pos = 0; pos < blocklength[ abs(strandblocks[strandnum][blocknum]) ]; pos++)
-				log << basetochar(block[ abs(strandblocks[strandnum][blocknum]) ][pos]);
+				log << basetochar(block[ abs(strandblocks[strandnum][blocknum]) ][pos]);*/
 		
 			tpos += blocklength[ abs(strandblocks[strandnum][blocknum]) ];
 		}
 	
-	log.close();
+	//log.close();
 	
 	if (workbench)
 	{
@@ -3815,9 +4144,7 @@ void outputblocks(int mode, int round /*= -1*/, int trial /*= -1*/)				// 0=.msq
 		numblocks++;
 		
 	ofstream outfile;
-	
-	char filename[stringsize];
-	
+		
 	if (mode == 0)
 		outfile.open(fullpath(outfile_prefix, ".msq", round, trial));
 	else if (mode == 1)
@@ -3904,7 +4231,6 @@ void outputblocks(int mode, int round /*= -1*/, int trial /*= -1*/)				// 0=.msq
 	if (mode == 0)
 		cout << counter << " nt to design.";
 	else if (mode == 4)
-		// !!!!!!!!!!!
 		outfile << "\t]\n}\n";
 	
 	outfile.close();
@@ -3912,7 +4238,7 @@ void outputblocks(int mode, int round /*= -1*/, int trial /*= -1*/)				// 0=.msq
 
 /****************** MO SUBMISSION FUNCTIONS *********************/
 
-char* outputMOpost()		// URL encoding
+void outputMOpost()		// URL encoding
 {
 	char buffer;
 	
@@ -4541,7 +4867,7 @@ void handlewarning(int errorlevel, int pos1 /*=0*/, int pos2 /*=0*/, int data /*
 			break;
 		case -3:
 			if (workbench) cerr << "Immutable prevented sequence at position " << pos1 << " ";
-			log  << "\nWarning: immutable prevented sequence at position " << pos1;
+			log  << "\nWarning: immutable prevented sequence at position " << pos1 << endl;
 			break;
 		case -4:
 			if (workbench) cerr << "Empty bases in collision ";
@@ -4634,7 +4960,7 @@ void handleerror(int errorlevel)
 		case 17: case 23: 	
 			cerr << "Error opening specification input file";
 			break;
-		case 11: case 12: case 137: case 138:
+		case 11: case 12: case 137: case 138: case 145:
 			cerr << "Error opening NUPACK file";
 			break;
 		case 18: case 19:
@@ -4670,7 +4996,7 @@ void handleerror(int errorlevel)
 		case 10:
 			cerr << "Bad output mode";
 			break;
-		case 34: case 35: case 36: case 37: case 38: case 39: case 124:
+		case 34: case 35: case 36: case 37: case 38: case 39: case 124: case 149:
 			cerr << "Base position out of range";
 			break;
 		case 86: case 87:
@@ -4694,7 +5020,7 @@ void handleerror(int errorlevel)
 		case 133:
 			cerr << "Bad keyword in immutable mode specification";
 			break;
-		case 25: case 26: case 27: case 44: case 84: case 85:
+		case 25: case 26: case 27: /*case 44:*/ case 84: case 85:
 			cerr << "Malformed DU notation in specification file";
 			break;
 		case 102: case 103: case 104: case 106:
@@ -4703,6 +5029,9 @@ void handleerror(int errorlevel)
 		case 105:
 			cerr << "Disallowed dot-paren structure in specification file";
 			break;
+        case 144:
+            cerr << "Undefined strand name in specification file";
+            break;
 		case 45:
 			cerr << "Buffer overflow parsing length string";
 			break;
@@ -4715,7 +5044,7 @@ void handleerror(int errorlevel)
 		case 30:
 			cerr << "Bad strand identifier";
 			break;
-		case 31:
+		case 31: case 150:
 			cerr << "Strand length inconsistency";
 			break;
 		/*case 8: case 9: case 68: case 96:
@@ -4748,7 +5077,7 @@ void handleerror(int errorlevel)
 		case 46:
 			cerr << "Process fork failed";
 			break;
-		case 58: case 65:
+		case 58: case 65: case 143:
 			cerr << "Process call failed";
 			break;
 		case 66: case 67:
@@ -4799,6 +5128,9 @@ void handleerror(int errorlevel)
 		case 134: case 135:
 			cerr << "Error copying file";
 			break;
+        case 146: case 147: case 148:
+            cerr << "Base count inconsistency";
+            break;
 		default:
 			cerr << "General error.  Salute!";
 	}

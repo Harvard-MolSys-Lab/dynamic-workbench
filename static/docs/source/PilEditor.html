@@ -20,13 +20,13 @@
  */
 Ext.define('App.usr.pepper.PilEditor', {
 	extend: 'App.usr.text.Editor',
-	requires: ['App.usr.enum.RunButton'],
+	requires: ['App.usr.enum.RunButton', 'App.ui.ConvertButton'],
 <span id='App-usr-pepper-PilEditor-property-title'>	title: 'PIL',
 </span><span id='App-usr-pepper-PilEditor-method-initComponent'>	initComponent: function() {
 </span>		Ext.applyIf(this, {
 			tbar: [
 			Ext.create('App.usr.enum.RunButton',{app: this}),
-
+			Ext.create('App.ui.ConvertButton',{app:this, fromMode: 'pil'}),
 			 '-&gt;', Ext.create('App.ui.SaveButton', {
 				app: this
 			})]

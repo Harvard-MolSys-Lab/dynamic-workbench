@@ -22,26 +22,43 @@ Ext.define('App.usr.pepper.Editor', {
 	extend: 'App.usr.text.Editor',
 <span id='App-usr-pepper-Editor-property-title'>	title: 'Pepper',
 </span><span id='App-usr-pepper-Editor-method-initComponent'>	initComponent: function() {
-</span>		Ext.applyIf(this, {
+</span>		this.argsField = Ext.create('Ext.form.field.Text',{
+			indent: true,
+			allowBlank:true
+		});
+		Ext.applyIf(this, {
 			tbar: [{
-				text: 'Save',
-				iconCls: 'save',
-				handler: function() {
-					this.saveFile();
-				},
-				scope: this,
-			},{
 				text: 'Compile',
 				iconCls: 'compile',
-				handler: function() {
-					App.runTask('Pepper', {
-						node: this.getDocumentPath()
-					});
-				},
+				xtype: 'splitbutton',
+				menu: [{
+					text: 'Arguments:',
+					canActivate: false,
+				},this.argsField,{
+					text: 'Compile',
+					iconCls: 'compile',
+					handler: this.runPepper,
+					scope: this
+				}],
+				handler: this.runPepper,
 				scope: this,
-			}]
+			},'-&gt;',{
+				text: 'Help',
+				iconCls: 'help',
+				handler: App.ui.Launcher.makeLauncher('help:pepper'),
+			}, Ext.create('App.ui.SaveButton',{
+				text: 'Save',
+				iconCls: 'save',
+				app: this,
+			})]
 		});
 		this.callParent(arguments);
+	},
+<span id='App-usr-pepper-Editor-method-runPepper'>	runPepper: function() {
+</span>		App.runTask('Pepper', {
+			node: this.getDocumentPath(),
+			args: this.argsField.getValue()
+		});
 	}
 });</pre>
 </body>

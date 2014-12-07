@@ -33,7 +33,7 @@ Contents
 	- [Thermodynamic Analysis with the TBI Vienna RNAfold Webserver](rnafold)
 	- [Thermodynamic Analysis with the Mfold Webserver](mfold)
 - [Tools and Utilities](utilities)
-- [Customization](customization)
+- [Customization](customization) - _Customize DyNAMiC Workbench, or run your own server_
 	- [Installation](install)
 	- [Workbench Server](server)
 	- [Scripting](scripting)

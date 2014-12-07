@@ -121,3 +121,32 @@ For example, if you've made a user with the email address `example@example.com` 
 You can also do things like list all registered users, export users to a JSON file, import user data from a JSON file, and edit other properties of user (including resetting their passwords). Run `meta/utils/users --help` for a full list.
 
 ### Troubleshooting
+
+#### Can't access login page
+
+When you navigate to Workbench in a browser and the login page does not load, this likely suggests the server is not running. Use the following steps:
+
+1. Check that the VM is running by running `vagrant status`; if the result indicates the the `default` VM is `saved` or `halted`, then resume the VM using `vagrant up` and try again.
+2. Check that the Workbench server is running; `ssh` into the VM (run `vagrant ssh`), then run `sudo status workbench`. If you see `workbench stop/waiting`, then the server is not running; try re-starting it using `sudo start workbench`.
+3. If you instead see something like `workbench start/running, process 15445` (the number will be different), then the server _is_ running. However, the server is configured to restart itself if its process crashes; this is generally rare, but an incorrect configuration may cause it to happen repeatedly, making the server unresponsive. You can check that this might be happening by running `sudo status workbench` twice in a row (e.g. `sudo status workbench; sudo status workbench`), and checking whether the process numbers are different. For instance, if you see
+
+		sudo status workbench; sudo status workbench
+		workbench start/running, process 15445
+		workbench start/running, process 15447
+
+	this suggests that Workbench is restarting repeatedly. You'll need to check the log files to see why this might be.
+4. To access the log files, you can look in `home/webserver-user/logs` (from within the VM), or on your host machine in the `logs` folder (which will be a sister to the main Workbench install directory). There are two main log files:
+
+	- `startup.log` -- This file contains everything written to `stdout` and `stderr` by the Workbench startup script; look here if Workbench has crashed or is crashing repeatedly.
+	- `full.log` -- This file contains application errors written by the Workbench application code; check here if Workbench is refusing to run a particular computational tool, load a file, etc. 
+
+5. If it's not clear how to resolve the issue from here, post an issue on GitHub.
+
+#### Login progress bar goes forever
+
+If you can get to the login page and enter credentials, but when you login the progress bar keeps resetting itself, this suggests the user database is not running properly. To troubleshoot:
+
+1. Check if the database server is running; `ssh` into the VM (run `vagrant ssh`), then run `sudo status mongod`. You should see `mongod start/running, process 854` (the number may be different).
+2. Try repairing the database; run `sudo /home/webserver-user/repair`, then restart Workbench (`sudo stop workbench; sudo start workbench`) and try logging in again.
+3. Check the database log file in `/var/log/mongodb/mongod.log` (e.g. `less /var/log/mongodb/mongod.log`), and look for clues as to what may be going wrong. 
+4. If it's still not clear how to resolve the issue from here, post an issue on GitHub.

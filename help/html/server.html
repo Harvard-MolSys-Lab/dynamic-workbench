@@ -68,3 +68,39 @@ sudo start workbench </code></pre>
 <li>Entering <code>vagrant halt</code> from the command line in your host machine (in the same directory as Workbench is installed)</li>
 </ul>
 <h3 id="managing-users">Managing users</h3>
+<p>You can manage users by visiting the <a href="/admin">/admin</a> page from within Workbench; if your current account is an administrator, you will see a list of all users in the database. You can edit users' names, affiliations, and email addresses, you can activate or deactivate accounts, and you can make users administrators.</p>
+<p>When you first install the Workbench server, however, the first account you make will not have administrator privileges and so you will have no other way of activating/managing user accounts. To remedy this, Workbench includes a simple command-line tool that you can use to manage user accounts. To access it:</p>
+<ul>
+<li>Sign into the server via <code>ssh</code> (e.g. using <code>vagrant ssh</code>)</li>
+<li>Navigate to <code>/home/webserver-user/app</code> (you must be in this folder)</li>
+<li>Run <code>meta/utils/users --help</code> to see a list of options and usage information.</li>
+</ul>
+<p>For example, if you've made a user with the email address <code>example@example.com</code> and you'd like to make that user an administrator, you can run:</p>
+<pre><code>meta/utils/users edit example@example.com --admin</code></pre>
+<p>You can also do things like list all registered users, export users to a JSON file, import user data from a JSON file, and edit other properties of user (including resetting their passwords). Run <code>meta/utils/users --help</code> for a full list.</p>
+<h3 id="troubleshooting">Troubleshooting</h3>
+<h4 id="cant-access-login-page">Can't access login page</h4>
+<p>When you navigate to Workbench in a browser and the login page does not load, this likely suggests the server is not running. Use the following steps:</p>
+<ol style="list-style-type: decimal">
+<li>Check that the VM is running by running <code>vagrant status</code>; if the result indicates the the <code>default</code> VM is <code>saved</code> or <code>halted</code>, then resume the VM using <code>vagrant up</code> and try again.</li>
+<li>Check that the Workbench server is running; <code>ssh</code> into the VM (run <code>vagrant ssh</code>), then run <code>sudo status workbench</code>. If you see <code>workbench stop/waiting</code>, then the server is not running; try re-starting it using <code>sudo start workbench</code>.</li>
+<li><p>If you instead see something like <code>workbench start/running, process 15445</code> (the number will be different), then the server <em>is</em> running. However, the server is configured to restart itself if its process crashes; this is generally rare, but an incorrect configuration may cause it to happen repeatedly, making the server unresponsive. You can check that this might be happening by running <code>sudo status workbench</code> twice in a row (e.g. <code>sudo status workbench; sudo status workbench</code>), and checking whether the process numbers are different. For instance, if you see</p>
+<pre><code>sudo status workbench; sudo status workbench
+workbench start/running, process 15445
+workbench start/running, process 15447</code></pre>
+this suggests that Workbench is restarting repeatedly. You'll need to check the log files to see why this might be.</li>
+<li><p>To access the log files, you can look in <code>home/webserver-user/logs</code> (from within the VM), or on your host machine in the <code>logs</code> folder (which will be a sister to the main Workbench install directory). There are two main log files:</p>
+<ul>
+<li><code>startup.log</code> -- This file contains everything written to <code>stdout</code> and <code>stderr</code> by the Workbench startup script; look here if Workbench has crashed or is crashing repeatedly.</li>
+<li><code>full.log</code> -- This file contains application errors written by the Workbench application code; check here if Workbench is refusing to run a particular computational tool, load a file, etc.</li>
+</ul></li>
+<li><p>If it's not clear how to resolve the issue from here, post an issue on GitHub.</p></li>
+</ol>
+<h4 id="login-progress-bar-goes-forever">Login progress bar goes forever</h4>
+<p>If you can get to the login page and enter credentials, but when you login the progress bar keeps resetting itself, this suggests the user database is not running properly. To troubleshoot:</p>
+<ol style="list-style-type: decimal">
+<li>Check if the database server is running; <code>ssh</code> into the VM (run <code>vagrant ssh</code>), then run <code>sudo status mongod</code>. You should see <code>mongod start/running, process 854</code> (the number may be different).</li>
+<li>Try repairing the database; run <code>sudo /home/webserver-user/repair</code>, then restart Workbench (<code>sudo stop workbench; sudo start workbench</code>) and try logging in again.</li>
+<li>Check the database log file in <code>/var/log/mongodb/mongod.log</code> (e.g. <code>less /var/log/mongodb/mongod.log</code>), and look for clues as to what may be going wrong.</li>
+<li>If it's still not clear how to resolve the issue from here, post an issue on GitHub.</li>
+</ol>

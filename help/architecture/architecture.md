@@ -81,6 +81,19 @@ The layout of this home directory is as follows (all paths are relative to `/hom
 	-	`mongo.log` - Contains logging information from the MongoDB database.
 -	`node_modules/` - Contains node modules installed using the [Node Package Manager](https://npmjs.org/), `npm`. 
 
+### Development vs. Production Mode
+
+The Workbench server can run in one of two modes: `development` or `production`: 
+-	In `development` mode, the client is served many individual JavaScript files containing different components and client-side applications; these files are loaded lazily (e.g. when the user opens the Nodal application for the first time, its code is loaded from the server). This makes it easier to make changes to the code and refresh the page to see their effects. Several special routes are also enabled (`/build.html`, `/tests.html` for building a release and for running unit tests on some included modules).
+-	In `production` mode, the client is served one large, compressed JavaScript file that contains code for all client-side applications. Certain additional cacheing features are enabled by the Express web framework, and special routes (`/build.html`, `/tests.html`) are not served.
+
+The choice of `development` or `production` mode is governed by the `NODE_ENV` environment variable, which when set to `'production'`, will cause the server to start in production mode. Generally, this can be done by creating a file called `workbench-config` in the home directory of the `webserver-user` in which the the environment variable is set; this file will be automatically included by the `startup` script, so it can be used to perform actions every time the server starts. 
+
+Setting the contents of  `~webserver-user/workbench-config` to the following will direct the server to start always in production mode:
+
+	export NODE_ENV='production'
+
+
 ## Application Code File Hierarchy
 
 This section outlines the file hierarchy for application code (all paths are relative to `/home/webserver-user/app/`):
@@ -116,49 +129,33 @@ As discussed, the server code is executed by the Node.js Javascript runtime. Nod
 
 ### Old dependencies
 
-**Note**: Workbench relies on very old oversions of several of these dependencies; these should be upgraded to the latest available version whenever time allows. This section briefly describes, for each old dependency, why it is still used and possible problems:
+**Note**: Workbench relies on very old oversions of several of these dependencies; these should be upgraded to the latest available version whenever time allows. This section briefly describes, for each old dependency, why it is still used (e.g. breaking changes in subsequent versions that we haven't yet dealt with) and possible problems that this may introduce:
 
 -	Node (`v0.6.x`) -- Many breaking changes since this version, including a revamped `Stream` API, some changes to the `path` and `fs` APIs.
--	npm (`v1.x.x`) -- Many breaking changes, but importantly, the old version of `npm` (before `~2.x.x`) doesn't support 
--	Express (`v2.x.x`)
--	Jade (`v0.x.x`)
--	Mongoose (`v1.7.x`)
+-	npm (`v1.x.x`) -- Many breaking changes, but importantly, the old version of `npm` (before `~2.x.x`) doesn't support certain range specifications for dependencies (e.g. `~` ranges, `^` ranges, etc.); this means some dependencies may not install correctly.
+-	Express (`v2.x.x`) -- Unpatched since 2012. Unfortunately `3.x` and `4.x` both introduced substantial breaking changes, including changing the nature of the dependency on `connect` and the way that view partials are rendered; this will therefore require some work to upgrade.
+-	Connect -- The useful parts of the `connect` middleware library have mostly been gutted, so stuff like the form body parser and the static file server and so on have all been moved to separate libraries maintained by different people. We're using the most recent, old version that still works with Express.
+-	Jade (`v0.x.x`) -- The Jade template language has seen major evolution, but most of the syntax is backwards-compatible; a few changes (e.g. to the `doctype` statements) prevent us from updating.
+-	Mongoose (`v1.7.x`) -- Many aspects of the Mongoose ORM's internal implementation and public API have changed, and the current version of Mongoose doesn't work with old versions of Node.
 
 ## Bootstrapping process
 
 This section describes the process by which server code is loaded and executed.
 
 -	`workbench.conf` - A script for the event-based task daemon [Upstart](http://upstart.ubuntu.com/). The Upstart daemon reads this script which directs it to start the `startup` shell script when the machine boots, and to restart the script when it crashes. 
--	`startup` - A shell script which exists largely for convenience. The upstart script requires superuser privileges to edit, but this script can live in the main `webserver-user`'s home directory and therefore be modified without special privileges. This script launches the MongoDB database server which tracks user authentication. 
--	`app.js` - Loads `connect`, `express`, and a number of other modules, and sets up an HTTP server. Serves a few routes, including the main application page. Loads the following files:
+-	`startup` - A shell script which exists largely for convenience. The upstart script requires superuser privileges to edit, but this script can live in the main `webserver-user`'s home directory and therefore be modified without special privileges. This script launches the main `node` server process.
+-	`app.js` - Loads `connect`, `express`, and a number of other modules, and sets up an HTTP server. Serves a few routes, including the main application page (`/`). Loads the following files:
 	-	`config.js` - Contains configuration variables.
 	-	`utils.js` - Contains a number of utility functions.
 	-	`file-manager.js` - Contains the service which serves user files in response to HTTP requests. Also responds to HTTP requests instructing creation, renaming/moving, updating, and deletion of files.
 	-	`server-tools.js` - Contains the service which starts computational tasks in response to HTTP requests.
-	-	`auth.js` - Contains the service which responds to user authentication requests.
+	-	`auth.js` - Contains the service which responds to user authentication requests (`/login`, `/register`, etc.) and is the module that exports middleware for restricting pages to logged-in users.
 	
-## Realtime services
-
-### Task service
-
-This section is under construction as this API develops. 
-
--	Task classes
-	-	LocalTask
-	-	BashTask
-	-	NodeTask
--	Starting tasks
-	-	Parsing user input data
-	-	Creating Task object
-	-	Starting task
-	-	Associating task with user
-	-	Piping data to user
-	-	Watching for task completion
--	Stopping tasks
+## Services
 
 ### File service
 
-This section is under construction. The file service registers handlers for HTTP requests for the following actions:
+The file service (defined in `file-manager.js`) registers handlers for HTTP requests for the following actions:
 
 -	Creating files
 -	Listing contents of a directory
@@ -169,7 +166,7 @@ This section is under construction. The file service registers handlers for HTTP
 
 ## Server tools
 
-This section is under construction. The following computational tools are included:
+The tools service (defined in `server-tools.js` registers handlers for HTTP requests that start computational tools. The following computational tools are included:
 
 -	Nodal compiler
 -	Domain-level enumerator

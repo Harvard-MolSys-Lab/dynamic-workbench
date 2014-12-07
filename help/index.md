@@ -34,6 +34,7 @@ Contents
 	- [Thermodynamic Analysis with the Mfold Webserver](mfold)
 - [Tools and Utilities](utilities)
 - [Customization](customization)
+	- [Installation](install)
 	- [Workbench Server](server)
 	- [Scripting](scripting)
 	- [Application development](application-development)

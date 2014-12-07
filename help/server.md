@@ -106,4 +106,18 @@ To shut down the server and avoid damaging the database, simply shut down the vi
 
 ### Managing users
 
+You can manage users by visiting the [/admin](/admin) page from within Workbench; if your current account is an administrator, you will see a list of all users in the database. You can edit users' names, affiliations, and email addresses, you can activate or deactivate accounts, and you can make users administrators.
 
+When you first install the Workbench server, however, the first account you make will not have administrator privileges and so you will have no other way of activating/managing user accounts. To remedy this, Workbench includes a simple command-line tool that you can use to manage user accounts. To access it:
+
+*	Sign into the server via `ssh` (e.g. using `vagrant ssh`)
+*	Navigate to `/home/webserver-user/app` (you must be in this folder)
+*	Run `meta/utils/users --help` to see a list of options and usage information.
+
+For example, if you've made a user with the email address `example@example.com` and you'd like to make that user an administrator, you can run:
+
+	meta/utils/users edit example@example.com --admin
+
+You can also do things like list all registered users, export users to a JSON file, import user data from a JSON file, and edit other properties of user (including resetting their passwords). Run `meta/utils/users --help` for a full list.
+
+### Troubleshooting

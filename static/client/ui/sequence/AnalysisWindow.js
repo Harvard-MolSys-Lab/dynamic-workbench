@@ -61,17 +61,23 @@ Ext.define('App.ui.sequence.AnalysisWindow',{
 		
 		var strands = this.getStrands(), strandCount = strands.length, start_index = 0, end_index;
 		
+		delay = 0
 		do {
-			end_index = start_index + Math.min(strandCount,this.maxStrandCount)
-			form.doAction('standardsubmit',{
-				params: this.getParams(start_index,end_index),
-				target: '_blank',
-				url: this.url,
-				method: 'post',
-				enctype:'multipart/form-data',
-			});
+			end_index = start_index + Math.min(strandCount,this.maxStrandCount);
+			(function(start_index, end_index, me) {
+				setTimeout(function() {
+					form.doAction('standardsubmit',{
+						params: me.getParams(start_index,end_index),
+						target: '_blank',
+						url: me.url,
+						method: 'post',
+						enctype:'multipart/form-data',
+					});					
+				}, delay)
+			})(start_index, end_index, this);
 			strandCount -= this.maxStrandCount;
 			start_index += this.maxStrandCount;
+			delay += 1000
 		} while(strandCount > 0)		
 		
 	},

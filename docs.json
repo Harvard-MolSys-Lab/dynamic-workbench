@@ -1,7 +1,7 @@
 {
 	"--":["static/client","static/common"], 
 	"--external":"Ext", 
-	"--title": "InfoMachine2 Documentation", 
+	"--title": "DyNAMiC Workbench Documentation", 
 	"--output": "static/docs",	
 	"--categories":"categories.json"
 }

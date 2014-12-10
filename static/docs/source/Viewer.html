@@ -29,6 +29,7 @@ Ext.define('App.usr.enum.Viewer', {
 </span><span id='App-usr-enum-Viewer-property-iconCls'>	iconCls: 'enum-icon',
 </span><span id='App-usr-enum-Viewer-property-fontSize'>	fontSize: 1,
 </span><span id='App-usr-enum-Viewer-property-linkWidth'>	linkWidth: 2,
+</span><span id='App-usr-enum-Viewer-property-hullLineWidth'>	hullLineWidth: 2,
 </span><span id='App-usr-enum-Viewer-property-arrowThreshold'>	arrowThreshold: 0.01,
 </span><span id='App-usr-enum-Viewer-property-highlightLinkWidth'>	highlightLinkWidth : 2,
 </span>
@@ -226,6 +227,8 @@ Ext.define('App.usr.enum.Viewer', {
 		// Build data for resting states
 		var resting_states = this.restingStates = data['resting_states'],
 			restingStateMap = this.restingStateMap = {},
+
+			// Maps complexes to their resting states
 			complexRestingStates = this.complexRestingStates = {};
 
 		// For each resting state
@@ -273,6 +276,10 @@ Ext.define('App.usr.enum.Viewer', {
 			x.slow = !x.fast;
 			x.group = complexMap[x.reactants[0]].group;
 			for(var j=0;j&lt;x.reactants.length;j++) {
+				if (!complexMap[x.reactants[j]]) {
+					console.warn(&quot;Warning: complex &quot;+x.reactants[j]+&quot; not found.&quot;);
+					continue;
+				}
 				if(complexMap[x.reactants[j]].group != x.group) {
 					x.outgoing = true;
 					x.group = null;
@@ -281,6 +288,10 @@ Ext.define('App.usr.enum.Viewer', {
 			}
 			if(!x.outgoing) {
 				for(var j=0;j&lt;x.products.length;j++) {
+					if (!complexMap[x.products[j]]) {
+						console.warn(&quot;Warning: complex &quot;+x.reactants[j]+&quot; not found.&quot;);
+						continue;
+					}
 					if(complexMap[x.products[j]].group != x.group) {
 						x.outgoing = true;
 						x.group = null;
@@ -330,6 +341,24 @@ Ext.define('App.usr.enum.Viewer', {
 				.tension(.95)
 				.interpolate(&quot;bundle&quot;);
 
+		function intersectPolygon(points, point) {
+			var min_seg_i = 0, min_seg_dist = Infinity, min_seg_point = points[0] || point;
+			for (var i = 0; i &lt; points.length; i++) {
+				var seg = [points[i], points[(i+1) % points.length]],
+					mid = { 
+						x: (seg[1].x-seg[0].x)/2 + seg[0].x , 
+						y: (seg[1].y-seg[0].y)/2 + seg[0].y 
+					},
+					dist = Math.sqrt( Math.pow(point.x - mid.x,2) + Math.pow(point.y - mid.y,2) );
+				if(dist &lt; min_seg_dist) {
+					min_seg_i = i;
+					min_seg_point = mid;
+					min_seg_dist = dist;
+				}
+			}
+			return min_seg_point;
+		}
+
 		function spline(e) {
 			// var points = e.dagre.points.slice(0);
 			// var source = dagre.util.intersectRect(e.source.dagre, points[0]);
@@ -343,8 +372,18 @@ Ext.define('App.usr.enum.Viewer', {
 				p0 = points.length == 0 ? source :  points[0],
 				p1 = points.length == 0 ? target :  points[points.length - 1];
 
-			points.unshift(dagre.util.intersectRect(source, p0));
-			points.push(dagre.util.intersectRect(target, p1));
+
+			if(source.points) {
+				points.unshift(intersectPolygon(source.points, p0));
+			} else {
+				points.unshift(dagre.util.intersectRect(source, p0));
+			}
+
+			if(target.points) {
+				points.push(intersectPolygon(target.points, p1));
+			} else {
+				points.push(dagre.util.intersectRect(target, p1));
+			}
 
 
 			// points = [source,target]
@@ -360,6 +399,27 @@ Ext.define('App.usr.enum.Viewer', {
 			return d._type == 'complex' ? 
 				Math.log(length) * 100 + 50 : dr
 		}
+
+		this.redrawView = function redrawView (translate,scale) {
+			var me = this;
+			this.allNode.selectAll('text.node-label').style('font-size',this.fontSize/scale+'em');
+			this.allNode.selectAll('.complex &gt; rect').style('stroke-width',this.linkWidth/scale);
+			this.allNode.selectAll('.reaction &gt; rect').style('stroke-width',this.linkWidth/scale).attr(&quot;width&quot;, function(d) {
+				return Math.min(1/scale*radius(d),maxReactionSize) //* (net.condensed ? condenseScale : 1);
+			})
+			.attr(&quot;height&quot;, function(d) {
+				return Math.min(1/scale*radius(d),maxReactionSize) //* (net.condensed ? condenseScale : 1);
+			});
+			
+			this.allLink.style('stroke-width',this.linkWidth/scale);
+			this.allLink.selectAll('link-reaction-reactant, link-reaction-product').style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
+			this.allLink.classed(&quot;link-reaction-noarrow&quot;, scale &lt; this.arrowThreshold)
+
+			this.hullg.selectAll('.enum-hull').style('stroke-width',this.hullLineWidth/scale);
+
+			// this.legendg.attr(&quot;transform&quot;,&quot;translate(&quot;+ [(-translate[0]),(-translate[1])] +&quot;) scale(&quot;+ Math.min(1/scale,10) +&quot;)&quot;);
+		},
+
 
 		/* -------------------------------------------------------------------
 		 * Load data, build graph data structure
@@ -380,8 +440,12 @@ Ext.define('App.usr.enum.Viewer', {
 		});
 
 		// Build links
-		var links = _.flatten(_.map(reactions, function(reaction) {
+		var links = _.compact(_.flatten(_.map(reactions, function(reaction) {
 			return _.map(reaction.reactants, function(reactant) {
+				if (!complexMap[reactant]) {
+					console.warn(&quot;Warning: complex &quot;+reactant+&quot; not found.&quot;);
+					return;
+				}
 				var l = {
 					'source' : complexMap[reactant],
 					'target' : reaction
@@ -390,6 +454,10 @@ Ext.define('App.usr.enum.Viewer', {
 				reaction.edges.push(l);
 				return l; 
 			}).concat(_.map(reaction.products, function(product) {
+				if (!complexMap[product]) {
+					console.warn(&quot;Warning: complex &quot;+product+&quot; not found.&quot;);
+					return;
+				}
 				var l = {
 					'source' : reaction,
 					'target' : complexMap[product]
@@ -398,7 +466,7 @@ Ext.define('App.usr.enum.Viewer', {
 				complexMap[product].edges.push(l);
 				return l;
 			}))
-		}), /* true to flatten only one level */true);
+		}), /* true to flatten only one level */true));
 		
 		var data = { nodes: complexMap, links: links };		
 
@@ -438,7 +506,8 @@ Ext.define('App.usr.enum.Viewer', {
 		var dr = 50,     // default point radius
 			cr = 10, 	 // default complex point radius
 			off = 50,    // cluster hull offset
-			condenseScale = 2;
+			condenseScale = 2,
+			maxReactionSize = 100;
 		var dist = 50,
 			nodePadding = 0; //5;
 		
@@ -585,30 +654,66 @@ Ext.define('App.usr.enum.Viewer', {
 			return nodeSel;
 		}
 
+		function findNearestHandle (l, x, y) {
+			var k = 0, // index of point with lowest distance
+				dist = 0,
+				di = 0;
+			for(var i=0; i&lt;l.dagre.points.length; i++) {
+				di = Math.sqrt( (l.dagre.points[i].x - x)^2 + 
+					(l.dagre.points[i].y - y)^2 )
+				if(di &lt; dist || i == 0) {
+					dist = di
+					k = i;
+				}
+			}
+			return k
+		}
+
 		function addLinkInteractions (linkSel) {
 			linkSel.call(d3.behavior.drag()
 				.origin(function(l) { 
-					var k = 0, // index of point with lowest distance
-						dist = 0;
-					for(var i=0; i&lt;l.dagre.points.length; i++) {
-						if(Math.sqrt( (l.dagre.points[i].x - d3.event.x)^2 + 
-							(l.dagre.points[i].y - d3.event.y)^2 ) &lt; dist || i == 0) {
-
-							dist = Math.sqrt( (l.dagre.points[i].x - d3.event.x)^2 + (l.dagre.points[i].y - d3.event.y)^2 )
-							k = i;
-						}
-					}
+					var k = findNearestHandle(l, d3.event.x, d3.event.y)
 					l._dragPoint = k;
 					return l.dagre.points[k]; 
 				})
-				.on(&quot;drag&quot;, dragLink));
+				.on(&quot;drag&quot;, dragLink)
+				.on(&quot;dragstart&quot;, function (l) {
+					l._dragHandles = panel.selectAll(&quot;circle.drag-handle&quot;).data(l.dagre.points).enter()
+						.append(&quot;circle&quot;).attr(&quot;class&quot;,&quot;drag-handle&quot;)
+						.attr(&quot;cx&quot;,function (p) {
+							return p.x
+						})
+						.attr(&quot;cy&quot;,function (p) {
+							return p.y
+						})
+						.attr(&quot;width&quot;,50).attr(&quot;height&quot;,50)
+						.style(&quot;fill&quot;,&quot;black&quot;)
+				})
+				.on(&quot;dragend&quot;,function (l) {
+					panel.selectAll(&quot;circle.drag-handle&quot;).data([]).exit().remove()
+				})
+				);
 			linkSel.on('mouseenter', highlightLink)
 			.on('mouseleave', unhighlightLinks)
+
+			linkSel.on('dblclick', function(l) {
+				if(d3.event.shiftKey) {
+					var k = findNearestHandle(l, d3.event.x, d3.event.y)
+					l.dagre.points.splice(k,0,{ x: d3.event.x, y: d3.event.y });
+				}
+				else if(l.dagre.points.length &gt; 0) {
+					var k = findNearestHandle(l, d3.event.x, d3.event.y)
+					l.dagre.points.splice(k,1);
+				}
+				d3.select(this).attr(&quot;d&quot;,spline)
+				d3.event.preventDefault()
+				d3.event.stopPropagation()
+			})
 		}
 
 		function addNodeInteractions (nodeSel) {
 			nodeSel.on('mouseenter', highlightMyLinks)
-			.on('mouseleave', unhighlightLinks)
+			.on('mouseleave', function() { unhighlightLinks(); unhighlightHulls(); })
 			.on('dblclick', function(d) {
 				if (d._type == 'complex') {
 					me.showComplexPreviewWindow(d,this);
@@ -617,8 +722,8 @@ Ext.define('App.usr.enum.Viewer', {
 				}
 			})
 			// .on('click', selectNode)
+			.on('mousedown',selectNode)
 			.on('click',function(d) {
-				selectNode.call(this,d)
 				if (d._type == 'complex') {
 					var el = d3.select(this).select('svg');
 					me.renderPreview(d, el.node());
@@ -631,39 +736,42 @@ Ext.define('App.usr.enum.Viewer', {
 				.on(&quot;drag&quot;, dragNode));
 		}
 
-		
+		function buildHull(d) {
+			var complexPoints = [],
+				hullPadding = 10;
+			for(var i=0; i&lt;d.complexes.length; i++) {
+				var c = me.complexMap[d.complexes[i]];
+				complexPoints = complexPoints.concat([
+					[c.dagre.x-c.dagre.width/2-hullPadding,c.dagre.y-c.dagre.height/2-hullPadding],
+					[c.dagre.x+c.dagre.width/2+hullPadding,c.dagre.y-c.dagre.height/2-hullPadding],
+					[c.dagre.x-c.dagre.width/2-hullPadding,c.dagre.y+c.dagre.height/2+hullPadding],
+					[c.dagre.x+c.dagre.width/2+hullPadding,c.dagre.y+c.dagre.height/2+hullPadding],
+				]);
+			}
+			var points = d.boundary = d3.geom.hull(complexPoints);
+			var polygon = d3.geom.polygon(d.boundary), centroid = polygon.centroid();
+			var x1 = _.min(_.pluck(points,0)), y1 = _.min(_.pluck(points,1)),
+				x2 = _.max(_.pluck(points,0)), y2 = _.max(_.pluck(points,1));
+
+			d.x = centroid[0];
+			d.y = centroid[1];
+			d.width = x2 - x1;
+			d.height = y2 - y1;
+			
+			d.dagre = {
+				x: d.x,
+				y: d.y,
+				width: d.width,
+				height: d.height,
+				points: _.map(d.boundary, function (p) { return { x: p[0], y: p[1]}; })
+			}
+
+			return d;
+		}
 
 		function buildHulls(hullg,me) {
 			me.restingStates = _.map(me.restingStates,function (d) {
-				var complexPoints = [],
-					hullPadding = 10;
-				for(var i=0; i&lt;d.complexes.length; i++) {
-					var c = me.complexMap[d.complexes[i]];
-					complexPoints = complexPoints.concat([
-						[c.dagre.x-c.dagre.width/2-hullPadding,c.dagre.y-c.dagre.height/2-hullPadding],
-						[c.dagre.x+c.dagre.width/2+hullPadding,c.dagre.y-c.dagre.height/2-hullPadding],
-						[c.dagre.x-c.dagre.width/2-hullPadding,c.dagre.y+c.dagre.height/2+hullPadding],
-						[c.dagre.x+c.dagre.width/2+hullPadding,c.dagre.y+c.dagre.height/2+hullPadding],
-					]);
-				}
-				var points = d.boundary = d3.geom.hull(complexPoints);
-				var polygon = d3.geom.polygon(d.boundary), centroid = polygon.centroid();
-				var x1 = _.min(_.pluck(points,0)), y1 = _.min(_.pluck(points,1)),
-					x2 = _.max(_.pluck(points,0)), y2 = _.max(_.pluck(points,1));
-
-				d.x = centroid[0];
-				d.y = centroid[1];
-				d.width = x2 - x1;
-				d.height = y2 - y1;
-				
-				d.dagre = {
-					x: d.x,
-					y: d.y,
-					width: d.width,
-					height: d.height
-				}
-
-				return d;
+				return buildHull(d);	
 			});
 
 			var hullSell = hullg.selectAll('path.enum-hull').data(me.restingStates)
@@ -671,7 +779,7 @@ Ext.define('App.usr.enum.Viewer', {
 
 			hullSell.exit().remove();
 			hullSell.enter().append(&quot;path&quot;)
-				.attr('class', 'enum-hull')
+				.attr('class', function(d) { return 'enum-hull enum-hull-'+d.name })
 				.attr('d',function(d) {
 					return &quot;M&quot; + d.boundary.join(&quot;L&quot;) + &quot;Z&quot;;
 				});
@@ -787,9 +895,9 @@ Ext.define('App.usr.enum.Viewer', {
 
 			// Run directed graph layout algorithm
 			dagre.layout()
-				.nodeSep(50)
-				.edgeSep(10)
-				.rankSep(50)
+				.nodeSep(150) // .nodeSep(50)
+				.edgeSep(10) // .edgeSep(10)
+				.rankSep(100) // .rankSep(50)
 				.nodes(net.nodes)
 				.edges(net.links)
 				.debugLevel(1)
@@ -801,6 +909,7 @@ Ext.define('App.usr.enum.Viewer', {
 			// Build new selection containing all nodes and links
 			me.allLink = panel.selectAll(&quot;path.link-reaction&quot;)
 			me.allNode = panel.selectAll(&quot;g.enum-node&quot;)
+			me.allHull = panel.selectAll(&quot;path.enum-hull&quot;)
 
 			// Set node positioning
 			me.allNode.attr(&quot;transform&quot;, function(d) { 
@@ -836,6 +945,25 @@ Ext.define('App.usr.enum.Viewer', {
 		 * Interactivity
 		 */
 
+
+		function highlightHulls (selection) {
+			selection.each(function (d) {
+				var hull = me.complexRestingStates[d.name];
+				if(hull) {
+					highlightHull(hull)
+				}
+			})	
+		}
+
+		function highlightHull (name) {
+			panel.selectAll('path.enum-hull').classed('hull-blurred',true)
+			panel.selectAll('path.enum-hull-'+name).classed('hull-blurred',false)
+		}
+
+		function unhighlightHulls () {
+			panel.selectAll('path.enum-hull').classed('hull-blurred',false)
+		}
+
         function highlightLink(d) {
         	d3.select(this).classed(&quot;link-reaction-highlight&quot;,true).style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
 
@@ -849,6 +977,7 @@ Ext.define('App.usr.enum.Viewer', {
         function highlightMyLinks(d) {
         	unhighlightLinks()
         	highlightLinks(d3.select(this))
+        	highlightHulls(d3.select(this))
         }
 
 		function highlightLinks(selection) {
@@ -954,13 +1083,43 @@ Ext.define('App.usr.enum.Viewer', {
 		}
 
 		function dragNode(d) {
-			d.x = d.dagre.x = d3.event.x, 
-			d.y = d.dagre.y = d3.event.y;
-			d3.select(this).attr(&quot;transform&quot;,'translate('+ (d.dagre.x - d.dagre.width/2) +','+ (d.dagre.y - d.dagre.height/2) +')');
-			me.allLink.filter(function(l) { return l.source === d; }).each(updateLink).attr(&quot;d&quot;,spline)
-			me.allLink.filter(function(l) { return l.target === d; }).each(updateLink).attr(&quot;d&quot;,spline);
-		}
+			var dx = d3.event.x-d.dagre.x,
+				dy = d3.event.y-d.dagre.y;
 
+			if(!this.id) this.id = Ext.id()
+
+			panel.selectAll(&quot;.enum-selected,#&quot;+this.id).each(function (d) {
+				d.x = d.dagre.x = d.dagre.x+dx, 
+				d.y = d.dagre.y = d.dagre.y+dy;
+
+				function updateFirstPoint(l) {
+					if(l.dagre.points.length &gt; 0) {
+						l.dagre.points[0].x += dx
+						l.dagre.points[0].y += dy
+					}
+				}
+
+				function updateLastPoint(l) {
+					if(l.dagre.points.length &gt; 1) {
+						l.dagre.points[l.dagre.points.length-1].x += dx
+						l.dagre.points[l.dagre.points.length-1].y += dy
+					}
+				}
+
+				d3.select(this).attr(&quot;transform&quot;,'translate('+ (d.dagre.x - d.dagre.width/2) +','+ (d.dagre.y - d.dagre.height/2) +')');
+				me.allLink.filter(function(l) { return l.source === d; }).each(updateFirstPoint).attr(&quot;d&quot;,spline)
+				me.allLink.filter(function(l) { return l.target === d; }).each(updateLastPoint).attr(&quot;d&quot;,spline);
+				me.allHull.filter(function(h) { return me.complexRestingStates[d.name] == h.name }).each(updateHull)
+					.each(function (h) {
+						me.allLink.filter(function(l) { return l.source === h; }).each(updateFirstPoint).attr(&quot;d&quot;,spline)
+						me.allLink.filter(function(l) { return l.target === h; }).each(updateLastPoint).attr(&quot;d&quot;,spline);
+					})
+					.attr('d',function(d) {
+						return &quot;M&quot; + d.boundary.join(&quot;L&quot;) + &quot;Z&quot;;
+					});
+			})
+
+		}
 
 		function dragLink(l) {
 			if(l.dagre.points.length &gt; 0) {
@@ -970,23 +1129,18 @@ Ext.define('App.usr.enum.Viewer', {
 			d3.select(this).attr(&quot;d&quot;,spline(l))
 		}
 
+		function updateHull(d) {
+			d = buildHull(d);
+		}
+
 		function updateLink(l) {
 
 		}
 	},
-	
-<span id='App-usr-enum-Viewer-method-redraw'>	redraw: function (translate,scale) {
-</span>		var me = this;
-		this.currentScale = scale;
+<span id='App-usr-enum-Viewer-method-redraw'>	redraw: function  (translate,scale) {
+</span>		this.currentScale = scale;
 		this.callParent(arguments);
-		this.allNode.selectAll('text.node-label').style('font-size',this.fontSize/scale+'em');
-		this.allNode.selectAll('.complex &gt; rect').style('stroke-width',this.linkWidth/scale);
-		this.allNode.selectAll('.reaction &gt; rect').style('stroke-width',this.linkWidth/scale);
-		
-		this.allLink.style('stroke-width',this.linkWidth/scale);
-		this.allLink.selectAll('link-reaction-reactant, link-reaction-product').style('stroke-width',me.highlightLinkWidth * me.linkWidth/me.currentScale)
-		this.allLink.classed(&quot;link-reaction-noarrow&quot;, scale &lt; this.arrowThreshold)
-		// this.legendg.attr(&quot;transform&quot;,&quot;translate(&quot;+ [(-translate[0]),(-translate[1])] +&quot;) scale(&quot;+ Math.min(1/scale,10) +&quot;)&quot;);
+		this.redrawView(translate, scale)
 	},
 <span id='App-usr-enum-Viewer-method-viewDetails'>	viewDetails: function() {
 </span>		var elements = this.getSelection(), data = !!elements ? elements.data() : [];
@@ -1213,6 +1367,7 @@ Ext.define('App.usr.enum.Viewer', {
 				});
 			}
 			this.reactionWindows[d.name].show()
+
 			this.reactionPanels[d.name].setValue(d,reactants,products)
 			this.reactionPanels[d.name].setTitle(this.getReactionDetails(d));
 		}
@@ -1376,7 +1531,7 @@ Ext.define('App.usr.enum.ReactionViewer', {
 		this.reactant1 = Ext.create('App.ui.StrandPreview',{
 			cls : 'simple-header',
 			title : ' ',
-			autoRender : true,
+			// autoRender : true,
 			value : '',
 			adjacencyMode: 2,
 			flex: 1,
@@ -1389,7 +1544,7 @@ Ext.define('App.usr.enum.ReactionViewer', {
 		this.reactant2 = Ext.create('App.ui.StrandPreview',{
 			cls : 'simple-header',
 			title : ' ',
-			autoRender : true,
+			// autoRender : true,
 			value : '',
 			adjacencyMode: 2,
 			flex: 1,
@@ -1397,6 +1552,8 @@ Ext.define('App.usr.enum.ReactionViewer', {
 			viewOptions: this.viewOptions,
 			segmentColors: this.segmentColors,
 			strandColors: this.strandColors,
+			// hideMode: 'display',
+			hidden: true,
 		});
 
 		this.reaction_arrow = Ext.create('App.ui.ArrowPanel');
@@ -1404,7 +1561,7 @@ Ext.define('App.usr.enum.ReactionViewer', {
 		this.product1 = Ext.create('App.ui.StrandPreview',{
 			cls : 'simple-header',
 			title : ' ',
-			autoRender : true,
+			// autoRender : true,
 			value : '',
 			adjacencyMode: 2,
 			flex: 1,
@@ -1417,7 +1574,7 @@ Ext.define('App.usr.enum.ReactionViewer', {
 		this.product2 = Ext.create('App.ui.StrandPreview',{
 			cls : 'simple-header',
 			title : ' ',
-			autoRender : true,
+			// autoRender : true,
 			value : '',
 			adjacencyMode: 2,
 			flex: 1,
@@ -1425,6 +1582,8 @@ Ext.define('App.usr.enum.ReactionViewer', {
 			viewOptions: this.viewOptions,
 			segmentColors: this.segmentColors,
 			strandColors: this.strandColors,
+			hidden:true,
+			// hideMode: 'display',
 		})
 
 		Ext.apply(this,{

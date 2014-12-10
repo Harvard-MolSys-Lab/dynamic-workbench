@@ -93,8 +93,9 @@ Ext.apply(App, {
 Ext.apply(App, (function() {
 	var msgCt;
 
-	function createBox(t, s) {
-		return '&lt;div class=&quot;msg&quot;&gt;&lt;h3&gt;' + (t || '') + '&lt;/h3&gt;&lt;p&gt;' + (s || '') + '&lt;/p&gt;&lt;/div&gt;';
+	function createBox(t, s, c) {
+		c || (c = '')
+		return '&lt;div class=&quot;msg ' + c + '&quot;&gt;&lt;h3&gt;' + (t || '') + '&lt;/h3&gt;&lt;p&gt;' + (s || '') + '&lt;/p&gt;&lt;/div&gt;';
 	}
 
 	return {
@@ -136,6 +137,7 @@ Ext.apply(App, (function() {
 			_.defaults(options, {
 				delay : 3000,
 				scope : window,
+				cls: ''
 			});
 			
 			// Prepare message container
@@ -161,7 +163,7 @@ Ext.apply(App, (function() {
 			}
 			
 			// Insert message element
-			var m = Ext.core.DomHelper.append(msgCt, createBox(title, s), true);
+			var m = Ext.core.DomHelper.append(msgCt, createBox(title, s, options.cls), true);
 			if(options.handler) {
 				if(options.handler == 'console') {
 					m.on('click',App.ui.Launcher.showConsole,App.ui.Launcher);

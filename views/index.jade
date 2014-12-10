@@ -9,6 +9,7 @@ html(lang="en")
       link(rel="stylesheet",href=sheet)
     
     //- - env = 'production'
+    meta(name="environment",content=env)
     if env == 'production'
       script(type="text/javascript", src="all.js")
     else

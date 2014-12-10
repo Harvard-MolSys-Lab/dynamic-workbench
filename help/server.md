@@ -8,7 +8,10 @@ Workbench server is the part of the Workbench suite which is responsible for man
 
 -	Hosted installation - Workbench server is intended to be installed on a cluster computing platform and made available via the web. In this case, you need only interact with the web-based Workbench client interface. You'll just need an invitation code from whoever runs the server, and you'll be able to create an 
 	account and begin using Workbench. The only hosted installation currently available is at provided by the [Molecular Systems lab at Harvard](http://www.molecular-systems.net/workbench).
+
 -	Local installation (hosting your own server) - For testing purposes, you may wish to host your own Workbench server. This requires a bit more effort, but you have full control over the entire system. See below for details about how to set up your own server.
+
+**Note:** You only need to read this chapter if you're interested in setting up your own local installation. If you're accessing Workbench from a hosted installation (such as from [http://www.molecular-systems.net/workbench]), you can skip this section.
 
 Server Tools
 ------------
@@ -18,16 +21,20 @@ Workbench ships with several server tools installed. For details, see [Server to
 Hosting your own server
 -----------------------
 
-If you are reading this documentation, you've likely already obtained a copy of Workbench from the [Molecular Systems Lab](http://www.molecular-systems.net). Because of the number of external dependencies that the Workbench server has, and the relative difficulty in setting them up, Workbench server is deployed as a [VirtualBox](http://www.virtualbox.org/) appliance. VirtualBox is a free virtualization platform provided by Oracle. This means Workbench will run as a Virtual Machine, with its own isolated operating system, file system, process management, etc. Therefore, you only need to install the virtual machine, and you have access to all of the relevant [server tools](server-tools) (such as NUPACK, SpuriousDesign, the Nodal and Pepper compilers, etc.) without needing to configure them individually. This setup has the added benefit that if Workbench or one of its server tools crashes, it won't affect your host machine. 
+If you are reading this documentation, you've likely already obtained a copy of Workbench from the [Molecular Systems Lab](http://www.molecular-systems.net). Because of the number of external dependencies that the Workbench server has, and the relative difficulty in setting them up, Workbench server is deployed as a [VirtualBox](http://www.virtualbox.org/) appliance, managed with [Vagrant](https://www.vagrantup.com/). VirtualBox is a free virtualization platform provided by Oracle, and Vagrant is a tool for easily configuring virtual machines. This means Workbench will run as a Virtual Machine, with its own isolated operating system, file system, process management, etc. You just need to install the virtual machine, and you'll have access to all of the relevant [server tools](server-tools) (such as NUPACK, SpuriousDesign, the Nodal and Pepper compilers, etc.) without needing to configure them individually. This setup has the added benefit that if Workbench or one of its server tools crashes, it won't affect your host machine. 
 
 It's important to understand how this setup works: The Workbench server virtual machine will run (using VirtualBox) on your computer (which is called the "host" in this circumstance); it contains a separate operating system (the "guest" operating system, which in this case is a version of Ubuntu linux), and a lot of software, including a web server and the server tools. All of this software which will run within the virtual machine, sharing your processor and memory, but essentially isolated from your computer. There are two special communication channels between the virtual machine and the host:
 
 -	Shared folders: this VirtualBox feature allows folders on the host to be mirrored in the guest, and vice-versa. This lets you to access your files stored on Workbench from within your normal operating system file manager (e.g. Finder, Nautilus, Windows Explorer). 
--	Host-to-guest network: this creates a special network only between the host and guest. This means that the virtual machine will not be visible to the internet at 	large, but it will be able to connect only to the host (for instance to expose the Workbench web server).
+-	Host-to-guest network: this creates a special network only between the host and guest. This means that the virtual machine will not be visible to the internet at large, but it will be able to connect only to the host (for instance to expose the Workbench web server).
 
 ### Running the server
 
-As part of the [installation](install) process, you'll install a copy of the pre-packaged Workbench Server virtual machine on your computer. You'll be able to launch the virtual machine (VM) directly from the VirtualBox desktop application, or using the Workbench Server manager on Mac OS X. 
+As part of the [installation](install) process, you'll install a copy of the pre-packaged Workbench Server virtual machine on your computer. You'll be able to launch the virtual machine (VM) directly from the command line; simply change to the directory where Workbench is installed, then run
+
+	vagrant up
+
+This will install and setup the server (if not done already), then boot the server. If you've previously halted the server, you can also restart it with `vagrant up`.
 
 The actual server component is configured to launch automatically when the appliance starts. That means if you just use the Workbench interface, all you need to do is launch the appliance and point your browser 
 
@@ -37,10 +44,10 @@ However, if you want to tweak the server beyond what's described in the [customi
 
 To log in to the server, you use a serparate set of user credentials (different from the username and password that you use to log into your host machine, or that you use to log in to the Workbench client interface on the web). These credentials are preset when you download Workbench, although you're encouraged to change them.
 
-The predefined credentials are:
-	
-	Username: 'webserver-user'
-	Password: ' '
+There are two pre-defined user accounts:
+
+- `vagrant` (password: '`vagrant`') -- this is a privileged account which can execute commands with `sudo`
+- `webserver-user` (password: '` `'; a single space) -- this is an unprivileged account which is used to run the server process.
 
 (single quotes are not part of the username or password; the password is a singe space: `' '`). 
 
@@ -48,15 +55,21 @@ The recommended method for logging in to the virtual machine is via [SSH](http:/
 
 To connect to the server via SSH:
 
--	On Mac OS X or Linux, open a Terminal, and enter the following command: `ssh webserver-user@192.168.56.10`. You will be prompted to enter `webserver-user@192.168.56.10's password:`; enter the password. 
+- On Mac OS X or Linux, open a Terminal, and enter the following command:
+	- For `webserver-user`: `ssh webserver-user@192.168.56.10`. You will be prompted to enter `webserver-user@192.168.56.10's password:`; enter the password. 
+	- For `vagrant`: change to the directory where Workbench is installed, and enter `vagrant ssh`. You won't need to enter a password
 
--	On Windows: you'll need to download an SSH client, such as [PuTTY](http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html). Open your SSH client, and 
-	login using credentials like this:
+- On Windows: you'll need to download an SSH client called `ssh.exe`, which must be in your `%PATH`; [`git`](http://git-scm.com/download/) comes with one, which you just need to add it to the `%PATH%` environment variable. You can also use a graphical SSH client such as [PuTTY](http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html), but you'll need to [configure it for use with Vagrant](http://stackoverflow.com/questions/9885108/ssh-to-vagrant-box-in-windows). Open your SSH client, and login using credentials like this:
 	
+	- For `webserver-user`: 
+
 		host: 192.168.56.10
 		port: 22
 		user: (see above)
 		password: (see above)
+
+	- For `vagrant`: use `vagrant ssh`.
+
 
 ### Using the web interface
 
@@ -68,7 +81,7 @@ See [documentation](index) for the web interface.
 
 Once you've logged in to the server with SSH, if you're comfortable, you can play around with shell accesss to the server.
 
-The actual server process is described in a shell script: `~/startup`, which you can look at if you curious. This script starts the [Node JS web server](http://www.nodejs.org/) and the [Mongo database](http://www.mongodb.org/) processes, which do the heavy lifting of running the server. When `startup` is killed, it intelligently kills both processes.
+The actual server process is described in a shell script: `/home/webserver-user/startup`, which you can look at if you curious. This script starts the [Node JS web server](http://www.nodejs.org/) process, which does the heavy lifting of running the server. 
 
 `startup` is in turn controlled by an [Upstart](http://upstart.ubuntu.com/) script, located in `/etc/init/workbench.conf`. The upstart script makes sure that the server gets launched on startup, killed on shutdown, and restarted if it crashes. You can control the server using Upstart commands:
 
@@ -82,21 +95,58 @@ One other shell script is provided for your convenientce: `~/repair`: Occasional
 	sh ~/repair
 	sudo start workbench 
 
-Note: sudo is required because administering Upstart processes requires administrator privileges. However, `~/startup` is actually run as `webserver-user`. `webserver-user` is currently on the sudoers list, but the plan is to eventually create a separate user account for administration and return `webserver-user` to limited privileges again.
+Note: `sudo` is required because administering Upstart processes requires administrator privileges. However, `startup` is run as `webserver-user` when launched via Upstart. `webserver-user` is _not_ on the `sudoers` list. 
 
 ### Shutting down the server
 
 To shut down the server and avoid damaging the database, simply shut down the virtual machine by:
 
-*	Closing its application window (titled "VirtualBox VM" or some such thing), and selecting "Send the shutdown signal", or:
-*	Entering: `VBoxManage controlvm 'DyNAMiC Workbench Server (0.3.0)' acpipowerbutton` on the command line in your host operating system (not the VM or ssh), or
-* 	Entering `sudo shutdown 0` on the command line in the VM
+*	Entering `vagrant suspend` from the command line in your host machine (in the same directory as Workbench is installed); rather than shutting down the virtual machine, this will simply pause its execution. 
+*	Entering `vagrant halt` from the command line in your host machine (in the same directory as Workbench is installed)
 
-### Server Manager Application
+### Managing users
 
-On Mac OS X, a more intuitive application has been provided to automate some of these tasks; you can launch it by opening the 'Workbench Server' application in your Applications folder. You'll still need to use SSH to fix something if it breaks (to repair the database, for instance). However, you can start and stop the virtual machine safely by using the "Start" and "Stop" buttons, and you can do other convenient things like open the client interface in a web browser.
+You can manage users by visiting the [/admin](/admin) page from within Workbench; if your current account is an administrator, you will see a list of all users in the database. You can edit users' names, affiliations, and email addresses, you can activate or deactivate accounts, and you can make users administrators.
 
-To start the server from the Server Manager application:
+When you first install the Workbench server, however, the first account you make will not have administrator privileges and so you will have no other way of activating/managing user accounts. To remedy this, Workbench includes a simple command-line tool that you can use to manage user accounts. To access it:
 
--	Click 'Start' from the server control window. You will see a VirtualBox window open, displaying the screen for  your Virtual Machine. Wait until you see a command prompting you to log in. 
--	You can choose to log in and interact with the server (as described above), or you can just go directly to the [web interface](http://192.168.56.10:3000/). 
+*	Sign into the server via `ssh` (e.g. using `vagrant ssh`)
+*	Navigate to `/home/webserver-user/app` (you must be in this folder)
+*	Run `meta/utils/users --help` to see a list of options and usage information.
+
+For example, if you've made a user with the email address `example@example.com` and you'd like to make that user an administrator, you can run:
+
+	meta/utils/users edit example@example.com --admin
+
+You can also do things like list all registered users, export users to a JSON file, import user data from a JSON file, and edit other properties of user (including resetting their passwords). Run `meta/utils/users --help` for a full list.
+
+### Troubleshooting
+
+#### Can't access login page
+
+When you navigate to Workbench in a browser and the login page does not load, this likely suggests the server is not running. Use the following steps:
+
+1. Check that the VM is running by running `vagrant status`; if the result indicates the the `default` VM is `saved` or `halted`, then resume the VM using `vagrant up` and try again.
+2. Check that the Workbench server is running; `ssh` into the VM (run `vagrant ssh`), then run `sudo status workbench`. If you see `workbench stop/waiting`, then the server is not running; try re-starting it using `sudo start workbench`.
+3. If you instead see something like `workbench start/running, process 15445` (the number will be different), then the server _is_ running. However, the server is configured to restart itself if its process crashes; this is generally rare, but an incorrect configuration may cause it to happen repeatedly, making the server unresponsive. You can check that this might be happening by running `sudo status workbench` twice in a row (e.g. `sudo status workbench; sudo status workbench`), and checking whether the process numbers are different. For instance, if you see
+
+		sudo status workbench; sudo status workbench
+		workbench start/running, process 15445
+		workbench start/running, process 15447
+
+	this suggests that Workbench is restarting repeatedly. You'll need to check the log files to see why this might be.
+4. To access the log files, you can look in `home/webserver-user/logs` (from within the VM), or on your host machine in the `logs` folder (which will be a sister to the main Workbench install directory). There are two main log files:
+
+	- `startup.log` -- This file contains everything written to `stdout` and `stderr` by the Workbench startup script; look here if Workbench has crashed or is crashing repeatedly.
+	- `full.log` -- This file contains application errors written by the Workbench application code; check here if Workbench is refusing to run a particular computational tool, load a file, etc. 
+
+5. If it's not clear how to resolve the issue from here, post an issue on GitHub.
+
+#### Login progress bar goes forever
+
+If you can get to the login page and enter credentials, but when you login the progress bar keeps resetting itself, this suggests the user database is not running properly. To troubleshoot:
+
+1. Check if the database server is running; `ssh` into the VM (run `vagrant ssh`), then run `sudo status mongod`. You should see `mongod start/running, process 854` (the number may be different).
+2. Try repairing the database; run `sudo /home/webserver-user/repair`, then restart Workbench (`sudo stop workbench; sudo start workbench`) and try logging in again.
+3. Check the database log file in `/var/log/mongodb/mongod.log` (e.g. `less /var/log/mongodb/mongod.log`), and look for clues as to what may be going wrong. 
+4. If it's still not clear how to resolve the issue from here, post an issue on GitHub.

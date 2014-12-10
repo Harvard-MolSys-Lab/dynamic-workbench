@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='App-ui-ConvertButton'>/**
+</span> * Allows conversion of files in various formats
+ */
+Ext.define('App.ui.ConvertButton', {
+	extend: 'Ext.button.Split',
+<span id='App-ui-ConvertButton-property-text'>	text: 'Convert',
+</span><span id='App-ui-ConvertButton-property-iconCls'>	iconCls: 'dil',
+</span><span id='App-ui-ConvertButton-property-fromMode'>	fromMode: 'pil',
+</span><span id='App-ui-ConvertButton-property-defaultToMode'>	defaultToMode: 'dil',
+</span><span id='App-ui-ConvertButton-method-initComponent'>	initComponent: function() {
+</span>		
+		Ext.apply(this,{
+			handler: this.makeConvertHandler(this.defaultToMode),
+			scope: this,
+
+			menu: [{
+				text: 'DIL',
+				handler: this.makeConvertHandler('dil'),
+				iconCls: 'dil',
+				scope: this,
+			},{
+				text: 'PIL',
+				handler: this.makeConvertHandler('pil'),
+				iconCls: 'pil',
+				scope: this,
+			}]
+		});
+		
+		this.callParent(arguments);
+	},
+<span id='App-ui-ConvertButton-method-makeConvertHandler'>	makeConvertHandler: function(mode) {
+</span>		return function() {
+			this.runConverter(mode);
+		}
+	},
+<span id='App-ui-ConvertButton-method-runConverter'>	runConverter: function(mode) {
+</span>		var node = this.app.doc.getDocumentPath(),
+			resNode = App.path.addExt(App.path.removeExt(node),mode);
+
+		App.runTask('Converter', {
+			node: this.app.getDocumentPath(),
+			to: mode,
+			from: this.fromMode,
+
+		},function(text, args, success) {
+			if(success) 
+				Ext.msg('Converter','Conversion completed.');
+			else
+				Ext.msg('Converter','Conversion failed. Click for details.',{handler: 'console', cls:'error'});
+
+		},this,{
+			openOnEnd: [resNode]
+		});
+		Ext.msg('Converter','Conversion started.');
+	},
+})</pre>
+</body>
+</html>

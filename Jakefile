@@ -1,4 +1,9 @@
-var minify = require('jake-uglify').minify, _ = require('underscore'), fs = require('fs'), path = require('path'), manifest = require('./server/manifest'), version = require('./server/version');
+var minify = require('jake-uglify').minify, 
+_ = require('underscore'), 
+fs = require('fs'), 
+path = require('path'), 
+manifest = require('./server/manifest'), 
+version = require('./server/version');
 
 /**
  * Collects client-side files
@@ -34,11 +39,4 @@ console.log(collection)
 desc('Default task to build client-side scripts')
 task({'default':['./static/all.js']});
 
-
-minify({'./static/all.js':collect()},function() {
-	console.log('finally');
-})
-
-// {
-	// header : "/* DyNAMiC Workbench " + version + " - (c) 2011 Casey Grun, Molecular Systems Lab, Harvard University */"
-// }
+minify({ './static/all.js' : collection });

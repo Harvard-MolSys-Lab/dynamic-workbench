@@ -14,7 +14,6 @@ fileTypes = require('./file-types'), //
 fs = require('fs'), //
 path = require('path'), //
 _ = require('underscore'),
-form = require('connect-form'), 
 async = require('async'), //
 rm = require("./rm-rf"), //
 winston = require('winston');

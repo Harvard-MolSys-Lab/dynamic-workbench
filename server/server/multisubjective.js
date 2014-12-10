@@ -14,6 +14,7 @@ var sendError = utils.sendError,
 	forbidden = utils.forbidden,
 	allowedPath = utils.allowedPath,
 	getCommand = utils.getCommand,
+	escapeShell = utils.escapeShell,
 	prefix = utils.prefix,
 	quote = utils.quote,
 	postfix = utils.postfix,
@@ -146,7 +147,9 @@ exports.start = function(req, res, params) {
 			if (text) {
 				copyFile(fullPath, postfix(fullPath,'bak'), function(err) {
 					if (err) {
-						utils.log("error", "Error writing file.", {
+						utils.log({
+							level: "error", 
+							message: "Error writing file.", 
 							fullPath: fullPath,
 							err: err,
 						});
@@ -154,7 +157,9 @@ exports.start = function(req, res, params) {
 					} else {
 						fs.writeFile(fullPath, text, 'utf8', function(err) {
 							if (err) {
-								utils.log("error", "Error writing file.", {
+								utils.log({ 
+									level: "error", 
+									message: "Error writing file.",
 									fullPath: fullPath,
 									err: err,
 								});
@@ -170,7 +175,7 @@ exports.start = function(req, res, params) {
 			}
 
 			function runMS() {
-				cmd = getCommand(commands['ms'], ['-m', mode, '-d', working_dir, '-i', infile, '-o', pre, '-w']);
+				cmd = getCommand(commands['ms'], ['-m', escapeShell(mode), '-d', escapeShell(working_dir), '-i', escapeShell(infile), '-o', escapeShell(pre), '-w']);
 
 				var env = {
 					"NUPACKHOME": utils.toolPath("nupack3"),
@@ -195,8 +200,9 @@ exports.start = function(req, res, params) {
 					}
 
 					if (code != 0) {
-						utils.log("error", "Multisubjective returned non-zero exit code. ", {
-							level: "Warning",
+						utils.log({
+							level: "error", 
+							message: "Multisubjective returned non-zero exit code. ",
 							source: "ms",
 							cmd: cmd,
 							stderr: stderr,
